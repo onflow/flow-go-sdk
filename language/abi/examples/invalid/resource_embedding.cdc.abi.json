@@ -1,0 +1,16 @@
+{
+  "definitions": {
+    "AStruct": {
+      "struct": {
+        "fields": [
+          {
+            "name": "illegal_resource",
+            "type": {
+              "resource": "AResource"
+            }
+          }
+        ]
+      }
+    }
+  }
+}
