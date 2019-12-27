@@ -3,7 +3,7 @@ package transactions
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/dapperlabs/flow-go/cli/flow/transactions/send"
+	"github.com/dapperlabs/flow-go-sdk/cli/flow/transactions/send"
 )
 
 var Cmd = &cobra.Command{

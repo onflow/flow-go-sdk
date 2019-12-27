@@ -9,8 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/xeipuuv/gojsonschema"
-
-	"github.com/dapperlabs/flow-go/language/runtime/cmd/abi"
 )
 
 func TestExamples(t *testing.T) {
@@ -27,7 +25,7 @@ func TestExamples(t *testing.T) {
 				assetBytes, err := Asset(assetName)
 				require.NoError(t, err)
 
-				generatedAbi := abi.GetABIJSONFromCadenceCode(string(assetBytes), false, assetName)
+				generatedAbi := GetABIJSONFromCadenceCode(string(assetBytes), false, assetName)
 
 				options := jsondiff.DefaultConsoleOptions()
 				diff, s := jsondiff.Compare(generatedAbi, abiAsset, &options)

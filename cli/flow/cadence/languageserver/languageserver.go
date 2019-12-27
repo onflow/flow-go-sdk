@@ -3,7 +3,7 @@ package languageserver
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/dapperlabs/flow-go/language/tools/language-server/server"
+	"github.com/dapperlabs/flow-go-sdk/language/languageserver/server"
 )
 
 var Cmd = &cobra.Command{

@@ -1,12 +1,12 @@
 package cadence
 
 import (
+	"github.com/dapperlabs/flow-go/language/runtime/cmd/execute"
 	"github.com/spf13/cobra"
 
-	"github.com/dapperlabs/flow-go/cli/flow/cadence/abi"
-	"github.com/dapperlabs/flow-go/cli/flow/cadence/languageserver"
-	"github.com/dapperlabs/flow-go/cli/flow/cadence/vscode"
-	"github.com/dapperlabs/flow-go/language/runtime/cmd/execute"
+	"github.com/dapperlabs/flow-go-sdk/cli/flow/cadence/abi"
+	"github.com/dapperlabs/flow-go-sdk/cli/flow/cadence/languageserver"
+	"github.com/dapperlabs/flow-go-sdk/cli/flow/cadence/vscode"
 )
 
 var Cmd = &cobra.Command{

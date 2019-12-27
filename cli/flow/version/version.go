@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/dapperlabs/flow-go/build"
+	"github.com/dapperlabs/flow-go-sdk/utils/build"
 )
 
 var Cmd = &cobra.Command{

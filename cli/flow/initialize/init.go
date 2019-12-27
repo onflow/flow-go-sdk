@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/dapperlabs/flow-go/crypto"
 	"github.com/psiemens/sconfig"
 	"github.com/spf13/cobra"
 
-	"github.com/dapperlabs/flow-go/cli"
-	"github.com/dapperlabs/flow-go/crypto"
-	"github.com/dapperlabs/flow-go/model/flow"
-	"github.com/dapperlabs/flow-go/sdk/keys"
+	"github.com/dapperlabs/flow-go-sdk"
+	"github.com/dapperlabs/flow-go-sdk/cli"
+	"github.com/dapperlabs/flow-go-sdk/keys"
 )
 
 type Config struct {

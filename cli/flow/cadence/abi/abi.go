@@ -6,8 +6,8 @@ import (
 	"github.com/psiemens/sconfig"
 	"github.com/spf13/cobra"
 
-	"github.com/dapperlabs/flow-go/cli"
-	"github.com/dapperlabs/flow-go/language/runtime/cmd/abi"
+	"github.com/dapperlabs/flow-go-sdk/cli"
+	"github.com/dapperlabs/flow-go-sdk/language/abi"
 )
 
 type Config struct {

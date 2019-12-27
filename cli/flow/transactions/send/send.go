@@ -8,10 +8,10 @@ import (
 	"github.com/psiemens/sconfig"
 	"github.com/spf13/cobra"
 
-	"github.com/dapperlabs/flow-go/cli"
-	"github.com/dapperlabs/flow-go/model/flow"
-	"github.com/dapperlabs/flow-go/sdk/client"
-	"github.com/dapperlabs/flow-go/sdk/keys"
+	"github.com/dapperlabs/flow-go-sdk"
+	"github.com/dapperlabs/flow-go-sdk/cli"
+	"github.com/dapperlabs/flow-go-sdk/client"
+	"github.com/dapperlabs/flow-go-sdk/keys"
 )
 
 type Config struct {
@@ -43,13 +43,13 @@ var Cmd = &cobra.Command{
 			}
 		}
 
-		tx := flow.Transaction{TransactionBody: flow.TransactionBody{
+		tx := flow.Transaction{
 			Script:         code,
 			Nonce:          conf.Nonce,
 			ComputeLimit:   10,
 			PayerAccount:   signer.Address,
 			ScriptAccounts: []flow.Address{signer.Address},
-		}}
+		}
 
 		sig, err := keys.SignTransaction(tx, signer.PrivateKey)
 		if err != nil {

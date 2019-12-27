@@ -8,11 +8,11 @@ import (
 	"github.com/psiemens/sconfig"
 	"github.com/spf13/cobra"
 
-	"github.com/dapperlabs/flow-go/cli"
-	"github.com/dapperlabs/flow-go/model/flow"
-	"github.com/dapperlabs/flow-go/sdk/client"
-	"github.com/dapperlabs/flow-go/sdk/keys"
-	"github.com/dapperlabs/flow-go/sdk/templates"
+	"github.com/dapperlabs/flow-go-sdk"
+	"github.com/dapperlabs/flow-go-sdk/cli"
+	"github.com/dapperlabs/flow-go-sdk/client"
+	"github.com/dapperlabs/flow-go-sdk/keys"
+	"github.com/dapperlabs/flow-go-sdk/templates"
 )
 
 type Config struct {
@@ -56,12 +56,12 @@ var Cmd = &cobra.Command{
 			cli.Exit(1, "Failed to generate transaction script")
 		}
 
-		tx := flow.Transaction{TransactionBody: flow.TransactionBody{
+		tx := flow.Transaction{
 			Script:       script,
 			Nonce:        1,
 			ComputeLimit: 10,
 			PayerAccount: signer.Address,
-		}}
+		}
 
 		sig, err := keys.SignTransaction(tx, signer.PrivateKey)
 		if err != nil {

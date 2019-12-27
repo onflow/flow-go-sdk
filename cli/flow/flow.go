@@ -2,16 +2,16 @@
 package flow
 
 import (
-	"github.com/dapperlabs/flow-go/cli/flow/version"
 	"github.com/spf13/cobra"
 
-	"github.com/dapperlabs/flow-go/cli"
-	"github.com/dapperlabs/flow-go/cli/flow/accounts"
-	"github.com/dapperlabs/flow-go/cli/flow/cadence"
-	"github.com/dapperlabs/flow-go/cli/flow/emulator"
-	"github.com/dapperlabs/flow-go/cli/flow/initialize"
-	"github.com/dapperlabs/flow-go/cli/flow/keys"
-	"github.com/dapperlabs/flow-go/cli/flow/transactions"
+	"github.com/dapperlabs/flow-go-sdk/cli"
+	"github.com/dapperlabs/flow-go-sdk/cli/flow/accounts"
+	"github.com/dapperlabs/flow-go-sdk/cli/flow/cadence"
+	"github.com/dapperlabs/flow-go-sdk/cli/flow/emulator"
+	"github.com/dapperlabs/flow-go-sdk/cli/flow/initialize"
+	"github.com/dapperlabs/flow-go-sdk/cli/flow/keys"
+	"github.com/dapperlabs/flow-go-sdk/cli/flow/transactions"
+	"github.com/dapperlabs/flow-go-sdk/cli/flow/version"
 )
 
 var cmd = &cobra.Command{

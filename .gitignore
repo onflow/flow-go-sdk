@@ -1,5 +1,3 @@
-/cmd/consensus/data/
-/cmd/consensus/consensus
 /cmd/flow/flow
 
 # Test binary, build with `go test -c`
@@ -26,5 +24,3 @@ flowdb
 .idea
 .vscode
 git
-language/tools/vscode-extension/cadence-*.vsix
-language/tools/vscode-extension/out/*

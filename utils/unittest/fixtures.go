@@ -1,13 +1,12 @@
 package unittest
 
 import (
-	"crypto/rand"
 	"encoding/hex"
-	"fmt"
 
 	"github.com/dapperlabs/flow-go/crypto"
-	"github.com/dapperlabs/flow-go/model/flow"
-	"github.com/dapperlabs/flow-go/sdk/keys"
+
+	"github.com/dapperlabs/flow-go-sdk"
+	"github.com/dapperlabs/flow-go-sdk/keys"
 )
 
 const PublicKeyFixtureCount = 2
@@ -40,14 +39,6 @@ func AccountSignatureFixture() flow.AccountSignature {
 	}
 }
 
-func BlockFixture() flow.Block {
-	return flow.Block{
-		Header:                BlockHeaderFixture(),
-		NewIdentities:         IdentityListFixture(32),
-		GuaranteedCollections: nil,
-	}
-}
-
 func BlockHeaderFixture() flow.Header {
 	return flow.Header{
 		Parent: crypto.Hash("parent"),
@@ -56,15 +47,15 @@ func BlockHeaderFixture() flow.Header {
 }
 
 func TransactionFixture(n ...func(t *flow.Transaction)) flow.Transaction {
-	tx := flow.Transaction{TransactionBody: flow.TransactionBody{
+	tx := flow.Transaction{
 		Script:             []byte("pub fun main() {}"),
-		ReferenceBlockHash: flow.Fingerprint(HashFixture(32)),
+		ReferenceBlockHash: HashFixture(32),
 		Nonce:              1,
 		ComputeLimit:       10,
 		PayerAccount:       AddressFixture(),
 		ScriptAccounts:     []flow.Address{AddressFixture()},
 		Signatures:         []flow.AccountSignature{AccountSignatureFixture()},
-	}}
+	}
 	if len(n) > 0 {
 		n[0](&tx)
 	}
@@ -90,7 +81,6 @@ func AccountPublicKeyFixture() flow.AccountPublicKey {
 }
 
 func EventFixture(n ...func(e *flow.Event)) flow.Event {
-
 	event := flow.Event{
 		Type: "Transfer",
 		// TODO: create proper fixture
@@ -101,9 +91,11 @@ func EventFixture(n ...func(e *flow.Event)) flow.Event {
 		// },
 		Payload: []byte{},
 	}
+
 	if len(n) >= 1 {
 		n[0](&event)
 	}
+
 	return event
 }
 
@@ -115,36 +107,3 @@ func HashFixture(size int) crypto.Hash {
 	return hash
 }
 
-func IdentifierFixture() flow.Identifier {
-	var id flow.Identifier
-	_, _ = rand.Read(id[:])
-	return id
-}
-
-// IdentityFixture returns a
-func IdentityFixture() flow.Identity {
-	return flow.Identity{
-		NodeID:  IdentifierFixture(),
-		Address: "address",
-		Role:    flow.RoleConsensus,
-		Stake:   1000,
-	}
-}
-
-// IdentityListFixture returns a list of node identity objects. The identities
-// can be customized (ie. set their role) by passing in a function that modifies
-// the input identities as required.
-func IdentityListFixture(n int, opts ...func(*flow.Identity)) flow.IdentityList {
-	nodes := make(flow.IdentityList, n)
-
-	for i := 0; i < n; i++ {
-		node := IdentityFixture()
-		node.Address = fmt.Sprintf("address-%d", i+1)
-		for _, opt := range opts {
-			opt(&node)
-		}
-		nodes[i] = node
-	}
-
-	return nodes
-}

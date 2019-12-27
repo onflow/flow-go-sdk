@@ -9,9 +9,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
-	"github.com/dapperlabs/flow-go/cli"
-	"github.com/dapperlabs/flow-go/cli/flow/initialize"
-	"github.com/dapperlabs/flow-go/sdk/emulator/server"
+	"github.com/dapperlabs/flow-go-sdk/cli"
+	"github.com/dapperlabs/flow-go-sdk/cli/flow/initialize"
+	"github.com/dapperlabs/flow-go-sdk/emulator/server"
 )
 
 type Config struct {

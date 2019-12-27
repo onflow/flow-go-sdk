@@ -3,7 +3,7 @@ package accounts
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/dapperlabs/flow-go/cli/flow/accounts/create"
+	"github.com/dapperlabs/flow-go-sdk/cli/flow/accounts/create"
 )
 
 var Cmd = &cobra.Command{
