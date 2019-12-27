@@ -58,7 +58,7 @@ Persistent Volume Claim are located in the k8s folder.
 #### Web Address
 *This is only available from the office currently*
 
-It should be available publically via `https://grpc.emulator.staging.withflow.org/`
+It should be available publicly via `https://grpc.emulator.staging.withflow.org/`
 
 #### Port Forwarding
 If you have direct access to the cluster, you can use `kubectl` to access the emulator
@@ -84,4 +84,18 @@ spec:
       protocol: TCP
       port: 3569
       targetPort: 3569
+```
+
+### Creating your own deployment
+
+Our current deployment settings are available in the [k8s](./k8s) sub directory, if you'd like to setup the emulator in your own Kubernetes cluster. We are using the `Traefik` Ingress controller, but if that is not needed for your purposes, that can be removed, along with any corresponding annotations in the deployment file.
+
+If not using Kubernetes, you can run the Docker container independently. Make sure to run the Docker container with the gRPC port exposed (default is `3569`). Metrics are also available on port `8080` on the `/metrics` endpoint.
+
+To gain persistence for data on the emulator, you will have to provision a volume for the docker container. We've done this through `Persiste Volumes` on Kubernetes, but a mounted volume would suffice. The mount point can be set with the `FLOW_DBPATH` environment variable. We suggest a volume of at least 10GB (100GB for a long-term deployment).
+
+Make sure the emulator also has access to the same `flow.json` file, or always launch it with the same root key, as mentioned above.
+
+```bash
+docker run -e FLOW_ROOTKEY=<hex-encoded key> -e FLOW_DBPATH="/flowdb" -v "$(pwd)/flowdb":"/flowdb"  -p 3569:3569 gcr.io/dl-flow/emulator
 ```
