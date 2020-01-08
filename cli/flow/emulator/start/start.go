@@ -21,6 +21,7 @@ type Config struct {
 	BlockInterval time.Duration `default:"5s" flag:"interval,i" info:"time between minted blocks"`
 	RootKey       string        `flag:"root-key" info:"root account key"`
 	Init          bool          `default:"false" flag:"init" info:"whether to initialize a new account profile"`
+	AutoMine      bool          `default:"true" flag:"automine" info:"enable instant transaction mining"`
 	GRPCDebug     bool          `default:"false" flag:"grpc-debug" info:"enable gRPC server reflection for debugging with grpc_cli"`
 	Persistent    bool          `default:"false" flag:"persistent" info:"enable persistent storage"`
 	DBPath        string        `default:"./flowdb" flag:"db-path" info:"where Flow chain data will be stored"`
@@ -60,6 +61,7 @@ var Cmd = &cobra.Command{
 			HTTPPort:       conf.HTTPPort,
 			BlockInterval:  conf.BlockInterval,
 			RootAccountKey: &rootAcct.PrivateKey,
+			AutoMine:       conf.AutoMine,
 			GRPCDebug:      conf.GRPCDebug,
 			Persistent:     conf.Persistent,
 			DBPath:         conf.DBPath,

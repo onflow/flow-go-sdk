@@ -23,6 +23,7 @@ import (
 type Backend struct {
 	blockchain emulator.BlockchainAPI
 	logger     *logrus.Logger
+	automine   bool
 }
 
 // NewBackend returns a new backend.
@@ -71,6 +72,10 @@ func (b *Backend) SendTransaction(ctx context.Context, req *observation.SendTran
 
 	response := &observation.SendTransactionResponse{
 		Hash: tx.Hash(),
+	}
+
+	if b.automine {
+		b.commitBlock()
 	}
 
 	return response, nil

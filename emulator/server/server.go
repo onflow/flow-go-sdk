@@ -56,6 +56,7 @@ type Config struct {
 	HTTPPort       int
 	BlockInterval  time.Duration
 	RootAccountKey *flow.AccountPrivateKey
+	AutoMine       bool
 	GRPCDebug      bool
 	// Persistent indicates whether to use persistent on-disk storage
 	Persistent bool
@@ -106,6 +107,7 @@ func NewEmulatorServer(logger *logrus.Logger, store storage.Store, conf *Config)
 		backend: &Backend{
 			blockchain: blockchain,
 			logger:     logger,
+			automine:   conf.AutoMine,
 		},
 		grpcServer:    grpcServer,
 		config:        conf,
