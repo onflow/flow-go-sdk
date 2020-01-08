@@ -26,11 +26,12 @@ type Backend struct {
 	automine   bool
 }
 
-// NewBackend returns a new backend.
+// NewBackend returns a new backend (automine flag disabled by default).
 func NewBackend(blockchain emulator.BlockchainAPI, logger *logrus.Logger) *Backend {
 	return &Backend{
 		blockchain: blockchain,
 		logger:     logger,
+		automine:   false,
 	}
 }
 
@@ -237,6 +238,16 @@ func (b *Backend) commitBlock() {
 			"blockSize": len(block.TransactionHashes),
 		}).Debugf("📦  Block #%d committed", block.Number)
 	}
+}
+
+// enableAutoMine enables the automine flag.
+func (b *Backend) enableAutoMine() {
+	b.automine = true
+}
+
+// disableAutoMine disables the automine flag.
+func (b *Backend) disableAutoMine() {
+	b.automine = false
 }
 
 func printTransactionResult(logger *logrus.Logger, result emulator.TransactionResult) {
