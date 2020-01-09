@@ -152,7 +152,9 @@ func (e *EmulatorServer) Start(ctx context.Context) {
 	for {
 		select {
 		case <-ticker.C:
-			e.backend.commitBlock()
+			if !e.backend.automine {
+				e.backend.commitBlock()
+			}
 		case <-livenessTicker.C:
 			checker.CheckIn()
 		case <-ctx.Done():
