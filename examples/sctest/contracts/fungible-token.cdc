@@ -7,12 +7,12 @@ pub contract interface IFungibleToken {
     // The total number of tokens in existence
     pub var totalSupply: Int
 
-    // // event that is emmited when the contract is created
-    // event TokenContractInitialized(initialSupply: Int, location: Address)
-    // // event that is emmited when tokens are withdrawn from a Vault
-    // event TokensWithdrawn(amount: Int, recipient: Address)
-    // // event that is emitted when tokens are deposited to a Vault
-    // event TokensDeposited(amount: Int, recipient: Address)
+    // event that is emmited when the contract is created
+    event TokenContractInitialized(initialSupply: Int, location: Address)
+    // event that is emmited when tokens are withdrawn from a Vault
+    event TokensWithdrawn(amount: Int, recipient: Address)
+    // event that is emitted when tokens are deposited to a Vault
+    event TokensDeposited(amount: Int, recipient: Address)
 
     // Interface that enforces the requirements for withdrawing
     // tokens from the implementing type
@@ -42,11 +42,17 @@ pub contract interface IFungibleToken {
         }
     }
 
+    // Interface that contains the balance field of the Vault
+    //
+    pub resource interface Balance {
+        pub var balance: Int
+    }
+
     // Every Fungible Token contract must define a Vault object that
     // conforms to the Provider and Receiver interfaces
     // and includes these fields and functions
     //
-    pub resource Vault: Provider, Receiver {
+    pub resource Vault: Provider, Receiver, Balance {
         // keeps track of the total balance of the accounts tokens
         pub var balance: Int
 
@@ -99,7 +105,7 @@ pub contract FlowToken: IFungibleToken {
 
     pub var totalSupply: Int
 
-    pub resource Vault: IFungibleToken.Provider, IFungibleToken.Receiver {
+    pub resource Vault: IFungibleToken.Provider, IFungibleToken.Receiver, IFungibleToken.Balance {
         
         pub var balance: Int
 
