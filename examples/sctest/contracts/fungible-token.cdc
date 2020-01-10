@@ -2,15 +2,17 @@
 
 // The Fungible Token standard interface that all Fungible Tokens
 // would have to conform to
-pub contract interface IFungibleToken {
+pub contract interface FungibleToken {
 
     // The total number of tokens in existence
     pub var totalSupply: Int
 
     // event that is emmited when the contract is created
     event TokenContractInitialized(initialSupply: Int, location: Address)
+
     // event that is emmited when tokens are withdrawn from a Vault
     event TokensWithdrawn(amount: Int, recipient: Address)
+
     // event that is emitted when tokens are deposited to a Vault
     event TokensDeposited(amount: Int, recipient: Address)
 
@@ -25,7 +27,7 @@ pub contract interface IFungibleToken {
             }
             post {
                 result.balance == amount:
-                    "withdraw: Incorrect amount withdrawn"
+                    "withdraw: Withdrawal amount must be the same as the balance of the withdrawn Vault"
             }
         }
     }
@@ -34,7 +36,7 @@ pub contract interface IFungibleToken {
     // tokens into the implementing type
     //
     pub resource interface Receiver {
-        pub fun deposit(from: @Vault): Void {
+        pub fun deposit(from: @Vault) {
             pre {
                 from.balance > 0:
                     "deposit: Deposit balance must be positive"
@@ -63,7 +65,7 @@ pub contract interface IFungibleToken {
             }
             post {
                 self.balance == balance:
-                    "init: balance must be initialized to the initial balance"
+                    "init: Balance must be initialized to the initial balance"
             }
         }
 
@@ -74,10 +76,10 @@ pub contract interface IFungibleToken {
         // deposit will usually take a vault object as a parameter and add
         // its balance to the balance of the stored vault, then
         // destroy the sent vault because its balance has been consumed
-        pub fun deposit(from: @Vault): Void {
+        pub fun deposit(from: @Vault) {
             post {
                 self.balance == before(self.balance) + before(from.balance):
-                    "deposit: Incorrect amount removed"
+                    "deposit: New Vault balance must be the sum of the previous balance and the deposited Vault"
             }
         }
 
@@ -118,7 +120,7 @@ pub contract FlowToken: IFungibleToken {
             return <-create Vault(balance: amount)
         }
         
-        pub fun deposit(from: @Vault): Void {
+        pub fun deposit(from: @Vault) {
             self.balance = self.balance + from.balance
             destroy from
         }
