@@ -1,6 +1,7 @@
 
 pub contract interface INonFungibleToken {
 
+    // The total number of tokens of this type in existance
     pub var totalSupply: Int
 
     pub resource interface INFT {
@@ -44,10 +45,10 @@ pub contract interface INonFungibleToken {
 
 		pub fun getIDs(): [Int]
 
-		pub fun idExists(tokenID: Int): Bool {
+		pub fun idExists(id: Int): Bool {
 			pre {
 				tokenID > 0:
-					"token ID must be positive!"
+					"idExists: token id must be positive!"
 			}
 		}
 	}
