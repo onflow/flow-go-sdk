@@ -42,6 +42,10 @@ func (a *abiAwareStatement) Type(t types.Type) *abiAwareStatement {
 		return a.Index().Type(v.ElementType)
 	case types.StructPointer:
 		return a.Id(viewInterfaceName(v.TypeName))
+	case types.ResourcePointer:
+		return a.Id(viewInterfaceName(v.TypeName))
+	case types.EventPointer:
+		return a.Id(viewInterfaceName(v.TypeName))
 	case types.Optional:
 		return a.Op("*").Type(v.Type)
 	case types.Int:
@@ -286,6 +290,16 @@ func (a *abiAwareStatement) SelfType(t types.Type, allTypesMap map[string]types.
 			return a.Id(typeVariableName(v.TypeName))
 		}
 		panic(fmt.Errorf("StructPointer to unknown type name %s", v))
+	case types.ResourcePointer: //Here we attach real type object rather then re-print pointer
+		if _, ok := allTypesMap[v.TypeName]; ok {
+			return a.Id(typeVariableName(v.TypeName))
+		}
+		panic(fmt.Errorf("ResourcePointer to unknown type name %s", v))
+	case types.EventPointer: //Here we attach real type object rather then re-print pointer
+		if _, ok := allTypesMap[v.TypeName]; ok {
+			return a.Id(typeVariableName(v.TypeName))
+		}
+		panic(fmt.Errorf("EventPointer to unknown type name %s", v))
 	case types.Optional:
 		return wrap(a.Statement.Qual(typesImportPath, "Optional").Values(jen.Dict{
 			id("Type"): empty().SelfType(v.Type, allTypesMap),

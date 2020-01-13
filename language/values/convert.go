@@ -47,8 +47,6 @@ func Convert(value runtime.Value) (Value, error) {
 		return convertCompositeValue(v)
 	case *interpreter.DictionaryValue:
 		return convertDictionaryValue(v)
-	case *interpreter.EventValue:
-		return convertEventValue(v)
 	case interpreter.AddressValue:
 		return NewAddress(v), nil
 	}
@@ -128,19 +126,4 @@ func convertDictionaryValue(v *interpreter.DictionaryValue) (Value, error) {
 	}
 
 	return NewDictionary(pairs), nil
-}
-
-func convertEventValue(v *interpreter.EventValue) (Value, error) {
-	fields := make([]Value, len(v.Fields))
-
-	for i, field := range v.Fields {
-		convertedField, err := Convert(field.Value)
-		if err != nil {
-			return nil, err
-		}
-
-		fields[i] = convertedField
-	}
-
-	return NewEvent(fields), nil
 }

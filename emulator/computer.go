@@ -138,7 +138,7 @@ func convertEvents(rtEvents []runtime.Event, txHash crypto.Hash) ([]flow.Event, 
 			fields[j] = convertedField
 		}
 
-		eventValue := values.NewEvent(fields)
+		eventValue := values.NewComposite(fields)
 
 		payload, err := encoding.Encode(eventValue)
 		if err != nil {
@@ -146,7 +146,7 @@ func convertEvents(rtEvents []runtime.Event, txHash crypto.Hash) ([]flow.Event, 
 		}
 
 		flowEvents[i] = flow.Event{
-			Type:    event.Type.ID(),
+			Type:    string(event.Type.ID()),
 			TxHash:  txHash,
 			Index:   uint(i),
 			Payload: payload,

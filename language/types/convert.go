@@ -52,8 +52,6 @@ func Convert(typ runtime.Type, prog *ast.Program, variable *sema.Variable) (Type
 		return convertCompositeType(t, prog, variable)
 	case *sema.DictionaryType:
 		return convertDictionaryType(t, prog, variable)
-	case *sema.EventType:
-		return convertEventType(t, prog, variable)
 	}
 
 	return nil, fmt.Errorf("cannot convert type of type %T", typ)
@@ -106,12 +104,13 @@ func convertFunctionType(t *sema.FunctionType, prog *ast.Program, variable *sema
 		return nil, err
 	}
 
+	// TODO: return
 	// we have function type rather than named functions with params
 	if variable == nil {
-		parameterTypes := make([]Type, len(t.ParameterTypeAnnotations))
+		parameterTypes := make([]Type, len(t.Parameters))
 
-		for i, annotation := range t.ParameterTypeAnnotations {
-			convertedParameterType, err := Convert(annotation.Type, prog, nil)
+		for i, parameter := range t.Parameters {
+			convertedParameterType, err := Convert(parameter.TypeAnnotation.Type, prog, nil)
 			if err != nil {
 				return nil, err
 			}
@@ -135,17 +134,17 @@ func convertFunctionType(t *sema.FunctionType, prog *ast.Program, variable *sema
 			panic(fmt.Sprintf("cannot find type %v declaration in AST tree", t))
 		}()
 
-		parameterTypeAnnotations := make([]Parameter, len(t.ParameterTypeAnnotations))
+		parameters := make([]Parameter, len(t.Parameters))
 
-		for i, annotation := range t.ParameterTypeAnnotations {
+		for i, parameter := range t.Parameters {
 			astParam := functionDeclaration.ParameterList.Parameters[i]
 
-			convertedParameterType, err := Convert(annotation.Type, prog, nil)
+			convertedParameterType, err := Convert(parameter.TypeAnnotation.Type, prog, nil)
 			if err != nil {
 				return nil, err
 			}
 
-			parameterTypeAnnotations[i] = Parameter{
+			parameters[i] = Parameter{
 				Label:      astParam.Label,
 				Identifier: astParam.Identifier.Identifier,
 				Type:       convertedParameterType,
@@ -153,9 +152,9 @@ func convertFunctionType(t *sema.FunctionType, prog *ast.Program, variable *sema
 		}
 
 		return Function{
-			Parameters: parameterTypeAnnotations,
+			Parameters: parameters,
 			ReturnType: convertedReturnType,
-		}.WithID(t.ID()), nil
+		}.WithID(string(t.ID())), nil
 	}
 }
 
@@ -167,6 +166,8 @@ func convertCompositeType(t *sema.CompositeType, prog *ast.Program, variable *se
 			return StructPointer{TypeName: t.Identifier}, nil
 		case common.CompositeKindResource:
 			return ResourcePointer{TypeName: t.Identifier}, nil
+		case common.CompositeKindEvent:
+			return EventPointer{TypeName: t.Identifier}, nil
 		}
 
 		panic(fmt.Sprintf("cannot convert type %v of unknown kind %v", t, t.Kind))
@@ -208,12 +209,12 @@ func convertCompositeType(t *sema.CompositeType, prog *ast.Program, variable *se
 			})
 		}
 
-		parameters := make([]Parameter, len(t.ConstructorParameterTypeAnnotations))
+		parameters := make([]Parameter, len(t.ConstructorParameters))
 
 		// TODO: For now we have only one initializer, so we just assume this here
 		// as this is post SEMA we really hope AST list of params matches SEMA type one
 		for i, parameter := range compositeDeclaration.Members.Initializers()[0].ParameterList.Parameters {
-			semaType := t.ConstructorParameterTypeAnnotations[i].Type
+			semaType := t.ConstructorParameters[i].TypeAnnotation.Type
 			convertedType, err := Convert(semaType, prog, nil)
 			if err != nil {
 				return Composite{}, err
@@ -230,7 +231,7 @@ func convertCompositeType(t *sema.CompositeType, prog *ast.Program, variable *se
 			Identifier:   t.Identifier,
 			Fields:       fields,
 			Initializers: [][]Parameter{parameters},
-		}.WithID(t.ID()), nil
+		}.WithID(string(t.ID())), nil
 	}
 
 	composite, err := convert()
@@ -243,11 +244,18 @@ func convertCompositeType(t *sema.CompositeType, prog *ast.Program, variable *se
 		return Struct{
 			Composite: composite,
 		}, nil
+
 	case common.CompositeKindResource:
 		return Resource{
 			Composite: composite,
 		}, nil
+
+	case common.CompositeKindEvent:
+		return Event{
+			Composite: composite,
+		}, nil
 	}
+
 	panic(fmt.Sprintf("cannot convert type %v of unknown kind %v", t, t.Kind))
 }
 
@@ -266,59 +274,4 @@ func convertDictionaryType(t *sema.DictionaryType, prog *ast.Program, variable *
 		KeyType:     convertedKeyType,
 		ElementType: convertedElementType,
 	}, variable), nil
-}
-
-func convertEventType(t *sema.EventType, prog *ast.Program, variable *sema.Variable) (Type, error) {
-	var parameters []Parameter
-
-	if prog != nil && variable != nil {
-		eventDeclaration := func() *ast.EventDeclaration {
-			for _, fn := range prog.EventDeclarations() {
-				if fn.Identifier.Identifier == variable.Identifier && fn.Identifier.Pos == *variable.Pos {
-					return fn
-				}
-			}
-
-			panic(fmt.Sprintf("cannot find type %v declaration in AST tree", t))
-		}()
-
-		parameterList := eventDeclaration.ParameterList.Parameters
-
-		parameters = make([]Parameter, len(t.Fields))
-
-		for i, field := range t.Fields {
-			identifier := field.Identifier
-			convertedFieldType, err := Convert(field.Type, prog, nil)
-			if err != nil {
-				return nil, err
-			}
-
-			parameters[i] = Parameter{
-				Label:      parameterList[i].Label,
-				Identifier: identifier,
-				Type:       convertedFieldType,
-			}
-		}
-	}
-
-	fields := make([]Field, len(t.Fields))
-
-	for i, field := range t.Fields {
-		identifier := field.Identifier
-		convertedFieldType, err := Convert(field.Type, prog, nil)
-		if err != nil {
-			return nil, err
-		}
-
-		fields[i] = Field{
-			Identifier: identifier,
-			Type:       convertedFieldType,
-		}
-	}
-
-	return Event{
-		Identifier:  t.Identifier,
-		Fields:      fields,
-		Initializer: parameters,
-	}.WithID(t.ID()), nil
 }
