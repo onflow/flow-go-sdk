@@ -103,7 +103,7 @@ pub contract interface FungibleToken {
     }
 }
 
-pub contract FlowToken: IFungibleToken {
+pub contract FlowToken: FungibleToken {
 
     pub var totalSupply: Int
 
