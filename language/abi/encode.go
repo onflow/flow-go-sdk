@@ -42,10 +42,10 @@ type array struct {
 }
 
 type structObject struct {
-	Struct structData `json:"struct"`
+	Struct compositeData `json:"struct"`
 }
 
-type structData struct {
+type compositeData struct {
 	Fields       []field       `json:"fields"`
 	Initializers [][]parameter `json:"initializers"`
 }
@@ -58,10 +58,6 @@ type field struct {
 type parameter struct {
 	field
 	Label string `json:"label,omitempty"`
-}
-
-type eventObject struct {
-	Event []parameter `json:"event"`
 }
 
 type optionalObject struct {
@@ -92,7 +88,11 @@ type dictionaryObject struct {
 }
 
 type resourceObject struct {
-	Resource structData `json:"resource"`
+	Resource compositeData `json:"resource"`
+}
+
+type eventObject struct {
+	Event compositeData `json:"event"`
 }
 
 type resourcePointer struct {
@@ -101,6 +101,10 @@ type resourcePointer struct {
 
 type structPointer struct {
 	Struct string `json:"struct"`
+}
+
+type eventPointer struct {
+	Event string `json:"event"`
 }
 
 type variableObject struct {
@@ -186,23 +190,45 @@ func (encoder *Encoder) encode(t types.Type) interface{} {
 
 	case types.Struct:
 		return structObject{
-			Struct: structData{
+			Struct: compositeData{
 				Fields:       encoder.mapFields(v.Fields),
 				Initializers: encoder.mapNestedParameters(v.Initializers),
 			},
 		}
+
 	case types.StructPointer:
 		return structPointer{
 			v.TypeName,
 		}
+
+	case types.Resource:
+		return resourceObject{
+			compositeData{
+				Fields:       encoder.mapFields(v.Fields),
+				Initializers: encoder.mapNestedParameters(v.Initializers),
+			},
+		}
+
 	case types.ResourcePointer:
 		return resourcePointer{
 			v.TypeName,
 		}
+
+
 	case types.Event:
 		return eventObject{
-			Event: encoder.mapParameters(v.Initializer),
+			compositeData{
+				Fields:       encoder.mapFields(v.Fields),
+				Initializers: encoder.mapNestedParameters(v.Initializers),
+			},
 		}
+
+	case types.EventPointer:
+		return eventPointer{
+			v.TypeName,
+		}
+
+
 	case types.Function:
 		return functionObject{
 			function{
@@ -210,6 +236,7 @@ func (encoder *Encoder) encode(t types.Type) interface{} {
 				ReturnType: encoder.encodeReturnType(v.ReturnType),
 			},
 		}
+
 	case types.FunctionType:
 		return functionObject{
 			functionType{
@@ -225,13 +252,7 @@ func (encoder *Encoder) encode(t types.Type) interface{} {
 				Values: encoder.encode(v.ElementType),
 			},
 		}
-	case types.Resource:
-		return resourceObject{
-			structData{
-				Fields:       encoder.mapFields(v.Fields),
-				Initializers: encoder.mapNestedParameters(v.Initializers),
-			},
-		}
+
 	case types.Variable:
 		return variableObject{
 			encoder.encode(v.Type),

@@ -65,21 +65,23 @@ type AccountCreatedEvent interface {
 }
 
 var AccountCreatedEventType types.Type = types.Event{
-	Fields: []types.Field{
-		{
-			Identifier: "address",
-			Type:       types.Address{},
+	Composite: types.Composite{
+		Fields: []types.Field{
+			{
+				Identifier: "address",
+				Type:       types.Address{},
+			},
 		},
 	},
 }.WithID(EventAccountCreated)
 
 func newAccountCreatedEventFromValue(v values.Value) AccountCreatedEvent {
-	eventValue := v.(values.Event)
+	eventValue := v.(values.Composite)
 	return accountCreatedEvent{eventValue}
 }
 
 type accountCreatedEvent struct {
-	values.Event
+	values.Composite
 }
 
 func (a accountCreatedEvent) Address() Address {

@@ -11,7 +11,7 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 )
 
-func TestExamples(t *testing.T) {
+func TestEncodeExamples(t *testing.T) {
 
 	for _, assetName := range AssetNames() {
 		if strings.HasSuffix(assetName, ".cdc") {
