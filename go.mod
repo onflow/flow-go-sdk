@@ -3,7 +3,10 @@ module github.com/dapperlabs/flow-go-sdk
 go 1.13
 
 require (
-	github.com/dapperlabs/flow-go v0.2.4-0.20191226001626-569fa19b8a64
+	github.com/dapperlabs/flow-go v0.2.5-beta
+	github.com/dapperlabs/flow-go/crypto v0.2.5-beta
+	github.com/dapperlabs/flow-go/language v0.2.5-beta
+	github.com/dapperlabs/flow-go/protobuf v0.2.5-beta
 	github.com/dave/jennifer v1.4.0
 	github.com/davecgh/go-xdr v0.0.0-20161123171359-e6a2ba005892
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
@@ -15,9 +18,11 @@ require (
 	github.com/improbable-eng/grpc-web v0.12.0
 	github.com/logrusorgru/aurora v0.0.0-20191116043053-66b7ad493a23
 	github.com/magiconair/properties v1.8.1
+	github.com/mattn/go-tty v0.0.3 // indirect
 	github.com/nsf/jsondiff v0.0.0-20190712045011-8443391ee9b6
 	github.com/onsi/gomega v1.8.1
 	github.com/pkg/errors v0.8.1
+	github.com/pkg/term v0.0.0-20190109203006-aa71e9d9e942 // indirect
 	github.com/prometheus/client_golang v1.3.0
 	github.com/psiemens/sconfig v0.0.0-20190623041652-6e01eb1354fc
 	github.com/sirupsen/logrus v1.4.2
