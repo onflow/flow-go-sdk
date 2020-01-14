@@ -7,14 +7,14 @@ pub contract interface FungibleToken {
     // The total number of tokens in existence
     pub var totalSupply: Int
 
-    // event that is emmited when the contract is created
-    event TokenContractInitialized(initialSupply: Int, location: Address)
+    // event that is emitted when the contract is created
+    event ContractInitialized(initialSupply: Int)
 
-    // event that is emmited when tokens are withdrawn from a Vault
-    event TokensWithdrawn(amount: Int, recipient: Address)
+    // event that is emitted when tokens are withdrawn from a Vault
+    event Withdraw(amount: Int)
 
     // event that is emitted when tokens are deposited to a Vault
-    event TokensDeposited(amount: Int, recipient: Address)
+    event Deposit(amount: Int)
 
     // Interface that enforces the requirements for withdrawing
     // tokens from the implementing type
@@ -107,7 +107,7 @@ pub contract FlowToken: FungibleToken {
 
     pub var totalSupply: Int
 
-    pub resource Vault: IFungibleToken.Provider, IFungibleToken.Receiver, IFungibleToken.Balance {
+    pub resource Vault: FungibleToken.Provider, FungibleToken.Receiver, FungibleToken.Balance {
         
         pub var balance: Int
 
@@ -141,6 +141,6 @@ pub contract FlowToken: FungibleToken {
         destroy oldVault
 
         self.account.storage[&Vault] = &self.account.storage[Vault] as Vault
-        self.account.published[&IFungibleToken.Receiver] = &self.account.storage[Vault] as IFungibleToken.Receiver
+        self.account.published[&FungibleToken.Receiver] = &self.account.storage[Vault] as FungibleToken.Receiver
     }
 }
