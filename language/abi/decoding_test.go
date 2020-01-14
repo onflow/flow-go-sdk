@@ -1,4 +1,4 @@
-package abi_test
+package abi
 
 import (
 	"strings"
@@ -7,30 +7,29 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/dapperlabs/flow-go-sdk/language/abi"
 	"github.com/dapperlabs/flow-go-sdk/utils/unittest"
 )
 
-func TestExamples(t *testing.T) {
-	for _, abiName := range abi.AssetNames() {
+func TestDecodeExamples(t *testing.T) {
+	for _, abiName := range AssetNames() {
 		suffix := ".abi.json"
 
 		if strings.HasSuffix(abiName, suffix) {
 			cdcName := abiName[:len(abiName)-len(suffix)]
 
-			cdcAsset, _ := abi.Asset(cdcName)
+			cdcAsset, _ := Asset(cdcName)
 
 			if cdcAsset != nil {
 
 				t.Run(abiName, func(t *testing.T) {
-					abiAsset, err := abi.Asset(abiName)
+					abiAsset, err := Asset(abiName)
 					require.NoError(t, err)
 
-					typesFromABI, err := abi.GetTypesFromABIJSONBytes(abiAsset)
+					typesFromABI, err := GetTypesFromABIJSONBytes(abiAsset)
 
 					assert.NoError(t, err)
 
-					typesFromCadence := abi.GetTypesFromCadenceCode(string(cdcAsset), cdcName)
+					typesFromCadence := GetTypesFromCadenceCode(string(cdcAsset), cdcName)
 
 					unittest.AssertEqualWithDiff(t, typesFromCadence, typesFromABI)
 				})

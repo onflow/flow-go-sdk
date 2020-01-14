@@ -238,31 +238,17 @@ func toResource(data map[string]interface{}, name string) (types.Resource, error
 	}, nil
 }
 
-func toEvent(data []interface{}, name string) (types.Event, error) {
-	initializers, err := interfaceToListOfMaps(data)
+func toEvent(data map[string]interface{}, name string) (types.Event, error) {
+	composite, err := toComposite(data, name)
 	if err != nil {
 		return types.Event{}, err
-	}
-
-	parameters, err := toParameters(initializers)
-	if err != nil {
-		return types.Event{}, err
-	}
-
-	fields := make([]types.Field, len(parameters))
-	for i, param := range parameters {
-		fields[i] = types.Field{
-			Identifier: param.Identifier,
-			Type:       param.Type,
-		}
 	}
 
 	return types.Event{
-		Identifier:  name,
-		Fields:      fields,
-		Initializer: parameters,
+		Composite: composite,
 	}, nil
 }
+
 
 func toParameters(parameters []map[string]interface{}) ([]types.Parameter, error) {
 	ret := make([]types.Parameter, len(parameters))
@@ -458,6 +444,8 @@ func toType(data interface{}, name string) (types.Type, error) {
 				return types.StructPointer{TypeName: v}, nil
 			case "resource":
 				return types.ResourcePointer{TypeName: v}, nil
+			case "event":
+				return types.EventPointer{TypeName: v}, nil
 			}
 
 		// when type inside is complex - { "<struct>" : { "complex": "object" } }
@@ -467,6 +455,8 @@ func toType(data interface{}, name string) (types.Type, error) {
 				return toStruct(v, name)
 			case "resource":
 				return toResource(v, name)
+			case "event":
+				return toEvent(v, name)
 			case "function":
 				if name != "" {
 					return toFunction(v)
@@ -477,13 +467,6 @@ func toType(data interface{}, name string) (types.Type, error) {
 			case "dictionary":
 				return toDictionary(v)
 
-			}
-
-		// when type inside is array - { "<struct>" : [] }
-		case []interface{}:
-			switch key {
-			case "event":
-				return toEvent(v, name)
 			}
 		}
 

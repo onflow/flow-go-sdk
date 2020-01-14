@@ -173,19 +173,7 @@ type Resource struct {
 
 type Event struct {
 	isAType
-	typeID      string
-	Identifier  string
-	Fields      []Field
-	Initializer []Parameter
-}
-
-func (t Event) ID() string {
-	return t.typeID
-}
-
-func (t Event) WithID(id string) Event {
-	t.typeID = id
-	return t
+	Composite
 }
 
 type Function struct {
@@ -227,5 +215,14 @@ type StructPointer struct {
 }
 
 func (t StructPointer) ID() string {
+	return t.TypeName
+}
+
+type EventPointer struct {
+	isAType
+	TypeName string
+}
+
+func (t EventPointer) ID() string {
 	return t.TypeName
 }
