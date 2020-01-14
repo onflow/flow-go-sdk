@@ -564,9 +564,18 @@ func (b *Blockchain) CreateAccount(
 		return flow.Address{}, err
 	}
 
-	_, _, err = b.ExecuteAndCommitBlock()
+	result, err := b.ExecuteNextTransaction()
 	if err != nil {
 		return flow.Address{}, err
+	}
+
+	_, err = b.CommitBlock()
+	if err != nil {
+		return flow.Address{}, err
+	}
+
+	if result.Reverted() {
+		return flow.Address{}, result.Error
 	}
 
 	return b.LastCreatedAccount().Address, nil

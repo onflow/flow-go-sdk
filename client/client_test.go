@@ -225,19 +225,21 @@ func TestGetEvents(t *testing.T) {
 
 	// declare event type used for decoding event payloads
 	mockEventType := types.Event{
-		Identifier: "Transfer",
-		Fields: []types.Field{
-			{
-				Identifier: "to",
-				Type:       types.Address{},
-			},
-			{
-				Identifier: "from",
-				Type:       types.Address{},
-			},
-			{
-				Identifier: "amount",
-				Type:       types.Int{},
+		Composite: types.Composite{
+			Identifier: "Transfer",
+			Fields: []types.Field{
+				{
+					Identifier: "to",
+					Type:       types.Address{},
+				},
+				{
+					Identifier: "from",
+					Type:       types.Address{},
+				},
+				{
+					Identifier: "amount",
+					Type:       types.Int{},
+				},
 			},
 		},
 	}
@@ -247,7 +249,7 @@ func TestGetEvents(t *testing.T) {
 	amount := values.NewInt(42)
 
 	mockEventValue := values.
-		NewEvent([]values.Value{to, from, amount}).
+		NewComposite([]values.Value{to, from, amount}).
 		WithType(mockEventType)
 
 	// encode event payload from mock value
@@ -278,7 +280,7 @@ func TestGetEvents(t *testing.T) {
 		actualEvent := events[0]
 
 		value, err := encoding.Decode(mockEventType, actualEvent.Payload)
-		eventValue := value.(values.Event)
+		eventValue := value.(values.Composite)
 
 		assert.Equal(t, actualEvent.Type, mockEvent.Type)
 		assert.Equal(t, to, eventValue.Fields[0])

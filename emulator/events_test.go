@@ -7,26 +7,29 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/dapperlabs/flow-go/language/runtime"
 	"github.com/dapperlabs/flow-go-sdk"
+	"github.com/dapperlabs/flow-go-sdk/emulator"
+	"github.com/dapperlabs/flow-go-sdk/keys"
 	"github.com/dapperlabs/flow-go-sdk/language/encoding"
 	"github.com/dapperlabs/flow-go-sdk/language/types"
 	"github.com/dapperlabs/flow-go-sdk/language/values"
-	"github.com/dapperlabs/flow-go-sdk/emulator"
-	"github.com/dapperlabs/flow-go-sdk/keys"
+	"github.com/dapperlabs/flow-go/language/runtime"
 )
 
 func TestEventEmitted(t *testing.T) {
 	// event type definition that is reused in tests
 	myEventType := types.Event{
-		Fields: []types.Field{
-			{
-				Identifier: "x",
-				Type:       types.Int{},
-			},
-			{
-				Identifier: "y",
-				Type:       types.Int{},
+		Composite: types.Composite{
+			Identifier: "MyEvent",
+			Fields: []types.Field{
+				{
+					Identifier: "x",
+					Type:       types.Int{},
+				},
+				{
+					Identifier: "y",
+					Type:       types.Int{},
+				},
 			},
 		},
 	}
@@ -77,7 +80,7 @@ func TestEventEmitted(t *testing.T) {
 		eventValue, err := encoding.Decode(myEventType, actualEvent.Payload)
 		assert.NoError(t, err)
 
-		decodedEvent := eventValue.(values.Event)
+		decodedEvent := eventValue.(values.Composite)
 
 		location := runtime.TransactionLocation(tx.Hash())
 		expectedType := fmt.Sprintf("%s.MyEvent", location.ID())
@@ -111,7 +114,7 @@ func TestEventEmitted(t *testing.T) {
 		eventValue, err := encoding.Decode(myEventType, actualEvent.Payload)
 		assert.NoError(t, err)
 
-		decodedEvent := eventValue.(values.Event)
+		decodedEvent := eventValue.(values.Composite)
 
 		location := runtime.ScriptLocation(result.ScriptHash)
 		expectedType := fmt.Sprintf("%s.MyEvent", location.ID())
@@ -128,9 +131,9 @@ func TestEventEmitted(t *testing.T) {
 		require.NoError(t, err)
 
 		accountScript := []byte(`
-			pub event MyEvent(x: Int, y: Int)
-
             pub contract Test {
+				pub event MyEvent(x: Int, y: Int)
+
 				pub fun emitMyEvent(x: Int, y: Int) {
 					emit MyEvent(x: x, y: y)
 				}
@@ -176,7 +179,7 @@ func TestEventEmitted(t *testing.T) {
 		require.NoError(t, err)
 
 		location := runtime.AddressLocation(address.Bytes())
-		expectedType := fmt.Sprintf("%s.MyEvent", location.ID())
+		expectedType := fmt.Sprintf("%s.Test.MyEvent", location.ID())
 
 		events, err := b.GetEvents(expectedType, block.Number, block.Number)
 		require.NoError(t, err)
@@ -187,7 +190,7 @@ func TestEventEmitted(t *testing.T) {
 		eventValue, err := encoding.Decode(myEventType, actualEvent.Payload)
 		assert.NoError(t, err)
 
-		decodedEvent := eventValue.(values.Event)
+		decodedEvent := eventValue.(values.Composite)
 
 		expectedID := flow.Event{TxHash: tx.Hash(), Index: 0}.ID()
 
