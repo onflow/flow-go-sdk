@@ -1,4 +1,4 @@
-package abi_test
+package abi
 
 import (
 	"context"

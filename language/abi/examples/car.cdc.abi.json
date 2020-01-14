@@ -27,17 +27,31 @@
       }
     },
     "FenderBender": {
-      "event": [
-        {
-          "name": "place",
-          "type": "String",
-          "label": "where"
-        },
-        {
-          "name": "cost",
-          "type": "Int"
-        }
-      ]
+      "event": {
+        "fields": [
+          {
+            "name": "cost",
+            "type": "Int"
+          },
+          {
+            "name": "place",
+            "type": "String"
+          }
+        ],
+        "initializers": [
+          [
+            {
+              "name": "place",
+              "type": "String",
+              "label": "where"
+            },
+            {
+              "type": "Int",
+              "name": "cost"
+            }
+          ]
+        ]
+      }
     },
     "Fleet": {
       "struct": {
