@@ -354,4 +354,61 @@ func TestBackend(t *testing.T) {
 
 	}))
 
+	t.Run("SendTransaction with AutoMine enabled", withMocks(func(t *testing.T, backend *server.Backend, api *mocks.MockBlockchainAPI) {
+
+		// enable automine flag
+		backend.EnableAutoMine()
+
+		var capturedTx flow.Transaction
+
+		api.EXPECT().
+			AddTransaction(gomock.Any()).
+			DoAndReturn(func(tx flow.Transaction) error {
+				capturedTx = tx
+				return nil
+			}).
+			Times(1)
+
+		// expect transaction to be executed immediately
+		api.EXPECT().
+			ExecuteAndCommitBlock().
+			DoAndReturn(func() (*types.Block, []emulator.TransactionResult, error) {
+				return &types.Block{}, make([]emulator.TransactionResult, 0), nil
+			}).
+			Times(1)
+
+		requestTx := observation.SendTransactionRequest{
+			Transaction: &entities.Transaction{
+				Script:             nil,
+				ReferenceBlockHash: nil,
+				Nonce:              2137,
+				ComputeLimit:       7,
+				PayerAccount:       nil,
+				ScriptAccounts: [][]byte{
+					nil,
+					{1, 2, 3, 4},
+				},
+				Signatures: []*entities.AccountSignature{
+					{
+						Account:   []byte{2, 2, 2, 2},
+						Signature: []byte{4, 4, 4, 4},
+					}, nil,
+				},
+				Status: 0,
+			},
+		}
+		response, err := backend.SendTransaction(context.Background(), &requestTx)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, response)
+
+		assert.Equal(t, requestTx.Transaction.Nonce, capturedTx.Nonce)
+		assert.Len(t, capturedTx.ScriptAccounts, 2)
+		assert.Len(t, capturedTx.Signatures, 2)
+
+		assert.True(t, capturedTx.Hash().Equal(response.Hash))
+
+		// disable automine flag for following tests
+		backend.DisableAutoMine()
+	}))
 }
