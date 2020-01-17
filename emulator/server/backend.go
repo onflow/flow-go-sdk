@@ -240,13 +240,13 @@ func (b *Backend) commitBlock() {
 	}
 }
 
-// enableAutoMine enables the automine flag.
-func (b *Backend) enableAutoMine() {
+// EnableAutoMine enables the automine flag.
+func (b *Backend) EnableAutoMine() {
 	b.automine = true
 }
 
-// disableAutoMine disables the automine flag.
-func (b *Backend) disableAutoMine() {
+// DisableAutoMine disables the automine flag.
+func (b *Backend) DisableAutoMine() {
 	b.automine = false
 }
 
