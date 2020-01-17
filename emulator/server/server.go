@@ -103,12 +103,14 @@ func NewEmulatorServer(logger *logrus.Logger, store storage.Store, conf *Config)
 		grpc.UnaryInterceptor(grpcprometheus.UnaryServerInterceptor),
 	)
 
+	backend := NewBackend(blockchain, logger)
+
+	if conf.AutoMine {
+		backend.EnableAutoMine()
+	}
+
 	server := &EmulatorServer{
-		backend: &Backend{
-			blockchain: blockchain,
-			logger:     logger,
-			automine:   conf.AutoMine,
-		},
+		backend:       backend,
 		grpcServer:    grpcServer,
 		config:        conf,
 		logger:        logger,
@@ -152,7 +154,7 @@ func (e *EmulatorServer) Start(ctx context.Context) {
 	for {
 		select {
 		case <-ticker.C:
-			if !e.backend.automine {
+			if !e.config.AutoMine {
 				e.backend.commitBlock()
 			}
 		case <-livenessTicker.C:
