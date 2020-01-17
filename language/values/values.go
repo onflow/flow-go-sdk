@@ -463,31 +463,3 @@ func (v Composite) ToGoValue() interface{} {
 
 	return ret
 }
-
-type Event struct {
-	typ    types.Type
-	Fields []Value
-}
-
-func NewEvent(fields []Value) Event {
-	return Event{Fields: fields}
-}
-
-func (v Event) isValue() {}
-
-func (v Event) Type() types.Type { return v.typ }
-
-func (v Event) WithType(typ types.Type) Event {
-	v.typ = typ
-	return v
-}
-
-func (v Event) ToGoValue() interface{} {
-	ret := make([]interface{}, len(v.Fields))
-
-	for i, field := range v.Fields {
-		ret[i] = field.ToGoValue()
-	}
-
-	return ret
-}

@@ -80,8 +80,6 @@ func (e *Encoder) Encode(v values.Value) error {
 		return e.EncodeDictionary(x)
 	case values.Composite:
 		return e.EncodeComposite(x)
-	case values.Event:
-		return e.EncodeEvent(x)
 	default:
 		return fmt.Errorf("unsupported value: %T, %v", v, v)
 	}
@@ -343,12 +341,5 @@ func (e *Encoder) EncodeDictionary(v values.Dictionary) error {
 //
 // A composite is encoded as a fixed-length array of its field values.
 func (e *Encoder) EncodeComposite(v values.Composite) error {
-	return e.encodeArray(v.Fields)
-}
-
-// EncodeEvent writes the XDR-encoded representation of an event.
-//
-// An event is encoded as a fixed-length array of its field values.
-func (e *Encoder) EncodeEvent(v values.Event) error {
 	return e.encodeArray(v.Fields)
 }

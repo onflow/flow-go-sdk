@@ -84,8 +84,12 @@ func (e *Decoder) Decode(t types.Type) (values.Value, error) {
 		return e.DecodeDictionary(x)
 	case types.Composite:
 		return e.DecodeComposite(x)
+	case types.Resource:
+		return e.DecodeComposite(x.Composite)
+	case types.Struct:
+		return e.DecodeComposite(x.Composite)
 	case types.Event:
-		return e.DecodeEvent(x)
+		return e.DecodeComposite(x.Composite)
 
 	default:
 		return nil, fmt.Errorf("unsupported type: %T", t)
@@ -432,22 +436,4 @@ func (e *Decoder) DecodeComposite(t types.Composite) (v values.Composite, err er
 	}
 
 	return values.NewComposite(vals), nil
-}
-
-// DecodeEvent reads the XDR-encoded representation of an event.
-//
-// An event is encoded as a fixed-length array of its field values.
-func (e *Decoder) DecodeEvent(t types.Event) (v values.Event, err error) {
-	vals := make([]values.Value, len(t.Fields))
-
-	for i, field := range t.Fields {
-		value, err := e.Decode(field.Type)
-		if err != nil {
-			return v, err
-		}
-
-		vals[i] = value
-	}
-
-	return values.NewEvent(vals), nil
 }

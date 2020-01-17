@@ -564,55 +564,65 @@ func TestEncodeEvent(t *testing.T) {
 	simpleEvent := encodeTest{
 		"SimpleEvent",
 		types.Event{
-			Fields: []types.Field{
-				{
-					Identifier: "a",
-					Type:       types.Int{},
-				},
-				{
-					Identifier: "b",
-					Type:       types.String{},
+			Composite: types.Composite{
+				Fields: []types.Field{
+					{
+						Identifier: "a",
+						Type:       types.Int{},
+					},
+					{
+						Identifier: "b",
+						Type:       types.String{},
+					},
 				},
 			},
 		},
-		values.NewEvent([]values.Value{
-			values.NewInt(1),
-			values.NewString("foo"),
-		}),
+		values.NewComposite(
+			[]values.Value{
+				values.NewInt(1),
+				values.NewString("foo"),
+			},
+		),
 	}
 
 	compositeEvent := encodeTest{
 		"CompositeEvent",
 		types.Event{
-			Fields: []types.Field{
-				{
-					Identifier: "a",
-					Type:       types.String{},
-				},
-				{
-					Identifier: "b",
-					Type: types.Composite{
-						Fields: []types.Field{
-							{
-								Identifier: "c",
-								Type:       types.String{},
-							},
-							{
-								Identifier: "d",
-								Type:       types.Int{},
+			Composite: types.Composite{
+				Fields: []types.Field{
+					{
+						Identifier: "a",
+						Type:       types.String{},
+					},
+					{
+						Identifier: "b",
+						Type: types.Composite{
+							Fields: []types.Field{
+								{
+									Identifier: "c",
+									Type:       types.String{},
+								},
+								{
+									Identifier: "d",
+									Type:       types.Int{},
+								},
 							},
 						},
 					},
 				},
 			},
 		},
-		values.NewEvent([]values.Value{
-			values.NewString("foo"),
-			values.NewComposite([]values.Value{
-				values.NewString("bar"),
-				values.NewInt(42),
-			}),
-		}),
+		values.NewComposite(
+			[]values.Value{
+				values.NewString("foo"),
+				values.NewComposite(
+					[]values.Value{
+						values.NewString("bar"),
+						values.NewInt(42),
+					},
+				),
+			},
+		),
 	}
 
 	testAllEncode(t, simpleEvent, compositeEvent)
