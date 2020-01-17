@@ -228,15 +228,33 @@
     },
     "event": {
       "type": "object",
-      "title": "An event composite type",
+      "title": "Event type",
       "properties": {
         "event": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/resourceParameter"
-          }
+          "type": "object",
+          "properties": {
+            "fields": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/parameter"
+              }
+            },
+            "initializers": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/parameter"
+                }
+              }
+            }
+          },
+          "additionalProperties": false
         }
       },
+      "required": [
+        "event"
+      ],
       "additionalProperties": false
     },
     "resourceReferenceType": {

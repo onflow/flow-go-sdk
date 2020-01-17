@@ -1,16 +1,30 @@
 {
   "definitions": {
     "Sow": {
-      "event": [
-        {
-          "name": "seed",
-          "type": "String"
-        },
-        {
-          "name": "times",
-          "type": "Int"
-        }
-      ]
+      "event": {
+        "fields": [
+          {
+            "name": "seed",
+            "type": "String"
+          },
+          {
+            "name": "times",
+            "type": "Int"
+          }
+        ],
+        "initializers": [
+          [
+            {
+              "name": "seed",
+              "type": "String"
+            },
+            {
+              "name": "times",
+              "type": "Int"
+            }
+          ]
+        ]
+      }
     }
   }
 }

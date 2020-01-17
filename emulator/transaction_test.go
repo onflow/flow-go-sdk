@@ -7,14 +7,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/dapperlabs/flow-go/crypto"
-	"github.com/dapperlabs/flow-go/language/runtime"
 	"github.com/dapperlabs/flow-go-sdk"
+	"github.com/dapperlabs/flow-go-sdk/emulator"
+	"github.com/dapperlabs/flow-go-sdk/keys"
 	"github.com/dapperlabs/flow-go-sdk/language/encoding"
 	"github.com/dapperlabs/flow-go-sdk/language/types"
 	"github.com/dapperlabs/flow-go-sdk/language/values"
-	"github.com/dapperlabs/flow-go-sdk/emulator"
-	"github.com/dapperlabs/flow-go-sdk/keys"
+	"github.com/dapperlabs/flow-go/crypto"
+	"github.com/dapperlabs/flow-go/language/runtime"
 )
 
 func TestSubmitTransaction(t *testing.T) {
@@ -531,10 +531,13 @@ func TestGetTransaction(t *testing.T) {
 	require.NoError(t, err)
 
 	myEventType := types.Event{
-		Fields: []types.Field{
-			{
-				Identifier: "x",
-				Type:       types.Int{},
+		Composite: types.Composite{
+			Identifier: "MyEvent",
+			Fields: []types.Field{
+				{
+					Identifier: "x",
+					Type:       types.Int{},
+				},
 			},
 		},
 	}
@@ -585,7 +588,7 @@ func TestGetTransaction(t *testing.T) {
 		eventValue, err := encoding.Decode(myEventType, actualEvent.Payload)
 		require.NoError(t, err)
 
-		decodedEvent := eventValue.(values.Event)
+		decodedEvent := eventValue.(values.Composite)
 
 		location := runtime.TransactionLocation(tx.Hash())
 		eventType := fmt.Sprintf("%s.MyEvent", location.ID())
