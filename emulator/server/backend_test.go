@@ -358,6 +358,8 @@ func TestBackend(t *testing.T) {
 
 		// enable automine flag
 		backend.EnableAutoMine()
+		// disable automine flag at the end of the test
+		defer backend.DisableAutoMine()
 
 		var capturedTx flow.Transaction
 
@@ -407,8 +409,5 @@ func TestBackend(t *testing.T) {
 		assert.Len(t, capturedTx.Signatures, 2)
 
 		assert.True(t, capturedTx.Hash().Equal(response.Hash))
-
-		// disable automine flag for following tests
-		backend.DisableAutoMine()
 	}))
 }
