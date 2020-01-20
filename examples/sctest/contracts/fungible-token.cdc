@@ -8,7 +8,7 @@ pub contract interface FungibleToken {
     pub var totalSupply: Int
 
     // event that is emitted when the contract is created
-    event ContractInitialized(initialSupply: Int)
+    event FungibleTokenInitialized(initialSupply: Int)
 
     // event that is emitted when tokens are withdrawn from a Vault
     event Withdraw(amount: Int)
@@ -23,11 +23,11 @@ pub contract interface FungibleToken {
         pub fun withdraw(amount: Int): @Vault {
             pre {
                 amount >= 0:
-                    "withdraw: Withdrawal amount must be non-negative"
+                    "Withdrawal amount must be non-negative"
             }
             post {
                 result.balance == amount:
-                    "withdraw: Withdrawal amount must be the same as the balance of the withdrawn Vault"
+                    "Withdrawal amount must be the same as the balance of the withdrawn Vault"
             }
         }
     }
@@ -39,7 +39,7 @@ pub contract interface FungibleToken {
         pub fun deposit(from: @Vault) {
             pre {
                 from.balance > 0:
-                    "deposit: Deposit balance must be positive"
+                    "Deposit balance must be positive"
             }
         }
     }
@@ -61,25 +61,25 @@ pub contract interface FungibleToken {
         init(balance: Int) {
             pre {
                 balance >= 0:
-                    "init: Initial balance must be non-negative"
+                    "Initial balance must be non-negative"
             }
             post {
                 self.balance == balance:
-                    "init: Balance must be initialized to the initial balance"
+                    "Balance must be initialized to the initial balance"
             }
         }
 
-        // withdraw will usually subtract `amount` from the vaults balance and
-        // return a vault object with the subtracted balance
+        // withdraw subtracts `amount` from the vaults balance and
+        // returns a vault object with the subtracted balance
         pub fun withdraw(amount: Int): @Vault
 
-        // deposit will usually take a vault object as a parameter and add
+        // deposit takes a vault object as a parameter and adds
         // its balance to the balance of the stored vault, then
-        // destroy the sent vault because its balance has been consumed
+        // destroys the sent vault because its balance has been consumed
         pub fun deposit(from: @Vault) {
             post {
                 self.balance == before(self.balance) + before(from.balance):
-                    "deposit: New Vault balance must be the sum of the previous balance and the deposited Vault"
+                    "New Vault balance must be the sum of the previous balance and the deposited Vault"
             }
         }
 
@@ -88,7 +88,7 @@ pub contract interface FungibleToken {
         //
         destroy() {
             pre {
-                self.balance == 0: "destroy: balance must be zero"
+                self.balance == 0: "Balance must be zero"
             }
         }
     }
@@ -98,11 +98,14 @@ pub contract interface FungibleToken {
     //
     pub fun createEmptyVault(): @Vault {
         post {
-            result.balance == 0: "createEmptyVault: The newly created Vault must have zero balance"
+            result.balance == 0: "The newly created Vault must have zero balance"
         }
     }
 }
 
+
+// This is an Example Implementation of the Fungible Token Standard
+//
 pub contract FlowToken: FungibleToken {
 
     pub var totalSupply: Int
