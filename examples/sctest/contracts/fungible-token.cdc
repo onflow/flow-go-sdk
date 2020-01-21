@@ -5,26 +5,22 @@
 pub contract interface FungibleToken {
 
     // The total number of tokens in existence
-    pub var totalSupply: Int
+    pub var totalSupply: UInt64
 
     // event that is emitted when the contract is created
-    event FungibleTokenInitialized(initialSupply: Int)
+    event FungibleTokenInitialized(initialSupply: UInt64)
 
     // event that is emitted when tokens are withdrawn from a Vault
-    event Withdraw(amount: Int)
+    event Withdraw(amount: UInt64)
 
     // event that is emitted when tokens are deposited to a Vault
-    event Deposit(amount: Int)
+    event Deposit(amount: UInt64)
 
     // Interface that enforces the requirements for withdrawing
     // tokens from the implementing type
     //
     pub resource interface Provider {
-        pub fun withdraw(amount: Int): @Vault {
-            pre {
-                amount >= 0:
-                    "Withdrawal amount must be non-negative"
-            }
+        pub fun withdraw(amount: UInt64): @Vault {
             post {
                 result.balance == amount:
                     "Withdrawal amount must be the same as the balance of the withdrawn Vault"
@@ -47,7 +43,7 @@ pub contract interface FungibleToken {
     // Interface that contains the balance field of the Vault
     //
     pub resource interface Balance {
-        pub var balance: Int
+        pub var balance: UInt64
     }
 
     // Every Fungible Token contract must define a Vault object that
@@ -56,13 +52,9 @@ pub contract interface FungibleToken {
     //
     pub resource Vault: Provider, Receiver, Balance {
         // keeps track of the total balance of the accounts tokens
-        pub var balance: Int
+        pub var balance: UInt64
 
-        init(balance: Int) {
-            pre {
-                balance >= 0:
-                    "Initial balance must be non-negative"
-            }
+        init(balance: UInt64) {
             post {
                 self.balance == balance:
                     "Balance must be initialized to the initial balance"
@@ -71,7 +63,11 @@ pub contract interface FungibleToken {
 
         // withdraw subtracts `amount` from the vaults balance and
         // returns a vault object with the subtracted balance
-        pub fun withdraw(amount: Int): @Vault
+        pub fun withdraw(amount: UInt64): @Vault {
+            pre {
+                self.balance >= amount: "Amount withdrawn must be less than the balance of the Vault!"
+            }
+        }
 
         // deposit takes a vault object as a parameter and adds
         // its balance to the balance of the stored vault, then
@@ -80,15 +76,6 @@ pub contract interface FungibleToken {
             post {
                 self.balance == before(self.balance) + before(from.balance):
                     "New Vault balance must be the sum of the previous balance and the deposited Vault"
-            }
-        }
-
-        // In order to destroy a Vault, its balance must be zero
-        // so tokens aren't lost
-        //
-        destroy() {
-            pre {
-                self.balance == 0: "Balance must be zero"
             }
         }
     }
@@ -108,17 +95,17 @@ pub contract interface FungibleToken {
 //
 pub contract FlowToken: FungibleToken {
 
-    pub var totalSupply: Int
+    pub var totalSupply: UInt64
 
     pub resource Vault: FungibleToken.Provider, FungibleToken.Receiver, FungibleToken.Balance {
         
-        pub var balance: Int
+        pub var balance: UInt64
 
-        init(balance: Int) {
+        init(balance: UInt64) {
             self.balance = balance
         }
 
-        pub fun withdraw(amount: Int): @Vault {
+        pub fun withdraw(amount: UInt64): @Vault {
             self.balance = self.balance - amount
             return <-create Vault(balance: amount)
         }
@@ -133,7 +120,7 @@ pub contract FlowToken: FungibleToken {
         return <-create Vault(balance: 0)
     }
 
-    pub fun createVault(initialBalance: Int): @Vault {
+    pub fun createVault(initialBalance: UInt64): @Vault {
         return <-create Vault(balance: initialBalance)
     }
 
