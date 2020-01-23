@@ -8,6 +8,8 @@ VERSION := $(shell git describe --tags --abbrev=0 --exact-match 2>/dev/null)
 COVER_PROFILE := cover.out
 # Disable go sum database lookup for private repos
 GOPRIVATE=github.com/dapperlabs/*
+# Ensure go bin path is in path (Especially for CI)
+PATH := $(PATH):$(GOPATH)/bin
 # OS
 UNAME := $(shell uname)
 
