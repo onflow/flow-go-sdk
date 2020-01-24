@@ -11,10 +11,7 @@ WORKDIR /app
 
 # add the pubkey of github.com to knownhosts, so ssh-agent doesn't bark
 RUN mkdir -p /root/.ssh && ssh-keyscan -t rsa github.com >> /root/.ssh/known_hosts
-
-# COPY go.mod .
-# COPY go.sum .
-# RUN go mod download
+RUN echo '[url "ssh://git@github.com/"] insteadOf = https://github.com/' > ~/.gitconfig
 
 COPY . .
 
