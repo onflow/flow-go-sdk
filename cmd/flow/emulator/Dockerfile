@@ -1,19 +1,27 @@
+# syntax=docker/dockerfile:1.0.0-experimental
+
 # NOTE: Must be run in the context of the repo's root directory
 
 ## (2) Build the app binary
-FROM golang:1.13-alpine3.10 AS build-app
+FROM golang:1.13 AS build-app
 
 # Build the app binary in /app
 RUN mkdir /app
 WORKDIR /app
 
-COPY go.mod .
-COPY go.sum .
-RUN go mod download
+# add the pubkey of github.com to knownhosts, so ssh-agent doesn't bark
+RUN mkdir -p /root/.ssh && ssh-keyscan -t rsa github.com >> /root/.ssh/known_hosts
+
+# COPY go.mod .
+# COPY go.sum .
+# RUN go mod download
 
 COPY . .
 
-RUN GO111MODULE=on CGO_ENABLED=0 GOOOS=linux GOARCH=amd64 go build -o ./app ./cmd/flow
+RUN --mount=type=ssh \
+    --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    GO111MODULE=on CGO_ENABLED=0 GOOOS=linux GOARCH=amd64 go build -o ./app ./cmd/flow
 
 ## (3) Add the binary to a fresh Alpine image
 FROM alpine:3.10

@@ -12,6 +12,9 @@ GOPRIVATE=github.com/dapperlabs/*
 PATH := $(PATH):$(GOPATH)/bin
 # OS
 UNAME := $(shell uname)
+# Enable docker build kit
+export DOCKER_BUILDKIT := 1
+
 
 .PHONY: install-tools
 install-tools: check-go-version
@@ -58,7 +61,7 @@ install-cli: cmd/flow/flow
 
 .PHONY: docker-build-emulator
 docker-build-emulator:
-	docker build -f cmd/flow/emulator/Dockerfile -t gcr.io/dl-flow/emulator:latest -t "gcr.io/dl-flow/emulator:$(SHORT_COMMIT)" .
+	docker build --ssh default -f cmd/flow/emulator/Dockerfile -t gcr.io/dl-flow/emulator:latest -t "gcr.io/dl-flow/emulator:$(SHORT_COMMIT)" .
 
 docker-push-emulator:
 	docker push gcr.io/dl-flow/emulator:latest
