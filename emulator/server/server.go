@@ -56,6 +56,7 @@ type Config struct {
 	HTTPPort       int
 	BlockInterval  time.Duration
 	RootAccountKey *flow.AccountPrivateKey
+	AutoMine       bool
 	GRPCDebug      bool
 	// Persistent indicates whether to use persistent on-disk storage
 	Persistent bool
@@ -102,11 +103,14 @@ func NewEmulatorServer(logger *logrus.Logger, store storage.Store, conf *Config)
 		grpc.UnaryInterceptor(grpcprometheus.UnaryServerInterceptor),
 	)
 
+	backend := NewBackend(blockchain, logger)
+
+	if conf.AutoMine {
+		backend.EnableAutoMine()
+	}
+
 	server := &EmulatorServer{
-		backend: &Backend{
-			blockchain: blockchain,
-			logger:     logger,
-		},
+		backend:       backend,
 		grpcServer:    grpcServer,
 		config:        conf,
 		logger:        logger,
@@ -150,7 +154,9 @@ func (e *EmulatorServer) Start(ctx context.Context) {
 	for {
 		select {
 		case <-ticker.C:
-			e.backend.commitBlock()
+			if !e.config.AutoMine {
+				e.backend.commitBlock()
+			}
 		case <-livenessTicker.C:
 			checker.CheckIn()
 		case <-ctx.Done():
