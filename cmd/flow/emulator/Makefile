@@ -23,7 +23,7 @@ MONOREPO_ROOT=`pwd`/../../../
 # The location of the k8s YAML files
 K8S_YAMLS_LOCATION=./k8s
 
-KUBECONFIG=$$(uuidgen)
+KUBECONFIG=$(shell uuidgen)
 
 #----------------------------------------------------------------------
 # CD COMMANDS
@@ -38,16 +38,16 @@ deploy-production: update-deployment-image apply-prod-files monitor-rollout
 # Staging YAMLs must have 'staging' in their name.
 .PHONY: apply-staging-files
 apply-staging-files:
-	echo "$$KUBECONFIG_STAGING" > $$KUBECONFIG; \
+	echo "$$KUBECONFIG_STAGING" > ${KUBECONFIG}; \
 	files=$$(find ${K8S_YAMLS_LOCATION} -type f \( -name "*.yml" -or -name "*.yaml" \) | grep staging); \
-	echo "$$files" | xargs -I {} kubectl --kubeconfig=$$KUBECONFIG apply -f {}
+	echo "$$files" | xargs -I {} kubectl --kubeconfig=${KUBECONFIG} apply -f {}
 
 # Production YAMLs must have 'production' in their name.
 .PHONY: apply-prod-files
 apply-prod-files:
-	echo "$$KUBECONFIG_PRODUCTION" > $$KUBECONFIG; \
+	echo "$$KUBECONFIG_PRODUCTION" > ${KUBECONFIG}; \
 	files=$$(find ${K8S_YAMLS_LOCATION} -type f \( -name "*.yml" -or -name "*.yaml" \) | grep production); \
-	echo "$$files" | xargs -I {} kubectl --kubeconfig=$$KUBECONFIG apply -f {}
+	echo "$$files" | xargs -I {} kubectl --kubeconfig=${KUBECONFIG} apply -f {}
 
 # Deployment YAMLs must have 'deployment' in their name.
 .PHONY: update-deployment-image
@@ -63,5 +63,5 @@ update-deployment-image:
 # Has to come after one of the `apply` targets
 .PHONY: monitor-rollout
 monitor-rollout:
-	kubectl --kubeconfig=$$KUBECONFIG rollout status deployments.apps ${DEPLOYMENT_NAME}
+	kubectl --kubeconfig=${KUBECONFIG} rollout status deployments.apps ${DEPLOYMENT_NAME}
 
