@@ -23,6 +23,8 @@ MONOREPO_ROOT=`pwd`/../../../
 # The location of the k8s YAML files
 K8S_YAMLS_LOCATION=./k8s
 
+KUBECONFIG=$$(uuidgen)
+
 #----------------------------------------------------------------------
 # CD COMMANDS
 #----------------------------------------------------------------------
@@ -31,23 +33,21 @@ K8S_YAMLS_LOCATION=./k8s
 deploy-staging: update-deployment-image apply-staging-files monitor-rollout
 
 .PHONY: deploy-production
-deploy-production: update-deployment-image apply-prod-files
+deploy-production: update-deployment-image apply-prod-files monitor-rollout
 
 # Staging YAMLs must have 'staging' in their name.
 .PHONY: apply-staging-files
 apply-staging-files:
-	kconfig=$$(uuidgen); \
-	echo "$$KUBECONFIG_STAGING" > $$kconfig; \
+	echo "$$KUBECONFIG_STAGING" > $$KUBECONFIG; \
 	files=$$(find ${K8S_YAMLS_LOCATION} -type f \( -name "*.yml" -or -name "*.yaml" \) | grep staging); \
-	echo "$$files" | xargs -I {} kubectl --kubeconfig=$$kconfig apply -f {}
+	echo "$$files" | xargs -I {} kubectl --kubeconfig=$$KUBECONFIG apply -f {}
 
 # Production YAMLs must have 'production' in their name.
 .PHONY: apply-prod-files
 apply-prod-files:
-	kconfig=$$(uuidgen); \
-	echo "$$KUBECONFIG_PRODUCTION" > $$kconfig; \
+	echo "$$KUBECONFIG_PRODUCTION" > $$KUBECONFIG; \
 	files=$$(find ${K8S_YAMLS_LOCATION} -type f \( -name "*.yml" -or -name "*.yaml" \) | grep production); \
-	echo "$$files" | xargs -I {} kubectl --kubeconfig=$$kconfig apply -f {} --dry-run
+	echo "$$files" | xargs -I {} kubectl --kubeconfig=$$KUBECONFIG apply -f {}
 
 # Deployment YAMLs must have 'deployment' in their name.
 .PHONY: update-deployment-image
@@ -60,8 +60,8 @@ update-deployment-image:
 		mv -f $$patched $$i; \
 	done
 
+# Has to come after one of the `apply` targets
 .PHONY: monitor-rollout
 monitor-rollout:
-	kconfig=$$(uuidgen); \
-	echo "$$KUBECONFIG_STAGING" > $$kconfig; \
-	kubectl --kubeconfig=$$kconfig rollout status deployments.apps ${DEPLOYMENT_NAME}
+	kubectl --kubeconfig=$$KUBECONFIG rollout status deployments.apps ${DEPLOYMENT_NAME}
+

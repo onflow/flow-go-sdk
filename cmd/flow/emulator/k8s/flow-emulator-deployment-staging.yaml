@@ -165,11 +165,11 @@ spec:
           # Resource requests and contraints
           resources:
             requests:
-              cpu: '125m'
-              memory: '128Mi'
-            limits:
               cpu: '250m'
               memory: '256Mi'
+            limits:
+              cpu: '500m'
+              memory: '2048Mi'
           volumeMounts:
             - name: badger-volume
               mountPath: /flowdb
