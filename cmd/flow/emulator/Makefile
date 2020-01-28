@@ -23,7 +23,7 @@ MONOREPO_ROOT=`pwd`/../../../
 # The location of the k8s YAML files
 K8S_YAMLS_LOCATION=./k8s
 
-KUBECONFIG=$(shell uuidgen)
+KUBECONFIG := $(shell uuidgen)
 
 #----------------------------------------------------------------------
 # CD COMMANDS
