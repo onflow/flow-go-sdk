@@ -11,5 +11,5 @@ spec:
   dataSource: null
   resources:
     requests:
-      storage: 10Gi
+      storage: 100Gi
   storageClassName: standard
