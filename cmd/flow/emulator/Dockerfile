@@ -2,7 +2,7 @@
 
 # NOTE: Must be run in the context of the repo's root directory
 
-## (2) Build the app binary
+## Build the app binary
 FROM golang:1.13 AS build-app
 
 # Build the app binary in /app
@@ -11,17 +11,18 @@ WORKDIR /app
 
 # add the pubkey of github.com to knownhosts, so ssh-agent doesn't bark
 RUN mkdir -p /root/.ssh && ssh-keyscan -t rsa github.com >> /root/.ssh/known_hosts
-RUN echo '[url "ssh://git@github.com/"] insteadOf = https://github.com/' > ~/.gitconfig
+RUN git config --global 'url.ssh://git@github.com/.insteadOf' https://github.com/
 
 COPY . .
 
 RUN --mount=type=ssh \
     --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
-    GO111MODULE=on CGO_ENABLED=0 GOOOS=linux GOARCH=amd64 go build -o ./app ./cmd/flow
+    GO111MODULE=on CGO_ENABLED=0 GOOOS=linux GOARCH=amd64 \
+    go build -ldflags "-extldflags -static" -o ./app ./cmd/flow
 
-## (3) Add the binary to a fresh Alpine image
-FROM alpine:3.10
+## Add the binary to a fresh distroless image
+FROM gcr.io/distroless/static
 
 COPY --from=build-app /app/app /bin/app
 
