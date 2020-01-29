@@ -3,10 +3,10 @@ module github.com/dapperlabs/flow-go-sdk
 go 1.13
 
 require (
-	github.com/dapperlabs/flow-go v0.2.5-beta
-	github.com/dapperlabs/flow-go/crypto v0.2.5-beta
+	github.com/dapperlabs/flow-go v0.3.0
+	github.com/dapperlabs/flow-go/crypto v0.3.0
 	github.com/dapperlabs/flow-go/language v0.2.5-beta
-	github.com/dapperlabs/flow-go/protobuf v0.2.5-beta
+	github.com/dapperlabs/flow-go/protobuf v0.3.0
 	github.com/dave/jennifer v1.4.0
 	github.com/davecgh/go-xdr v0.0.0-20161123171359-e6a2ba005892
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
@@ -30,7 +30,5 @@ require (
 	github.com/spf13/cobra v0.0.5
 	github.com/stretchr/testify v1.4.0
 	github.com/xeipuuv/gojsonschema v1.2.0
-	golang.org/x/crypto v0.0.0-20191227163750-53104e6ec876 // indirect
-	golang.org/x/sys v0.0.0-20200107162124-548cf772de50 // indirect
 	google.golang.org/grpc v1.26.0
 )
