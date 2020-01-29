@@ -21,7 +21,8 @@ install-tools: check-go-version
 	cd ${GOPATH}; \
 	GO111MODULE=on go get github.com/golang/mock/mockgen@v1.3.1; \
 	GO111MODULE=on go get github.com/kevinburke/go-bindata/...@v3.11.0; \
-	GO111MODULE=on go get github.com/axw/gocov/gocov;
+	GO111MODULE=on go get github.com/axw/gocov/gocov; \
+	GO111MODULE=on go get github.com/matm/gocov-html;
 
 .PHONY: test
 test:
