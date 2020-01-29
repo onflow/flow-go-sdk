@@ -64,4 +64,3 @@ update-deployment-image:
 .PHONY: monitor-rollout
 monitor-rollout:
 	kubectl --kubeconfig=${KUBECONFIG} rollout status deployments.apps ${DEPLOYMENT_NAME}
-
