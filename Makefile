@@ -20,7 +20,10 @@ export DOCKER_BUILDKIT := 1
 install-tools: check-go-version
 	cd ${GOPATH}; \
 	GO111MODULE=on go get github.com/golang/mock/mockgen@v1.3.1; \
-	GO111MODULE=on go get github.com/kevinburke/go-bindata/...@v3.11.0;
+	GO111MODULE=on go get github.com/kevinburke/go-bindata/...@v3.11.0; \
+	GO111MODULE=on go get github.com/axw/gocov/gocov; \
+	GO111MODULE=on go get github.com/matm/gocov-html; \
+	GO111MODULE=on go get github.com/sanderhahn/gozip/cmd/gozip;
 
 .PHONY: test
 test:
@@ -34,7 +37,7 @@ ifeq ($(COVER), true)
 	./cover-summary.sh
 	gocov-html cover.json > index.html
 	# coverage.zip will automatically be picked up by teamcity
-	zip coverage.zip index.html
+	gozip -c coverage.zip index.html
 endif
 
 .PHONY: generate
