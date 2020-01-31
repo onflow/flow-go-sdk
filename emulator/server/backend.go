@@ -173,11 +173,11 @@ func (b *Backend) ExecuteScript(ctx context.Context, req *observation.ExecuteScr
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
+	printScriptResult(b.logger, result)
+
 	if result.Value == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid script")
 	}
-
-	printScriptResult(b.logger, result)
 
 	valueBytes, err := encoding.Encode(result.Value)
 	if err != nil {
