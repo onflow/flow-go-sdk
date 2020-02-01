@@ -63,4 +63,4 @@ update-deployment-image:
 # Has to come after one of the `apply` targets
 .PHONY: monitor-rollout
 monitor-rollout:
-	kubectl --kubeconfig=${KUBECONFIG} rollout status deployments.apps ${DEPLOYMENT_NAME}
+	kubectl --kubeconfig=${KUBECONFIG} rollout status statefulsets.apps ${DEPLOYMENT_NAME}
