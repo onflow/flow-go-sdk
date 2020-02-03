@@ -19,14 +19,13 @@ type Routine interface {
 
 // A Group synchronizes the startup and shutdown behaviour of multiple routines.
 //
-// All registered routines start running simultaneously. If any routine stops early,
+// All registered routines start running simultaneously. If any routine stops,
 // all other routines in the group are gracefully shut down.
 //
 // Similarly, a call to Stop will gracefully shut down all routines in the group.
 //
-// A group is thread-safe in the sense that it run multiple routines and track
-// their status without data races. However, a single group is not safe to use across
-// multiple host threads. Start and Stop should only be called at most once.
+// A group is thread-safe in the sense that it can run multiple routines and track
+// their status without data races.
 type Group struct {
 	routines []Routine
 	done     map[int]bool
