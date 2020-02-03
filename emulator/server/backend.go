@@ -21,16 +21,16 @@ import (
 // Backend wraps an emulated blockchain and implements the RPC handlers
 // required by the Observation API.
 type Backend struct {
-	blockchain emulator.BlockchainAPI
 	logger     *logrus.Logger
+	blockchain emulator.BlockchainAPI
 	automine   bool
 }
 
-// NewBackend returns a new backend (automine flag disabled by default).
-func NewBackend(blockchain emulator.BlockchainAPI, logger *logrus.Logger) *Backend {
+// NewBackend returns a new backend.
+func NewBackend(logger *logrus.Logger, blockchain emulator.BlockchainAPI) *Backend {
 	return &Backend{
-		blockchain: blockchain,
 		logger:     logger,
+		blockchain: blockchain,
 		automine:   false,
 	}
 }
@@ -227,17 +227,18 @@ func (b *Backend) commitBlock() {
 	block, results, err := b.blockchain.ExecuteAndCommitBlock()
 	if err != nil {
 		b.logger.WithError(err).Error("Failed to commit block")
-	} else {
-		for _, result := range results {
-			printTransactionResult(b.logger, result)
-		}
-
-		b.logger.WithFields(logrus.Fields{
-			"blockNum":  block.Number,
-			"blockHash": block.Hash().Hex(),
-			"blockSize": len(block.TransactionHashes),
-		}).Debugf("📦  Block #%d committed", block.Number)
+		return
 	}
+
+	for _, result := range results {
+		printTransactionResult(b.logger, result)
+	}
+
+	b.logger.WithFields(logrus.Fields{
+		"blockNum":  block.Number,
+		"blockHash": block.Hash().Hex(),
+		"blockSize": len(block.TransactionHashes),
+	}).Debugf("📦  Block #%d committed", block.Number)
 }
 
 // EnableAutoMine enables the automine flag.

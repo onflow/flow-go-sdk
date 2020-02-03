@@ -79,7 +79,7 @@ func TestDecodingUsingABI(t *testing.T) {
 	b, err := emulator.NewBlockchain()
 	require.NoError(t, err)
 
-	backend := server.NewBackend(b, logrus.New())
+	backend := server.NewBackend(logrus.New(), b)
 
 	ctx := context.Background()
 
