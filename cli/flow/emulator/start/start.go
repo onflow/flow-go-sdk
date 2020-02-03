@@ -57,8 +57,10 @@ var Cmd = &cobra.Command{
 		}
 
 		serverConf := &server.Config{
-			Port:           conf.Port,
-			HTTPPort:       conf.HTTPPort,
+			GRPCPort: conf.Port,
+			HTTPPort: conf.HTTPPort,
+			// TODO: allow headers to be parsed from environment
+			HTTPHeaders:    nil,
 			BlockInterval:  conf.BlockInterval,
 			RootAccountKey: &rootAcct.PrivateKey,
 			AutoMine:       conf.AutoMine,
@@ -67,7 +69,8 @@ var Cmd = &cobra.Command{
 			DBPath:         conf.DBPath,
 		}
 
-		server.StartServer(log, serverConf)
+		emu := server.NewEmulatorServer(log, serverConf)
+		emu.Start()
 	},
 }
 
