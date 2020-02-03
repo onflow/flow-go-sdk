@@ -1,59 +1,63 @@
 package server
 
 import (
-	"context"
 	"encoding/hex"
-	"fmt"
-	"net"
-	"net/http"
-	"os"
-	"os/signal"
-	"sync"
-	"syscall"
 	"time"
 
-	"github.com/dapperlabs/flow-go/protobuf/services/observation"
-	grpcprometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
-	"github.com/improbable-eng/grpc-web/go/grpcweb"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 
 	"github.com/dapperlabs/flow-go-sdk"
 	"github.com/dapperlabs/flow-go-sdk/emulator"
 	"github.com/dapperlabs/flow-go-sdk/emulator/storage"
 	"github.com/dapperlabs/flow-go-sdk/emulator/storage/badger"
 	"github.com/dapperlabs/flow-go-sdk/emulator/storage/memstore"
-	"github.com/dapperlabs/flow-go-sdk/utils/liveness"
+	"github.com/dapperlabs/flow-go-sdk/utils/graceful"
 )
 
 // EmulatorServer is a local server that runs a Flow Emulator instance.
 //
 // The server wraps an emulated blockchain instance with the Observation gRPC interface.
 type EmulatorServer struct {
-	backend       *Backend
-	grpcServer    *grpc.Server
-	config        *Config
-	logger        *logrus.Logger
-	livenessCheck *liveness.CheckCollector
-
-	// Wraps the cleanup function to ensure we only run cleanup once
-	cleanupOnce sync.Once
-	onCleanup   func()
+	logger         *logrus.Logger
+	config         *Config
+	backend        *Backend
+	grpcServer     *GRPCServer
+	httpServer     *HTTPServer
+	blocksTicker   *BlocksTicker
+	livenessTicker *LivenessTicker
+	onCleanup      func()
 }
 
 const (
+	defaultGRPCPort               = 3569
+	defaultHTTPPort               = 8080
 	defaultBlockInterval          = 5 * time.Second
 	defaultLivenessCheckTolerance = time.Second
-	defaultPort                   = 3569
-	defaultHTTPPort               = 8080
+)
+
+var (
+	defaultHTTPHeaders = []HTTPHeader{
+		{
+			Key:   "Access-Control-Allow-Origin",
+			Value: "*",
+		},
+		{
+			Key:   "Access-Control-Allow-Methods",
+			Value: "POST, GET, OPTIONS, PUT, DELETE",
+		},
+		{
+			Key:   "Access-Control-Allow-Headers",
+			Value: "*",
+		},
+	}
 )
 
 // Config is the configuration for an emulator server.
 type Config struct {
-	Port           int
+	GRPCPort       int
 	HTTPPort       int
+	HTTPHeaders    []HTTPHeader
 	BlockInterval  time.Duration
 	RootAccountKey *flow.AccountPrivateKey
 	AutoMine       bool
@@ -68,61 +72,47 @@ type Config struct {
 }
 
 // NewEmulatorServer creates a new instance of a Flow Emulator server.
-func NewEmulatorServer(logger *logrus.Logger, store storage.Store, conf *Config) *EmulatorServer {
+func NewEmulatorServer(logger *logrus.Logger, conf *Config) *EmulatorServer {
 
-	options := []emulator.Option{
-		emulator.WithStore(store),
-	}
-	if conf.RootAccountKey != nil {
-		options = append(options, emulator.WithRootAccountKey(*conf.RootAccountKey))
-	}
+	conf = sanitizeConfig(conf)
 
-	if conf.BlockInterval == 0 {
-		conf.BlockInterval = defaultBlockInterval
-	}
-
-	if conf.LivenessCheckTolerance == 0 {
-		conf.LivenessCheckTolerance = defaultLivenessCheckTolerance
-	}
-
-	if conf.Port == 0 {
-		conf.Port = defaultPort
-	}
-
-	if conf.HTTPPort == 0 {
-		conf.HTTPPort = defaultHTTPPort
-	}
-
-	blockchain, err := emulator.NewBlockchain(options...)
+	store, closeStore, err := configureStore(logger, conf)
 	if err != nil {
-		logger.WithError(err).Fatal("Failed to initialize blockchain")
+		logger.WithError(err).Error("❗  Failed to configure storage")
+		return nil
 	}
 
-	grpcServer := grpc.NewServer(
-		grpc.StreamInterceptor(grpcprometheus.StreamServerInterceptor),
-		grpc.UnaryInterceptor(grpcprometheus.UnaryServerInterceptor),
-	)
-
-	backend := NewBackend(blockchain, logger)
-
-	if conf.AutoMine {
-		backend.EnableAutoMine()
+	blockchain, err := configureBlockchain(conf, store)
+	if err != nil {
+		logger.WithError(err).Error("❗  Failed to configure emulated blockchain")
+		return nil
 	}
+
+	backend := configureBackend(logger, conf, blockchain)
+
+	livenessTicker := NewLivenessTicker(conf.LivenessCheckTolerance)
+	grpcServer := NewGRPCServer(logger, backend, conf.GRPCPort, conf.GRPCDebug)
+	httpServer := NewHTTPServer(grpcServer, livenessTicker, conf.HTTPPort, conf.HTTPHeaders)
+	blocksTicker := NewBlocksTicker(backend, conf.BlockInterval)
 
 	server := &EmulatorServer{
-		backend:       backend,
-		grpcServer:    grpcServer,
-		config:        conf,
-		logger:        logger,
-		livenessCheck: liveness.NewCheckCollector(conf.LivenessCheckTolerance),
+		logger:         logger,
+		config:         conf,
+		backend:        backend,
+		grpcServer:     grpcServer,
+		httpServer:     httpServer,
+		blocksTicker:   blocksTicker,
+		livenessTicker: livenessTicker,
+		onCleanup: func() {
+			err := closeStore()
+			if err != nil {
+				logger.WithError(err).Infof("Failed to close storage")
+			}
+		},
 	}
 
-	if conf.GRPCDebug {
-		reflection.Register(grpcServer)
-	}
-
-	address := server.backend.blockchain.RootAccountAddress()
-	prKey := server.backend.blockchain.RootKey()
+	address := blockchain.RootAccountAddress()
+	prKey := blockchain.RootKey()
 	prKeyBytes, _ := prKey.PrivateKey.Encode()
 
 	logger.WithFields(logrus.Fields{
@@ -130,134 +120,117 @@ func NewEmulatorServer(logger *logrus.Logger, store storage.Store, conf *Config)
 		"prKey":   hex.EncodeToString(prKeyBytes),
 	}).Infof("⚙️   Using root account 0x%s", address.Hex())
 
-	observation.RegisterObserveServiceServer(server.grpcServer, server.backend)
-	grpcprometheus.Register(server.grpcServer)
 	return server
 }
 
-// Start spins up the Flow Emulator server instance.
-//
-// This function starts a gRPC server to listen for requests and process incoming transactions.
-// By default, the Flow Emulator server automatically mines a block every BlockInterval.
-func (e *EmulatorServer) Start(ctx context.Context) {
-	// Start gRPC server in a separate goroutine to continually listen for requests
-	go e.startGrpcServer()
+// Start starts the Flow Emulator server.
+func (s *EmulatorServer) Start() {
+	defer s.cleanup()
 
-	ticker := time.NewTicker(e.config.BlockInterval)
-	livenessTicker := time.NewTicker(e.config.LivenessCheckTolerance / 2)
+	g := graceful.NewGroup()
 
-	checker := e.livenessCheck.NewCheck()
+	s.logger.
+		WithField("port", s.config.GRPCPort).
+		Infof("🌱  Starting gRPC server on port %d...", s.config.GRPCPort)
 
-	defer ticker.Stop()
-	defer livenessTicker.Stop()
+	s.logger.
+		WithField("port", s.config.HTTPPort).
+		Infof("🌱  Starting HTTP server on port %d...", s.config.HTTPPort)
 
-	for {
-		select {
-		case <-ticker.C:
-			if !e.config.AutoMine {
-				e.backend.commitBlock()
-			}
-		case <-livenessTicker.C:
-			checker.CheckIn()
-		case <-ctx.Done():
-			return
-		}
-	}
-}
+	g.Add(s.grpcServer)
+	g.Add(s.httpServer)
+	g.Add(s.blocksTicker)
+	g.Add(s.livenessTicker)
 
-func (e *EmulatorServer) startGrpcServer() {
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", e.config.Port))
+	err := g.Start()
 	if err != nil {
-		e.logger.WithError(err).Fatal("☠️  Failed to start emulator server")
+		s.logger.WithError(err).Error("❗  Server error")
 	}
 
-	err = e.grpcServer.Serve(lis)
-	if err != nil {
-		e.logger.WithError(err).Fatal("☠️  Failed to serve gRPC service")
-	}
-}
-
-// StartServer sets up a wrapped instance of the Flow Emulator server and starts it.
-func StartServer(logger *logrus.Logger, config *Config) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	var store storage.Store
-	var onCleanup = func() {}
-
-	if config.Persistent {
-		badgerStore, err := badger.New(
-			badger.WithPath(config.DBPath),
-			badger.WithLogger(logger),
-			badger.WithTruncate(true))
-		if err != nil {
-			logger.WithError(err).Fatal("☠️  Failed to set up Emulator server")
-		}
-
-		store = badgerStore
-		onCleanup = func() {
-			if err := badgerStore.Close(); err != nil {
-				logger.WithError(err).Error("Cleanup failed: could not close store")
-			}
-		}
-	} else {
-		store = memstore.New()
-	}
-
-	emulatorServer := NewEmulatorServer(logger, store, config)
-	emulatorServer.onCleanup = onCleanup
-
-	defer emulatorServer.cleanup()
-	go emulatorServer.handleSIGTERM()
-
-	logger.
-		WithField("port", config.Port).
-		Infof("🌱  Starting emulator server on port %d...", config.Port)
-
-	go emulatorServer.Start(ctx)
-
-	wrappedServer := grpcweb.WrapServer(
-		emulatorServer.grpcServer,
-		grpcweb.WithOriginFunc(func(origin string) bool { return true }),
-	)
-
-	mux := http.NewServeMux()
-
-	// register metrics handler
-	mux.Handle("/metrics", promhttp.Handler())
-
-	// register liveness handler
-	mux.Handle("/live", emulatorServer.livenessCheck)
-
-	// register gRPC HTTP proxy
-	mux.Handle("/", http.HandlerFunc(wrappedServer.ServeHTTP))
-
-	httpServer := http.Server{
-		Addr:    fmt.Sprintf(":%d", config.HTTPPort),
-		Handler: mux,
-	}
-
-	logger.
-		WithField("port", config.HTTPPort).
-		Infof("🌱  Starting wrapped HTTP server on port %d...", config.HTTPPort)
-
-	err := httpServer.ListenAndServe()
-	if err != nil {
-		logger.WithError(err).Fatal("☠️  Failed to start HTTP Server")
-	}
+	s.logger.Info("🛑  Server stopped")
 }
 
 // cleanup cleans up the server.
 // This MUST be called before the server process terminates.
 func (e *EmulatorServer) cleanup() {
-	e.cleanupOnce.Do(e.onCleanup)
+	e.onCleanup()
 }
 
-// handleSIGTERM waits for a SIGTERM, then cleans up the server's resources.
-// This should be run as a goroutine.
-func (e *EmulatorServer) handleSIGTERM() {
-	c := make(chan os.Signal)
-	signal.Notify(c, syscall.SIGTERM)
-	<-c
-	e.cleanup()
+func configureStore(logger *logrus.Logger, conf *Config) (store storage.Store, close func() error, err error) {
+	if conf.Persistent {
+		badgerStore, err := badger.New(
+			badger.WithPath(conf.DBPath),
+			badger.WithLogger(logger),
+			badger.WithTruncate(true))
+		if err != nil {
+			return nil, nil, errors.Wrap(err, "failed to initialize Badger store")
+		}
+
+		close = func() error {
+			err := badgerStore.Close()
+			if err != nil {
+				return err
+			}
+
+			return nil
+		}
+
+		return badgerStore, close, nil
+	}
+
+	store = memstore.New()
+	close = func() error { return nil }
+
+	return store, close, nil
+}
+
+func configureBlockchain(conf *Config, store storage.Store) (*emulator.Blockchain, error) {
+	options := []emulator.Option{
+		emulator.WithStore(store),
+	}
+
+	if conf.RootAccountKey != nil {
+		options = append(options, emulator.WithRootAccountKey(*conf.RootAccountKey))
+	}
+
+	blockchain, err := emulator.NewBlockchain(options...)
+	if err != nil {
+		return nil, err
+	}
+
+	return blockchain, nil
+}
+
+func configureBackend(logger *logrus.Logger, conf *Config, blockchain *emulator.Blockchain) *Backend {
+	backend := NewBackend(logger, blockchain)
+
+	if conf.AutoMine {
+		backend.EnableAutoMine()
+	}
+
+	return backend
+}
+
+func sanitizeConfig(conf *Config) *Config {
+	if conf.BlockInterval == 0 {
+		conf.BlockInterval = defaultBlockInterval
+	}
+
+	if conf.GRPCPort == 0 {
+		conf.GRPCPort = defaultGRPCPort
+	}
+
+	if conf.HTTPPort == 0 {
+		conf.HTTPPort = defaultHTTPPort
+	}
+
+	if conf.HTTPHeaders == nil {
+		conf.HTTPHeaders = defaultHTTPHeaders
+	}
+
+	if conf.LivenessCheckTolerance == 0 {
+		conf.LivenessCheckTolerance = defaultLivenessCheckTolerance
+	}
+
+	return conf
 }
