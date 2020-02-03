@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/dapperlabs/flow-go/crypto"
-	"github.com/dapperlabs/flow-go/model/encoding"
 	"github.com/dapperlabs/flow-go/model/hash"
 )
 
@@ -23,7 +22,7 @@ type Header struct {
 // order to serve as the basis for a deterministic unique block hash.
 func (h Header) Encode() []byte {
 	w := wrapHeader(h)
-	return encoding.DefaultEncoder.MustEncode(w)
+	return DefaultEncoder.MustEncode(w)
 }
 
 // Hash returns a unique hash to singularly identify the header and its block

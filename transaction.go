@@ -2,7 +2,6 @@ package flow
 
 import (
 	"github.com/dapperlabs/flow-go/crypto"
-	"github.com/dapperlabs/flow-go/model/encoding"
 	"github.com/dapperlabs/flow-go/model/hash"
 )
 
@@ -63,8 +62,22 @@ func (tx *Transaction) Hash() crypto.Hash {
 
 // Encode returns the canonical encoding of this transaction.
 func (tx *Transaction) Encode() []byte {
-	w := WrapTransaction(*tx)
-	return encoding.DefaultEncoder.MustEncode(&w)
+	temp := struct {
+		Script             []byte
+		ReferenceBlockHash crypto.Hash
+		Nonce              uint64
+		ComputeLimit       uint64
+		PayerAccount       Address
+		ScriptAccounts     []Address
+	}{
+		tx.ReferenceBlockHash,
+		tx.Script,
+		tx.Nonce,
+		tx.ComputeLimit,
+		tx.PayerAccount,
+		tx.ScriptAccounts,
+	}
+	return DefaultEncoder.MustEncode(&temp)
 }
 
 // AddSignature signs the transaction with the given account and private key, then adds the signature to the list
@@ -105,31 +118,4 @@ func (tx *Transaction) MissingFields() []string {
 	}
 
 	return missingFields
-}
-
-type TransactionWrapper struct {
-	Script             []byte
-	ReferenceBlockHash []byte
-	Nonce              uint64
-	ComputeLimit       uint64
-	PayerAccount       []byte
-	ScriptAccounts     [][]byte
-}
-
-func WrapTransaction(tx Transaction) TransactionWrapper {
-	scriptAccounts := make([][]byte, len(tx.ScriptAccounts))
-	for i, scriptAccount := range tx.ScriptAccounts {
-		scriptAccounts[i] = scriptAccount.Bytes()
-	}
-
-	w := TransactionWrapper{
-		Script:             tx.Script,
-		ReferenceBlockHash: tx.ReferenceBlockHash,
-		Nonce:              tx.Nonce,
-		ComputeLimit:       tx.ComputeLimit,
-		PayerAccount:       tx.PayerAccount.Bytes(),
-		ScriptAccounts:     scriptAccounts,
-	}
-
-	return w
 }

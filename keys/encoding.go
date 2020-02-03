@@ -4,9 +4,8 @@ import (
 	"encoding/hex"
 	"errors"
 
-	"github.com/dapperlabs/flow-go/crypto"
-	"github.com/dapperlabs/flow-go/model/encoding"
 	"github.com/dapperlabs/flow-go-sdk"
+	"github.com/dapperlabs/flow-go/crypto"
 )
 
 // EncodePrivateKey encodes a private key as bytes.
@@ -22,14 +21,14 @@ func EncodePrivateKey(a flow.AccountPrivateKey) ([]byte, error) {
 		HashAlgo:   uint(a.HashAlgo),
 	}
 
-	return encoding.DefaultEncoder.Encode(&w)
+	return flow.DefaultEncoder.Encode(&w)
 }
 
 // DecodePrivateKey decodes a private key.
 func DecodePrivateKey(b []byte) (a flow.AccountPrivateKey, err error) {
 	var w accountPrivateKeyWrapper
 
-	err = encoding.DefaultEncoder.Decode(b, &w)
+	err = flow.DefaultEncoder.Decode(b, &w)
 	if err != nil {
 		return a, err
 	}
@@ -88,14 +87,14 @@ func EncodePublicKey(a flow.AccountPublicKey) ([]byte, error) {
 		Weight:    uint(a.Weight),
 	}
 
-	return encoding.DefaultEncoder.Encode(&w)
+	return flow.DefaultEncoder.Encode(&w)
 }
 
 // DecodePublicKey decodes a public key.
 func DecodePublicKey(b []byte) (a flow.AccountPublicKey, err error) {
 	var w accountPublicKeyWrapper
 
-	err = encoding.DefaultEncoder.Decode(b, &w)
+	err = flow.DefaultEncoder.Decode(b, &w)
 	if err != nil {
 		return a, err
 	}
