@@ -14,7 +14,7 @@ import (
 )
 
 type Config struct {
-	RootKey string `flag:"root-key" info:"root account key"`
+	RootKey string `flag:"root-key,k" info:"root account key"`
 	Reset   bool   `default:"false" flag:"reset" info:"reset flow.json config file"`
 }
 
@@ -29,8 +29,8 @@ var Cmd = &cobra.Command{
 		if !cli.ConfigExists() || conf.Reset {
 			var pconf *cli.Config
 			if len(conf.RootKey) > 0 {
-				prKey := cli.MustDecodeAccountPrivateKeyHex(conf.RootKey)
-				pconf = InitProjectWithRootKey(prKey)
+				rootKey := cli.MustDecodeAccountPrivateKeyHex(conf.RootKey)
+				pconf = InitProjectWithRootKey(rootKey)
 			} else {
 				pconf = InitProject()
 			}
@@ -49,12 +49,12 @@ var Cmd = &cobra.Command{
 func InitProject() *cli.Config {
 	seed := cli.RandomSeed(crypto.KeyGenSeedMinLenECDSA_P256)
 
-	prKey, err := keys.GeneratePrivateKey(keys.ECDSA_P256_SHA3_256, seed)
+	rootKey, err := keys.GeneratePrivateKey(keys.ECDSA_P256_SHA3_256, seed)
 	if err != nil {
 		cli.Exitf(1, "Failed to generate private key: %v", err)
 	}
 
-	return InitProjectWithRootKey(prKey)
+	return InitProjectWithRootKey(rootKey)
 }
 
 // InitProjectWithRootKey creates and saves a new project config
