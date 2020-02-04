@@ -26,9 +26,7 @@ func CreateAccount(accountKeys []flow.AccountPublicKey, code []byte) ([]byte, er
 	script := fmt.Sprintf(`
         transaction {
           execute {
-            let publicKeys: [[Int]] = %s
-            let code: [Int]? = %s
-            createAccount(publicKeys, code)
+            Account(publicKeys: %s, code: %s)
           }
         }
     `, publicKeysStr, codeStr)
@@ -43,8 +41,7 @@ func UpdateAccountCode(code []byte) []byte {
 	script := fmt.Sprintf(`
         transaction {
           prepare(signer: Account) {
-            let code = %s
-            updateAccountCode(signer.address, code)
+            signer.setCode(%s)
           }
         }
     `, codeStr)
@@ -64,8 +61,7 @@ func AddAccountKey(accountKey flow.AccountPublicKey) ([]byte, error) {
 	script := fmt.Sprintf(`
         transaction {
           prepare(signer: Account) {
-            let key = %s
-            addAccountKey(signer.address, key)
+            signer.addPublicKey(%s)
           }
         }
    	`, publicKeyStr)
@@ -78,8 +74,7 @@ func RemoveAccountKey(index int) []byte {
 	script := fmt.Sprintf(`
         transaction {
           prepare(signer: Account) {
-            let index = %d
-            removeAccountKey(signer.address, index)
+            signer.removePublicKey(%d)
           }
         }
     `, index)
