@@ -4,8 +4,8 @@ package keys
 import (
 	"github.com/pkg/errors"
 
-	"github.com/dapperlabs/flow-go/crypto"
 	"github.com/dapperlabs/flow-go-sdk"
+	"github.com/dapperlabs/flow-go/crypto"
 )
 
 // KeyType is a key format supported by Flow.
@@ -80,7 +80,7 @@ func SignTransaction(
 
 // ValidateEncodedPublicKey returns an error if the bytes do not represent a valid public key.
 func ValidateEncodedPublicKey(b []byte) error {
-	publicKey, err := flow.DecodeAccountPublicKey(b)
+	publicKey, err := DecodePublicKey(b)
 	if err != nil {
 		return errors.Wrap(err, "invalid public key encoding")
 	}
