@@ -62,25 +62,20 @@ func (tx *Transaction) Hash() crypto.Hash {
 
 // Encode returns the canonical encoding of this transaction.
 func (tx *Transaction) Encode() []byte {
-	scriptAccounts := make([][]byte, len(tx.ScriptAccounts))
-	for i, scriptAccount := range tx.ScriptAccounts {
-		scriptAccounts[i] = scriptAccount.Bytes()
-	}
-
 	temp := struct {
 		Script             []byte
-		ReferenceBlockHash []byte
+		ReferenceBlockHash crypto.Hash
 		Nonce              uint64
 		ComputeLimit       uint64
-		PayerAccount       []byte
-		ScriptAccounts     [][]byte
+		PayerAccount       Address
+		ScriptAccounts     []Address
 	}{
 		tx.Script,
 		tx.ReferenceBlockHash,
 		tx.Nonce,
 		tx.ComputeLimit,
-		tx.PayerAccount.Bytes(),
-		scriptAccounts,
+		tx.PayerAccount,
+		tx.ScriptAccounts,
 	}
 
 	return DefaultEncoder.MustEncode(&temp)
