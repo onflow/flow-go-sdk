@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/dapperlabs/flow-go-sdk"
+	"github.com/dapperlabs/flow-go-sdk/keys"
 )
 
 // CreateAccount generates a script that creates a new account.
@@ -12,7 +13,7 @@ func CreateAccount(accountKeys []flow.AccountPublicKey, code []byte) ([]byte, er
 	publicKeys := make([][]byte, len(accountKeys))
 
 	for i, accountKey := range accountKeys {
-		accountKeyBytes, err := flow.EncodeAccountPublicKey(accountKey)
+		accountKeyBytes, err := keys.EncodePublicKey(accountKey)
 		if err != nil {
 			return nil, err
 		}
@@ -54,7 +55,7 @@ func UpdateAccountCode(code []byte) []byte {
 
 // AddAccountKey generates a script that adds a key to an account.
 func AddAccountKey(accountKey flow.AccountPublicKey) ([]byte, error) {
-	accountKeyBytes, err := flow.EncodeAccountPublicKey(accountKey)
+	accountKeyBytes, err := keys.EncodePublicKey(accountKey)
 	if err != nil {
 		return nil, err
 	}

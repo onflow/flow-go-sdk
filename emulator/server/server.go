@@ -12,6 +12,7 @@ import (
 	"github.com/dapperlabs/flow-go-sdk/emulator/storage"
 	"github.com/dapperlabs/flow-go-sdk/emulator/storage/badger"
 	"github.com/dapperlabs/flow-go-sdk/emulator/storage/memstore"
+	"github.com/dapperlabs/flow-go-sdk/keys"
 	"github.com/dapperlabs/flow-go-sdk/utils/graceful"
 )
 
@@ -113,7 +114,7 @@ func NewEmulatorServer(logger *logrus.Logger, conf *Config) *EmulatorServer {
 
 	address := blockchain.RootAccountAddress()
 	prKey := blockchain.RootKey()
-	prKeyBytes, _ := prKey.PrivateKey.Encode()
+	prKeyBytes, _ := keys.EncodePrivateKey(prKey)
 
 	logger.WithFields(logrus.Fields{
 		"address": address.Hex(),

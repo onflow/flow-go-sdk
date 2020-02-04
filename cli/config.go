@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/dapperlabs/flow-go-sdk"
+	"github.com/dapperlabs/flow-go-sdk/keys"
 )
 
 var (
@@ -27,7 +28,7 @@ type accountJSON struct {
 }
 
 func (acct *Account) MarshalJSON() ([]byte, error) {
-	prKeyBytes, err := flow.EncodeAccountPrivateKey(acct.PrivateKey)
+	prKeyBytes, err := keys.EncodePrivateKey(acct.PrivateKey)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +53,7 @@ func (acct *Account) UnmarshalJSON(data []byte) (err error) {
 	}
 
 	acct.Address = flow.HexToAddress(alias.Address)
-	acct.PrivateKey, err = flow.DecodeAccountPrivateKey(prKeyBytes)
+	acct.PrivateKey, err = keys.DecodePrivateKey(prKeyBytes)
 	return
 }
 
