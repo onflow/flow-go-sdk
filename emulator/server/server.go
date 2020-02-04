@@ -140,8 +140,12 @@ func (s *EmulatorServer) Start() {
 
 	g.Add(s.grpcServer)
 	g.Add(s.httpServer)
-	g.Add(s.blocksTicker)
 	g.Add(s.livenessTicker)
+
+	// only start blocks ticker if auto-mine is not enabled
+	if !s.config.AutoMine {
+		g.Add(s.blocksTicker)
+	}
 
 	err := g.Start()
 	if err != nil {
