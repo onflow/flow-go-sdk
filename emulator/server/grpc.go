@@ -47,12 +47,7 @@ func (g *GRPCServer) Start() error {
 		return err
 	}
 
-	err = g.grpcServer.Serve(lis)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return g.grpcServer.Serve(lis)
 }
 
 func (g *GRPCServer) Stop() {
