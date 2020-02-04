@@ -68,6 +68,10 @@ type Int struct{ isAType }
 
 func (Int) ID() string { return "Int" }
 
+type UInt struct{ isAType }
+
+func (UInt) ID() string { return "UInt" }
+
 type Int8 struct{ isAType }
 
 func (Int8) ID() string { return "Int8" }
@@ -84,6 +88,14 @@ type Int64 struct{ isAType }
 
 func (Int64) ID() string { return "Int64" }
 
+type Int128 struct{ isAType }
+
+func (Int128) ID() string { return "Int128" }
+
+type Int256 struct{ isAType }
+
+func (Int256) ID() string { return "Int256" }
+
 type UInt8 struct{ isAType }
 
 func (UInt8) ID() string { return "UInt8" }
@@ -99,6 +111,30 @@ func (UInt32) ID() string { return "UInt32" }
 type UInt64 struct{ isAType }
 
 func (UInt64) ID() string { return "UInt64" }
+
+type UInt128 struct{ isAType }
+
+func (UInt128) ID() string { return "UInt128" }
+
+type UInt256 struct{ isAType }
+
+func (UInt256) ID() string { return "UInt256" }
+
+type Word8 struct{ isAType }
+
+func (Word8) ID() string { return "Word8" }
+
+type Word16 struct{ isAType }
+
+func (Word16) ID() string { return "Word16" }
+
+type Word32 struct{ isAType }
+
+func (Word32) ID() string { return "Word32" }
+
+type Word64 struct{ isAType }
+
+func (Word64) ID() string { return "Word64" }
 
 type VariableSizedArray struct {
 	isAType
