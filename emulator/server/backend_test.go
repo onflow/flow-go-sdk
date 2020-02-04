@@ -30,7 +30,7 @@ func TestPing(t *testing.T) {
 	ctx := context.Background()
 	b, err := emulator.NewBlockchain()
 	require.NoError(t, err)
-	server := server.NewBackend(b, logrus.New())
+	server := server.NewBackend(logrus.New(), b)
 
 	res, err := server.Ping(ctx, &observation.PingRequest{})
 	assert.NoError(t, err)
@@ -47,7 +47,7 @@ func TestBackend(t *testing.T) {
 
 			api := mocks.NewMockBlockchainAPI(mockCtrl)
 
-			backend := server.NewBackend(api, logrus.New())
+			backend := server.NewBackend(logrus.New(), api)
 
 			sut(t, backend, api)
 		}
