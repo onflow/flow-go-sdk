@@ -1,12 +1,11 @@
 package emulator_test
 
 import (
-	"fmt"
 	"testing"
 
+	"github.com/dapperlabs/flow-go/crypto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/dapperlabs/flow-go/crypto"
 
 	"github.com/dapperlabs/flow-go-sdk"
 	"github.com/dapperlabs/flow-go-sdk/emulator"
@@ -692,57 +691,6 @@ func TestUpdateAccountCode(t *testing.T) {
 		assert.NoError(t, err)
 
 		// code should not be updated
-		assert.Equal(t, codeA, account.Code)
-	})
-
-	t.Run("UnauthorizedAccount", func(t *testing.T) {
-		b, err := emulator.NewBlockchain()
-		require.NoError(t, err)
-
-		privateKeyA := b.RootKey()
-
-		accountAddressA := b.RootAccountAddress()
-		accountAddressB, err := b.CreateAccount([]flow.AccountPublicKey{publicKeyB}, codeA, getNonce())
-		assert.NoError(t, err)
-
-		account, err := b.GetAccount(accountAddressB)
-
-		assert.NoError(t, err)
-		assert.Equal(t, codeA, account.Code)
-
-		unauthorizedUpdateAccountCodeScript := []byte(fmt.Sprintf(`
-			transaction {
-			  prepare(account: Account) {
-				updateAccountCode(0x%s, [])
-			  }
-			}
-		`, accountAddressB.Hex()))
-
-		tx := flow.Transaction{
-			Script:             unauthorizedUpdateAccountCodeScript,
-			ReferenceBlockHash: nil,
-			Nonce:              getNonce(),
-			ComputeLimit:       10,
-			PayerAccount:       accountAddressA,
-			ScriptAccounts:     []flow.Address{accountAddressA},
-		}
-
-		sig, err := keys.SignTransaction(tx, privateKeyA)
-		assert.NoError(t, err)
-
-		tx.AddSignature(accountAddressA, sig)
-
-		err = b.AddTransaction(tx)
-		assert.NoError(t, err)
-
-		result, err := b.ExecuteNextTransaction()
-		assert.NoError(t, err)
-		assert.True(t, result.Reverted())
-
-		account, err = b.GetAccount(accountAddressB)
-
-		// code should not be updated
-		assert.NoError(t, err)
 		assert.Equal(t, codeA, account.Code)
 	})
 }
