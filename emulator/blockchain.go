@@ -674,7 +674,7 @@ func (b *Blockchain) handleEvents(events []flow.Event, blockNumber uint64) {
 // into the given state, bypassing the need for a transaction.
 func createAccount(ledgerView *types.LedgerView, privateKey flow.AccountPrivateKey) flow.Account {
 	publicKey := privateKey.PublicKey(keys.PublicKeyWeightThreshold)
-	publicKeyBytes, err := flow.EncodeAccountPublicKey(publicKey)
+	publicKeyBytes, err := keys.EncodePublicKey(publicKey)
 	if err != nil {
 		panic(err)
 	}

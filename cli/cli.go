@@ -9,6 +9,7 @@ import (
 	"os"
 
 	"github.com/dapperlabs/flow-go-sdk"
+	"github.com/dapperlabs/flow-go-sdk/keys"
 )
 
 const (
@@ -34,7 +35,7 @@ func DecodeAccountPrivateKeyHex(prKeyHex string) (flow.AccountPrivateKey, error)
 	if err != nil {
 		return flow.AccountPrivateKey{}, err
 	}
-	prKey, err := flow.DecodeAccountPrivateKey(prKeyBytes)
+	prKey, err := keys.DecodePrivateKey(prKeyBytes)
 	if err != nil {
 		return flow.AccountPrivateKey{}, err
 	}
