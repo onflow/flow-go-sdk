@@ -2,9 +2,9 @@ package emulator
 
 import (
 	"github.com/dapperlabs/flow-go/crypto"
+	"github.com/dapperlabs/flow-go/language"
 
 	"github.com/dapperlabs/flow-go-sdk"
-	"github.com/dapperlabs/flow-go-sdk/language/values"
 )
 
 // A TransactionResult is the result of executing a transaction.
@@ -28,7 +28,7 @@ func (r TransactionResult) Reverted() bool {
 // A ScriptResult is the result of executing a script.
 type ScriptResult struct {
 	ScriptHash crypto.Hash
-	Value      values.Value
+	Value      language.Value
 	Error      error
 	Logs       []string
 	Events     []flow.Event

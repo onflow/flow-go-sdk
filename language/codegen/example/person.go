@@ -3,9 +3,8 @@ package example
 import (
 	"bytes"
 
-	"github.com/dapperlabs/flow-go-sdk/language/encoding"
-	"github.com/dapperlabs/flow-go-sdk/language/types"
-	"github.com/dapperlabs/flow-go-sdk/language/values"
+	"github.com/dapperlabs/flow-go/language"
+	"github.com/dapperlabs/flow-go/language/encoding"
 )
 
 type PersonView interface {
@@ -14,7 +13,7 @@ type PersonView interface {
 
 type personView struct {
 	_fullName string
-	value     values.Composite
+	value     language.Composite
 }
 
 func (p personView) FullName() string {
@@ -36,9 +35,9 @@ func (p personConstructor) Encode() ([]byte, error) {
 	encoder := encoding.NewEncoder(&w)
 
 	err := encoder.EncodeConstantSizedArray(
-		values.NewConstantSizedArray([]values.Value{
-			values.NewString(p.firstName),
-			values.NewString(p.lastName),
+		language.NewConstantSizedArray([]language.Value{
+			language.NewString(p.firstName),
+			language.NewString(p.lastName),
 		}),
 	)
 
@@ -56,22 +55,22 @@ func NewPersonConstructor(firstName string, lastName string) (PersonConstructor,
 	}, nil
 }
 
-var personType = types.Composite{
-	Fields: []types.Field{
+var personType = language.CompositeType{
+	Fields: []language.Field{
 		{
 			Identifier: "FullName",
-			Type:       types.String{},
+			Type:       language.StringType{},
 		},
 	},
-	Initializers: [][]types.Parameter{
+	Initializers: [][]language.Parameter{
 		{
 			{
 				Identifier: "firstName",
-				Type:       types.String{},
+				Type:       language.StringType{},
 			},
 			{
 				Identifier: "lastName",
-				Type:       types.String{},
+				Type:       language.StringType{},
 			},
 		},
 	},
@@ -87,6 +86,6 @@ func DecodePersonView(b []byte) (PersonView, error) {
 	}
 
 	return personView{
-		_fullName: string(v.Fields[0].(values.String)),
+		_fullName: string(v.Fields[0].(language.String)),
 	}, nil
 }

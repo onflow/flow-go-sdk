@@ -4,17 +4,16 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/dapperlabs/flow-go/crypto"
+	"github.com/dapperlabs/flow-go/language"
+	"github.com/dapperlabs/flow-go/language/encoding"
+	"github.com/dapperlabs/flow-go/language/runtime"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/dapperlabs/flow-go-sdk"
 	"github.com/dapperlabs/flow-go-sdk/emulator"
 	"github.com/dapperlabs/flow-go-sdk/keys"
-	"github.com/dapperlabs/flow-go-sdk/language/encoding"
-	"github.com/dapperlabs/flow-go-sdk/language/types"
-	"github.com/dapperlabs/flow-go-sdk/language/values"
-	"github.com/dapperlabs/flow-go/crypto"
-	"github.com/dapperlabs/flow-go/language/runtime"
 )
 
 func TestSubmitTransaction(t *testing.T) {
@@ -530,13 +529,13 @@ func TestGetTransaction(t *testing.T) {
 	b, err := emulator.NewBlockchain()
 	require.NoError(t, err)
 
-	myEventType := types.Event{
-		Composite: types.Composite{
+	myEventType := language.EventType{
+		CompositeType: language.CompositeType{
 			Identifier: "MyEvent",
-			Fields: []types.Field{
+			Fields: []language.Field{
 				{
 					Identifier: "x",
-					Type:       types.Int{},
+					Type:       language.IntType{},
 				},
 			},
 		},
@@ -588,7 +587,7 @@ func TestGetTransaction(t *testing.T) {
 		eventValue, err := encoding.Decode(myEventType, actualEvent.Payload)
 		require.NoError(t, err)
 
-		decodedEvent := eventValue.(values.Composite)
+		decodedEvent := eventValue.(language.Composite)
 
 		location := runtime.TransactionLocation(tx.Hash())
 		eventType := fmt.Sprintf("%s.MyEvent", location.ID())
@@ -596,6 +595,6 @@ func TestGetTransaction(t *testing.T) {
 		assert.Equal(t, tx.Hash(), actualEvent.TxHash)
 		assert.Equal(t, eventType, actualEvent.Type)
 		assert.Equal(t, uint(0), actualEvent.Index)
-		assert.Equal(t, values.NewInt(1), decodedEvent.Fields[0])
+		assert.Equal(t, language.NewInt(1), decodedEvent.Fields[0])
 	})
 }

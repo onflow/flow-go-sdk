@@ -6,12 +6,12 @@ import (
 	"math/big"
 	"strings"
 
+	"github.com/dapperlabs/flow-go/language"
 	"github.com/dapperlabs/flow-go/language/runtime"
 
 	"github.com/dapperlabs/flow-go-sdk"
 	"github.com/dapperlabs/flow-go-sdk/emulator/types"
 	"github.com/dapperlabs/flow-go-sdk/keys"
-	"github.com/dapperlabs/flow-go-sdk/language/values"
 )
 
 type CheckerFunc func([]byte, runtime.Location) error
@@ -47,7 +47,7 @@ func (r *RuntimeContext) SetSigningAccounts(accounts []flow.Address) {
 	signingAccounts := make([]runtime.Address, len(accounts))
 
 	for i, account := range accounts {
-		signingAccounts[i] = runtime.Address(values.NewAddress(account))
+		signingAccounts[i] = runtime.Address(language.NewAddress(account))
 	}
 
 	r.signingAccounts = signingAccounts
@@ -116,7 +116,7 @@ func (r *RuntimeContext) CreateAccount(publicKeys [][]byte) (runtime.Address, er
 	r.Log("Creating new account\n")
 	r.Log(fmt.Sprintf("Address: %x", accountAddress))
 
-	return runtime.Address(values.NewAddress(accountAddress)), nil
+	return runtime.Address(language.NewAddress(accountAddress)), nil
 }
 
 // AddAccountKey adds a public key to an existing account.
@@ -208,7 +208,7 @@ func (r *RuntimeContext) getAccountPublicKeys(accountID []byte) (publicKeys [][]
 			return nil, fmt.Errorf("failed to retrieve key from account %s", accountID)
 		}
 
-		publicKeys[i] = values.NewBytes(publicKey)
+		publicKeys[i] = language.NewBytes(publicKey)
 	}
 
 	return publicKeys, nil
