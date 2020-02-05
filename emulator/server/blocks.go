@@ -12,11 +12,11 @@ type BlocksTicker struct {
 
 func NewBlocksTicker(
 	backend *Backend,
-	blockInterval time.Duration,
+	blockTime time.Duration,
 ) *BlocksTicker {
 	return &BlocksTicker{
 		backend: backend,
-		ticker:  time.NewTicker(blockInterval),
+		ticker:  time.NewTicker(blockTime),
 		done:    make(chan bool, 1),
 	}
 }

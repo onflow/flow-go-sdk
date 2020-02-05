@@ -33,7 +33,6 @@ type EmulatorServer struct {
 const (
 	defaultGRPCPort               = 3569
 	defaultHTTPPort               = 8080
-	defaultBlockInterval          = 5 * time.Second
 	defaultLivenessCheckTolerance = time.Second
 )
 
@@ -57,14 +56,12 @@ var (
 // Config is the configuration for an emulator server.
 type Config struct {
 	GRPCPort       int
+	GRPCDebug      bool
 	HTTPPort       int
 	HTTPHeaders    []HTTPHeader
-	BlockInterval  time.Duration
+	BlockTime      time.Duration
 	RootAccountKey *flow.AccountPrivateKey
-	AutoMine       bool
-	GRPCDebug      bool
-	// Persistent indicates whether to use persistent on-disk storage
-	Persistent bool
+	Persist        bool
 	// DBPath is the path to the Badger database on disk
 	DBPath string
 	// LivenessCheckTolerance is the tolerance level of the liveness check
@@ -94,7 +91,6 @@ func NewEmulatorServer(logger *logrus.Logger, conf *Config) *EmulatorServer {
 	livenessTicker := NewLivenessTicker(conf.LivenessCheckTolerance)
 	grpcServer := NewGRPCServer(logger, backend, conf.GRPCPort, conf.GRPCDebug)
 	httpServer := NewHTTPServer(grpcServer, livenessTicker, conf.HTTPPort, conf.HTTPHeaders)
-	blocksTicker := NewBlocksTicker(backend, conf.BlockInterval)
 
 	server := &EmulatorServer{
 		logger:         logger,
@@ -102,7 +98,6 @@ func NewEmulatorServer(logger *logrus.Logger, conf *Config) *EmulatorServer {
 		backend:        backend,
 		grpcServer:     grpcServer,
 		httpServer:     httpServer,
-		blocksTicker:   blocksTicker,
 		livenessTicker: livenessTicker,
 		onCleanup: func() {
 			err := closeStore()
@@ -110,6 +105,12 @@ func NewEmulatorServer(logger *logrus.Logger, conf *Config) *EmulatorServer {
 				logger.WithError(err).Infof("Failed to close storage")
 			}
 		},
+	}
+
+	// only create blocks ticker if block time > 0
+	if conf.BlockTime > 0 {
+		server.blocksTicker = NewBlocksTicker(backend, conf.BlockTime)
+
 	}
 
 	address := blockchain.RootAccountAddress()
@@ -142,8 +143,8 @@ func (s *EmulatorServer) Start() {
 	g.Add(s.httpServer)
 	g.Add(s.livenessTicker)
 
-	// only start blocks ticker if auto-mine is not enabled
-	if !s.config.AutoMine {
+	// only start blocks ticker if it exists
+	if s.blocksTicker != nil {
 		g.Add(s.blocksTicker)
 	}
 
@@ -162,11 +163,12 @@ func (e *EmulatorServer) cleanup() {
 }
 
 func configureStore(logger *logrus.Logger, conf *Config) (store storage.Store, close func() error, err error) {
-	if conf.Persistent {
+	if conf.Persist {
 		badgerStore, err := badger.New(
 			badger.WithPath(conf.DBPath),
 			badger.WithLogger(logger),
-			badger.WithTruncate(true))
+			badger.WithTruncate(true),
+		)
 		if err != nil {
 			return nil, nil, errors.Wrap(err, "failed to initialize Badger store")
 		}
@@ -209,7 +211,7 @@ func configureBlockchain(conf *Config, store storage.Store) (*emulator.Blockchai
 func configureBackend(logger *logrus.Logger, conf *Config, blockchain *emulator.Blockchain) *Backend {
 	backend := NewBackend(logger, blockchain)
 
-	if conf.AutoMine {
+	if conf.BlockTime == 0 {
 		backend.EnableAutoMine()
 	}
 
@@ -217,10 +219,6 @@ func configureBackend(logger *logrus.Logger, conf *Config, blockchain *emulator.
 }
 
 func sanitizeConfig(conf *Config) *Config {
-	if conf.BlockInterval == 0 {
-		conf.BlockInterval = defaultBlockInterval
-	}
-
 	if conf.GRPCPort == 0 {
 		conf.GRPCPort = defaultGRPCPort
 	}
