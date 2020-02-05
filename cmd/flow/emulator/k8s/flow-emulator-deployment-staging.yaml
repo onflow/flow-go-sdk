@@ -150,7 +150,7 @@ spec:
                 secretKeyRef:
                   name: emulator-flow-json
                   key: root-key
-            - name: FLOW_DBPATH
+            - name: FLOW_DB
               value: '/flowdb'
 
           # Resource requests and contraints
