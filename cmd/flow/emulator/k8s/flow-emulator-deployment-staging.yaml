@@ -78,7 +78,7 @@ spec:
 ---
 
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   # This is the full name of your deployment. It must be unique
   name: flow-emulator-v1
@@ -104,16 +104,7 @@ spec:
       app: flow-emulator
       env: staging
       version: v1
-
-  # Deployment strategy dictates how an update will be rolled out across the deployment
-  strategy:
-    type: Recreate
-
-  # How long should we wait (max) for deployment to be up, when checking rollout status
-  progressDeadlineSeconds: 60
-  # Minimum number of seconds that the deployment should be ready, to be considered available
-  minReadySeconds: 1
-
+  serviceName: flow-emulator-v1
   template:
     metadata:
       annotations:
@@ -138,7 +129,7 @@ spec:
         - name: flow-emulator
           # No tag, will be attached by teamcity
           image: gcr.io/dl-flow/emulator
-          args: ["emulator", "start", "--init", "-v", "--persistent"]
+          args: ["emulator", "start", "-v", "--persist"]
 
           # Ports exposed can be named so other resources can reference
           # them by name and not have to hard code numbers
@@ -193,3 +184,18 @@ spec:
         - name: badger-volume
           persistentVolumeClaim:
             claimName: emulator-storage-claim
+
+  volumeClaimTemplates:
+    - metadata:
+        name: badger-volume
+        labels:
+          app: flow-emulator
+          env: staging
+          owner: Kan
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 100Gi
+        storageClassName: standard

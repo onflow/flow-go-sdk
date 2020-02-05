@@ -11,7 +11,7 @@ Docker builds for the emulator are automatically built and pushed to
 
 ### Configuration
 The emulator can be configured by setting environment variables when running 
-the container. The configurable variables are specified [by the config of the `start` command](https://github.com/dapperlabs/flow-go/blob/master/internal/cli/emulator/start/start.go#L18-L24).
+the container. The configurable variables are specified [by the config of the `start` command](https://github.com/dapperlabs/flow-go-sdk/blob/master/cli/emulator/start/start.go#L20-L27).
 The environment variable names are the uppercased struct fields names, prefixed
 by `FLOW_`.
 
@@ -92,7 +92,7 @@ Our current deployment settings are available in the [k8s](./k8s) sub directory,
 
 If not using Kubernetes, you can run the Docker container independently. Make sure to run the Docker container with the gRPC port exposed (default is `3569`). Metrics are also available on port `8080` on the `/metrics` endpoint.
 
-To gain persistence for data on the emulator, you will have to provision a volume for the docker container. We've done this through `Persiste Volumes` on Kubernetes, but a mounted volume would suffice. The mount point can be set with the `FLOW_DBPATH` environment variable. We suggest a volume of at least 10GB (100GB for a long-term deployment).
+To gain persistence for data on the emulator, you will have to provision a volume for the docker container. We've done this through `Persistent Volumes` on Kubernetes, but a mounted volume would suffice. The mount point can be set with the `FLOW_DBPATH` environment variable. We suggest a volume of at least 10GB (100GB for a long-term deployment).
 
 Make sure the emulator also has access to the same `flow.json` file, or always launch it with the same root key, as mentioned above.
 
