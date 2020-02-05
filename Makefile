@@ -54,9 +54,9 @@ ci: install-tools generate test coverage
 
 cmd/flow/flow:
 	GO111MODULE=on go build \
-	    -ldflags \
-	    "-X github.com/dapperlabs/flow-go-sdk/utils/build.commit=$(COMMIT) -X github.com/dapperlabs/flow-go-sdk/utils/build.semver=$(VERSION)" \
-	    -o ./cmd/flow/flow ./cmd/flow
+		-ldflags \
+		"-X github.com/dapperlabs/flow-go-sdk/utils/build.commit=$(COMMIT) -X github.com/dapperlabs/flow-go-sdk/utils/build.semver=$(VERSION)" \
+		-o ./cmd/flow/flow ./cmd/flow
 
 .PHONY: install-cli
 install-cli: cmd/flow/flow
@@ -65,10 +65,16 @@ install-cli: cmd/flow/flow
 .PHONY: docker-build-emulator
 docker-build-emulator:
 	docker build --ssh default -f cmd/flow/emulator/Dockerfile -t gcr.io/dl-flow/emulator:latest -t "gcr.io/dl-flow/emulator:$(SHORT_COMMIT)" .
+ifneq (${VERSION},)
+	docker tag gcr.io/dl-flow/emulator:latest gcr.io/dl-flow/emulator:${VERSION}
+endif
 
 docker-push-emulator:
 	docker push gcr.io/dl-flow/emulator:latest
 	docker push "gcr.io/dl-flow/emulator:$(SHORT_COMMIT)"
+ifneq (${VERSION},)
+	docker push "gcr.io/dl-flow/emulator:${VERSION}"
+endif
 
 # Check if the go version is 1.13. flow-go-sdk only supports go 1.13
 .PHONY: check-go-version
