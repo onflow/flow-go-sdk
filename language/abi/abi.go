@@ -5,10 +5,9 @@ import (
 	"errors"
 	"os"
 
+	"github.com/dapperlabs/flow-go/language"
 	"github.com/dapperlabs/flow-go/language/runtime/cmd"
 	"github.com/dapperlabs/flow-go/language/runtime/sema"
-
-	"github.com/dapperlabs/flow-go-sdk/language/types"
 )
 
 // GenerateABI generates ABIs from provided Cadence file
@@ -24,12 +23,12 @@ func GenerateABI(args []string, pretty bool) error {
 	return err
 }
 
-func exportTypesFromChecker(checker *sema.Checker) map[string]types.Type {
-	exportedTypes := map[string]types.Type{}
+func exportTypesFromChecker(checker *sema.Checker) map[string]language.Type {
+	exportedTypes := map[string]language.Type{}
 
 	values := checker.UserDefinedValues()
 	for _, variable := range values {
-		convertedType, err := types.Convert(variable.Type, checker.Program, variable)
+		convertedType, err := language.ConvertType(variable.Type, checker.Program, variable)
 		if err != nil {
 			panic(err)
 		}
@@ -40,7 +39,7 @@ func exportTypesFromChecker(checker *sema.Checker) map[string]types.Type {
 	return exportedTypes
 }
 
-func encodeTypesAsJSON(types map[string]types.Type, pretty bool) ([]byte, error) {
+func encodeTypesAsJSON(types map[string]language.Type, pretty bool) ([]byte, error) {
 	encoder := NewEncoder()
 
 	for name, typ := range types {
@@ -81,7 +80,7 @@ func GetABIJSONFromCadenceFile(filename string, pretty bool) []byte {
 	return jsonData
 }
 
-func GetTypesFromCadenceFile(filename string) map[string]types.Type {
+func GetTypesFromCadenceFile(filename string) map[string]language.Type {
 	checker, _ := cmd.PrepareCheckerFromFile(filename)
 
 	exportedTypes := exportTypesFromChecker(checker)
@@ -89,7 +88,7 @@ func GetTypesFromCadenceFile(filename string) map[string]types.Type {
 	return exportedTypes
 }
 
-func GetTypesFromCadenceCode(code string, filename string) map[string]types.Type {
+func GetTypesFromCadenceCode(code string, filename string) map[string]language.Type {
 	checker, _ := cmd.PrepareChecker(code, filename)
 
 	exportedTypes := exportTypesFromChecker(checker)
@@ -97,6 +96,6 @@ func GetTypesFromCadenceCode(code string, filename string) map[string]types.Type
 	return exportedTypes
 }
 
-func GetTypesFromABIJSONBytes(bytes []byte) (map[string]types.Type, error) {
+func GetTypesFromABIJSONBytes(bytes []byte) (map[string]language.Type, error) {
 	return Decode(bytes)
 }

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/dapperlabs/flow-go-sdk/language/types"
+	"github.com/dapperlabs/flow-go/language"
 )
 
 func getOnlyEntry(m map[string]interface{}) (string, interface{}, error) {
@@ -90,30 +90,30 @@ func getObject(data map[string]interface{}, key string) (interface{}, error) {
 	return nil, fmt.Errorf("key %s doesn't exist  in %v", key, data)
 }
 
-func toField(data map[string]interface{}) (types.Field, error) {
+func toField(data map[string]interface{}) (language.Field, error) {
 	name, err := getString(data, "name")
 	if err != nil {
-		return types.Field{}, err
+		return language.Field{}, err
 	}
 
 	typRaw, err := getObject(data, "type")
 	if err != nil {
-		return types.Field{}, err
+		return language.Field{}, err
 	}
 
 	typ, err := toType(typRaw, "")
 	if err != nil {
-		return types.Field{}, err
+		return language.Field{}, err
 	}
 
-	return types.Field{
+	return language.Field{
 		Identifier: name,
 		Type:       typ,
 	}, nil
 }
 
-func toFields(fields []map[string]interface{}) ([]types.Field, error) {
-	ret := make([]types.Field, len(fields))
+func toFields(fields []map[string]interface{}) ([]language.Field, error) {
+	ret := make([]language.Field, len(fields))
 
 	for i, raw := range fields {
 		f, err := toField(raw)
@@ -127,10 +127,10 @@ func toFields(fields []map[string]interface{}) ([]types.Field, error) {
 	return ret, nil
 }
 
-func toParameter(data map[string]interface{}) (types.Parameter, error) {
+func toParameter(data map[string]interface{}) (language.Parameter, error) {
 	name, err := getString(data, "name")
 	if err != nil {
-		return types.Parameter{}, err
+		return language.Parameter{}, err
 	}
 
 	label, err := getString(data, "label")
@@ -140,15 +140,15 @@ func toParameter(data map[string]interface{}) (types.Parameter, error) {
 
 	typRaw, err := getObject(data, "type")
 	if err != nil {
-		return types.Parameter{}, err
+		return language.Parameter{}, err
 	}
 
 	typ, err := toType(typRaw, "")
 	if err != nil {
-		return types.Parameter{}, err
+		return language.Parameter{}, err
 	}
 
-	return types.Parameter{
+	return language.Parameter{
 		Label:      label,
 		Identifier: name,
 		Type:       typ,
@@ -171,87 +171,86 @@ func interfaceToListOfMaps(input interface{}) ([]map[string]interface{}, error) 
 	return ret, nil
 }
 
-func toComposite(data map[string]interface{}, name string) (types.Composite, error) {
+func toComposite(data map[string]interface{}, name string) (language.CompositeType, error) {
 	fieldsRaw, err := getArray(data, "fields")
 	if err != nil {
-		return types.Composite{}, err
+		return language.CompositeType{}, err
 	}
 
 	fieldsMaps, err := interfaceToListOfMaps(fieldsRaw)
 	if err != nil {
-		return types.Composite{}, err
+		return language.CompositeType{}, err
 	}
 
 	fields, err := toFields(fieldsMaps)
 	if err != nil {
-		return types.Composite{}, err
+		return language.CompositeType{}, err
 	}
 
 	initializersRaw, err := getArray(data, "initializers")
 	if err != nil {
-		return types.Composite{}, err
+		return language.CompositeType{}, err
 	}
 
 	initializerRaw, err := getIndex(initializersRaw, 0)
 	if err != nil {
-		return types.Composite{}, err
+		return language.CompositeType{}, err
 	}
 
 	initializers, err := interfaceToListOfMaps(initializerRaw)
 	if err != nil {
-		return types.Composite{}, err
+		return language.CompositeType{}, err
 	}
 
 	parameters, err := toParameters(initializers)
 	if err != nil {
-		return types.Composite{}, err
+		return language.CompositeType{}, err
 	}
 
-	return types.Composite{
+	return language.CompositeType{
 		Identifier: name,
 		Fields:     fields,
-		Initializers: [][]types.Parameter{
+		Initializers: [][]language.Parameter{
 			parameters,
 		},
 	}, nil
 }
 
-func toStruct(data map[string]interface{}, name string) (types.Struct, error) {
+func toStruct(data map[string]interface{}, name string) (language.StructType, error) {
 	composite, err := toComposite(data, name)
 	if err != nil {
-		return types.Struct{}, err
+		return language.StructType{}, err
 	}
 
-	return types.Struct{
-		Composite: composite,
+	return language.StructType{
+		CompositeType: composite,
 	}, nil
 }
 
-func toResource(data map[string]interface{}, name string) (types.Resource, error) {
+func toResource(data map[string]interface{}, name string) (language.ResourceType, error) {
 	composite, err := toComposite(data, name)
 	if err != nil {
-		return types.Resource{}, err
+		return language.ResourceType{}, err
 	}
 
-	return types.Resource{
-		Composite: composite,
+	return language.ResourceType{
+		CompositeType: composite,
 	}, nil
 }
 
-func toEvent(data map[string]interface{}, name string) (types.Event, error) {
+func toEvent(data map[string]interface{}, name string) (language.EventType, error) {
 	composite, err := toComposite(data, name)
 	if err != nil {
-		return types.Event{}, err
+		return language.EventType{}, err
 	}
 
-	return types.Event{
-		Composite: composite,
+	return language.EventType{
+		CompositeType: composite,
 	}, nil
 }
 
-
-func toParameters(parameters []map[string]interface{}) ([]types.Parameter, error) {
-	ret := make([]types.Parameter, len(parameters))
+func toParameters(parameters []map[string]interface{}) ([]language.Parameter, error) {
+	ret := make([]language.Parameter, len(parameters))
 
 	for i, raw := range parameters {
 		p, err := toParameter(raw)
@@ -263,77 +262,77 @@ func toParameters(parameters []map[string]interface{}) ([]types.Parameter, error
 	return ret, nil
 }
 
-func toFunction(data map[string]interface{}) (types.Function, error) {
+func toFunction(data map[string]interface{}) (language.Function, error) {
 	returnTypeRaw, err := getObject(data, "returnType")
 
-	var returnType types.Type
+	var returnType language.Type
 
 	if err != nil {
-		returnType = types.Void{}
+		returnType = language.VoidType{}
 	} else {
 		returnType, err = toType(returnTypeRaw, "")
 		if err != nil {
-			return types.Function{}, err
+			return language.Function{}, err
 		}
 	}
 
 	parametersListRaw, err := getArray(data, "parameters")
 	if err != nil {
-		return types.Function{}, err
+		return language.Function{}, err
 	}
 
 	parametersRaw, err := interfaceToListOfMaps(parametersListRaw)
 	if err != nil {
-		return types.Function{}, err
+		return language.Function{}, err
 	}
 
 	parameters, err := toParameters(parametersRaw)
 	if err != nil {
-		return types.Function{}, err
+		return language.Function{}, err
 	}
 
-	return types.Function{
+	return language.Function{
 		Parameters: parameters,
 		ReturnType: returnType,
 	}, nil
 }
 
-func toFunctionType(data map[string]interface{}) (types.FunctionType, error) {
+func toFunctionType(data map[string]interface{}) (language.FunctionType, error) {
 
 	returnTypeRaw, err := getObject(data, "returnType")
 
-	var returnType types.Type
+	var returnType language.Type
 
 	if err != nil {
-		returnType = types.Void{}
+		returnType = language.VoidType{}
 	} else {
 		returnType, err = toType(returnTypeRaw, "")
 		if err != nil {
-			return types.FunctionType{}, err
+			return language.FunctionType{}, err
 		}
 	}
 
 	parametersListRaw, err := getArray(data, "parameters")
 	if err != nil {
-		return types.FunctionType{}, err
+		return language.FunctionType{}, err
 	}
 
-	parameterTypes := make([]types.Type, len(parametersListRaw))
+	parameterTypes := make([]language.Type, len(parametersListRaw))
 
 	for i, parameterTypeRaw := range parametersListRaw {
 		parameterTypes[i], err = toType(parameterTypeRaw, "")
 		if err != nil {
-			return types.FunctionType{}, err
+			return language.FunctionType{}, err
 		}
 	}
 
-	return types.FunctionType{
+	return language.FunctionType{
 		ParameterTypes: parameterTypes,
 		ReturnType:     returnType,
 	}, nil
 }
 
-func toArray(data map[string]interface{}) (types.Type, error) {
+func toArray(data map[string]interface{}) (language.Type, error) {
 
 	ofRaw, err := getObject(data, "of")
 
@@ -354,17 +353,17 @@ func toArray(data map[string]interface{}) (types.Type, error) {
 	}
 
 	if hasSize {
-		return types.ConstantSizedArray{
+		return language.ConstantSizedArrayType{
 			Size:        size,
 			ElementType: of,
 		}, nil
 	}
-	return types.VariableSizedArray{
+	return language.VariableSizedArrayType{
 		ElementType: of,
 	}, nil
 }
 
-func toDictionary(data map[string]interface{}) (types.Type, error) {
+func toDictionary(data map[string]interface{}) (language.Type, error) {
 
 	keysRaw, err := getObject(data, "keys")
 
@@ -388,13 +387,13 @@ func toDictionary(data map[string]interface{}) (types.Type, error) {
 		return nil, err
 	}
 
-	return types.Dictionary{
+	return language.DictionaryType{
 		KeyType:     keys,
 		ElementType: elements,
 	}, nil
 }
 
-func toType(data interface{}, name string) (types.Type, error) {
+func toType(data interface{}, name string) (language.Type, error) {
 
 	switch v := data.(type) {
 
@@ -422,7 +421,7 @@ func toType(data interface{}, name string) (types.Type, error) {
 			if err != nil {
 				return nil, err
 			}
-			return types.Variable{
+			return language.Variable{
 				Type: typ,
 			}, nil
 		case "optional":
@@ -430,7 +429,7 @@ func toType(data interface{}, name string) (types.Type, error) {
 			if err != nil {
 				return nil, err
 			}
-			return types.Optional{
+			return language.OptionalType{
 				Type: typ,
 			}, nil
 		}
@@ -441,11 +440,11 @@ func toType(data interface{}, name string) (types.Type, error) {
 		case string:
 			switch key {
 			case "struct":
-				return types.StructPointer{TypeName: v}, nil
+				return language.StructPointer{TypeName: v}, nil
 			case "resource":
-				return types.ResourcePointer{TypeName: v}, nil
+				return language.ResourcePointer{TypeName: v}, nil
 			case "event":
-				return types.EventPointer{TypeName: v}, nil
+				return language.EventPointer{TypeName: v}, nil
 			}
 
 		// when type inside is complex - { "<struct>" : { "complex": "object" } }
@@ -479,7 +478,7 @@ type jsonContainer struct {
 	Definitions map[string]map[string]interface{}
 }
 
-func Decode(bytes []byte) (map[string]types.Type, error) {
+func Decode(bytes []byte) (map[string]language.Type, error) {
 
 	jsonRoot := jsonContainer{}
 
@@ -489,7 +488,7 @@ func Decode(bytes []byte) (map[string]types.Type, error) {
 		panic(err)
 	}
 
-	definitions := map[string]types.Type{}
+	definitions := map[string]language.Type{}
 
 	for name, definition := range jsonRoot.Definitions {
 		typ, err := toType(definition, name)

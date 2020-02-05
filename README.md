@@ -262,12 +262,12 @@ if err != nil {
 }
 
 // the returned value is XDR-encoded, so it must be decoded to its original value
-myTokenID, err := encoding.Decode(types.Int{}, result)
+myTokenID, err := encoding.Decode(language.IntType{}, result)
 if err != nil {
     panic("failed to decode script result")
 }
 
-ID := myTokenID.(values.Int)
+ID := myTokenID.(language.Int)
 
 // convert to Go int type
 myID := ID.Int()

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/dapperlabs/flow-go/language"
 	"github.com/dapperlabs/flow-go/protobuf/sdk/entities"
 	"github.com/dapperlabs/flow-go/protobuf/services/observation"
 	"github.com/golang/mock/gomock"
@@ -20,10 +21,8 @@ import (
 	"github.com/dapperlabs/flow-go-sdk/emulator/mocks"
 	"github.com/dapperlabs/flow-go-sdk/emulator/server"
 	"github.com/dapperlabs/flow-go-sdk/emulator/types"
-	"github.com/dapperlabs/flow-go-sdk/language/encoding"
-	langtypes "github.com/dapperlabs/flow-go-sdk/language/types"
-	"github.com/dapperlabs/flow-go-sdk/language/values"
 	"github.com/dapperlabs/flow-go-sdk/utils/unittest"
+	"github.com/dapperlabs/flow-go/language/encoding"
 )
 
 func TestPing(t *testing.T) {
@@ -62,7 +61,7 @@ func TestBackend(t *testing.T) {
 		api.EXPECT().
 			ExecuteScript(sampleScriptText).
 			Return(emulator.ScriptResult{
-				Value: values.NewInt(2137),
+				Value: language.NewInt(2137),
 				Error: nil,
 			}, nil).
 			Times(1)
@@ -70,10 +69,10 @@ func TestBackend(t *testing.T) {
 		response, err := backend.ExecuteScript(context.Background(), &executionScriptRequest)
 		assert.NoError(t, err)
 
-		value, err := encoding.Decode(langtypes.Int{}, response.GetValue())
+		value, err := encoding.Decode(language.IntType{}, response.GetValue())
 		assert.NoError(t, err)
 
-		assert.Equal(t, values.NewInt(2137), value)
+		assert.Equal(t, language.NewInt(2137), value)
 	}))
 
 	t.Run("GetAccount", withMocks(func(t *testing.T, backend *server.Backend, api *mocks.MockBlockchainAPI) {
