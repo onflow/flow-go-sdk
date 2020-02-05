@@ -5,14 +5,14 @@ import (
 	"fmt"
 
 	"github.com/dapperlabs/flow-go/crypto"
+	"github.com/dapperlabs/flow-go/language"
+	"github.com/dapperlabs/flow-go/language/encoding"
 	"github.com/dapperlabs/flow-go/language/runtime"
 	"github.com/dapperlabs/flow-go/model/hash"
 
 	"github.com/dapperlabs/flow-go-sdk"
 	"github.com/dapperlabs/flow-go-sdk/emulator/execution"
 	"github.com/dapperlabs/flow-go-sdk/emulator/types"
-	"github.com/dapperlabs/flow-go-sdk/language/encoding"
-	"github.com/dapperlabs/flow-go-sdk/language/values"
 )
 
 // A computer uses a runtime instance to execute transactions and scripts.
@@ -109,7 +109,7 @@ func (c *computer) ExecuteScript(view *types.LedgerView, script []byte) (ScriptR
 		return ScriptResult{}, executionErr
 	}
 
-	convertedValue, err := values.Convert(value)
+	convertedValue, err := language.ConvertValue(value)
 	if err != nil {
 		return ScriptResult{}, err
 	}
@@ -127,10 +127,10 @@ func convertEvents(rtEvents []runtime.Event, txHash crypto.Hash) ([]flow.Event, 
 	flowEvents := make([]flow.Event, len(rtEvents))
 
 	for i, event := range rtEvents {
-		fields := make([]values.Value, len(event.Fields))
+		fields := make([]language.Value, len(event.Fields))
 
 		for j, field := range event.Fields {
-			convertedField, err := values.Convert(field)
+			convertedField, err := language.ConvertValue(field)
 			if err != nil {
 				return nil, fmt.Errorf("failed to convert event field: %w", err)
 			}
@@ -138,7 +138,7 @@ func convertEvents(rtEvents []runtime.Event, txHash crypto.Hash) ([]flow.Event, 
 			fields[j] = convertedField
 		}
 
-		eventValue := values.NewComposite(fields)
+		eventValue := language.NewComposite(fields)
 
 		payload, err := encoding.Encode(eventValue)
 		if err != nil {

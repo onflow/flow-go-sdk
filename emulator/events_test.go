@@ -4,31 +4,30 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/dapperlabs/flow-go/language"
+	"github.com/dapperlabs/flow-go/language/encoding"
+	"github.com/dapperlabs/flow-go/language/runtime"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/dapperlabs/flow-go-sdk"
 	"github.com/dapperlabs/flow-go-sdk/emulator"
 	"github.com/dapperlabs/flow-go-sdk/keys"
-	"github.com/dapperlabs/flow-go-sdk/language/encoding"
-	"github.com/dapperlabs/flow-go-sdk/language/types"
-	"github.com/dapperlabs/flow-go-sdk/language/values"
-	"github.com/dapperlabs/flow-go/language/runtime"
 )
 
 func TestEventEmitted(t *testing.T) {
 	// event type definition that is reused in tests
-	myEventType := types.Event{
-		Composite: types.Composite{
+	myEventType := language.EventType{
+		CompositeType: language.CompositeType{
 			Identifier: "MyEvent",
-			Fields: []types.Field{
+			Fields: []language.Field{
 				{
 					Identifier: "x",
-					Type:       types.Int{},
+					Type:       language.IntType{},
 				},
 				{
 					Identifier: "y",
-					Type:       types.Int{},
+					Type:       language.IntType{},
 				},
 			},
 		},
@@ -80,7 +79,7 @@ func TestEventEmitted(t *testing.T) {
 		eventValue, err := encoding.Decode(myEventType, actualEvent.Payload)
 		assert.NoError(t, err)
 
-		decodedEvent := eventValue.(values.Composite)
+		decodedEvent := eventValue.(language.Composite)
 
 		location := runtime.TransactionLocation(tx.Hash())
 		expectedType := fmt.Sprintf("%s.MyEvent", location.ID())
@@ -89,8 +88,8 @@ func TestEventEmitted(t *testing.T) {
 
 		assert.Equal(t, expectedType, actualEvent.Type)
 		assert.Equal(t, expectedID, actualEvent.ID())
-		assert.Equal(t, values.NewInt(1), decodedEvent.Fields[0])
-		assert.Equal(t, values.NewInt(2), decodedEvent.Fields[1])
+		assert.Equal(t, language.NewInt(1), decodedEvent.Fields[0])
+		assert.Equal(t, language.NewInt(2), decodedEvent.Fields[1])
 	})
 
 	t.Run("EmittedFromScript", func(t *testing.T) {
@@ -114,7 +113,7 @@ func TestEventEmitted(t *testing.T) {
 		eventValue, err := encoding.Decode(myEventType, actualEvent.Payload)
 		assert.NoError(t, err)
 
-		decodedEvent := eventValue.(values.Composite)
+		decodedEvent := eventValue.(language.Composite)
 
 		location := runtime.ScriptLocation(result.ScriptHash)
 		expectedType := fmt.Sprintf("%s.MyEvent", location.ID())
@@ -122,8 +121,8 @@ func TestEventEmitted(t *testing.T) {
 		// NOTE: ID is undefined for events emitted from scripts
 
 		assert.Equal(t, expectedType, actualEvent.Type)
-		assert.Equal(t, values.NewInt(1), decodedEvent.Fields[0])
-		assert.Equal(t, values.NewInt(2), decodedEvent.Fields[1])
+		assert.Equal(t, language.NewInt(1), decodedEvent.Fields[0])
+		assert.Equal(t, language.NewInt(2), decodedEvent.Fields[1])
 	})
 
 	t.Run("EmittedFromAccount", func(t *testing.T) {
@@ -190,13 +189,13 @@ func TestEventEmitted(t *testing.T) {
 		eventValue, err := encoding.Decode(myEventType, actualEvent.Payload)
 		assert.NoError(t, err)
 
-		decodedEvent := eventValue.(values.Composite)
+		decodedEvent := eventValue.(language.Composite)
 
 		expectedID := flow.Event{TxHash: tx.Hash(), Index: 0}.ID()
 
 		assert.Equal(t, expectedType, actualEvent.Type)
 		assert.Equal(t, expectedID, actualEvent.ID())
-		assert.Equal(t, values.NewInt(1), decodedEvent.Fields[0])
-		assert.Equal(t, values.NewInt(2), decodedEvent.Fields[1])
+		assert.Equal(t, language.NewInt(1), decodedEvent.Fields[0])
+		assert.Equal(t, language.NewInt(2), decodedEvent.Fields[1])
 	})
 }

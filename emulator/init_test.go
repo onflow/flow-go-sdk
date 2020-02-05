@@ -6,11 +6,11 @@ import (
 	"os"
 	"testing"
 
+	"github.com/dapperlabs/flow-go/language"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/dapperlabs/flow-go-sdk"
-	"github.com/dapperlabs/flow-go-sdk/language/values"
 	"github.com/dapperlabs/flow-go-sdk/emulator"
 	"github.com/dapperlabs/flow-go-sdk/emulator/storage/badger"
 	"github.com/dapperlabs/flow-go-sdk/emulator/types"
@@ -141,7 +141,7 @@ func TestInitialization(t *testing.T) {
 			result, err := b.ExecuteScript([]byte(readScript))
 			assert.NoError(t, err)
 
-			assert.Equal(t, values.NewInt(1), result.Value)
+			assert.Equal(t, language.NewInt(1), result.Value)
 		})
 	})
 }
