@@ -26,8 +26,6 @@ func Convert(typ runtime.Type, prog *ast.Program, variable *sema.Variable) (Type
 		return wrapVariable(String{}, variable), nil
 	case *sema.IntType:
 		return wrapVariable(Int{}, variable), nil
-	case *sema.UIntType:
-		return wrapVariable(UInt{}, variable), nil
 	case *sema.Int8Type:
 		return wrapVariable(Int8{}, variable), nil
 	case *sema.Int16Type:
@@ -36,10 +34,6 @@ func Convert(typ runtime.Type, prog *ast.Program, variable *sema.Variable) (Type
 		return wrapVariable(Int32{}, variable), nil
 	case *sema.Int64Type:
 		return wrapVariable(Int64{}, variable), nil
-	case *sema.Int128Type:
-		return wrapVariable(Int128{}, variable), nil
-	case *sema.Int256Type:
-		return wrapVariable(Int256{}, variable), nil
 	case *sema.UInt8Type:
 		return wrapVariable(UInt8{}, variable), nil
 	case *sema.UInt16Type:
@@ -48,18 +42,6 @@ func Convert(typ runtime.Type, prog *ast.Program, variable *sema.Variable) (Type
 		return wrapVariable(UInt32{}, variable), nil
 	case *sema.UInt64Type:
 		return wrapVariable(UInt64{}, variable), nil
-	case *sema.UInt128Type:
-		return wrapVariable(UInt128{}, variable), nil
-	case *sema.UInt256Type:
-		return wrapVariable(UInt256{}, variable), nil
-	case *sema.Word8Type:
-		return wrapVariable(Word8{}, variable), nil
-	case *sema.Word16Type:
-		return wrapVariable(Word16{}, variable), nil
-	case *sema.Word32Type:
-		return wrapVariable(Word32{}, variable), nil
-	case *sema.Word64Type:
-		return wrapVariable(Word64{}, variable), nil
 	case *sema.VariableSizedType:
 		return convertVariableSizedType(t, prog, variable)
 	case *sema.ConstantSizedType:
