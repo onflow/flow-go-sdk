@@ -58,12 +58,6 @@ var Cmd = &cobra.Command{
 			log.SetLevel(logrus.DebugLevel)
 		}
 
-		if conf.Persist {
-			fmt.Println("PERSISTING AT", conf.DBPath)
-		} else {
-			fmt.Println("NOT PERSISTING")
-		}
-
 		serverConf := &server.Config{
 			GRPCPort:  conf.Port,
 			GRPCDebug: conf.GRPCDebug,
