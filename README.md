@@ -249,9 +249,8 @@ fun main(): Int { return 1 }
 
 ```go
 import (
-    encoding "github.com/dapperlabs/flow-go-sdk/abi/encoding/values"
-    "github.com/dapperlabs/flow-go-sdk/abi/types"
-    "github.com/dapperlabs/flow-go-sdk/abi/values"
+    "github.com/dapperlabs/flow-go/language"
+    "github.com/dapperlabs/flow-go/language/encoding"
 )
 
 script := []byte("fun main(): Int { return 1 }")
