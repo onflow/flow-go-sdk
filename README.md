@@ -36,7 +36,7 @@ Flow is a new blockchain for open worlds. Read more about it [here](https://www.
 Here's how you can generate a `ECDSA-P256` private key:
 
 ```go
-import "github.com/dapperlabs/flow-go/sdk/keys"
+import "github.com/dapperlabs/flow-go-sdk/keys"
 
 // deterministic seed phrase
 seed := []byte("elephant ears space cowboy octopus rodeo potato cannon pineapple")
@@ -63,9 +63,9 @@ Once you have [generated a key-pair](#generating-keys), you can create a new acc
 
 ```go
 import (
-    "github.com/dapperlabs/flow-go/sdk/keys"
-    "github.com/dapperlabs/flow-go/sdk/templates"
-    "github.com/dapperlabs/flow-go/model/flow"
+    "github.com/dapperlabs/flow-go-sdk"
+    "github.com/dapperlabs/flow-go-sdk/keys"
+    "github.com/dapperlabs/flow-go-sdk/templates"
 )
 
 // generate a new private key for the account
@@ -124,8 +124,8 @@ Below is an simple example of how to sign a transaction using an `AccountPrivate
 
 ```go
 import (
-    "github.com/dapperlabs/flow-go/sdk/keys"
-    "github.com/dapperlabs/flow-go/model/flow"
+    "github.com/dapperlabs/flow-go-sdk"
+    "github.com/dapperlabs/flow-go-sdk/keys"
 )
 
 var (
@@ -172,7 +172,7 @@ A transaction is valid if it contains a valid signature from each pre-declared a
 You can submit a transaction to the network using the Go Flow Client.
 
 ```go
-import "github.com/dapperlabs/flow-go/sdk/client"
+import "github.com/dapperlabs/flow-go-sdk/client"
 
 // connect to an emulator running locally
 c, err := client.New("localhost:3569")
@@ -249,9 +249,9 @@ fun main(): Int { return 1 }
 
 ```go
 import (
-    encoding "github.com/dapperlabs/flow-go/sdk/abi/encoding/values"
-    "github.com/dapperlabs/flow-go/sdk/abi/types"
-    "github.com/dapperlabs/flow-go/sdk/abi/values"
+    encoding "github.com/dapperlabs/flow-go-sdk/abi/encoding/values"
+    "github.com/dapperlabs/flow-go-sdk/abi/types"
+    "github.com/dapperlabs/flow-go-sdk/abi/values"
 )
 
 script := []byte("fun main(): Int { return 1 }")
@@ -278,7 +278,7 @@ myID := ID.Int()
 You can query events with the `GetEvents` function:
 
 ```go
-import "github.com/dapperlabs/flow-go/sdk/client"
+import "github.com/dapperlabs/flow-go-sdk/client"
 
 events, err := c.GetEvents(ctx, client.EventQuery{
     Type:       "flow.AccountCreated",
@@ -321,7 +321,7 @@ A `flow.Event` contains the following fields:
 You can query the state of an account with the `GetAccount` function:
 
 ```go
-import "github.com/dapperlabs/flow-go/model/flow"
+import "github.com/dapperlabs/flow-go-sdk"
 
 address := flow.HexToAddress("01")
 
