@@ -26,7 +26,10 @@ var valueDeclarations = append(
 	stdlib.FlowBuiltInFunctions(stdlib.FlowBuiltinImpls{}),
 	stdlib.BuiltinFunctions...,
 ).ToValueDeclarations()
-var typeDeclarations = stdlib.BuiltinTypes.ToTypeDeclarations()
+var typeDeclarations = append(
+	stdlib.FlowBuiltInTypes,
+	stdlib.BuiltinTypes...,
+).ToTypeDeclarations()
 
 // document represents an open document on the client. It contains all cached
 // information about each document that is used to support CodeLens,
