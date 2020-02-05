@@ -129,7 +129,7 @@ spec:
         - name: flow-emulator
           # No tag, will be attached by teamcity
           image: gcr.io/dl-flow/emulator
-          args: ["emulator", "start", "-v"]
+          args: ["emulator", "start", "-v", "--persist"]
 
           # Ports exposed can be named so other resources can reference
           # them by name and not have to hard code numbers
@@ -150,7 +150,7 @@ spec:
                 secretKeyRef:
                   name: emulator-flow-json
                   key: root-key
-            - name: FLOW_DB
+            - name: FLOW_DBPATH
               value: '/flowdb'
 
           # Resource requests and contraints

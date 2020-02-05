@@ -60,6 +60,7 @@ type Config struct {
 	HTTPHeaders    []HTTPHeader
 	BlockTime      time.Duration
 	RootAccountKey *flow.AccountPrivateKey
+	Persist        bool
 	// DBPath is the path to the Badger database on disk
 	DBPath string
 	// LivenessCheckTolerance is the tolerance level of the liveness check
@@ -161,7 +162,7 @@ func (e *EmulatorServer) cleanup() {
 }
 
 func configureStore(logger *logrus.Logger, conf *Config) (store storage.Store, close func() error, err error) {
-	if len(conf.DBPath) > 0 {
+	if conf.Persist {
 		badgerStore, err := badger.New(
 			badger.WithPath(conf.DBPath),
 			badger.WithLogger(logger),

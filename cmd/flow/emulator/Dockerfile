@@ -34,4 +34,4 @@ EXPOSE 3569
 ENTRYPOINT ["/bin/app"]
 # These arguments are separated from the entrypoint to simplify running other
 # commands with this image.
-CMD ["emulator", "start", "--init", "--db", "./flowdb"]
+CMD ["emulator", "start", "--init", "--persist"]
