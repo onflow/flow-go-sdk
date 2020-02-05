@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/dapperlabs/flow-go/crypto"
-	"github.com/dapperlabs/flow-go/model/encoding"
 	"github.com/dapperlabs/flow-go/model/hash"
 
 	langencoding "github.com/dapperlabs/flow-go-sdk/language/encoding"
@@ -44,7 +43,7 @@ func (e Event) ID() string {
 // fields necessary to uniquely identify it.
 func (e Event) Encode() []byte {
 	w := wrapEvent(e)
-	return encoding.DefaultEncoder.MustEncode(w)
+	return DefaultEncoder.MustEncode(w)
 }
 
 // Defines only the fields needed to uniquely identify an event.
