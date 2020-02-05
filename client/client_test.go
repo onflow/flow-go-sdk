@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/dapperlabs/flow-go/crypto"
+	"github.com/dapperlabs/flow-go/language"
 	"github.com/dapperlabs/flow-go/protobuf/sdk/entities"
 	"github.com/dapperlabs/flow-go/protobuf/services/observation"
 	"github.com/golang/mock/gomock"
@@ -17,10 +18,8 @@ import (
 	"github.com/dapperlabs/flow-go-sdk/client"
 	"github.com/dapperlabs/flow-go-sdk/client/mocks"
 	"github.com/dapperlabs/flow-go-sdk/convert"
-	"github.com/dapperlabs/flow-go-sdk/language/encoding"
-	"github.com/dapperlabs/flow-go-sdk/language/types"
-	"github.com/dapperlabs/flow-go-sdk/language/values"
 	"github.com/dapperlabs/flow-go-sdk/utils/unittest"
+	"github.com/dapperlabs/flow-go/language/encoding"
 )
 
 func TestPing(t *testing.T) {
@@ -136,7 +135,7 @@ func TestExecuteScript(t *testing.T) {
 	c := client.NewFromRPCClient(mockRPC)
 	ctx := context.Background()
 
-	value := values.NewInt(42)
+	value := language.NewInt(42)
 	valueBytes, err := encoding.Encode(value)
 	require.NoError(t, err)
 
@@ -150,10 +149,10 @@ func TestExecuteScript(t *testing.T) {
 		b, err := c.ExecuteScript(ctx, []byte("pub fun main(): Int { return 1 }"))
 		assert.NoError(t, err)
 
-		value, err := encoding.Decode(types.Int{}, b)
+		value, err := encoding.Decode(language.IntType{}, b)
 		assert.NoError(t, err)
 
-		assert.Equal(t, values.NewInt(42), value)
+		assert.Equal(t, language.NewInt(42), value)
 	})
 
 	t.Run("Server error", func(t *testing.T) {
@@ -224,32 +223,32 @@ func TestGetEvents(t *testing.T) {
 	ctx := context.Background()
 
 	// declare event type used for decoding event payloads
-	mockEventType := types.Event{
-		Composite: types.Composite{
+	mockEventType := language.EventType{
+		CompositeType: language.CompositeType{
 			Identifier: "Transfer",
-			Fields: []types.Field{
+			Fields: []language.Field{
 				{
 					Identifier: "to",
-					Type:       types.Address{},
+					Type:       language.AddressType{},
 				},
 				{
 					Identifier: "from",
-					Type:       types.Address{},
+					Type:       language.AddressType{},
 				},
 				{
 					Identifier: "amount",
-					Type:       types.Int{},
+					Type:       language.IntType{},
 				},
 			},
 		},
 	}
 
-	to := values.Address(flow.ZeroAddress)
-	from := values.Address(flow.ZeroAddress)
-	amount := values.NewInt(42)
+	to := language.Address(flow.ZeroAddress)
+	from := language.Address(flow.ZeroAddress)
+	amount := language.NewInt(42)
 
-	mockEventValue := values.
-		NewComposite([]values.Value{to, from, amount}).
+	mockEventValue := language.
+		NewComposite([]language.Value{to, from, amount}).
 		WithType(mockEventType)
 
 	// encode event payload from mock value
@@ -280,7 +279,7 @@ func TestGetEvents(t *testing.T) {
 		actualEvent := events[0]
 
 		value, err := encoding.Decode(mockEventType, actualEvent.Payload)
-		eventValue := value.(values.Composite)
+		eventValue := value.(language.Composite)
 
 		assert.Equal(t, actualEvent.Type, mockEvent.Type)
 		assert.Equal(t, to, eventValue.Fields[0])

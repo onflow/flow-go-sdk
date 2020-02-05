@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/dapperlabs/flow-go/crypto"
+
 	"github.com/dapperlabs/flow-go-sdk"
 )
 

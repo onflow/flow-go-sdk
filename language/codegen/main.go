@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/dapperlabs/flow-go-sdk/language/abi"
-	"github.com/dapperlabs/flow-go-sdk/language/types"
+	"github.com/dapperlabs/flow-go/language"
 )
 
 func check(err error) {
@@ -31,21 +31,21 @@ func main() {
 
 	allTypes, err := abi.Decode(data)
 
-	compositeTypes := map[string]types.Composite{}
+	compositeTypes := map[string]language.CompositeType{}
 
 	for name, typ := range allTypes {
 
 		switch composite := typ.(type) {
-		case types.Resource:
-			compositeTypes[name] = composite.Composite
-		case types.Struct:
-			compositeTypes[name] = composite.Composite
+		case language.ResourceType:
+			compositeTypes[name] = composite.CompositeType
+		case language.StructType:
+			compositeTypes[name] = composite.CompositeType
 		default:
 			_, err := fmt.Fprintf(os.Stderr, "Definition %s of type %T is not supported, skipping\n", name, typ)
 			check(err)
 		}
 
-		if composite, ok := typ.(types.Composite); ok {
+		if composite, ok := typ.(language.CompositeType); ok {
 			compositeTypes[name] = composite
 		}
 	}

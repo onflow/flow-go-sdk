@@ -4,11 +4,9 @@ import (
 	"fmt"
 
 	"github.com/dapperlabs/flow-go/crypto"
+	"github.com/dapperlabs/flow-go/language"
+	"github.com/dapperlabs/flow-go/language/encoding"
 	"github.com/dapperlabs/flow-go/model/hash"
-
-	langencoding "github.com/dapperlabs/flow-go-sdk/language/encoding"
-	"github.com/dapperlabs/flow-go-sdk/language/types"
-	"github.com/dapperlabs/flow-go-sdk/language/values"
 )
 
 // List of built-in account event types.
@@ -63,32 +61,32 @@ type AccountCreatedEvent interface {
 	Address() Address
 }
 
-var AccountCreatedEventType types.Type = types.Event{
-	Composite: types.Composite{
-		Fields: []types.Field{
+var AccountCreatedEventType language.Type = language.EventType{
+	CompositeType: language.CompositeType{
+		Fields: []language.Field{
 			{
 				Identifier: "address",
-				Type:       types.Address{},
+				Type:       language.AddressType{},
 			},
 		},
 	},
 }.WithID(EventAccountCreated)
 
-func newAccountCreatedEventFromValue(v values.Value) AccountCreatedEvent {
-	eventValue := v.(values.Composite)
+func newAccountCreatedEventFromValue(v language.Value) AccountCreatedEvent {
+	eventValue := v.(language.Composite)
 	return accountCreatedEvent{eventValue}
 }
 
 type accountCreatedEvent struct {
-	values.Composite
+	language.Composite
 }
 
 func (a accountCreatedEvent) Address() Address {
-	return Address(a.Fields[0].(values.Address))
+	return Address(a.Fields[0].(language.Address))
 }
 
 func DecodeAccountCreatedEvent(b []byte) (AccountCreatedEvent, error) {
-	value, err := langencoding.Decode(AccountCreatedEventType, b)
+	value, err := encoding.Decode(AccountCreatedEventType, b)
 	if err != nil {
 		return nil, err
 	}

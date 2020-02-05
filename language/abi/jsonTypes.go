@@ -1,73 +1,73 @@
 package abi
 
 import (
-	"github.com/dapperlabs/flow-go-sdk/language/types"
+	"github.com/dapperlabs/flow-go/language"
 )
 
-func jsonStringToType(jsonString string) types.Type {
+func jsonStringToType(jsonString string) language.Type {
 	switch jsonString {
 	case "AnyStruct":
-		return types.AnyStruct{}
+		return language.AnyStructType{}
 	case "AnyResource":
-		return types.AnyResource{}
+		return language.AnyResourceType{}
 	case "Bool":
-		return types.Bool{}
+		return language.BoolType{}
 	case "Void":
-		return types.Void{}
+		return language.VoidType{}
 	case "String":
-		return types.String{}
+		return language.StringType{}
 	case "Int":
-		return types.Int{}
+		return language.IntType{}
 	case "Int8":
-		return types.Int8{}
+		return language.Int8Type{}
 	case "Int16":
-		return types.Int16{}
+		return language.Int16Type{}
 	case "Int32":
-		return types.Int32{}
+		return language.Int32Type{}
 	case "Int64":
-		return types.Int64{}
+		return language.Int64Type{}
 	case "UInt8":
-		return types.UInt8{}
+		return language.UInt8Type{}
 	case "UInt16":
-		return types.UInt16{}
+		return language.UInt16Type{}
 	case "UInt32":
-		return types.UInt32{}
+		return language.UInt32Type{}
 	case "UInt64":
-		return types.UInt64{}
+		return language.UInt64Type{}
 	}
 
 	return nil
 }
 
-func typeToJSONString(t types.Type) string {
+func typeToJSONString(t language.Type) string {
 	switch t.(type) {
-	case types.AnyStruct:
+	case language.AnyStructType:
 		return "AnyStruct"
-	case types.AnyResource:
+	case language.AnyResourceType:
 		return "AnyResource"
-	case types.Bool:
+	case language.BoolType:
 		return "Bool"
-	case types.Void:
+	case language.VoidType:
 		return "Void"
-	case types.String:
+	case language.StringType:
 		return "String"
-	case types.Int:
+	case language.IntType:
 		return "Int"
-	case types.Int8:
+	case language.Int8Type:
 		return "Int8"
-	case types.Int16:
+	case language.Int16Type:
 		return "Int16"
-	case types.Int32:
+	case language.Int32Type:
 		return "Int32"
-	case types.Int64:
+	case language.Int64Type:
 		return "Int64"
-	case types.UInt8:
+	case language.UInt8Type:
 		return "UInt8"
-	case types.UInt16:
+	case language.UInt16Type:
 		return "UInt16"
-	case types.UInt32:
+	case language.UInt32Type:
 		return "UInt32"
-	case types.UInt64:
+	case language.UInt64Type:
 		return "UInt64"
 	}
 
