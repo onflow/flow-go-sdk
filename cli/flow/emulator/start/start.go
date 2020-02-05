@@ -24,7 +24,7 @@ type Config struct {
 	RootKey   string        `flag:"root-key,k" info:"root account key"`
 	Init      bool          `default:"false" flag:"init" info:"whether to initialize a new account profile"`
 	GRPCDebug bool          `default:"false" flag:"grpc-debug" info:"enable gRPC server reflection for debugging with grpc_cli"`
-	DBPath    string        `flag:"db" info:"where Flow chain data will be stored"`
+	DB        string        `flag:"db" info:"path to database directory"`
 }
 
 var (
@@ -65,7 +65,7 @@ var Cmd = &cobra.Command{
 			HTTPHeaders:    nil,
 			BlockTime:      conf.BlockTime,
 			RootAccountKey: &rootKey,
-			DBPath:         conf.DBPath,
+			DBPath:         conf.DB,
 		}
 
 		emu := server.NewEmulatorServer(log, serverConf)
