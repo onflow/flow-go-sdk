@@ -24,7 +24,8 @@ type Config struct {
 	RootKey   string        `flag:"root-key,k" info:"root account key"`
 	Init      bool          `default:"false" flag:"init" info:"whether to initialize a new account profile"`
 	GRPCDebug bool          `default:"false" flag:"grpc-debug" info:"enable gRPC server reflection for debugging with grpc_cli"`
-	DB        string        `flag:"db" info:"path to database directory"`
+	Persist   bool          `default:"false" flag:"persist" info:"enable persistent storage"`
+	DBPath    string        `default:"./flowdb" flag:"dbpath" info:"path to database directory"`
 }
 
 var (
@@ -57,6 +58,12 @@ var Cmd = &cobra.Command{
 			log.SetLevel(logrus.DebugLevel)
 		}
 
+		if conf.Persist {
+			fmt.Println("PERSISTING AT", conf.DBPath)
+		} else {
+			fmt.Println("NOT PERSISTING")
+		}
+
 		serverConf := &server.Config{
 			GRPCPort:  conf.Port,
 			GRPCDebug: conf.GRPCDebug,
@@ -65,7 +72,8 @@ var Cmd = &cobra.Command{
 			HTTPHeaders:    nil,
 			BlockTime:      conf.BlockTime,
 			RootAccountKey: &rootKey,
-			DBPath:         conf.DB,
+			Persist:        conf.Persist,
+			DBPath:         conf.DBPath,
 		}
 
 		emu := server.NewEmulatorServer(log, serverConf)
