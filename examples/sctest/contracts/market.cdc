@@ -1,5 +1,5 @@
-import FungibleToken from 0x0000000000000000000000000000000000000002
-import NonFungibleToken from 0x0000000000000000000000000000000000000003
+import FungibleToken, FlowToken from 0x0000000000000000000000000000000000000002
+import NonFungibleToken, Tokens from 0x0000000000000000000000000000000000000003
 
 // Marketplace is where users can put their NFTs up for sale with a price
 // if another user sees an NFT that they want to buy,
@@ -25,7 +25,7 @@ pub contract Market {
     pub resource SaleCollection {
 
         // a dictionary of the NFTs that the user is putting up for sale
-        pub var forSale: @{Int: NonFungibleToken.NFT}
+        pub var forSale: @{Int: Tokens.NFT}
 
         // dictionary of the prices for each NFT by ID
         pub var prices: {Int: Int}
@@ -42,7 +42,7 @@ pub contract Market {
         }
 
         // withdraw gives the owner the opportunity to remove a sale from the collection
-        pub fun withdraw(tokenID: Int): @NonFungibleToken.NFT {
+        pub fun withdraw(tokenID: Int): @Tokens.NFT {
             // remove the price
             self.prices.remove(key: tokenID)
             // remove and return the token
@@ -51,7 +51,7 @@ pub contract Market {
         }
 
         // listForSale lists an NFT for sale in this collection
-        pub fun listForSale(token: @NonFungibleToken.NFT, price: Int) {
+        pub fun listForSale(token: @Tokens.NFT, price: Int) {
             let id: Int = token.id
 
             self.prices[id] = price
@@ -66,7 +66,7 @@ pub contract Market {
         }
 
         // purchase lets a user send tokens to purchase an NFT that is for sale
-        pub fun purchase(tokenID: Int, recipient: &NonFungibleToken.NFTCollection, buyTokens: @FungibleToken.Receiver) {
+        pub fun purchase(tokenID: Int, recipient: &Tokens.Collection, buyTokens: @FungibleToken.Receiver) {
             pre {
                 self.forSale[tokenID] != nil && self.prices[tokenID] != nil:
                     "No token matching this ID for sale!"
@@ -96,42 +96,10 @@ pub contract Market {
         destroy() {
             destroy self.forSale
         }
-
-        // createCollection returns a new collection resource to the caller
-        pub fun createCollection(ownerVault: &FungibleToken.Receiver): @SaleCollection {
-            return <- create SaleCollection(vault: ownerVault)
-        }
     }
 
     // createCollection returns a new collection resource to the caller
     pub fun createSaleCollection(ownerVault: &FungibleToken.Receiver): @SaleCollection {
         return <- create SaleCollection(vault: ownerVault)
-    }
-
-    // Marketplace would be the central contract where people can post their sale
-    // references so that anyone can access them
-    // It is just an example and hasn't been tested so don't take it seriously
-    pub resource Marketplace {
-        // Data structure to store active sales
-        pub var tokensForSale: [&SaleCollection]
-
-        init() {
-            self.tokensForSale = []
-        }
-
-        // listSaleCollection lists a users sale reference in the array
-        // and returns the index of the sale so that users can know
-        // how to remove it from the marketplace
-        pub fun listSaleCollection(collection: &SaleCollection): Int {
-            self.tokensForSale.append(collection)
-            return (self.tokensForSale.length - 1)
-        }
-
-        // removeSaleCollection removes a user's sale from the array
-        // of sale references
-        pub fun removeSaleCollection(index: Int) {
-            self.tokensForSale.remove(at: index)
-        }
-
     }
 }
