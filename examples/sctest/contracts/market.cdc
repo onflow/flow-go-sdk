@@ -25,6 +25,7 @@ access(all) contract Market {
     access(all) event ForSale(id: UInt64, price: UInt256)
     access(all) event PriceChanged(id: UInt64, newPrice: UInt256)
     access(all) event TokenPurchased(id: UInt64, price: UInt256)
+    access(all) event SaleWithdrawn(id: UInt64)
 
     access(all) resource SaleCollection {
 
@@ -37,7 +38,7 @@ access(all) contract Market {
         // the fungible token vault of the owner of this sale
         // so that when someone buys a token, this resource can deposit
         // tokens in their account
-        access(all) let ownerVault: &FungibleToken.Receiver
+        access(account) let ownerVault: &FungibleToken.Receiver
 
         init (vault: &FungibleToken.Receiver) {
             self.forSale <- {}
