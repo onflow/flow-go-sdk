@@ -53,7 +53,7 @@ generate-mocks:
 ci: install-tools generate test coverage
 
 cmd/flow/flow:
-	GO111MODULE=on go build \
+	GOPRIVATE=github.com/dapperlabs/* GO111MODULE=on go build \
 		-ldflags \
 		"-X github.com/dapperlabs/flow-go-sdk/utils/build.commit=$(COMMIT) -X github.com/dapperlabs/flow-go-sdk/utils/build.semver=$(VERSION)" \
 		-o ./cmd/flow/flow ./cmd/flow
