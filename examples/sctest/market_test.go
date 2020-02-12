@@ -1,45 +1,38 @@
 package sctest
 
-import (
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-)
-
 const (
 	MarketContractFile = "./contracts/market.cdc"
 )
 
-func TestMarketDeployment(t *testing.T) {
-	b := newEmulator()
+// func TestMarketDeployment(t *testing.T) {
+// 	b := newEmulator()
 
-	// Should be able to deploy a contract as a new account with no keys.
-	tokenCode := ReadFile(resourceTokenContractFile)
-	_, err := b.CreateAccount(nil, tokenCode, GetNonce())
-	if !assert.Nil(t, err) {
-		t.Log(err.Error())
-	}
-	_, err = b.CommitBlock()
-	require.NoError(t, err)
+// 	// Should be able to deploy a contract as a new account with no keys.
+// 	tokenCode := ReadFile(resourceTokenContractFile)
+// 	_, err := b.CreateAccount(nil, tokenCode, GetNonce())
+// 	if !assert.Nil(t, err) {
+// 		t.Log(err.Error())
+// 	}
+// 	_, err = b.CommitBlock()
+// 	require.NoError(t, err)
 
-	nftCode := ReadFile(NFTContractFile)
-	_, err = b.CreateAccount(nil, nftCode, GetNonce())
-	if !assert.Nil(t, err) {
-		t.Log(err.Error())
-	}
-	_, err = b.CommitBlock()
-	require.NoError(t, err)
+// 	nftCode := ReadFile(NFTContractFile)
+// 	_, err = b.CreateAccount(nil, nftCode, GetNonce())
+// 	if !assert.Nil(t, err) {
+// 		t.Log(err.Error())
+// 	}
+// 	_, err = b.CommitBlock()
+// 	require.NoError(t, err)
 
-	// Should be able to deploy a contract as a new account with no keys.
-	marketCode := ReadFile(MarketContractFile)
-	_, err = b.CreateAccount(nil, marketCode, GetNonce())
-	if !assert.Nil(t, err) {
-		t.Log(err.Error())
-	}
-	_, err = b.CommitBlock()
-	require.NoError(t, err)
-}
+// 	// Should be able to deploy a contract as a new account with no keys.
+// 	marketCode := ReadFile(MarketContractFile)
+// 	_, err = b.CreateAccount(nil, marketCode, GetNonce())
+// 	if !assert.Nil(t, err) {
+// 		t.Log(err.Error())
+// 	}
+// 	_, err = b.CommitBlock()
+// 	require.NoError(t, err)
+// }
 
 // func TestCreateSale(t *testing.T) {
 // 	b := newEmulator()
