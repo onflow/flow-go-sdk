@@ -20,9 +20,9 @@ func GenerateCreateTokenScript(tokenAddr flow.Address, initialBalance int) []byt
 			let oldVault <- acct.storage[FlowToken.Vault] <- FlowToken.createVault(initialBalance: %d)
 			destroy oldVault
 
-			acct.published[&FungibleToken.Receiver] = &acct.storage[FlowToken.Vault] as FungibleToken.Receiver
-			acct.published[&FungibleToken.Provider] = &acct.storage[FlowToken.Vault] as FungibleToken.Provider
-			acct.published[&FungibleToken.Balance] = &acct.storage[FlowToken.Vault] as FungibleToken.Balance
+			acct.published[&FungibleToken.Receiver] = &acct.storage[FlowToken.Vault] as &FungibleToken.Receiver
+			acct.published[&FungibleToken.Provider] = &acct.storage[FlowToken.Vault] as &FungibleToken.Provider
+			acct.published[&FungibleToken.Balance] = &acct.storage[FlowToken.Vault] as &FungibleToken.Balance
 		  }
 		}
 	`
@@ -51,7 +51,7 @@ func GenerateCreateThreeTokensArrayScript(tokenAddr flow.Address, initialBalance
 			let storedVaults <- acct.storage[[FlowToken.Vault]] <- vaultArray
 			destroy storedVaults
 
-            acct.published[&[FlowToken.Vault]] = &acct.storage[[FlowToken.Vault]] as [FlowToken.Vault]
+            acct.published[&[FlowToken.Vault]] = &acct.storage[[FlowToken.Vault]] as &[FlowToken.Vault]
 		  }
 		}
 	`

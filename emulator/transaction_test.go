@@ -529,33 +529,17 @@ func TestGetTransaction(t *testing.T) {
 	b, err := emulator.NewBlockchain()
 	require.NoError(t, err)
 
-	myEventType := language.EventType{
-		CompositeType: language.CompositeType{
-			Identifier: "MyEvent",
-			Fields: []language.Field{
-				{
-					Identifier: "x",
-					Type:       language.IntType{},
-				},
-			},
-		},
-	}
+	addTwoScript, counterAddress := deployAndGenerateAddTwoScript(t, b)
 
-	eventsScript := `
-		pub event MyEvent(x: Int)
-
-		transaction {
-		  execute {
-		    emit MyEvent(x: 1)
-		  }
-		}
-	`
+	accountAddress := b.RootAccountAddress()
 
 	tx := flow.Transaction{
-		Script:       []byte(eventsScript),
-		Nonce:        getNonce(),
-		ComputeLimit: 10,
-		PayerAccount: b.RootAccountAddress(),
+		Script:             []byte(addTwoScript),
+		ReferenceBlockHash: nil,
+		Nonce:              getNonce(),
+		ComputeLimit:       10,
+		PayerAccount:       accountAddress,
+		ScriptAccounts:     []flow.Address{accountAddress},
 	}
 
 	sig, err := keys.SignTransaction(tx, b.RootKey())
@@ -584,17 +568,17 @@ func TestGetTransaction(t *testing.T) {
 		require.Len(t, resTx.Events, 1)
 		actualEvent := resTx.Events[0]
 
-		eventValue, err := encoding.Decode(myEventType, actualEvent.Payload)
+		eventValue, err := encoding.Decode(countIncrementedType, actualEvent.Payload)
 		require.NoError(t, err)
 
 		decodedEvent := eventValue.(language.Composite)
 
-		location := runtime.TransactionLocation(tx.Hash())
-		eventType := fmt.Sprintf("%s.MyEvent", location.ID())
+		location := runtime.AddressLocation(counterAddress.Bytes())
+		eventType := fmt.Sprintf("%s.Counting.CountIncremented", location.ID())
 
 		assert.Equal(t, tx.Hash(), actualEvent.TxHash)
 		assert.Equal(t, eventType, actualEvent.Type)
 		assert.Equal(t, uint(0), actualEvent.Index)
-		assert.Equal(t, language.NewInt(1), decodedEvent.Fields[0])
+		assert.Equal(t, language.NewInt(2), decodedEvent.Fields[0])
 	})
 }
