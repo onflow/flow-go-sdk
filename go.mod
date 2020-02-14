@@ -3,15 +3,13 @@ module github.com/dapperlabs/flow-go-sdk
 go 1.13
 
 require (
-	github.com/dapperlabs/flow-go v0.3.1
-	github.com/dapperlabs/flow-go/crypto v0.3.1
-	github.com/dapperlabs/flow-go/language v0.3.1
-	github.com/dapperlabs/flow-go/protobuf v0.3.1
+	github.com/dapperlabs/flow-go v0.3.2-0.20200214013519-e4d529c98be3
+	github.com/dapperlabs/flow-go/crypto v0.3.2-0.20200214013519-e4d529c98be3
+	github.com/dapperlabs/flow-go/language v0.3.2-0.20200214013519-e4d529c98be3
+	github.com/dapperlabs/flow-go/protobuf v0.3.2-0.20200214013519-e4d529c98be3
 	github.com/dave/jennifer v1.4.0
-	github.com/davecgh/go-xdr v0.0.0-20161123171359-e6a2ba005892
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
 	github.com/dgraph-io/badger v1.6.0
-	github.com/ethereum/go-ethereum v1.9.9
 	github.com/go-test/deep v1.0.5
 	github.com/golang/mock v1.3.1
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
