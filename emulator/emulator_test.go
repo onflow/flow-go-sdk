@@ -46,7 +46,7 @@ func generateAddTwoToCounterScript(counterAddress flow.Address) string {
                         let existing <- signer.storage[Counting.Counter] <- Counting.createCounter()
                         destroy existing
 
-                        signer.published[&Counting.Counter] = &signer.storage[Counting.Counter] as Counting.Counter
+                        signer.published[&Counting.Counter] = &signer.storage[Counting.Counter] as &Counting.Counter
                     }
 
                     signer.published[&Counting.Counter]?.add(2)
