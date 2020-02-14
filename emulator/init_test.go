@@ -49,12 +49,9 @@ func TestInitialization(t *testing.T) {
 			`
                 import 0x%s
 
-                pub event MyEvent(x: Int)
-
                 transaction {
 
                   prepare(acct: Account) {
-                    emit MyEvent(x: 1)
 
                     let counter <- Counting.createCounter()
                     counter.add(1)
@@ -85,7 +82,7 @@ func TestInitialization(t *testing.T) {
 
 		result, err := b.ExecuteNextTransaction()
 		assert.NoError(t, err)
-		assert.True(t, result.Succeeded())
+		require.True(t, result.Succeeded())
 
 		block, err := b.CommitBlock()
 		assert.NoError(t, err)
