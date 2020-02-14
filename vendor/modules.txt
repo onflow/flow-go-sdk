@@ -8,12 +8,12 @@ github.com/beorn7/perks/quantile
 github.com/c-bata/go-prompt
 # github.com/cespare/xxhash/v2 v2.1.1
 github.com/cespare/xxhash/v2
-# github.com/dapperlabs/flow-go v0.3.1
+# github.com/dapperlabs/flow-go v0.3.2-0.20200214013519-e4d529c98be3
 github.com/dapperlabs/flow-go/model/encoding/rlp
 github.com/dapperlabs/flow-go/model/hash
-# github.com/dapperlabs/flow-go/crypto v0.3.1
+# github.com/dapperlabs/flow-go/crypto v0.3.2-0.20200214013519-e4d529c98be3
 github.com/dapperlabs/flow-go/crypto
-# github.com/dapperlabs/flow-go/language v0.3.1
+# github.com/dapperlabs/flow-go/language v0.3.2-0.20200214013519-e4d529c98be3
 github.com/dapperlabs/flow-go/language
 github.com/dapperlabs/flow-go/language/encoding
 github.com/dapperlabs/flow-go/language/runtime
@@ -30,7 +30,7 @@ github.com/dapperlabs/flow-go/language/runtime/parser
 github.com/dapperlabs/flow-go/language/runtime/sema
 github.com/dapperlabs/flow-go/language/runtime/stdlib
 github.com/dapperlabs/flow-go/language/runtime/trampoline
-# github.com/dapperlabs/flow-go/protobuf v0.3.1
+# github.com/dapperlabs/flow-go/protobuf v0.3.2-0.20200214013519-e4d529c98be3
 github.com/dapperlabs/flow-go/protobuf/sdk/entities
 github.com/dapperlabs/flow-go/protobuf/services/observation
 # github.com/dave/jennifer v1.4.0

@@ -81,9 +81,19 @@ declaration
     | transactionDeclaration
     ;
 
-// Transactions can be in the form "prepare pre execute post" or "prepare pre post execute"
 transactionDeclaration
-    : Transaction '{' fields prepare? ((preConditions? execute? postConditions?) | (preConditions? postConditions? execute?))'}'
+    : Transaction
+      '{'
+      fields
+      prepare?
+      preConditions?
+      ( execute
+      | execute postConditions
+      | postConditions
+      | postConditions execute
+      | /* no execute or postConditions */
+      )
+      '}'
     ;
 
 // NOTE: allow any identifier in parser, then check identifier
@@ -195,7 +205,13 @@ fullType
     ;
 
 referenceType
-    : Ampersand {p.noWhitespace()}? innerType
+    : ( Auth Storable
+      | Auth
+      | Storable Auth
+      | Storable
+      | /* no auth or storable */
+      )
+      Ampersand {p.noWhitespace()}? innerType
     ;
 
 nonReferenceType
@@ -463,6 +479,8 @@ Mul : '*' ;
 Div : '/' ;
 Mod : '%' ;
 
+Auth : 'auth' ;
+Storable : 'storable' ;
 Ampersand : '&';
 
 unaryOp
@@ -648,6 +666,7 @@ identifier
     | From
     | Create
     | Destroy
+    | Emit
     | Contract
     | Resource
     | Struct
@@ -656,6 +675,8 @@ identifier
     | Access
     | Account
     | Self
+    | Auth
+    | Storable
     ;
 
 Identifier
