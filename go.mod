@@ -3,10 +3,10 @@ module github.com/dapperlabs/flow-go-sdk
 go 1.13
 
 require (
-	github.com/dapperlabs/flow-go v0.3.1
-	github.com/dapperlabs/flow-go/crypto v0.3.1
-	github.com/dapperlabs/flow-go/language v0.3.1
-	github.com/dapperlabs/flow-go/protobuf v0.3.1
+	github.com/dapperlabs/flow-go v0.3.2-0.20200214013519-e4d529c98be3
+	github.com/dapperlabs/flow-go/crypto v0.3.2-0.20200214013519-e4d529c98be3
+	github.com/dapperlabs/flow-go/language v0.3.2-0.20200214013519-e4d529c98be3
+	github.com/dapperlabs/flow-go/protobuf v0.3.2-0.20200214013519-e4d529c98be3
 	github.com/dave/jennifer v1.4.0
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
 	github.com/dgraph-io/badger v1.6.0
