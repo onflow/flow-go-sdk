@@ -61,7 +61,7 @@ func TestInitialization(t *testing.T) {
 
                     let existing <- acct.storage[Counting.Counter] <- counter
                     destroy existing
-                    acct.published[&Counting.Counter] = &acct.storage[Counting.Counter] as Counting.Counter
+                    acct.published[&Counting.Counter] = &acct.storage[Counting.Counter] as &Counting.Counter
                   }
                 }
             `,
