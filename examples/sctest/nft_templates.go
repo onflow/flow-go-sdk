@@ -31,7 +31,7 @@ func GenerateCreateNFTScript(tokenAddr flow.Address, id int) []byte {
 			let oldCollection <- acct.storage[NonFungibleToken.NFTCollection] <- collection
 			destroy oldCollection
 
-			acct.published[&NonFungibleToken.NFTCollection] = &acct.storage[NonFungibleToken.NFTCollection] as NonFungibleToken.NFTCollection
+			acct.published[&NonFungibleToken.NFTCollection] = &acct.storage[NonFungibleToken.NFTCollection] as &NonFungibleToken.NFTCollection
 		  }
 		}
 	`
