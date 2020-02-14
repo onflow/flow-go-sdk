@@ -43,8 +43,8 @@ func TestFungibleTokenTutorialContractCreation(t *testing.T) {
 
 	                 transaction {
 	                     prepare(acct: Account) {
-	                         acct.published[&FungibleToken.Receiver] = &acct.storage[FungibleToken.Vault] as FungibleToken.Receiver
-	                         acct.storage[&FungibleToken.Vault] = &acct.storage[FungibleToken.Vault] as FungibleToken.Vault
+	                         acct.published[&FungibleToken.Receiver] = &acct.storage[FungibleToken.Vault] as &FungibleToken.Receiver
+	                         acct.storage[&FungibleToken.Vault] = &acct.storage[FungibleToken.Vault] as &FungibleToken.Vault
 	                     }
 	                 }
 	               `,
@@ -89,8 +89,8 @@ func TestFungibleTokenTutorialContractCreation(t *testing.T) {
                               let oldVault <- acct.storage[FungibleToken.Vault] <- vaultA
                               destroy oldVault
 
-                              acct.published[&FungibleToken.Receiver] = &acct.storage[FungibleToken.Vault] as FungibleToken.Receiver
-                              acct.storage[&FungibleToken.Vault] = &acct.storage[FungibleToken.Vault] as FungibleToken.Vault
+                              acct.published[&FungibleToken.Receiver] = &acct.storage[FungibleToken.Vault] as &FungibleToken.Receiver
+                              acct.storage[&FungibleToken.Vault] = &acct.storage[FungibleToken.Vault] as &FungibleToken.Vault
                           }
                       }
                     `,
