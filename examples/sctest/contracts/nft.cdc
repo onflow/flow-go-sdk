@@ -185,7 +185,7 @@ access(all) contract Tokens: NonFungibleToken {
 
 	access(all) resource NFTFactory {
 
-		// the ID that is used to mint moments
+		// the ID that is used to mint NFTs
 		access(all) var idCount: UInt64
 
 		init() {
