@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/dapperlabs/flow-go/language"
 	"github.com/stretchr/testify/require"
 
 	"github.com/dapperlabs/flow-go-sdk"
@@ -14,6 +15,8 @@ const counterScript = `
 
   pub contract Counting {
 
+      pub event CountIncremented(count: Int)
+
       pub resource Counter {
           pub var count: Int
 
@@ -23,6 +26,7 @@ const counterScript = `
 
           pub fun add(_ count: Int) {
               self.count = self.count + count
+              emit CountIncremented(count: self.count)
           }
       }
 
@@ -31,6 +35,18 @@ const counterScript = `
       }
   }
 `
+
+var countIncrementedType = language.EventType{
+	CompositeType: language.CompositeType{
+		Identifier: "CountIncremented",
+		Fields: []language.Field{
+			{
+				Identifier: "count",
+				Type:       language.IntType{},
+			},
+		},
+	},
+}
 
 // generateAddTwoToCounterScript generates a script that increments a counter.
 // If no counter exists, it is created.

@@ -33,65 +33,6 @@ func TestEventEmitted(t *testing.T) {
 		},
 	}
 
-	t.Run("EmittedFromTransaction", func(t *testing.T) {
-		b, err := emulator.NewBlockchain()
-		require.NoError(t, err)
-
-		script := []byte(`
-			pub event MyEvent(x: Int, y: Int)
-			
-			transaction {
-		  	  execute {
-			  	emit MyEvent(x: 1, y: 2)
-			  }
-			}
-		`)
-
-		tx := flow.Transaction{
-			Script:             script,
-			ReferenceBlockHash: nil,
-			Nonce:              getNonce(),
-			ComputeLimit:       10,
-			PayerAccount:       b.RootAccountAddress(),
-		}
-
-		sig, err := keys.SignTransaction(tx, b.RootKey())
-		assert.NoError(t, err)
-
-		tx.AddSignature(b.RootAccountAddress(), sig)
-
-		err = b.AddTransaction(tx)
-		assert.NoError(t, err)
-
-		result, err := b.ExecuteNextTransaction()
-		assert.NoError(t, err)
-		assert.True(t, result.Succeeded())
-
-		block, err := b.CommitBlock()
-		require.NoError(t, err)
-
-		events, err := b.GetEvents("", block.Number, block.Number)
-		require.NoError(t, err)
-		require.Len(t, events, 1)
-
-		actualEvent := events[0]
-
-		eventValue, err := encoding.Decode(myEventType, actualEvent.Payload)
-		assert.NoError(t, err)
-
-		decodedEvent := eventValue.(language.Composite)
-
-		location := runtime.TransactionLocation(tx.Hash())
-		expectedType := fmt.Sprintf("%s.MyEvent", location.ID())
-
-		expectedID := flow.Event{TxHash: tx.Hash(), Index: 0}.ID()
-
-		assert.Equal(t, expectedType, actualEvent.Type)
-		assert.Equal(t, expectedID, actualEvent.ID())
-		assert.Equal(t, language.NewInt(1), decodedEvent.Fields[0])
-		assert.Equal(t, language.NewInt(2), decodedEvent.Fields[1])
-	})
-
 	t.Run("EmittedFromScript", func(t *testing.T) {
 		b, err := emulator.NewBlockchain()
 		require.NoError(t, err)
