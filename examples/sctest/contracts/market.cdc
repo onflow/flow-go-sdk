@@ -22,18 +22,27 @@ import NonFungibleToken, Tokens from 0x0000000000000000000000000000000000000003
 
 access(all) contract Market {
 
-    access(all) event ForSale(id: UInt64, price: UInt256)
-    access(all) event PriceChanged(id: UInt64, newPrice: UInt256)
-    access(all) event TokenPurchased(id: UInt64, price: UInt256)
+    access(all) event ForSale(id: UInt64, price: UInt64)
+    access(all) event PriceChanged(id: UInt64, newPrice: UInt64)
+    access(all) event TokenPurchased(id: UInt64, price: UInt64)
     access(all) event SaleWithdrawn(id: UInt64)
 
-    access(all) resource SaleCollection {
+    access(all) resource interface SalePublic {
+
+        access(all) fun purchase(tokenID: UInt64, recipient: &NonFungibleToken.Receiver, buyTokens: @FungibleToken.Vault)
+
+        access(all) fun idPrice(tokenID: UInt64): UInt64?
+
+        access(all) fun getIDs(): [UInt64]
+    }
+
+    access(all) resource SaleCollection: SalePublic {
 
         // a dictionary of the NFTs that the user is putting up for sale
         access(all) var forSale: @{UInt64: Tokens.NFT}
 
         // dictionary of the prices for each NFT by ID
-        access(all) var prices: {UInt64: UInt256}
+        access(all) var prices: {UInt64: UInt64}
 
         // the fungible token vault of the owner of this sale
         // so that when someone buys a token, this resource can deposit
@@ -56,7 +65,7 @@ access(all) contract Market {
         }
 
         // listForSale lists an NFT for sale in this collection
-        access(all) fun listForSale(token: @Tokens.NFT, price: UInt256) {
+        access(all) fun listForSale(token: @Tokens.NFT, price: UInt64) {
             let id: UInt64 = token.id
 
             self.prices[id] = price
@@ -69,18 +78,18 @@ access(all) contract Market {
         }
 
         // changePrice changes the price of a token that is currently for sale
-        access(all) fun changePrice(tokenID: UInt64, newPrice: UInt256) {
+        access(all) fun changePrice(tokenID: UInt64, newPrice: UInt64) {
             self.prices[tokenID] = newPrice
 
             emit PriceChanged(id: tokenID, newPrice: newPrice)
         }
 
         // purchase lets a user send tokens to purchase an NFT that is for sale
-        access(all) fun purchase(tokenID: UInt64, recipient: &Tokens.Collection, buyTokens: @FungibleToken.Receiver) {
+        access(all) fun purchase(tokenID: UInt64, recipient: &NonFungibleToken.Receiver, buyTokens: @FungibleToken.Vault) {
             pre {
                 self.forSale[tokenID] != nil && self.prices[tokenID] != nil:
                     "No token matching this ID for sale!"
-                buyTokens.balance >= (self.prices[tokenID] ?? 0):
+                buyTokens.balance >= (self.prices[tokenID] ?? UInt64(0)):
                     "Not enough tokens to by the NFT!"
             }
 
@@ -98,7 +107,7 @@ access(all) contract Market {
         }
 
         // idPrice returns the price of a specific token in the sale
-        access(all) fun idPrice(tokenID: UInt64): UInt256? {
+        access(all) fun idPrice(tokenID: UInt64): UInt64? {
             let price = self.prices[tokenID]
             return price
         }
@@ -118,3 +127,4 @@ access(all) contract Market {
         return <- create SaleCollection(vault: ownerVault)
     }
 }
+ 

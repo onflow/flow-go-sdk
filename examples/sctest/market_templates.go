@@ -22,7 +22,7 @@ func GenerateCreateSaleScript(tokenAddr flow.Address, marketAddr flow.Address) [
 				let oldCollection <- acct.storage[Market.SaleCollection] <- collection
 				destroy oldCollection
 
-				acct.published[&Market.SaleCollection] = &acct.storage[Market.SaleCollection] as Market.SaleCollection
+				acct.published[&Market.SaleCollection] = &acct.storage[Market.SaleCollection] as &Market.SaleCollection
 			}
 		}`
 	return []byte(fmt.Sprintf(template, tokenAddr, marketAddr))
