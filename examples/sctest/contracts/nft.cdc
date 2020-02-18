@@ -110,7 +110,7 @@ access(all) contract Tokens: NonFungibleToken {
 
         access(all) fun batchWithdraw(ids: [UInt64]): @Collection {
             var i = 0
-            var batchCollection: @Collection <- create Collection()
+            let batchCollection: @Collection <- create Collection()
 
             while i < ids.length {
                 batchCollection.deposit(token: <-self.withdraw(withdrawID: ids[i]))
@@ -155,18 +155,11 @@ access(all) contract Tokens: NonFungibleToken {
             return self.ownedNFTs.keys
         }
 
-        access(all) fun getMetaData(id: UInt64, field: String): String {
-            let token <- self.ownedNFTs.remove(key: id) ?? panic("No NFT!")
-            
-            let dataOpt = token.metadata[field]
-
-            let oldToken <- self.ownedNFTs[id] <- token
-            destroy oldToken
-
-            if let data = dataOpt {
-                return data
+        access(all) fun getMetaData(id: UInt64, field: String): String? {
+            if let metadata = self.ownedNFTs[id]?.metadata {
+                return metadata[field]
             } else {
-                return "None"
+                return nil
             }
         }
 
