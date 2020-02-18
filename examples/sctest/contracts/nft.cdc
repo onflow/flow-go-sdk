@@ -1,112 +1,221 @@
 
-pub contract NonFungibleToken {
+access(all) contract interface NonFungibleToken {
+
+    // The total number of tokens of this type in existance
+    pub var totalSupply: UInt64
+
+    access(all) event ContractInitialized()
+    access(all) event Withdraw(id: UInt64)
+    access(all) event Deposit(id: UInt64)
 
     pub resource interface INFT {
         // The unique ID that each NFT has
-        pub let id: Int
+        access(all) let id: UInt64
+
+        // placeholder for token metadata 
+        access(all) var metadata: {String: String}
     }
 
-    pub resource NFT: INFT {
-        pub let id: Int
+    access(all) resource NFT: INFT {
+        access(all) let id: UInt64
 
-        init(newID: Int) {
-            pre {
-                newID > 0:
-                    "NFT ID must be positive!"
+        access(all) var metadata: {String: String}
+    }
+
+    access(all) resource interface Provider {
+        // withdraw removes an NFT from the collection and moves it to the caller
+        access(all) fun withdraw(withdrawID: UInt64): @NFT {
+            post {
+                result.id == withdrawID: "The ID of the withdrawn token must be the same as the requested ID"
             }
-            self.id = newID
+        }
+
+        access(all) fun batchWithdraw(ids: [UInt64]): @Collection
+    }
+
+    access(all) resource interface Receiver {
+
+		access(all) fun deposit(token: @NFT) 
+
+        access(all) fun batchDeposit(tokens: @Collection)
+    }
+
+    access(all) resource interface Metadata {
+
+		access(all) fun getIDs(): [UInt64]
+	}
+
+    access(all) resource Collection: Provider, Receiver, Metadata {
+        
+        access(all) var ownedNFTs: @{UInt64: NFT}
+
+        // withdraw removes an NFT from the collection and moves it to the caller
+        access(all) fun withdraw(withdrawID: UInt64): @NFT 
+
+        access(all) fun batchWithdraw(ids: [UInt64]): @Collection
+
+        // deposit takes a NFT and adds it to the collections dictionary
+        // and adds the ID to the id array
+        access(all) fun deposit(token: @NFT)
+
+        access(all) fun batchDeposit(tokens: @Collection)
+
+        // getIDs returns an array of the IDs that are in the collection
+        access(all) fun getIDs(): [UInt64]
+    }
+
+    access(all) fun createEmptyCollection(): @Collection {
+        post {
+            result.getIDs().length == 0: "The created collection must be empty!"
+        }
+    }
+}
+
+access(all) contract Tokens: NonFungibleToken {
+
+    access(all) var totalSupply: UInt64
+
+    access(all) event ContractInitialized()
+    access(all) event Withdraw(id: UInt64)
+    access(all) event Deposit(id: UInt64)
+
+    access(all) resource NFT: NonFungibleToken.INFT {
+        access(all) let id: UInt64
+
+        access(all) var metadata: {String: String}
+
+        init(initID: UInt64) {
+            self.id = initID
+            self.metadata = {}
         }
     }
 
-    // possibility for each account with NFTs to have a copy of this resource that they keep their NFTs in
-    // they could send one NFT, multiple at a time, or potentially even send the entire collection in one go
-    pub resource interface INFTCollection {
-
+    access(all) resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.Metadata {
         // dictionary of NFT conforming tokens
-        pub var ownedNFTs: @{Int: NFT}
-
-        pub fun transfer(recipient: &NFTCollection, tokenID: Int) {
-            pre {
-                self.ownedNFTs[tokenID] != nil:
-                    "Token ID to transfer does not exist!"
-            }
-        }
-
-        pub fun withdraw(tokenID: Int): @NFT
-
-        pub fun deposit(token: @NFT): Void {
-            pre {
-                token.id >= 0:
-                    "ID cannot be negative"
-            }
-        }
-    }
-
-    pub resource NFTCollection: INFTCollection {
-        // dictionary of NFT conforming tokens
-        // NFT is a resource type with an `Int` ID field
-        pub var ownedNFTs: @{Int: NFT}
+        // NFT is a resource type with an `UInt64` ID field
+        access(all) var ownedNFTs: @{UInt64: NFT}
 
         init () {
             self.ownedNFTs <- {}
         }
 
         // withdraw removes an NFT from the collection and moves it to the caller
-        pub fun withdraw(tokenID: Int): @NFT {
-            let token <- self.ownedNFTs.remove(key: tokenID) ?? panic("missing NFT")
+        access(all) fun withdraw(withdrawID: UInt64): @NFT {
+            let token <- self.ownedNFTs.remove(key: withdrawID) ?? panic("missing NFT")
+
+            emit Withdraw(id: token.id)
 
             return <-token
         }
 
+        access(all) fun batchWithdraw(ids: [UInt64]): @Collection {
+            var i = 0
+            let batchCollection: @Collection <- create Collection()
+
+            while i < ids.length {
+                batchCollection.deposit(token: <-self.withdraw(withdrawID: ids[i]))
+
+                i = i + 1
+            }
+            return <-batchCollection
+        }
+
         // deposit takes a NFT and adds it to the collections dictionary
         // and adds the ID to the id array
-        pub fun deposit(token: @NFT): Void {
-            let id: Int = token.id
+        access(all) fun deposit(token: @NFT) {
+            let id: UInt64 = token.id
 
             // add the new token to the dictionary which removes the old one
             let oldToken <- self.ownedNFTs[id] <- token
 
+            emit Deposit(id: id)
+
             destroy oldToken
         }
 
-        // transfer takes a reference to another user's NFT collection,
-        // takes the NFT out of this collection, and deposits it
-        // in the reference's collection
-        pub fun transfer(recipient: &NFTCollection, tokenID: Int): Void {
+        access(all) fun batchDeposit(tokens: @Collection) {
+            var i = 0
+            let keys = tokens.getIDs()
 
-            // remove the token from the dictionary get the token from the optional
-            let token <- self.withdraw(tokenID: tokenID)
+            while i < keys.length {
+                self.deposit(token: <-tokens.withdraw(withdrawID: keys[i]))
 
-            // deposit it in the recipient's account
-            recipient.deposit(token: <-token)
+                i = i + 1
+            }
+            destroy tokens
         }
 
         // idExists checks to see if a NFT with the given ID exists in the collection
-        pub fun idExists(tokenID: Int): Bool {
-            return self.ownedNFTs[tokenID] != nil
+        access(all) fun idExists(id: UInt64): Bool {
+            return self.ownedNFTs[id] != nil
         }
 
         // getIDs returns an array of the IDs that are in the collection
-        pub fun getIDs(): [Int] {
+        access(all) fun getIDs(): [UInt64] {
             return self.ownedNFTs.keys
+        }
+
+        access(all) fun getMetaData(id: UInt64, field: String): String? {
+            if let metadata = self.ownedNFTs[id]?.metadata {
+                return metadata[field]
+            } else {
+                return nil
+            }
         }
 
         destroy() {
             destroy self.ownedNFTs
         }
-
-        // createCollection returns a new collection resource to the caller
-        pub fun createCollection(): @NFTCollection {
-            return <- create NFTCollection()
-        }
     }
 
-    pub fun createNFT(id: Int): @NFT {
-        return <- create NFT(newID: id)
+    access(all) fun createNFT(id: UInt64): @NFT {
+        return <- create NFT(initID: id)
     }
 
-    pub fun createCollection(): @NFTCollection {
-        return <- create NFTCollection()
+    access(all) fun createEmptyCollection(): @Collection {
+        return <- create Collection()
     }
+
+	access(all) resource NFTFactory {
+
+		// the ID that is used to mint NFTs
+		access(all) var idCount: UInt64
+
+		init() {
+			self.idCount = 1
+		}
+
+		// mintNFT mints a new NFT with a new ID
+		// and deposit it in the recipients colelction using their collection reference
+		access(all) fun mintNFT(recipient: &Collection) {
+
+			// create a new NFT
+			var newNFT <- create NFT(initID: self.idCount)
+			
+			// deposit it in the recipient's account using their reference
+			recipient.deposit(token: <-newNFT)
+
+			// change the id so that each ID is unique
+			self.idCount = self.idCount + UInt64(1)
+		}
+	}
+
+	init() {
+        self.totalSupply = 0
+        
+		let oldCollection <- self.account.storage[Collection] <- create Collection()
+		destroy oldCollection
+
+		self.account.storage[&Collection] = &self.account.storage[Collection] as &Collection
+        self.account.published[&NonFungibleToken.Receiver] = &self.account.storage[Collection] as &NonFungibleToken.Receiver
+
+		let oldFactory <- self.account.storage[NFTFactory] <- create NFTFactory()
+		destroy oldFactory
+
+		self.account.storage[&NFTFactory] = &self.account.storage[NFTFactory] as &NFTFactory
+
+        emit ContractInitialized()
+	}
 }
 
+ 
