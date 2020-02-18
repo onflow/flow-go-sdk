@@ -14,6 +14,7 @@ require (
 	github.com/golang/mock v1.3.1
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/improbable-eng/grpc-web v0.12.0
+	github.com/lithammer/dedent v1.1.0
 	github.com/logrusorgru/aurora v0.0.0-20200102142835-e9ef32dff381
 	github.com/magiconair/properties v1.8.1
 	github.com/nsf/jsondiff v0.0.0-20190712045011-8443391ee9b6
