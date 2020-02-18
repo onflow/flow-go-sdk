@@ -160,7 +160,10 @@ access(all) contract FlowToken: FungibleToken {
 
         // Create a public reference to the Vault that only exposes the deposit method
         self.account.published[&FungibleToken.Receiver] = &self.account.storage[Vault] as &FungibleToken.Receiver
+<<<<<<< HEAD
         self.account.published[&FungibleToken.Balance] = &self.account.storage[Vault] as &FungibleToken.Balance
+=======
+>>>>>>> c73fd8f4166b0215ba3803c74aebb36578ef5810
 
         emit FungibleTokenInitialized(initialSupply: self.totalSupply)
     }
