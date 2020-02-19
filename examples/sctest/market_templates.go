@@ -22,7 +22,7 @@ func GenerateCreateSaleScript(tokenAddr flow.Address, marketAddr flow.Address) [
 				let oldCollection <- acct.storage[Market.SaleCollection] <- collection
 				destroy oldCollection
 
-				acct.published[&Market.SaleCollection] = &acct.storage[Market.SaleCollection] as Market.SaleCollection
+				acct.published[&Market.SaleCollection] = &acct.storage[Market.SaleCollection] as &Market.SaleCollection
 			}
 		}`
 	return []byte(fmt.Sprintf(template, tokenAddr, marketAddr))
@@ -37,7 +37,7 @@ func GenerateStartSaleScript(nftAddr flow.Address, marketAddr flow.Address, id, 
 
 		transaction {
 			prepare(acct: Account) {
-				let token <- acct.published[&NonFungibleToken.NFTCollection]?.withdraw(tokenID: %d) ?? panic("missing token!")
+				let token <- acct.published[&NonFungibleToken.Collection]?.withdraw(withdrawID: %d) ?? panic("missing token!")
 
 				let saleRef = acct.published[&Market.SaleCollection] ?? panic("no sale collection reference!")
 			
@@ -60,7 +60,7 @@ func GenerateBuySaleScript(tokenAddr, nftAddr, marketAddr, userAddr flow.Address
 			prepare(acct: Account) {
 				let seller = getAccount(0x%s)
 
-				let collectionRef = acct.published[&NonFungibleToken.NFTCollection] ?? panic("missing collection!")
+				let collectionRef = acct.published[&NonFungibleToken.Collection] ?? panic("missing collection!")
 				let providerRef = acct.published[&FungibleToken.Provider] ?? panic("missing Provider!")
 				
 				let tokens <- providerRef.withdraw(amount: %d)
