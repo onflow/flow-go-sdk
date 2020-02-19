@@ -12,7 +12,7 @@ Flow is a new blockchain for open worlds. Read more about it [here](https://www.
 **Create Accounts & Contracts**
 
 Start here to create a user agent (wallet) or a dapp, the tools you need to get started include:
-- [Protobuff Template](https://github.com/dapperlabs/flow-go-sdk/tree/master/protobuf)
+- [Protobuf Template](https://github.com/dapperlabs/flow-go-sdk/tree/master/protobuf)
 - [Flow Developer Preview](https://www.notion.so/flowpreview/Flow-Developer-Preview-6d5d696c8d584398a2a025185945aa5b)
 - [The Emulator](https://github.com/dapperlabs/flow-go-sdk/tree/master/cmd/flow/emulator)
 
