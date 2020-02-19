@@ -9,18 +9,22 @@ The Flow Go SDK provides a set of packages for Go developers to build applicatio
 Flow is a new blockchain for open worlds. Read more about it [here](https://www.withflow.org/).
 
 ## What would you like to do today?
-[1] Create Accounts & Contracts
+**Create Accounts & Contracts**
+
 Start here to create a user agent (wallet) or a dapp, the tools you need to get started include:
 - [Protobuff Template](https://github.com/dapperlabs/flow-go-sdk/tree/master/protobuf)
 - [Flow Developer Preview](https://www.notion.so/flowpreview/Flow-Developer-Preview-6d5d696c8d584398a2a025185945aa5b)
 - [The Emulator](https://github.com/dapperlabs/flow-go-sdk/tree/master/cmd/flow/emulator)
 
-[2] Submitting Transactions
+**Submit Transactions**
+
  Then you're ready to move on to sending and submitting transactions using the:
  - [Flow SDK](https://github.com/dapperlabs/flow-go-sdk/blob/master/client/client.go)
- - Observation API - which is accessed via the SDK
+ - Observation API - currently accessed via the SDK
 
-[3] Reading State
+**Read State**
+
+Now it's time to see what you've done, run a script to check the outcome of your transactions:
 - [Executing a script](#executing-a-script)
 
 ## Collaborating on this Repo - Bug Reports
