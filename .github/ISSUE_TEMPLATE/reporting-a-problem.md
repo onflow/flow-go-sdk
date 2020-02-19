@@ -1,18 +1,37 @@
 ---
-name: Reporting a Problem
-about: Template for issuing up a problem/bug with Flow's SDK to submit for review
+name: Reporting a Problem/Bug
+about: Reporting a Problem/Bug
 title: ''
 labels: bug, Feedback
 assignees: ''
 
 ---
 
-What is the problem you've run into?
+## Insturctions 
 
-What were the steps you took reproduce this problem?
+Please fill out the template below to the best of your ability and include a label indicating which tool/service you were working with when you encountered the problem. 
 
-What are the acceptance criteria?
+- `S-Emulator` 
+- `S-Observation` 
+- `S-Language`
+- `Documentation` 
+- `S-Playground`
+- `S-Client`
 
-Can you provide any other additional context? (if needed)
+### Problem
 
-Please tag as needed that's relevant to the issue submitted.
+<what is the problem you've encountered?> 
+
+### Steps to Reproduce 
+
+<share any logs/screenshots or steps to replicate>
+
+### Acceptance Critiera
+
+<if any>
+  
+### Context
+
+<what are you currently working on that this is blocking?>
+
+
