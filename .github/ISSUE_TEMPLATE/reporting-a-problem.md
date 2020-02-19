@@ -9,11 +9,9 @@ assignees: ''
 
 What is the problem you've run into?
 
-*Please describe the problem in detail*
+What were the steps you took reproduce this problem?
 
-What were the steps you took Re-Produce this problem?
-
-What were the acceptance criteria?
+What are the acceptance criteria?
 
 Can you provide any other additional context? (if needed)
 
