@@ -44,7 +44,7 @@ access(all) contract Marketplace {
 
         // listForSale lists an NFT for sale in this collection
         access(all) fun listForSale(token: @NonFungibleToken.NFT, price: UInt64) {
-            let id: UInt64 = token.id
+            let id = token.id
 
             self.prices[id] = price
 
@@ -86,8 +86,7 @@ access(all) contract Marketplace {
 
         // idPrice returns the price of a specific token in the sale
         access(all) fun idPrice(tokenID: UInt64): UInt64? {
-            let price = self.prices[tokenID]
-            return price
+            return self.prices[tokenID]
         }
 
         // getIDs returns an array of token IDs that are for sale
