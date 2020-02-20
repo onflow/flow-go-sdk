@@ -13,8 +13,8 @@ access(all) contract NonFungibleToken {
         }
     }
 
-	  init() {
-				let oldNFT <- self.account.storage[NFT] <- create NFT(initID: 1)
-				destroy oldNFT
-		}
+	init() {
+		let oldNFT <- self.account.storage[NFT] <- create NFT(initID: 1)
+		destroy oldNFT
+	}
 }

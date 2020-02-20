@@ -43,7 +43,7 @@ access(all) contract NonFungibleToken {
         // deposit takes a NFT and adds it to the collections dictionary
         // and adds the ID to the id array
         access(all) fun deposit(token: @NFT) {
-            let id: UInt64 = token.id
+            let id = token.id
 
             // add the new token to the dictionary which removes the old one
             let oldToken <- self.ownedNFTs[id] <- token
