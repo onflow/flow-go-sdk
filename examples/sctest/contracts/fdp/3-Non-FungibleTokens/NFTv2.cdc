@@ -14,8 +14,6 @@ access(all) contract NonFungibleToken {
     }
 
     access(all) resource interface NFTReceiver {
-        // dictionary of NFT conforming tokens
-        access(all) var ownedNFTs: @{UInt64: NFT}
 
         access(all) fun deposit(token: @NFT)
 
