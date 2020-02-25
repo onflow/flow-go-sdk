@@ -45,7 +45,7 @@ apply-staging-files:
 # Production YAMLs must have 'production' in their name.
 .PHONY: apply-prod-files
 apply-prod-files:
-	echo "$$KUBECONFIG_PRODUCTION" > ${KUBECONFIG}; \
+	echo "$$KUBECONFIG_PRODUCTION_2" > ${KUBECONFIG}; \
 	files=$$(find ${K8S_YAMLS_LOCATION} -type f \( -name "*.yml" -or -name "*.yaml" \) | grep production); \
 	echo "$$files" | xargs -I {} kubectl --kubeconfig=${KUBECONFIG} apply -f {}
 
