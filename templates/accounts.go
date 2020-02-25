@@ -1,6 +1,7 @@
 package templates
 
 import (
+	"encoding/hex"
 	"fmt"
 	"strings"
 
@@ -22,32 +23,34 @@ func CreateAccount(accountKeys []flow.AccountPublicKey, code []byte) ([]byte, er
 	}
 
 	publicKeysStr := languageEncodeBytesArray(publicKeys)
-	codeStr := languageEncodeBytes(code)
 
-	script := fmt.Sprintf(`
-        transaction {
-          execute {
-            Account(publicKeys: %s, code: %s)
-          }
-        }
-    `, publicKeysStr, codeStr)
+	script := fmt.Sprintf(
+		`
+            transaction {
+              execute {
+                Account(publicKeys: %s, code: "%s".decodeHex())
+              }
+            }
+        `,
+        publicKeysStr,
+        hex.EncodeToString(code),
+	)
 
 	return []byte(script), nil
 }
 
 // UpdateAccountCode generates a script that updates the code associated with an account.
 func UpdateAccountCode(code []byte) []byte {
-	codeStr := languageEncodeBytes(code)
-
-	script := fmt.Sprintf(`
-        transaction {
-          prepare(signer: Account) {
-            signer.setCode(%s)
-          }
-        }
-    `, codeStr)
-
-	return []byte(script)
+	return []byte(fmt.Sprintf(
+		`
+            transaction {
+              prepare(signer: Account) {
+                signer.setCode("%s".decodeHex())
+              }
+            }
+        `,
+		hex.EncodeToString(code),
+	))
 }
 
 // AddAccountKey generates a script that adds a key to an account.
