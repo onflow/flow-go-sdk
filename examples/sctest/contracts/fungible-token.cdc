@@ -55,7 +55,7 @@ access(all) contract interface FungibleToken {
     // The declaration of a concrete type in a contract interface means that
     // every Fungible Token contract that implements this interface
     // must define a concrete Vault object that
-    // conforms to the Provider, Receiver, and Balace interfaces
+    // conforms to the Provider, Receiver, and Balance interfaces
     // and includes these fields and functions
     //
     access(all) resource Vault: Provider, Receiver, Balance {
@@ -159,10 +159,12 @@ access(all) contract FlowToken: FungibleToken {
         self.account.storage[&Vault] = &self.account.storage[Vault] as &Vault
 
         // Create a public reference to the Vault that only exposes the deposit method
-        self.account.published[&FungibleToken.Receiver] = &self.account.storage[Vault] as &FungibleToken.Receiver
-        self.account.published[&FungibleToken.Balance] = &self.account.storage[Vault] as &FungibleToken.Balance
+        self.account.published[&AnyResource{FungibleToken.Receiver}] =
+            &self.account.storage[Vault] as &AnyResource{FungibleToken.Receiver}
+
+        self.account.published[&AnyResource{FungibleToken.Balance}] =
+            &self.account.storage[Vault] as &AnyResource{FungibleToken.Balance}
 
         emit FungibleTokenInitialized(initialSupply: self.totalSupply)
     }
 }
- 
