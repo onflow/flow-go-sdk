@@ -27,7 +27,7 @@ pub contract FungibleToken {
             }
         }
 
-        pub fun deposit(from: @Receiver) {
+        pub fun deposit(from: @AnyResource{Receiver}) {
             pre {
                 from.balance > 0:
                     "Deposit balance needs to be positive!"
@@ -53,7 +53,7 @@ pub contract FungibleToken {
         }
 
         // transfer combines withdraw and deposit into one function call
-        pub fun transfer(to: &Receiver, amount: Int) {
+        pub fun transfer(to: &AnyResource{Receiver}, amount: Int) {
             pre {
                 amount <= self.balance:
                     "Insufficient funds"
@@ -65,7 +65,7 @@ pub contract FungibleToken {
             to.deposit(from: <-self.withdraw(amount: amount))
         }
 
-        pub fun deposit(from: @Receiver) {
+        pub fun deposit(from: @AnyResource{Receiver}) {
             self.balance = self.balance + from.balance
             destroy from
         }
@@ -80,7 +80,7 @@ pub contract FungibleToken {
     }
 
     pub resource VaultMinter {
-        pub fun mintTokens(amount: Int, recipient: &Receiver) {
+        pub fun mintTokens(amount: Int, recipient: &AnyResource{Receiver}) {
             recipient.deposit(from: <-create Vault(balance: amount))
         }
     }

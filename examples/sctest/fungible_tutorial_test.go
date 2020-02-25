@@ -39,14 +39,17 @@ func TestFungibleTokenTutorialContractCreation(t *testing.T) {
 			Script: []byte(
 				fmt.Sprintf(
 					`
-	                 import FungibleToken from 0x%s
+                      import FungibleToken from 0x%s
 
-	                 transaction {
-	                     prepare(acct: Account) {
-	                         acct.published[&FungibleToken.Receiver] = &acct.storage[FungibleToken.Vault] as &FungibleToken.Receiver
-	                         acct.storage[&FungibleToken.Vault] = &acct.storage[FungibleToken.Vault] as &FungibleToken.Vault
-	                     }
-	                 }
+                      transaction {
+                          prepare(acct: Account) {
+                              acct.published[&AnyResource{FungibleToken.Receiver}] =
+                                   &acct.storage[FungibleToken.Vault] as &AnyResource{FungibleToken.Receiver}
+
+                              acct.storage[&FungibleToken.Vault] =
+                                   &acct.storage[FungibleToken.Vault] as &FungibleToken.Vault
+                          }
+                      }
 	               `,
 					b.RootAccountAddress().Short(),
 				),
@@ -89,8 +92,11 @@ func TestFungibleTokenTutorialContractCreation(t *testing.T) {
                               let oldVault <- acct.storage[FungibleToken.Vault] <- vaultA
                               destroy oldVault
 
-                              acct.published[&FungibleToken.Receiver] = &acct.storage[FungibleToken.Vault] as &FungibleToken.Receiver
-                              acct.storage[&FungibleToken.Vault] = &acct.storage[FungibleToken.Vault] as &FungibleToken.Vault
+                              acct.published[&AnyResource{FungibleToken.Receiver}] =
+                                  &acct.storage[FungibleToken.Vault] as &AnyResource{FungibleToken.Receiver}
+
+                              acct.storage[&FungibleToken.Vault] =
+                                  &acct.storage[FungibleToken.Vault] as &FungibleToken.Vault
                           }
                       }
                     `,

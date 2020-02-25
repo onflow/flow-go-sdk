@@ -12,20 +12,25 @@ import (
 // The Vault must have been deployed already.
 func GenerateCreateTokenScript(tokenAddr flow.Address, initialBalance int) []byte {
 	template := `
-		import FungibleToken, FlowToken from 0x%s
+      import FungibleToken, FlowToken from 0x%s
 
-		transaction {
+      transaction {
 
-		  prepare(acct: Account) {
-			let oldVault <- acct.storage[FlowToken.Vault] <- FlowToken.createVault(initialBalance: %d)
-			destroy oldVault
+          prepare(acct: Account) {
+              let oldVault <- acct.storage[FlowToken.Vault] <- FlowToken.createVault(initialBalance: %d)
+              destroy oldVault
 
-			acct.published[&FungibleToken.Receiver] = &acct.storage[FlowToken.Vault] as &FungibleToken.Receiver
-			acct.published[&FungibleToken.Provider] = &acct.storage[FlowToken.Vault] as &FungibleToken.Provider
-			acct.published[&FungibleToken.Balance] = &acct.storage[FlowToken.Vault] as &FungibleToken.Balance
-		  }
-		}
-	`
+              acct.published[&AnyResource{FungibleToken.Receiver}] =
+                  &acct.storage[FlowToken.Vault] as &AnyResource{FungibleToken.Receiver}
+
+              acct.published[&AnyResource{FungibleToken.Provider}] =
+                  &acct.storage[FlowToken.Vault] as &AnyResource{FungibleToken.Provider}
+
+              acct.published[&AnyResource{FungibleToken.Balance}] =
+                  &acct.storage[FlowToken.Vault] as &AnyResource{FungibleToken.Balance}
+          }
+      }
+    `
 	return []byte(fmt.Sprintf(template, tokenAddr, initialBalance))
 }
 
@@ -118,8 +123,8 @@ func GenerateDepositVaultScript(tokenCodeAddr flow.Address, receiverAddr flow.Ad
 		  prepare(acct: Account) {
 			let recipient = getAccount(0x%s)
 
-			let providerRef = acct.published[&FungibleToken.Provider] ?? panic("missing Provider reference")
-			let receiverRef = recipient.published[&FungibleToken.Receiver] ?? panic("missing Receiver reference")
+			let providerRef = acct.published[&AnyResource{FungibleToken.Provider}] ?? panic("missing Provider reference")
+			let receiverRef = recipient.published[&AnyResource{FungibleToken.Receiver}] ?? panic("missing Receiver reference")
 
 			let tokens <- providerRef.withdraw(amount: %d)
 
@@ -140,7 +145,7 @@ func GenerateInspectVaultScript(tokenCodeAddr, userAddr flow.Address, expectedBa
 
 		pub fun main() {
 			let acct = getAccount(0x%s)
-			let vaultRef = acct.published[&FungibleToken.Balance] ?? panic("missing Receiver reference")
+			let vaultRef = acct.published[&AnyResource{FungibleToken.Balance}] ?? panic("missing Receiver reference")
 			assert(
                 vaultRef.balance == UInt64(%d),
                 message: "incorrect Balance!"

@@ -29,7 +29,7 @@ access(all) contract Market {
 
     access(all) resource interface SalePublic {
 
-        access(all) fun purchase(tokenID: UInt64, recipient: &NonFungibleToken.Receiver, buyTokens: @FungibleToken.Vault)
+        access(all) fun purchase(tokenID: UInt64, recipient: &AnyResource{NonFungibleToken.Receiver}, buyTokens: @FungibleToken.Vault)
 
         access(all) fun idPrice(tokenID: UInt64): UInt64?
 
@@ -47,9 +47,9 @@ access(all) contract Market {
         // the fungible token vault of the owner of this sale
         // so that when someone buys a token, this resource can deposit
         // tokens in their account
-        access(account) let ownerVault: &FungibleToken.Receiver
+        access(account) let ownerVault: &AnyResource{FungibleToken.Receiver}
 
-        init (vault: &FungibleToken.Receiver) {
+        init (vault: &AnyResource{FungibleToken.Receiver}) {
             self.forSale <- {}
             self.ownerVault = vault
             self.prices = {}
@@ -85,7 +85,7 @@ access(all) contract Market {
         }
 
         // purchase lets a user send tokens to purchase an NFT that is for sale
-        access(all) fun purchase(tokenID: UInt64, recipient: &NonFungibleToken.Receiver, buyTokens: @FungibleToken.Vault) {
+        access(all) fun purchase(tokenID: UInt64, recipient: &AnyResource{NonFungibleToken.Receiver}, buyTokens: @FungibleToken.Vault) {
             pre {
                 self.forSale[tokenID] != nil && self.prices[tokenID] != nil:
                     "No token matching this ID for sale!"
@@ -123,8 +123,7 @@ access(all) contract Market {
     }
 
     // createCollection returns a new collection resource to the caller
-    access(all) fun createSaleCollection(ownerVault: &FungibleToken.Receiver): @SaleCollection {
+    access(all) fun createSaleCollection(ownerVault: &AnyResource{FungibleToken.Receiver}): @SaleCollection {
         return <- create SaleCollection(vault: ownerVault)
     }
 }
- 
