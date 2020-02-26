@@ -77,10 +77,10 @@ ifneq (${VERSION},)
 	docker push "gcr.io/dl-flow/emulator:${VERSION}"
 endif
 
-# Check if the go version is 1.13. flow-go-sdk only supports go 1.13
+# Check if the go version is >1.13. flow-go-sdk only supports go versions > 1.13
 .PHONY: check-go-version
 check-go-version:
-	go version | grep 1.13
+	go version | grep '1.13\|1.14'
 
 .PHONY: vendor
 vendor:
