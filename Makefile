@@ -81,3 +81,7 @@ endif
 .PHONY: check-go-version
 check-go-version:
 	go version | grep 1.13
+
+.PHONY: vendor
+vendor:
+	GO111MODULE=on go mod vendor
