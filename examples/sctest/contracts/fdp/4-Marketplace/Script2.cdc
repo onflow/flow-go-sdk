@@ -4,6 +4,8 @@ import FungibleToken from 0x01
 import NonFungibleToken from 0x02
 import Marketplace from 0x03
 
+// This script checks to see if the account
+// has NFTs for sale and prints them
 pub fun main() {
     let account1 = getAccount(0x01)
 

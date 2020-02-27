@@ -3,6 +3,8 @@
 import FungibleToken from 0x01
 import NonFungibleToken from 0x02
 
+// This transaction is for setting up account 1's account
+// so that it is ready to use the marketplace tutorial
 transaction {
         prepare(acct: Account) {
             // create reference to the Vault

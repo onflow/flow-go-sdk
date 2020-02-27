@@ -1,18 +1,29 @@
 // NFTv2.cdc
 
+// This declares a slightly more complex version of the NFT contract
+// that includes a collection resource that users can use to hold
+// multiple NFTs as well as withdraw and deposit them
 access(all) contract NonFungibleToken {
 
+    // Declare the NFT resource type
     access(all) resource NFT {
+        // The unique ID that differentiates each NFT
         access(all) let id: UInt64
 
+        // String mapping to hold metadata
         access(all) var metadata: {String: String}
 
+        // Initialize both fields in the init function
         init(initID: UInt64) {
             self.id = initID
             self.metadata = {}
         }
     }
 
+    // We define this interface purely as a way to allow users
+    // to create public, restricted references to their NFT Collection.
+    // They would use this to only expose the deposit, getIDs,
+    // and idExists fields in their Collection
     access(all) resource interface NFTReceiver {
 
         access(all) fun deposit(token: @NFT)
@@ -22,29 +33,36 @@ access(all) contract NonFungibleToken {
         access(all) fun idExists(id: UInt64): Bool
     }
 
+    // The definition of the Collection resource that
+    // holds the NFTs that a user owns
     access(all) resource Collection: NFTReceiver {
         // dictionary of NFT conforming tokens
         // NFT is a resource type with an `UInt64` ID field
         access(all) var ownedNFTs: @{UInt64: NFT}
 
+        // Initialize the NFTs field to an empty collection
         init () {
             self.ownedNFTs <- {}
         }
 
-        // withdraw removes an NFT from the collection and moves it to the caller
+        // withdraw 
+        //
+        // Function that removes an NFT from the collection 
+        // and moves it to the calling context
         access(all) fun withdraw(withdrawID: UInt64): @NFT {
+            // If the NFT isn't found, the transaction panics and reverts
             let token <- self.ownedNFTs.remove(key: withdrawID) ?? panic("missing NFT")
 
             return <-token
         }
 
-        // deposit takes a NFT and adds it to the collections dictionary
-        // and adds the ID to the id array
+        // deposit 
+        //
+        // Function that takes a NFT as an argument and 
+        // adds it to the collections dictionary
         access(all) fun deposit(token: @NFT) {
-            let id: UInt64 = token.id
-
             // add the new token to the dictionary which removes the old one
-            let oldToken <- self.ownedNFTs[id] <- token
+            let oldToken <- self.ownedNFTs[token.id] <- token
             destroy oldToken
         }
 
@@ -63,6 +81,7 @@ access(all) contract NonFungibleToken {
         }
     }
 
+    // creates a new empty Collection resource and returns it 
     access(all) fun createEmptyCollection(): @Collection {
         return <- create Collection()
     }

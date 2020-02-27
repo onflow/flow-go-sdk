@@ -2,6 +2,8 @@
 
 import NonFungibleToken from 0x02
 
+// transaction that published a public reference
+// to the stored NFT Collection
 transaction {
 		prepare(acct: Account) {
 				// publish a public interface that 
