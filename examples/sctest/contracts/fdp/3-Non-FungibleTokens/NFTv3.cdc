@@ -1,18 +1,31 @@
 // NFTv3.cdc
 
+// This declares a complete version of the NFT contract
+// that includes a collection resource that users can use to hold
+// multiple NFTs as well as withdraw and deposit them
+// It also includes a definition for the Minter resource
+// so an admin can mint new NFTs
 access(all) contract NonFungibleToken {
 
+    // Declare the NFT resource type
     access(all) resource NFT {
+        // The unique ID that differentiates each NFT
         access(all) let id: UInt64
 
+        // String mapping to hold metadata
         access(all) var metadata: {String: String}
 
+        // Initialize both fields in the init function
         init(initID: UInt64) {
             self.id = initID
             self.metadata = {}
         }
     }
 
+    // We define this interface purely as a way to allow users
+    // to create public, restricted references to their NFT Collection.
+    // They would use this to only expose the deposit, getIDs,
+    // and idExists fields in their Collection
     access(all) resource interface NFTReceiver {
 
         access(all) fun deposit(token: @NFT)
@@ -22,29 +35,36 @@ access(all) contract NonFungibleToken {
         access(all) fun idExists(id: UInt64): Bool
     }
 
+    // The definition of the Collection resource that
+    // holds the NFTs that a user owns
     access(all) resource Collection: NFTReceiver {
         // dictionary of NFT conforming tokens
         // NFT is a resource type with an `UInt64` ID field
         access(all) var ownedNFTs: @{UInt64: NFT}
 
+        // Initialize the NFTs field to an empty collection
         init () {
             self.ownedNFTs <- {}
         }
 
-        // withdraw removes an NFT from the collection and moves it to the caller
+        // withdraw 
+        //
+        // Function that removes an NFT from the collection 
+        // and moves it to the calling context
         access(all) fun withdraw(withdrawID: UInt64): @NFT {
+            // If the NFT isn't found, the transaction panics and reverts
             let token <- self.ownedNFTs.remove(key: withdrawID) ?? panic("missing NFT")
 
             return <-token
         }
 
-        // deposit takes a NFT and adds it to the collections dictionary
-        // and adds the ID to the id array
+        // deposit 
+        //
+        // Function that takes a NFT as an argument and 
+        // adds it to the collections dictionary
         access(all) fun deposit(token: @NFT) {
-            let id = token.id
-
             // add the new token to the dictionary which removes the old one
-            let oldToken <- self.ownedNFTs[id] <- token
+            let oldToken <- self.ownedNFTs[token.id] <- token
             destroy oldToken
         }
 
@@ -63,21 +83,31 @@ access(all) contract NonFungibleToken {
         }
     }
 
+    // creates a new empty Collection resource and returns it 
     access(all) fun createEmptyCollection(): @Collection {
         return <- create Collection()
     }
 
+    // NFTMinter
+    //
+    // Resource that would be owned by an admin or by a smart contract 
+    // that allows them to mint new NFTs when needed
     access(all) resource NFTMinter {
 
         // the ID that is used to mint NFTs
+        // it is onlt incremented so that NFT ids remain
+        // unique. It also keeps track of the total number of NFTs
+        // in existence
         access(all) var idCount: UInt64
 
         init() {
             self.idCount = 1
         }
 
-        // mintNFT mints a new NFT with a new ID
-        // and deposit it in the recipients colelction using their collection reference
+        // mintNFT 
+        //
+        // Function that mints a new NFT with a new ID
+        // and deposits it in the recipients collection using their collection reference
         access(all) fun mintNFT(recipient: &NFTReceiver) {
 
             // create a new NFT
@@ -96,12 +126,12 @@ access(all) contract NonFungibleToken {
         let oldCollection <- self.account.storage[Collection] <- create Collection()
         destroy oldCollection
 
+        // publish a reference to the Collection in storage
         self.account.published[&NFTReceiver] = &self.account.storage[Collection] as &NFTReceiver
 
+        // store a minter resource in account storage
         let oldMinter <- self.account.storage[NFTMinter] <- create NFTMinter()
         destroy oldMinter
-
-        self.account.storage[&NFTMinter] = &self.account.storage[NFTMinter] as &NFTMinter
 	}
 }
  

@@ -1,19 +1,38 @@
 import FungibleToken from 0x01
 import NonFungibleToken from 0x02
 
+// Marketplace.cdc
+//
+// Contract that defines a resource where users can put their NFTs up for sale
+//
 access(all) contract Marketplace {
 
+    // Event that is emitted when a new NFT is put up for sale
     access(all) event ForSale(id: UInt64, price: UInt64)
+
+    // Event that is emitted when the price of an NFT changes
     access(all) event PriceChanged(id: UInt64, newPrice: UInt64)
+    
+    // Event that is emitted when a token is purchased
     access(all) event TokenPurchased(id: UInt64, price: UInt64)
+
+    // Event that is emitted when a seller withdraws their NFT from the sale
     access(all) event SaleWithdrawn(id: UInt64)
 
+    // interface that users will publish for their Sale collection
+    // that only exposes the methods that are supposed to be public
+    //
     access(all) resource interface SalePublic {
         access(all) fun purchase(tokenID: UInt64, recipient: &NonFungibleToken.NFTReceiver, buyTokens: @FungibleToken.Vault)
         access(all) fun idPrice(tokenID: UInt64): UInt64?
         access(all) fun getIDs(): [UInt64]
     }
 
+    // SaleCollection
+    //
+    // NFT Collection object that allows a user to put their NFT up for sale
+    // where others can send fungible tokens to purchase it
+    //
     access(all) resource SaleCollection: SalePublic {
 
         // a dictionary of the NFTs that the user is putting up for sale
@@ -71,6 +90,7 @@ access(all) contract Marketplace {
                     "Not enough tokens to by the NFT!"
             }
 
+            // get the value out of the optional
             if let price = self.prices[tokenID] {
                 self.prices[tokenID] = nil
                 

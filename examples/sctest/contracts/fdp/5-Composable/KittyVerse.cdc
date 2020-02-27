@@ -1,5 +1,9 @@
 // KittyVerse.cdc
 
+// KittyVerse is a contract that defines two types of NFTs
+// One is a KittyHat, which represents a special Hat
+// The second is the Kitty resource, which can own Kitty Hats
+//
 access(all) contract KittyVerse {
 
     access(all) resource KittyHat {

@@ -1,24 +1,27 @@
-// Transaction4.cdc
-
 import FungibleToken from 0x01
+
+// This transaction is a template for a transaction that
+// could be used by anyone to send tokens to another account
+// that owns a Vault
 
 transaction {
 
-    prepare(acct: Account) {
-        // create a reference to the stored Vault
-        let vault = &acct.storage[FungibleToken.Vault] as &FungibleToken.Vault
-        
-        // withdraw tokens from the signer's account
-        let tokens <- vault.withdraw(amount: 10)
-    
-        // get the other account's public account object
-        let recipient = getAccount(0x01)
-        
-        // fetch the recipient's published receiver Vault reference
-        let receiverRef = recipient.published[&FungibleToken.Receiver] ?? panic("missing Vault receiver reference")
+    // Temporary Vault object that holds the balance that is being transferred
+    var temporaryVault: @FungibleToken.Vault
 
-        // use the recipients reference to deposit the tokens into their account
-        receiverRef.deposit(from: <-tokens)
+    prepare(acct: Account) {
+        // withdraw tokens from your vault
+        self.temporaryVault <- acct.storage[FungibleToken.Vault]?.withdraw(amount: 10) ?? panic("No Vault!")
     }
 
+    execute {
+        // get the recipient's public account object
+        let recipient = getAccount(0x02)
+
+        // get the recipient's Receiver reference to their Vault
+        let receiverRef = recipient.published[&FungibleToken.Receiver] ?? panic("No receiver!")
+
+        // deposit your tokens to their Vault
+        receiverRef.deposit(from: <-self.temporaryVault)
+    }
 }
