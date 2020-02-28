@@ -31,7 +31,7 @@ transaction {
             // get account 1's public account object
             let account1 = getAccount(0x01)
             self.acct1nftReceiver = account1.published[&NonFungibleToken.NFTReceiver] ?? panic("no receiver found")
-            self.minterRef = acct.storage[&NonFungibleToken.NFTMinter] ?? panic("no minter found")
+            self.minterRef = &acct.storage[NonFungibleToken.NFTMinter] as &NonFungibleToken.NFTMinter
         }
         execute {
             self.minterRef.mintNFT(recipient: self.acct1nftReceiver)

@@ -12,8 +12,12 @@ transaction {
 		let oldVault <- acct.storage[FungibleToken.Vault] <- vaultA
 		destroy oldVault
 
+        log("Empty Vault stored")
+
 		// publish a new Receiver reference to the Vault
 		acct.published[&FungibleToken.Receiver] = &acct.storage[FungibleToken.Vault] as &FungibleToken.Receiver
+
+        log("Reference created")
 	}
 
     post {

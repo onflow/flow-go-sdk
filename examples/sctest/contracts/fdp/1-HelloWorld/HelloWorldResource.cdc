@@ -29,5 +29,7 @@ access(all) contract HelloWorld {
         // a real smart contract, we might do something else with it 
         // if it has a value.
 		destroy oldHello
+
+        log("HelloAsset created and stored")
 	}
 }
