@@ -8,6 +8,8 @@ transaction {
         // that is used by external accounts
         // This reference only exposes the balance field and the deposit function
         acct.published[&FungibleToken.Receiver] = &acct.storage[FungibleToken.Vault] as &FungibleToken.Receiver
+
+        log("Public Receiver reference created!")
     }
 
     post {

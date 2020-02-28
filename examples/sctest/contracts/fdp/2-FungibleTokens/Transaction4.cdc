@@ -23,5 +23,7 @@ transaction {
 
         // deposit your tokens to their Vault
         receiverRef.deposit(from: <-self.temporaryVault)
+
+        log("Transfer Succeeded!")
     }
 }

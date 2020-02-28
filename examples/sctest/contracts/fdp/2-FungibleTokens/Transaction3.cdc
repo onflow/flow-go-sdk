@@ -31,12 +31,14 @@ transaction {
     execute {
         // Mint 30 tokens and deposit them into the recipient's Vault
         self.mintingRef.mintTokens(amount: 30, recipient: self.receiverRef)
+
+        log("30 Tokens minted and deposited to Account 0x02")
     }
 
     post {
         // Make sure their account balance has been
         // increased by 30 
-        self.receiverRef.balance == self.beforeBalance + UInt64(30): "30 Tokens minted and deposited to account 0x02"
+        self.receiverRef.balance == self.beforeBalance + UInt64(30): "Minting failed"
     }
 }
  
