@@ -1,6 +1,6 @@
 // Transaction1.cdc
 
-import NonFungibleToken from 0x02
+import NonFungibleToken from 0x04
 
 // Transaction that simply checks to see if an NFT exists in storage
 transaction {

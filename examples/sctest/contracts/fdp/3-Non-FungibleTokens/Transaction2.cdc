@@ -1,6 +1,6 @@
 // Transaction2.cdc
 
-import NonFungibleToken from 0x02
+import NonFungibleToken from 0x03
 
 // transaction that published a public reference
 // to the stored NFT Collection
