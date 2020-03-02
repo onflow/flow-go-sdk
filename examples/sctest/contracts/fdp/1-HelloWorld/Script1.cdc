@@ -1,6 +1,6 @@
 // Script1.cdc
 
-import HelloWorld from 0x01
+import HelloWorld from 0x02
 
 // A script is a special type of Cadence transaction
 // that does not have access to any account's storage

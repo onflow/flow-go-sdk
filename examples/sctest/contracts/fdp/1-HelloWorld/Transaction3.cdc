@@ -1,6 +1,6 @@
 // Transaction3.cdc
 
-import HelloWorld from 0x01
+import HelloWorld from 0x02
 
 transaction {
 
