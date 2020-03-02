@@ -9,7 +9,6 @@ ARCH=""
 # Get the architecture (CPU, OS) of the current system as a string.
 # Only MacOS/x86_64 and Linux/x86_64 architectures are supported.
 get_architecture() {
-    local _ostype _cputype _arch
     _ostype="$(uname -s)"
     _cputype="$(uname -m)"
     if [ "$_ostype" = Darwin ] && [ "$_cputype" = i386 ]; then
@@ -46,15 +45,13 @@ get_architecture() {
 get_version() {
   if [ -z "$VERSION" ]
   then
-    VERSION=`curl -s "$BASE_URL/version.txt"`
+    VERSION=$(curl -s "$BASE_URL/version.txt")
   fi
 }
 
 # Determine the system architecure, download the appropriate binary, and
 # install it in `/usr/local/bin` with executable permission.
 main() {
-  # The Flow binary downloaded from GCP
-  local _flowbin
 
   get_architecture || exit 1
   get_version || exit 1
@@ -63,7 +60,7 @@ main() {
   curl -s "$url" -o ./flow
 
   # Ensure we don't receive a not found error as response.
-  if [[ `head -c 4000 ./flow` == *"The specified key does not exist"* ]]
+  if grep -q "The specified key does not exist" ./flow
   then
     echo "Version $VERSION could not be found"
     exit 1
