@@ -60,7 +60,9 @@ Please submit any bug reports in this repo directly. You'll find an issue templa
 
 ## Generating keys
 
-Here's how you can generate a `ECDSA-P256` private key:
+The signature scheme supported in Flow accounts is ECDSA. It can be coupled with the hashing algorithms SHA2-256 or SHA3-256.
+
+Here's how you can generate an `ECDSA-P256` private key using `SHA3-256`:
 
 ```go
 import "github.com/dapperlabs/flow-go-sdk/keys"
@@ -82,6 +84,12 @@ A private key has an accompanying public key:
 ```go
 // keys.PublicKeyWeightThreshold is the weight required for a key to authorize an account
 publicKey := privateKey.PublicKey(keys.PublicKeyWeightThreshold)
+``` 
+
+The example above uses an ECDSA key pair of the elliptic curve P-256. Flow also supports the curve secp256k1. Here's how you can generate an `ECDSA-SECp256k1` private key using `SHA2-256` :
+  
+```
+privateKey, err := keys.GeneratePrivateKey(keys.ECDSA_SECp256k1_SHA2_256, seed)
 ```
 
 ## Creating an account
@@ -147,7 +155,7 @@ if tx.Status == flow.TransactionSealed {
 
 ## Signing a transaction
 
-Below is an simple example of how to sign a transaction using an `AccountPrivateKey`:
+Below is a simple example of how to sign a transaction using an `AccountPrivateKey`:
 
 ```go
 import (
