@@ -12,7 +12,7 @@ access(all) fun main() {
 
     // Cadence code can get an account's public account object
     // by using the getAccount() built-in function
-	let helloAccount = getAccount(0x01)
+	let helloAccount = getAccount(0x02)
 
     // the log built-in function logs its argument to stdout
     // here, we are using optional chaining to call the hello
