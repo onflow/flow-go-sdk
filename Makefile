@@ -12,6 +12,9 @@ GOPRIVATE=github.com/dapperlabs/*
 PATH := $(PATH):$(GOPATH)/bin
 # OS
 UNAME := $(shell uname)
+
+BINARY ?= ./cmd/flow/flow
+
 # Enable docker build kit
 export DOCKER_BUILDKIT := 1
 
@@ -52,12 +55,24 @@ generate-mocks:
 .PHONY: ci
 ci: install-tools generate test coverage
 
-cmd/flow/flow:
+.PHONY: binary
+binary: $(BINARY)
+
+$(BINARY):
 	GO111MODULE=on go build \
 		-mod vendor \
 		-ldflags \
 		"-X github.com/dapperlabs/flow-go-sdk/utils/build.commit=$(COMMIT) -X github.com/dapperlabs/flow-go-sdk/utils/build.semver=$(VERSION)" \
-		-o ./cmd/flow/flow ./cmd/flow
+		-o $(BINARY) ./cmd/flow
+
+.PHONY: versioned-binaries
+versioned-binaries:
+	$(MAKE) OS=linux versioned-binary
+	$(MAKE) OS=darwin versioned-binary
+
+.PHONY: versioned-binary
+versioned-binary:
+	GOOS=$(OS) GOARCH=amd64 $(MAKE) BINARY=./flow-x86_64-$(OS)-$(VERSION) binary
 
 .PHONY: install-cli
 install-cli: cmd/flow/flow
