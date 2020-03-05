@@ -31,5 +31,7 @@ transaction {
         // Mint tokens for both accounts
         self.minterRef.mintTokens(amount: 20, recipient: self.acct2Ref)
         self.minterRef.mintTokens(amount: 10, recipient: self.acct1Ref)
+
+        log("Minted new fungible tokens for account 1 and 2")
     }
 }

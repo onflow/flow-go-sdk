@@ -25,6 +25,8 @@ transaction {
             // publish a receiver reference to the stored Vault
             acct.published[&FungibleToken.Receiver] = &acct.storage[FungibleToken.Vault] as &FungibleToken.Receiver
 
+            log("Created a Vault and published a reference")
+
             // publish a public interface that only exposes ownedNFTs and deposit
             acct.published[&NonFungibleToken.NFTReceiver] = &acct.storage[NonFungibleToken.Collection] as &NonFungibleToken.Collection
             
@@ -35,6 +37,8 @@ transaction {
         }
         execute {
             self.minterRef.mintNFT(recipient: self.acct1nftReceiver)
+
+            log("New NFT minted for account 1")
         }
 }
  
