@@ -36,5 +36,7 @@ transaction {
         // purchase the NFT the the seller is selling, giving them the reference
         // to your NFT collection and giving them the tokens to buy it
         saleRef.purchase(tokenID: 1, recipient: self.collectionRef, buyTokens: <-self.temporaryVault)
+
+        log("Token 1 has been bought by account 2!")
     }
 }
