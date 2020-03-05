@@ -15,7 +15,11 @@ transaction {
         let oldCollection <- acct.storage[NonFungibleToken.Collection] <- collection
         destroy oldCollection
 
+        log("Collection created for account 1")
+
         // publish a public reference
         acct.published[&NonFungibleToken.NFTReceiver] = &acct.storage[NonFungibleToken.Collection] as &NonFungibleToken.NFTReceiver
+
+        log("Reference published")
     }
 }

@@ -23,5 +23,7 @@ transaction {
         // use the minter reference to mint an NFT, which deposits
         // the NFT into the collection that is sent as a parameter
         self.minterRef.mintNFT(recipient: self.receiverRef)
+
+        log("NFT Minted and deposited to Account 2's Collection")
     }
 }
