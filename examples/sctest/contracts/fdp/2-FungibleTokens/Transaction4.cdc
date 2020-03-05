@@ -16,7 +16,7 @@ transaction {
 
     execute {
         // get the recipient's public account object
-        let recipient = getAccount(0x02)
+        let recipient = getAccount(0x01)
 
         // get the recipient's Receiver reference to their Vault
         let receiverRef = recipient.published[&FungibleToken.Receiver] ?? panic("No receiver!")
