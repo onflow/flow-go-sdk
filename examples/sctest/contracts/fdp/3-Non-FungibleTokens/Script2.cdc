@@ -1,4 +1,4 @@
-// Script1.cdc 
+// Script2.cdc 
 
 import NonFungibleToken from 0x02
 
