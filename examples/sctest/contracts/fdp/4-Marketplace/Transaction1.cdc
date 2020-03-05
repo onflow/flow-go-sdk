@@ -31,5 +31,7 @@ transaction {
 
         // create a public reference to the sale so that others can call its methods
         acct.published[&Marketplace.SalePublic] = &acct.storage[Marketplace.SaleCollection] as &Marketplace.SalePublic
+
+        log("Sale Created for account 1. Selling NFT 1 for 10 tokens")
     }
 }
