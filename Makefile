@@ -72,7 +72,7 @@ versioned-binaries:
 
 .PHONY: versioned-binary
 versioned-binary:
-	GOOS=$(OS) GOARCH=amd64 $(MAKE) BINARY=./flow-x86_64-$(OS)-$(VERSION) binary
+	GOOS=$(OS) GOARCH=amd64 $(MAKE) BINARY=./cmd/flow/flow-x86_64-$(OS)-$(VERSION) binary
 
 .PHONY: install-cli
 install-cli: cmd/flow/flow
