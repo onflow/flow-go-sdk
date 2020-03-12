@@ -38,14 +38,14 @@ deploy-production: update-deployment-image apply-prod-files monitor-rollout
 # Staging YAMLs must have 'staging' in their name.
 .PHONY: apply-staging-files
 apply-staging-files:
-	echo "$$KUBECONFIG_STAGING" > ${KUBECONFIG}; \
+	echo "$$KUBECONFIG_STAGING_2" > ${KUBECONFIG}; \
 	files=$$(find ${K8S_YAMLS_LOCATION} -type f \( -name "*.yml" -or -name "*.yaml" \) | grep staging); \
 	echo "$$files" | xargs -I {} kubectl --kubeconfig=${KUBECONFIG} apply -f {}
 
 # Production YAMLs must have 'production' in their name.
 .PHONY: apply-prod-files
 apply-prod-files:
-	echo "$$KUBECONFIG_PRODUCTION" > ${KUBECONFIG}; \
+	echo "$$KUBECONFIG_PRODUCTION_2" > ${KUBECONFIG}; \
 	files=$$(find ${K8S_YAMLS_LOCATION} -type f \( -name "*.yml" -or -name "*.yaml" \) | grep production); \
 	echo "$$files" | xargs -I {} kubectl --kubeconfig=${KUBECONFIG} apply -f {}
 
