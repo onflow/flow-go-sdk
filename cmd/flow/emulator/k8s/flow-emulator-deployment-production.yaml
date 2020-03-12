@@ -37,7 +37,7 @@ metadata:
     owner: Kan
 spec:
   rules:
-    - host: grpc.emulator.withflow.org
+    - host: emulator-grpc.onflow.org
       http:
         paths:
           - backend:

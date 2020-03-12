@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+  labels:
+    app: flow-emulator
+    env: staging
+    owner: Kan
+    version: v1
+  name: flow-emulator-v1
+  namespace: flow
+spec:
+  ports:
+  - name: http
+    port: 8080
+    protocol: TCP
+    targetPort: http
+  - name: grpc
+    port: 3569
+    protocol: TCP
+    targetPort: grpc
+  selector:
+    app: flow-emulator
+    env: staging
+    version: v1
+  type: ClusterIP

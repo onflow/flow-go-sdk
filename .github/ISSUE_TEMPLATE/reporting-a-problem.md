@@ -26,7 +26,7 @@ Please fill out the template below to the best of your ability and include a lab
 
 <share any logs/screenshots or steps to replicate>
 
-### Acceptance Critiera
+### Acceptance Criteria
 
 <if any>
   

@@ -27,7 +27,7 @@ install-tools: check-go-version
 
 .PHONY: test
 test:
-	GO111MODULE=on go test -coverprofile=$(COVER_PROFILE) $(if $(JSON_OUTPUT),-json,) ./...
+	GO111MODULE=on go test -mod vendor -coverprofile=$(COVER_PROFILE) $(if $(JSON_OUTPUT),-json,) ./...
 
 .PHONY: coverage
 coverage:
@@ -77,7 +77,11 @@ ifneq (${VERSION},)
 	docker push "gcr.io/dl-flow/emulator:${VERSION}"
 endif
 
-# Check if the go version is 1.13. flow-go-sdk only supports go 1.13
+# Check if the go version is >1.13. flow-go-sdk only supports go versions > 1.13
 .PHONY: check-go-version
 check-go-version:
-	go version | grep 1.13
+	go version | grep '1.13\|1.14'
+
+.PHONY: vendor
+vendor:
+	GO111MODULE=on go mod vendor
