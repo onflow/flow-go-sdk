@@ -1,5 +1,3 @@
-/cmd/flow/flow
-
 # Test binary, build with `go test -c`
 *.test
 
@@ -24,3 +22,6 @@ flowdb
 .idea
 .vscode
 git
+
+# Go binaries
+/cmd/flow/flow*
