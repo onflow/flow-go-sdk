@@ -63,13 +63,13 @@ message ExecuteScriptResponse {
 }
 
 message GetEventsRequest {
-    string type = 1;
-    uint64 start_block = 2;
-    uint64 end_block = 3;
+  string type = 1;
+  uint64 start_block = 2;
+  uint64 end_block = 3;
 }
 
 message GetEventsResponse {
-    repeated flow.sdk.entities.Event events = 1;
+  repeated flow.sdk.entities.Event events = 1;
 }
 
 
