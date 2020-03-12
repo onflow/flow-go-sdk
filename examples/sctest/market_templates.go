@@ -15,7 +15,7 @@ func GenerateCreateSaleScript(tokenAddr flow.Address, marketAddr flow.Address) [
 
 		transaction {
 			prepare(acct: Account) {
-				let ownerVault = acct.published[&FungibleToken.Receiver] ?? panic("No receiver reference!")
+				let ownerVault = acct.published[&AnyResource{FungibleToken.Receiver}] ?? panic("No receiver reference!")
 
 				let collection <- Market.createSaleCollection(ownerVault: ownerVault)
 				
@@ -61,7 +61,7 @@ func GenerateBuySaleScript(tokenAddr, nftAddr, marketAddr, userAddr flow.Address
 				let seller = getAccount(0x%s)
 
 				let collectionRef = acct.published[&NonFungibleToken.Collection] ?? panic("missing collection!")
-				let providerRef = acct.published[&FungibleToken.Provider] ?? panic("missing Provider!")
+				let providerRef = acct.published[&AnyResource{FungibleToken.Provider}] ?? panic("missing Provider!")
 				
 				let tokens <- providerRef.withdraw(amount: %d)
 

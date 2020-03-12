@@ -107,10 +107,14 @@ func (checker *Checker) visitCompositeDeclaration(declaration *ast.CompositeDecl
 		panic(errors.NewUnreachableError())
 	}
 
+	fieldPositionGetter := func(name string) ast.Position {
+		return declaration.Members.FieldPosition(name, declaration.CompositeKind)
+	}
+
 	checker.checkResourceFieldNesting(
-		declaration.Members.FieldsByIdentifier(),
 		compositeType.Members,
 		compositeType.Kind,
+		fieldPositionGetter,
 	)
 
 	// Check conformances
@@ -131,12 +135,14 @@ func (checker *Checker) visitCompositeDeclaration(declaration *ast.CompositeDecl
 
 	checkMissingMembers := kind != ContainerKindInterface
 
-	for _, interfaceType := range compositeType.Conformances {
+	for i, interfaceType := range compositeType.Conformances {
+		interfaceNominalType := declaration.Conformances[i]
 
 		checker.checkCompositeConformance(
 			declaration,
 			compositeType,
 			interfaceType,
+			interfaceNominalType.Identifier,
 			checkMissingMembers,
 		)
 	}
@@ -150,7 +156,6 @@ func (checker *Checker) visitCompositeDeclaration(declaration *ast.CompositeDecl
 			compositeType.Members,
 			compositeType,
 			declaration.DeclarationKind(),
-			declaration.Identifier.Identifier,
 			kind,
 		)
 	})
@@ -390,6 +395,7 @@ func (checker *Checker) declareCompositeType(declaration *ast.CompositeDeclarati
 	)
 
 	checker.Elaboration.CompositeDeclarationTypes[declaration] = compositeType
+	checker.Elaboration.CompositeTypes[compositeType.QualifiedIdentifier()] = compositeType
 
 	// Activate new scope for nested declarations
 
@@ -639,6 +645,7 @@ func (checker *Checker) checkCompositeConformance(
 	compositeDeclaration *ast.CompositeDeclaration,
 	compositeType *CompositeType,
 	interfaceType *InterfaceType,
+	compositeKindMismatchIdentifier ast.Identifier,
 	checkMissingMembers bool,
 ) {
 	var missingMembers []*Member
@@ -649,12 +656,12 @@ func (checker *Checker) checkCompositeConformance(
 	// Ensure the composite kinds match, e.g. a structure shouldn't be able
 	// to conform to a resource interface
 
-	if compositeType.Kind != interfaceType.CompositeKind {
+	if interfaceType.CompositeKind != compositeType.Kind {
 		checker.report(
 			&CompositeKindMismatchError{
-				ExpectedKind: interfaceType.CompositeKind,
-				ActualKind:   compositeType.Kind,
-				Range:        ast.NewRangeFromPositioned(compositeDeclaration.Identifier),
+				ExpectedKind: compositeType.Kind,
+				ActualKind:   interfaceType.CompositeKind,
+				Range:        ast.NewRangeFromPositioned(compositeKindMismatchIdentifier),
 			},
 		)
 	}
@@ -915,6 +922,7 @@ func (checker *Checker) checkTypeRequirement(
 		compositeDeclaration,
 		declaredCompositeType,
 		interfaceType,
+		compositeDeclaration.Identifier,
 		true,
 	)
 }
@@ -1007,7 +1015,7 @@ func (checker *Checker) nonEventMembersAndOrigins(
 
 		fieldTypeAnnotation := checker.ConvertTypeAnnotation(field.TypeAnnotation)
 
-		checker.checkTypeAnnotation(fieldTypeAnnotation, field.TypeAnnotation.StartPos)
+		checker.checkTypeAnnotation(fieldTypeAnnotation, field.TypeAnnotation)
 
 		members[identifier] = &Member{
 			ContainerType:   containerType,
@@ -1204,7 +1212,7 @@ func (checker *Checker) checkSpecialFunction(
 
 	checker.checkFunction(
 		specialFunction.ParameterList,
-		ast.Position{},
+		nil,
 		functionType,
 		specialFunction.FunctionBlock,
 		true,
@@ -1408,7 +1416,6 @@ func (checker *Checker) checkDestructors(
 	members map[string]*Member,
 	containerType Type,
 	containerDeclarationKind common.DeclarationKind,
-	containerTypeIdentifier string,
 	containerKind ContainerKind,
 ) {
 	count := len(destructors)
@@ -1440,7 +1447,6 @@ func (checker *Checker) checkDestructors(
 		firstDestructor,
 		containerType,
 		containerDeclarationKind,
-		containerTypeIdentifier,
 		containerKind,
 	)
 
@@ -1496,7 +1502,6 @@ func (checker *Checker) checkDestructor(
 	destructor *ast.SpecialFunctionDeclaration,
 	containerType Type,
 	containerDeclarationKind common.DeclarationKind,
-	containerTypeIdentifier string,
 	containerKind ContainerKind,
 ) {
 
@@ -1519,25 +1524,25 @@ func (checker *Checker) checkDestructor(
 		nil,
 	)
 
-	checker.checkCompositeResourceInvalidated(containerType, containerTypeIdentifier)
+	checker.checkCompositeResourceInvalidated(containerType)
 }
 
 // checkCompositeResourceInvalidated checks that if the container is a resource,
 // that all resource fields are invalidated (moved or destroyed)
 //
-func (checker *Checker) checkCompositeResourceInvalidated(containerType Type, containerTypeIdentifier string) {
+func (checker *Checker) checkCompositeResourceInvalidated(containerType Type) {
 	compositeType, isComposite := containerType.(*CompositeType)
 	if !isComposite || compositeType.Kind != common.CompositeKindResource {
 		return
 	}
 
-	checker.checkResourceFieldsInvalidated(containerTypeIdentifier, compositeType.Members)
+	checker.checkResourceFieldsInvalidated(containerType, compositeType.Members)
 }
 
 // checkResourceFieldsInvalidated checks that all resource fields for a container
 // type are invalidated.
 //
-func (checker *Checker) checkResourceFieldsInvalidated(containerTypeIdentifier string, members map[string]*Member) {
+func (checker *Checker) checkResourceFieldsInvalidated(containerType Type, members map[string]*Member) {
 	for _, member := range members {
 
 		// NOTE: check the of the type annotation, not the type annotation's
@@ -1553,7 +1558,7 @@ func (checker *Checker) checkResourceFieldsInvalidated(containerTypeIdentifier s
 			checker.report(
 				&ResourceFieldNotInvalidatedError{
 					FieldName: member.Identifier.Identifier,
-					TypeName:  containerTypeIdentifier,
+					Type:      containerType,
 					Pos:       member.Identifier.StartPosition(),
 				},
 			)

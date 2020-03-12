@@ -71,10 +71,14 @@ func (checker *Checker) VisitInterfaceDeclaration(declaration *ast.InterfaceDecl
 		declaration.DeclarationKind(),
 	)
 
+	fieldPositionGetter := func(name string) ast.Position {
+		return declaration.Members.FieldPosition(name, declaration.CompositeKind)
+	}
+
 	checker.checkResourceFieldNesting(
-		declaration.Members.FieldsByIdentifier(),
 		interfaceType.Members,
 		interfaceType.CompositeKind,
+		fieldPositionGetter,
 	)
 
 	checker.checkDestructors(
@@ -83,7 +87,6 @@ func (checker *Checker) VisitInterfaceDeclaration(declaration *ast.InterfaceDecl
 		interfaceType.Members,
 		interfaceType,
 		declaration.DeclarationKind(),
-		declaration.Identifier.Identifier,
 		kind,
 	)
 
