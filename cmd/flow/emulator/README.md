@@ -10,7 +10,7 @@ with the real network API.
 You can start the emulator with the Flow CLI:	
 
 ```shell script	
-flow emulator start	
+flow emulator start	--init
 ```
 
 This command has several useful flags:	
