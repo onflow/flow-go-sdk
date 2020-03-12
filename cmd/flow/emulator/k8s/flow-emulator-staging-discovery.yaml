@@ -13,13 +13,13 @@ metadata:
     nginx.ingress.kubernetes.io/session-cookie-name: "autoincrement"
 spec:
   rules:
-  - host: emulator-grpc.staging.withflow.org
+  - host: emulator-grpc.staging.onflow.org
     http:
       paths:
         - backend:
             serviceName: flow-emulator-v1
             servicePort: grpc
-  - host: emulator-http.staging.withflow.org
+  - host: emulator-http.staging.onflow.org
     http:
       paths:
         - backend:
