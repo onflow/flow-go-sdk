@@ -80,6 +80,8 @@ github.com/dapperlabs/flow-go v0.3.2-0.20200224160804-4b32d10d396c h1:dDt4qmGbCa
 github.com/dapperlabs/flow-go v0.3.2-0.20200224160804-4b32d10d396c/go.mod h1:cvrp2t4KQLghzmE38pGchCN4ACZSFX2PR3R8oyshZFs=
 github.com/dapperlabs/flow-go v0.3.2-0.20200225001519-9a07bfb642cb h1:4kAfR7S/i0F1YeI03h367py7NRcWW1PYhD+aT2lMJEw=
 github.com/dapperlabs/flow-go v0.3.2-0.20200225001519-9a07bfb642cb/go.mod h1:cvrp2t4KQLghzmE38pGchCN4ACZSFX2PR3R8oyshZFs=
+github.com/dapperlabs/flow-go v0.3.2-0.20200312003349-bdb7e27b1c7b h1:tZ0lB/Zi3qkssY80DG0F8PlxJVZU6auM9+IvUfOFypE=
+github.com/dapperlabs/flow-go v0.3.2-0.20200312003349-bdb7e27b1c7b/go.mod h1:T7BTWgbqZVpUS6m1YOJarI+3lSXPIQhz2XirFz+HeU8=
 github.com/dapperlabs/flow-go/crypto v0.3.1 h1:sct0sh5aDbyqy0v/2xCvBAY9fsxlbkfHAK3abeK163g=
 github.com/dapperlabs/flow-go/crypto v0.3.1/go.mod h1:39e5FqQZ5x0BsezUUC1uATH58hzSDfB+LLi0Gm6wfU8=
 github.com/dapperlabs/flow-go/crypto v0.3.2-0.20200214013519-e4d529c98be3 h1:IENSWeJmcNez0D5EYHRYg74nTPGGw8u9UrYS3wHImT0=
@@ -88,6 +90,8 @@ github.com/dapperlabs/flow-go/crypto v0.3.2-0.20200224160804-4b32d10d396c h1:i5D
 github.com/dapperlabs/flow-go/crypto v0.3.2-0.20200224160804-4b32d10d396c/go.mod h1:39e5FqQZ5x0BsezUUC1uATH58hzSDfB+LLi0Gm6wfU8=
 github.com/dapperlabs/flow-go/crypto v0.3.2-0.20200225001519-9a07bfb642cb h1:zjK0C/oGQouPY0YeQ2/4cNqOd9PPQDIKSnHE1EyXtdo=
 github.com/dapperlabs/flow-go/crypto v0.3.2-0.20200225001519-9a07bfb642cb/go.mod h1:39e5FqQZ5x0BsezUUC1uATH58hzSDfB+LLi0Gm6wfU8=
+github.com/dapperlabs/flow-go/crypto v0.3.2-0.20200312003349-bdb7e27b1c7b h1:AlXx5iMgLencU05CIkJozrTCuEhz0Y6vcmCeUB8qvy8=
+github.com/dapperlabs/flow-go/crypto v0.3.2-0.20200312003349-bdb7e27b1c7b/go.mod h1:6UyHoekg86OJnzTz9hp3Ubzp2ZkrDMFg2krGbVEiloU=
 github.com/dapperlabs/flow-go/language v0.3.1 h1:/xLUg2+4mbDEWU3mrmBdctQ60ehZstlJAVdr5gg86K0=
 github.com/dapperlabs/flow-go/language v0.3.1/go.mod h1:8Z/N3qFJSM1+J8z4O8mXHYbshadkSBfcLzJeeU7vvj4=
 github.com/dapperlabs/flow-go/language v0.3.2-0.20200214013519-e4d529c98be3 h1:Gky0CUNXrPNOHb3/pukVdKD5o9W0Uqh4PiZd4ErLyg4=
@@ -96,12 +100,16 @@ github.com/dapperlabs/flow-go/language v0.3.2-0.20200224160804-4b32d10d396c h1:c
 github.com/dapperlabs/flow-go/language v0.3.2-0.20200224160804-4b32d10d396c/go.mod h1:8Z/N3qFJSM1+J8z4O8mXHYbshadkSBfcLzJeeU7vvj4=
 github.com/dapperlabs/flow-go/language v0.3.2-0.20200225001519-9a07bfb642cb h1:FywPlBfAU+I572yJ2HVW2qExUEzNQIqrr3QaW+KB+l8=
 github.com/dapperlabs/flow-go/language v0.3.2-0.20200225001519-9a07bfb642cb/go.mod h1:8Z/N3qFJSM1+J8z4O8mXHYbshadkSBfcLzJeeU7vvj4=
+github.com/dapperlabs/flow-go/language v0.3.2-0.20200312003349-bdb7e27b1c7b h1:noo+ObBe55Xy1SbioSX6O7jBD3mhBeuq8H+mRzWbtBo=
+github.com/dapperlabs/flow-go/language v0.3.2-0.20200312003349-bdb7e27b1c7b/go.mod h1:8Z/N3qFJSM1+J8z4O8mXHYbshadkSBfcLzJeeU7vvj4=
 github.com/dapperlabs/flow-go/protobuf v0.3.1 h1:vgJBzd0fHUV2q47xIF1Z5GjuFEjoaVyPxYmA/ScC5cw=
 github.com/dapperlabs/flow-go/protobuf v0.3.1/go.mod h1:oaMV7AdCz45OC/zPUvCcruE+8XLGiHS92VWas9dV6A8=
 github.com/dapperlabs/flow-go/protobuf v0.3.2-0.20200214013519-e4d529c98be3 h1:0paWtU1UmWTklHBxMiCfMLAw6k/gw8lPpZcWOzXwAJg=
 github.com/dapperlabs/flow-go/protobuf v0.3.2-0.20200214013519-e4d529c98be3/go.mod h1:oaMV7AdCz45OC/zPUvCcruE+8XLGiHS92VWas9dV6A8=
 github.com/dapperlabs/flow-go/protobuf v0.3.2-0.20200224160804-4b32d10d396c h1:fxpzmQl+bRSCDSEHrL129aF7yd0LCAxfT5ndQbaExOo=
 github.com/dapperlabs/flow-go/protobuf v0.3.2-0.20200224160804-4b32d10d396c/go.mod h1:oaMV7AdCz45OC/zPUvCcruE+8XLGiHS92VWas9dV6A8=
+github.com/dapperlabs/flow-go/protobuf v0.3.2-0.20200312003349-bdb7e27b1c7b h1:mUG4FMfTEV4ybH8eiw8Dsa5arNtdFCZHTeX9P/jMP7U=
+github.com/dapperlabs/flow-go/protobuf v0.3.2-0.20200312003349-bdb7e27b1c7b/go.mod h1:oaMV7AdCz45OC/zPUvCcruE+8XLGiHS92VWas9dV6A8=
 github.com/dave/jennifer v1.4.0 h1:tNJFJmLDVTLu+v05mVZ88RINa3vQqnyyWkTKWYz0CwE=
 github.com/dave/jennifer v1.4.0/go.mod h1:fIb+770HOpJ2fmN9EPPKOqm1vMGhB+TwXKMZhrIygKg=
 github.com/davecgh/go-spew v0.0.0-20171005155431-ecdeabc65495/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
@@ -166,6 +174,8 @@ github.com/golang/groupcache v0.0.0-20190702054246-869f871628b6/go.mod h1:cIg4er
 github.com/golang/mock v1.1.1/go.mod h1:oTYuIxOrZwtPieC+H1uAHpcLFnEyAGVDL/k47Jfbm0A=
 github.com/golang/mock v1.3.1 h1:qGJ6qTW+x6xX/my+8YUVl4WNpX9B7+/l2tRsHGZ7f2s=
 github.com/golang/mock v1.3.1/go.mod h1:sBzyDLLjw3U8JLTeZvSv8jJB+tU5PVekmnlKIyFUx0Y=
+github.com/golang/mock v1.4.0 h1:Rd1kQnQu0Hq3qvJppYSG0HtP+f5LPPUiDswTLiEegLg=
+github.com/golang/mock v1.4.0/go.mod h1:UOMv5ysSaYNkG+OFQykRIcU/QvvxJf3p21QfJ2Bt3cw=
 github.com/golang/protobuf v1.2.0/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=
 github.com/golang/protobuf v1.3.0/go.mod h1:Qd/q+1AKNOZr9uGQzbzCmRO6sUih6GTPZv6a1/R87v0=
 github.com/golang/protobuf v1.3.1/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=
@@ -514,6 +524,8 @@ github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXf
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/stretchr/testify v1.4.0 h1:2E4SXV/wtOkTonXsotYi4li6zVWxYlZuYNCXe9XRJyk=
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
+github.com/stretchr/testify v1.5.1 h1:nOGnQDM7FYENwehXlg/kFVnos3rEvtKTjRvOWSzb6H4=
+github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5cxcmMvtA=
 github.com/syndtr/goleveldb v1.0.0/go.mod h1:ZVVdQEZoIme9iO1Ch2Jdy24qqXrMMOU6lpPAyBWyWuQ=
 github.com/syndtr/goleveldb v1.0.1-0.20190923125748-758128399b1d h1:gZZadD8H+fF+n9CmNhYL1Y0dJB+kLOmKd7FbPJLeGHs=
 github.com/syndtr/goleveldb v1.0.1-0.20190923125748-758128399b1d/go.mod h1:9OrXJhf154huy1nPWmuSrkgjPUtUNhA+Zmy+6AESzuA=
@@ -618,6 +630,7 @@ golang.org/x/sys v0.0.0-20191120155948-bd437916bb0e/go.mod h1:h1NjWce9XRLGQEsW7w
 golang.org/x/sys v0.0.0-20191220142924-d4481acd189f/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20200107162124-548cf772de50 h1:YvQ10rzcqWXLlJZ3XCUoO25savxmscf4+SC+ZqiCHhA=
 golang.org/x/sys v0.0.0-20200107162124-548cf772de50/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+golang.org/x/text v0.0.0-20170915032832-14c0d48ead0c/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.2 h1:tW2bmiBqwgJj/UpqtC8EpXEZVYOwU0yG4iWbprSVAcs=
 golang.org/x/text v0.3.2/go.mod h1:bEr9sfX3Q8Zfm5fL9x+3itogRgK3+ptLWKqgva+5dAk=
@@ -684,4 +697,6 @@ gotest.tools v2.2.0+incompatible/go.mod h1:DsYFclhRJ6vuDpmuTbkuFWG+y2sxOXAzmJt81
 honnef.co/go/tools v0.0.0-20190102054323-c2f93a96b099/go.mod h1:rf3lG4BRIbNafJWhAfAdb/ePZxsR/4RtNHQocxwk9r4=
 honnef.co/go/tools v0.0.0-20190523083050-ea95bdfd59fc/go.mod h1:rf3lG4BRIbNafJWhAfAdb/ePZxsR/4RtNHQocxwk9r4=
 rsc.io/pdf v0.1.1/go.mod h1:n8OzWcQ6Sp37PL01nO98y4iUCRdTGarVfzxY20ICaU4=
+rsc.io/quote/v3 v3.1.0/go.mod h1:yEA65RcK8LyAZtP9Kv3t0HmxON59tX3rD+tICJqUlj0=
+rsc.io/sampler v1.3.0/go.mod h1:T1hPZKmBbMNahiBKFy5HrXp6adAjACjK9JXDnKaTXpA=
 zombiezen.com/go/capnproto2 v2.18.0+incompatible/go.mod h1:XO5Pr2SbXgqZwn0m0Ru54QBqpOf4K5AYBO+8LAOBQEQ=
