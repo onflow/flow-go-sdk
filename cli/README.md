@@ -25,6 +25,14 @@ This script downloads the appropriate binary for your system and moves it to `/u
 sh -ci "$(curl -fsSL https://storage.googleapis.com/flow-cli/install.sh)"
 ```
 
+#### Upgrading an existing installation?
+
+```shell script
+rm /usr/local/bin/flow
+
+sh -ci "$(curl -fsSL https://storage.googleapis.com/flow-cli/install.sh)"
+```
+
 ### From source
 
 _This installation method works on any system with Go >1.13 installed._
