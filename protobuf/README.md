@@ -1,6 +1,6 @@
 # Protobuf
 
-This folder only contains the [protocol buffer](https://developers.google.com/protocol-buffers) files that define the Observation gRPC API. 
+This folder contains the [protocol buffer](https://developers.google.com/protocol-buffers) files that define the Observation gRPC API. 
 
 
 ## Generating stubs
