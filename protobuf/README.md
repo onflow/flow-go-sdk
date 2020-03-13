@@ -1,5 +1,3 @@
 # Protobuf
 
-This folder only contains the reference Protobuf files for the observation API.
-
-The actual protobuf files used are located in https://github.com/dapperlabs/flow-go/protobuf/services/observation
+This folder only contains the [protocol buffer](https://developers.google.com/protocol-buffers) files defining the Observation gRPC API. 
