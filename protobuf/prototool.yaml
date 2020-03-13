@@ -16,5 +16,3 @@ generate:
       output: ./out/go
     - name: java
       output: ./out/java
-    - name: java
-      output: ./out/java
