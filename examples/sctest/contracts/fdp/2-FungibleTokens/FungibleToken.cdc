@@ -1,3 +1,12 @@
+// FungibleToken.cdc
+//
+// The FungibleToken contract is a sample implementation of a fungible token in Flow.
+//
+// Fungible tokens behave like everyday currencies -- they can be minted, transferred or traded for other
+// digital goods.
+//
+// Follow the fungible token tutorial to learn more: https://docs.onflow.org/docs/fungible-tokens
+
 access(all) contract FungibleToken {
 
     // Total supply of flow tokens in existence
