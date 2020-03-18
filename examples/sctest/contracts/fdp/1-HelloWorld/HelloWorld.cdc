@@ -1,21 +1,23 @@
 // HelloWorld.cdc
+//
+// Welcome to Cadence! This is one of the simplest programs you can
+// deploy on Flow.
+//
+// This contract contains a single string field along with a public getter function.
+//
+// Follow the "Hello, World!" tutorial to learn more: https://docs.onflow.org/docs/hello-world
 
-// Contracts are deployed by specifying their access level,
-// followed by the contract keywork and the name of the contract
-
-// This contract simply holds a string field and has one function
-// that returns the contents of the field
 access(all) contract HelloWorld {
 
-    // declare a fully public field with type String
-    // All fields must be initialized in the init() function
+    // Declare a fully public field of type String.
+    // All fields must be initialized in the init() function.
     access(all) let greeting: String
 
     // The init function is mandatory if there are any fields
-    // in the composite type. Here, we simply initialize the 
-    // greeting field to "Hello World!"
+    // in the contract. Here, we simply initialize the
+    // greeting field to "Hello, World!"
     init() {
-        self.greeting = "Hello World!"
+        self.greeting = "Hello, World!"
     }
 
     // Public function that returns our friendly greeting!
