@@ -4,12 +4,12 @@ import HelloWorld from 0x02
 
 transaction {
 
-    // In this transaction, we are calling the hello method
-    // on the HelloAsset object that is stored in account storage
+    // This transaction calls the "hello" method on the HelloAsset object
+    // that is stored in the account's storage.
     prepare(acct: Account) {
-        
-        // we use optional chaining (?) because the value in storage
-        // is an optional
+
+        // We use optional chaining (?) because the value in storage
+        // may or may not exist, and thus is considered optional.
         log(acct.storage[HelloWorld.HelloAsset]?.hello())
     }
 }
