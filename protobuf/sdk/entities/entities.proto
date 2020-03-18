@@ -4,8 +4,6 @@ package flow.sdk.entities;
 
 option go_package = "entities";
 
-import "google/protobuf/timestamp.proto";
-
 message BlockHeader {
   bytes hash = 1;
   bytes previousBlockHash = 2;
