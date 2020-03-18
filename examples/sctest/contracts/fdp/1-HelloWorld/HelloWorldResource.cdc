@@ -1,7 +1,8 @@
 // HelloWorldResource.cdc
 //
-// This is a variation of the HelloWorld contract that includes a resource,
-// a special type in Cadence that is used to model ownership.
+// This is a variation of the HelloWorld contract that introduces the concept of
+// resources, a new form of linear type that is unique to Cadence. Resources can be
+// used to create a secure model of digital ownership.
 //
 // Learn more about resources in this tutorial: https://docs.onflow.org/docs/hello-world
 
