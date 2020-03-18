@@ -2,12 +2,11 @@
 
 import NonFungibleToken from 0x03
 
-// transaction that published a public reference
-// to the stored NFT Collection
+// This transaction publishes a public reference to the stored NFT collection.
 transaction {
     prepare(acct: Account) {
-        // publish a public interface that 
-        // only exposes ownedNFTs, deposit, getIDs, and idExists
+
+        // Publish a public interface that only exposes "ownedNFTs", "deposit", "getIDs", and "idExists".
         acct.published[&NonFungibleToken.NFTReceiver] = &acct.storage[NonFungibleToken.Collection] as &NonFungibleToken.NFTReceiver
 
         log("Collection Reference created successfully")

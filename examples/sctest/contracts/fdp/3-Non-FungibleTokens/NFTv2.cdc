@@ -1,8 +1,9 @@
 // NFTv2.cdc
+//
+// This is an extended version of the NonFungibleToken contract
+// that includes withdraw and deposit functionality, as well as a
+// collection resource that can be used to bundle NFTs together.
 
-// This declares a slightly more complex version of the NFT contract
-// that includes a collection resource that users can use to hold
-// multiple NFTs as well as withdraw and deposit them
 access(all) contract NonFungibleToken {
 
     // Declare the NFT resource type
