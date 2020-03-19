@@ -3,6 +3,8 @@
 // This is an extended version of the NonFungibleToken contract
 // that includes withdraw and deposit functionality, as well as a
 // collection resource that can be used to bundle NFTs together.
+//
+// Learn more about non-fungible tokens in this tutorial: https://docs.onflow.org/docs/non-fungible-tokens
 
 access(all) contract NonFungibleToken {
 

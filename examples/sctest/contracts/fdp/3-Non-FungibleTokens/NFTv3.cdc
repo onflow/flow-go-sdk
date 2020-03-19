@@ -6,6 +6,8 @@
 //
 // It also includes a definition for the Minter resource,
 // which can be used by admins to mint new NFTs.
+//
+// Learn more about non-fungible tokens in this tutorial: https://docs.onflow.org/docs/non-fungible-tokens
 
 access(all) contract NonFungibleToken {
 
