@@ -3,14 +3,13 @@ import NonFungibleToken from 0x02
 
 // Marketplace.cdc
 //
-// The Marketplace contract is a sample implementation of a Marketplace
-// on Flow.
+// The Marketplace contract is a sample implementation of an NFT Marketplace on Flow.
 //
 // This contract allows users to put their NFTs up for sale. Other users
-// can purchase the for sale NFTs with their fungible tokens.
+// can purchase these NFTs with fungible tokens.
 //
 // Learn more about marketplaces in this tutorial: https://docs.onflow.org/docs/composable-smart-contracts-marketplace
-//
+
 access(all) contract Marketplace {
 
     // Event that is emitted when a new NFT is put up for sale
@@ -25,7 +24,7 @@ access(all) contract Marketplace {
     // Event that is emitted when a seller withdraws their NFT from the sale
     access(all) event SaleWithdrawn(id: UInt64)
 
-    // interface that users will publish for their Sale collection
+    // Interface that users will publish for their Sale collection
     // that only exposes the methods that are supposed to be public
     //
     access(all) resource interface SalePublic {
@@ -41,15 +40,15 @@ access(all) contract Marketplace {
     //
     access(all) resource SaleCollection: SalePublic {
 
-        // a dictionary of the NFTs that the user is putting up for sale
+        // Dictionary of the NFTs that the user is putting up for sale
         access(all) var forSale: @{UInt64: NonFungibleToken.NFT}
 
-        // dictionary of the prices for each NFT by ID
+        // Dictionary of the prices for each NFT by ID
         access(all) var prices: {UInt64: UInt64}
 
-        // the fungible token vault of the owner of this sale
-        // so that when someone buys a token, this resource can deposit
-        // tokens in their account
+        // The fungible token vault of the owner of this sale.
+        // When someone buys a token, this resource can deposit
+        // tokens into their account.
         access(account) let ownerVault: &FungibleToken.Receiver
 
         init (vault: &FungibleToken.Receiver) {
@@ -131,4 +130,3 @@ access(all) contract Marketplace {
         return <- create SaleCollection(vault: ownerVault)
     }
 }
- 

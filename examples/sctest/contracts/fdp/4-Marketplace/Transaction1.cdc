@@ -6,11 +6,11 @@ import Marketplace from 0x03
 
 // This transaction creates a new Sale Collection object,
 // lists an NFT for sale, puts it in account storage,
-// and creates a public reference to the sale so that others can buy the token
+// and creates a public reference to the sale so that others can buy the token.
 transaction {
 
     prepare(acct: Account) {
-        
+
         // Get a reference to the signer's vault Receiver
         let ownerVault = acct.published[&FungibleToken.Receiver] ?? panic("No receiver reference!")
 

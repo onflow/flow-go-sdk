@@ -6,7 +6,6 @@ import Marketplace from 0x03
 
 // This transaction uses the signers Vault tokens to purchase an NFT
 // from the Sale collection of account 0x01.
-//
 transaction {
 
     // reference to the buyer's NFT collection where they
