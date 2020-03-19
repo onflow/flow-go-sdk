@@ -2,14 +2,17 @@
 
 import KittyVerse from 0x01
 
+// This transaction creates a new kitty, creates two new hats
+// puts the hats on the cat, and then stores the kitty in accouht storage
+
 transaction {
 
 		prepare(acct: Account) {
 
-				// create the Kitty object
+				// Create the Kitty object
 				let kitty <- KittyVerse.createKitty()
 
-				// create the KittyHat objects
+				// Create the KittyHat objects
 				let hat1 <- KittyVerse.createHat(id: 1, name: "Cowboy Hat")
 				let hat2 <- KittyVerse.createHat(id: 2, name: "Top Hat")
 

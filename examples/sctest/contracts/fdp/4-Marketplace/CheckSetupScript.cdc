@@ -4,7 +4,9 @@ import FungibleToken from 0x01
 import NonFungibleToken from 0x02
 
 // Script that makes sure that the accounts are set up correctly
-// to complete the Marketplace tutorialx
+// to complete the Marketplace tutorial
+// Account 1: Vault Balance = 40, NFT.id = 1
+// Account 2: Vault Balance = 20, No NFTs
 access(all) fun main() {
     // Get both accounts' public account objects
     let account1 = getAccount(0x01)
