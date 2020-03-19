@@ -3,29 +3,26 @@
 import FungibleToken from 0x01
 import NonFungibleToken from 0x02
 
-// This transaction is for setting up account 1's account
-// so that it is ready to use the marketplace tutorial
+// This transaction sets up account 0x01 for the marketplace tutorial
+// by publishing a Vault reference and creating an empty NFT Collection.
 transaction {
-        prepare(acct: Account) {
-            // create reference to the Vault
-            let receiverRef = &acct.storage[FungibleToken.Vault] as &FungibleToken.Receiver
-            acct.published[&FungibleToken.Receiver] = receiverRef
+    prepare(acct: Account) {
+        // Create a public Receiver reference to the Vault
+        let receiverRef = &acct.storage[FungibleToken.Vault] as &FungibleToken.Receiver
+        acct.published[&FungibleToken.Receiver] = receiverRef
 
-            log("Created Vault references")
+        log("Created Vault references")
 
-            // create a new empty collection
-            let collection <- NonFungibleToken.createEmptyCollection()
-            
-            // put it in storage
-            let oldCollection <- acct.storage[NonFungibleToken.Collection] <- collection
-            destroy oldCollection
+        // Create a new empty NFT Collection
+        let collection <- NonFungibleToken.createEmptyCollection()
 
-            // publish a public interface that only exposes ownedNFTs and deposit
-            acct.published[&NonFungibleToken.NFTReceiver] = &acct.storage[NonFungibleToken.Collection] as &NonFungibleToken.Collection
+        // Put the NFT Collection in storage
+        let oldCollection <- acct.storage[NonFungibleToken.Collection] <- collection
+        destroy oldCollection
 
-            log("Created a new empty collection and published a reference")
-        
-        }
-        execute {}
+        // Publish a public interface to the Collection
+        acct.published[&NonFungibleToken.NFTReceiver] = &acct.storage[NonFungibleToken.Collection] as &NonFungibleToken.Collection
+
+        log("Created a new empty collection and published a reference")
+    }
 }
- 

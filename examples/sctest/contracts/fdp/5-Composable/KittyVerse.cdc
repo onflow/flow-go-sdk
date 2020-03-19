@@ -1,11 +1,21 @@
 // KittyVerse.cdc
-
-// KittyVerse is a contract that defines two types of NFTs
-// One is a KittyHat, which represents a special Hat
-// The second is the Kitty resource, which can own Kitty Hats
 //
+// The KittyVerse contract defines two types of NFTs.
+// One is a KittyHat, which represents a special hat, and
+// the second is the Kitty resource, which can own Kitty Hats.
+//
+// You can put the hats on the cats and then call a hat function
+// that tips the hat and prints a fun message.
+// 
+// This is a simple example of how Cadence supports
+// extensibility for smart contracts, but the language will soon
+// support even more powerful versions of this.
+//
+// Learn more about composable resources in this tutorial: https://docs.onflow.org/docs/composable-resources-kitty-hats
+
 access(all) contract KittyVerse {
 
+    // KittyHat is a special resource type that represents a hat
     access(all) resource KittyHat {
         access(all) let id: Int
         access(all) let name: String
@@ -27,6 +37,7 @@ access(all) contract KittyVerse {
         }
     }
 
+    // Create a new hat
     access(all) fun createHat(id: Int, name: String): @KittyHat {
         return <-create KittyHat(id: id, name: name)
     }

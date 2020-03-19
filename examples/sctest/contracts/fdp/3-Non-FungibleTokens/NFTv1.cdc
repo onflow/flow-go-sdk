@@ -1,10 +1,12 @@
 // NFTv1.cdc
-
-// This contract defines the simplest form of an NFT 
-// with an integer ID and metadata field
+//
+// The NonFungibleToken contract is a sample implementation of a non-fungible token (NFT) on Flow.
+//
+// This contract defines one of the simplest forms of NFTs using an
+// integer ID and metadata field.
 // 
-// Users would transfer it by directly moving it from
-// one account's storage to the other
+// Learn more about non-fungible tokens in this tutorial: https://docs.onflow.org/docs/non-fungible-tokens
+
 access(all) contract NonFungibleToken {
 
     // Declare the NFT resource type
@@ -22,7 +24,7 @@ access(all) contract NonFungibleToken {
         }
     }
 
-    // Create a single new NFT and put it in account storage
+    // Create a single new NFT and put it into account storage
 	init() {
 		let oldNFT <- self.account.storage[NFT] <- create NFT(initID: 1)
 		destroy oldNFT

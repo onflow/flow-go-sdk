@@ -1,6 +1,15 @@
+// FungibleToken.cdc
+//
+// The FungibleToken contract is a sample implementation of a fungible token on Flow.
+//
+// Fungible tokens behave like everyday currencies -- they can be minted, transferred or
+// traded for digital goods.
+//
+// Follow the fungible tokens tutorial to learn more: https://docs.onflow.org/docs/fungible-tokens
+
 access(all) contract FungibleToken {
 
-    // Total supply of flow tokens in existence
+    // Total supply of all tokens in existence.
     access(all) var totalSupply: UInt64
 
     // Provider
@@ -37,7 +46,7 @@ access(all) contract FungibleToken {
     // Receiver 
     //
     // Interface that enforces the requirements for depositing
-    // tokens into the implementing type
+    // tokens into the implementing type.
     //
     // We don't include a condition that checks the balance because
     // we want to give users the ability to make custom Receivers that
@@ -86,6 +95,7 @@ access(all) contract FungibleToken {
         //
         // Function that takes an integer amount as an argument
         // and withdraws that amount from the Vault.
+        //
         // It creates a new temporary Vault that is used to hold
         // the money that is being transferred. It returns the newly
         // created Vault to the context that called so it can be deposited
@@ -100,6 +110,7 @@ access(all) contract FungibleToken {
         //
         // Function that takes a Vault object as an argument and adds
         // its balance to the balance of the owners Vault.
+        //
         // It is allowed to destroy the sent Vault because the Vault
         // was a temporary holder of the tokens. The Vault's balance has
         // been consumed and therefore can be destroyed.
@@ -125,8 +136,8 @@ access(all) contract FungibleToken {
     // Resource object that an admin can control to mint new tokens
     access(all) resource VaultMinter {
 
-		// function that mints new tokens and deposits into an account's vault
-		// using their `Receiver` reference
+		// Function that mints new tokens and deposits into an account's vault
+		// using their `Receiver` reference.
         access(all) fun mintTokens(amount: UInt64, recipient: &Receiver) {
 			FungibleToken.totalSupply = FungibleToken.totalSupply + UInt64(amount)
             recipient.deposit(from: <-create Vault(balance: amount))
@@ -139,11 +150,11 @@ access(all) contract FungibleToken {
     init() {
         self.totalSupply = 30
 
-        // create the Vault with the initial balance and put it in storage
+        // Create the Vault with the initial balance and put it into storage.
         let oldVault <- self.account.storage[Vault] <- create Vault(balance: 30)
         destroy oldVault
 
-        // create a VaultMinter resource object and put it into storage
+        // Create a VaultMinter resource object and put it into storage.
 		let oldMinter <- self.account.storage[VaultMinter] <- create VaultMinter()
         destroy oldMinter
     }

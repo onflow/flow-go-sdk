@@ -2,27 +2,29 @@
 
 import HelloWorld from 0x01
 
-// Transactions are delcared with the transaction keyword
+// Transactions are declared with the "transaction" keyword.
+//
 // They have three possible stages:
-
-// Prepare: Has access to the private account storage objects
-// of the accounts that signed the transaction. This is where
-// resources should be stored, removed, and used to create references.
 //
-// execute: This is usually the main part of the transaction and is
+// prepare: This block has full access to the accounts that signed
+// the transaction. This is where resources should be stored, removed,
+// or used to create references.
+//
+// execute: This is the main part of the transaction and is
 // the stage where function calls and calls to external
-// contracts and resources should happen
+// contracts and resources should occur.
 //
-// post: No logic is allowed in post, but it is where important
-// checks can happen to make sure the transaction was executed correctly.
+// post: This block contains optional postcondition checks that can be used to
+// verify that the transaction was executed correctly.
+
 transaction {
 
     // No need to do anything in prepare because we are not working with
-    // account storage
+    // account storage.
 	prepare(acct: Account) {}
 	
-    // In execute, we simply call the hello function 
-    // of the HelloWorld contract and print the returned Strig.
+    // In execute, we simply call the hello function
+    // of the HelloWorld contract and log the returned String.
 	execute {
 	  	log(HelloWorld.hello())
 	}
