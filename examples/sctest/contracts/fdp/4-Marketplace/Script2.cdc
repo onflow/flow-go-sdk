@@ -4,7 +4,7 @@ import FungibleToken from 0x01
 import NonFungibleToken from 0x02
 import Marketplace from 0x03
 
-// This script prints the NFTs that account 1 has for sale
+// This script prints the NFTs that account 0x01 has for sale.
 pub fun main() {
     // Get the public account object for account 0x01
     let account1 = getAccount(0x01)
