@@ -2,7 +2,7 @@
 //
 // Welcome to Cadence! This is one of the simplest programs you can deploy on Flow.
 //
-// This contract contains a single string field and a public getter function.
+// The HelloWorld contract contains a single string field and a public getter function.
 //
 // Follow the "Hello, World!" tutorial to learn more: https://docs.onflow.org/docs/hello-world
 
