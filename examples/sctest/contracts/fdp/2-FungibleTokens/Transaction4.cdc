@@ -3,7 +3,6 @@ import FungibleToken from 0x01
 // This transaction is a template for a transaction that
 // could be used by anyone to send tokens to another account
 // that owns a Vault
-
 transaction {
 
     // Temporary Vault object that holds the balance that is being transferred
@@ -24,6 +23,6 @@ transaction {
         // deposit your tokens to their Vault
         receiverRef.deposit(from: <-self.temporaryVault)
 
-        log("Transfer Succeeded!")
+        log("Transfer succeeded!")
     }
 }

@@ -2,12 +2,14 @@
 
 import FungibleToken from 0x01
 
+// This transaction performs a token transfer from one account to another using the
+// FungibleToken contract.
 transaction {
 
-    // local variable for storing the reference to the minter resource
+    // Local variable for storing the reference to the minter resource
     let mintingRef: &FungibleToken.VaultMinter
 
-    // local variable for storing the reference to the Vault of
+    // Local variable for storing the reference to the Vault of
     // the account that will receive the newly minted tokens
     var receiverRef: &FungibleToken.Receiver
 
@@ -19,11 +21,10 @@ transaction {
         // Create a reference to the stored, private minter resource
         self.mintingRef = &acct.storage[FungibleToken.VaultMinter] as &FungibleToken.VaultMinter
 
-        // get account 0x02's public account object
+        // Get the public account object for account 0x02
         let recipient = getAccount(0x02)
 
-        // find their published Reciever reference
-        // and record their balance
+        // Find their published Receiver reference and record their balance
         self.receiverRef = recipient.published[&FungibleToken.Receiver] ?? panic("No receiver reference!")
         self.beforeBalance = self.receiverRef.balance
 	}
@@ -32,7 +33,7 @@ transaction {
         // Mint 30 tokens and deposit them into the recipient's Vault
         self.mintingRef.mintTokens(amount: 30, recipient: self.receiverRef)
 
-        log("30 Tokens minted and deposited to Account 0x02")
+        log("30 tokens minted and deposited to account 0x02")
     }
 
     post {

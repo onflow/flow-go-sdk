@@ -1,10 +1,14 @@
 // NFTv3.cdc
+//
+// This is a complete version of the NonFungibleToken contract
+// that includes withdraw and deposit functionality, as well as a
+// collection resource that can be used to bundle NFTs together.
+//
+// It also includes a definition for the Minter resource,
+// which can be used by admins to mint new NFTs.
+//
+// Learn more about non-fungible tokens in this tutorial: https://docs.onflow.org/docs/non-fungible-tokens
 
-// This declares a complete version of the NFT contract
-// that includes a collection resource that users can use to hold
-// multiple NFTs as well as withdraw and deposit them
-// It also includes a definition for the Minter resource
-// so an admin can mint new NFTs
 access(all) contract NonFungibleToken {
 
     // Declare the NFT resource type
@@ -134,4 +138,3 @@ access(all) contract NonFungibleToken {
         destroy oldMinter
 	}
 }
- 
