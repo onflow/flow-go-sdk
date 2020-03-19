@@ -3,7 +3,13 @@ import NonFungibleToken from 0x02
 
 // Marketplace.cdc
 //
-// Contract that defines a resource where users can put their NFTs up for sale
+// The Marketplace contract is a sample implementation of a Marketplace
+// on Flow.
+//
+// This contract allows users to put their NFTs up for sale. Other users
+// can purchase the for sale NFTs with their fungible tokens.
+//
+// Learn more about marketplaces in this tutorial: https://docs.onflow.org/docs/composable-smart-contracts-marketplace
 //
 access(all) contract Marketplace {
 
@@ -65,13 +71,14 @@ access(all) contract Marketplace {
         access(all) fun listForSale(token: @NonFungibleToken.NFT, price: UInt64) {
             let id = token.id
 
+            // store the price in the price array
             self.prices[id] = price
 
+            // put the NFT into the the forSale dictionary
             let oldToken <- self.forSale[id] <- token
+            destroy oldToken
 
             emit ForSale(id: id, price: price)
-
-            destroy oldToken
         }
 
         // changePrice changes the price of a token that is currently for sale

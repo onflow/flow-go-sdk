@@ -2,15 +2,19 @@
 
 import KittyVerse from 0x01
 
+// This transaction Moves a kitty out of storage
+// Takes the cowboy hat off of the kitty
+// calls its tip hat function, and moves it mack into storage
+
 transaction {
 
 		prepare(acct: Account) {
 
-				// move the Kitty out of storage, which moves its hat along with it
+				// Move the Kitty out of storage, which moves its hat along with it
 				let kittyOpt <- acct.storage[KittyVerse.Kitty] <- nil
 				let kitty <- kittyOpt ?? panic("Kitty doesn't exist!")
 
-				// take the cowboy hat off the Kitty
+				// Take the cowboy hat off the Kitty
 				let cowboyHatOpt <- kitty.items.remove(key: "Cowboy Hat")
 				let cowboyHat <- cowboyHatOpt ?? panic("cowboy hat doesn't exist!")
 

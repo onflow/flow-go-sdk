@@ -3,9 +3,9 @@
 import FungibleToken from 0x01
 import NonFungibleToken from 0x02
 
-// This transaction sets up a Vault for account 2
-// and mints a token that gets deposited into
-// account 1's collection
+// This transaction sets up an empty Vault for account 2
+// and mints an NFT with id=1 that gets deposited into
+// account 1's NFT collection
 transaction {
 
         // public receiver for account 1's NFT Collection
@@ -32,10 +32,16 @@ transaction {
             
             // get account 1's public account object
             let account1 = getAccount(0x01)
+
+            // Get the NFT receiver public reference from account 1
             self.acct1nftReceiver = account1.published[&NonFungibleToken.NFTReceiver] ?? panic("no receiver found")
+
+            // Get the Minter reference from account storage for account 2
             self.minterRef = &acct.storage[NonFungibleToken.NFTMinter] as &NonFungibleToken.NFTMinter
         }
         execute {
+
+            // Mint an NFT and deposit it into account 0x01's collection
             self.minterRef.mintNFT(recipient: self.acct1nftReceiver)
 
             log("New NFT minted for account 1")

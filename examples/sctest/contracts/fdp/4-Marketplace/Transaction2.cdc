@@ -4,8 +4,9 @@ import FungibleToken from 0x01
 import NonFungibleToken from 0x02
 import Marketplace from 0x03
 
-// This transaction purchases an NFT from a different user's sale
-// by sending a Vault with the correct balance to purchase
+// This transaction uses the signers Vault tokens to purchase an NFT
+// from the Sale collection of account 0x01.
+//
 transaction {
 
     // reference to the buyer's NFT collection where they

@@ -5,13 +5,16 @@ import NonFungibleToken from 0x02
 import Marketplace from 0x03
 
 // This script checks to make sure that the accounts'
-// Vault balances and NFT collections are certain values
+// Vault balances and NFT collections are correct
+//
+// Account 1: Vault balance = 50, No NFTs
+// Account 2: Vault balance = 10, NFT ID=1
 pub fun main() {
     // Get both accounts' public account objects
     let account1 = getAccount(0x01)
 	let account2 = getAccount(0x02)
 
-    // get both accounts' published Vault Receiver references 
+    // Get both accounts' published Vault Receiver references 
     let acct1ftRef = account1.published[&FungibleToken.Receiver] ?? panic("missing account 1 vault reference")
     let acct2ftRef = account2.published[&FungibleToken.Receiver] ?? panic("missing account 2 vault reference")
 
@@ -39,10 +42,10 @@ pub fun main() {
     log(acct2nftRef.getIDs())
 
     if acct1nftRef.getIDs().length != 0 || acct2nftRef.getIDs()[0] != UInt64(1) {
-        panic("Wrong Balances!")
+        panic("Wrong NFTs in Collection")
     }
 
-    // get account1's sale reference
+    // Get the public sale reference for Account 0x01
     let acct1SaleRef = account1.published[&Marketplace.SalePublic] ?? panic("missing account 1 Sale reference!")
 
     // print the NFTs that account 1 has for sale
