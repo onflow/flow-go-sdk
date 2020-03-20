@@ -42,4 +42,3 @@ transaction {
         self.receiverRef.balance == self.beforeBalance + UInt64(30): "Minting failed"
     }
 }
- 
