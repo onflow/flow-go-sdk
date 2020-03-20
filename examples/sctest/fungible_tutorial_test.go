@@ -42,7 +42,7 @@ func TestFungibleTokenTutorialContractCreation(t *testing.T) {
                       import FungibleToken from 0x%s
 
                       transaction {
-                          prepare(acct: Account) {
+                          prepare(acct: AuthAccount) {
                               acct.published[&AnyResource{FungibleToken.Receiver}] =
                                    &acct.storage[FungibleToken.Vault] as &AnyResource{FungibleToken.Receiver}
 
@@ -83,7 +83,7 @@ func TestFungibleTokenTutorialContractCreation(t *testing.T) {
 
                       transaction {
 
-                          prepare(acct: Account) {
+                          prepare(acct: AuthAccount) {
                               // create a new vault instance
                               let vaultA <- FungibleToken.createEmptyVault()
 

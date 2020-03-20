@@ -3,7 +3,7 @@ package abi
 import (
 	"fmt"
 
-	"github.com/dapperlabs/flow-go/language"
+	"github.com/dapperlabs/cadence"
 )
 
 func NewEncoder() Encoder {
@@ -14,7 +14,7 @@ type Encoder struct {
 	definitions map[string]interface{}
 }
 
-func (encoder *Encoder) Encode(name string, t language.Type) {
+func (encoder *Encoder) Encode(name string, t cadence.Type) {
 	encoder.definitions[name] = encoder.encode(t)
 }
 
@@ -113,7 +113,7 @@ type variableObject struct {
 
 // endregion
 
-func (encoder *Encoder) mapFields(m []language.Field) []field {
+func (encoder *Encoder) mapFields(m []cadence.Field) []field {
 	ret := make([]field, len(m))
 
 	for i, f := range m {
@@ -126,7 +126,7 @@ func (encoder *Encoder) mapFields(m []language.Field) []field {
 	return ret
 }
 
-func (encoder *Encoder) mapParameters(p []language.Parameter) []parameter {
+func (encoder *Encoder) mapParameters(p []cadence.Parameter) []parameter {
 	ret := make([]parameter, len(p))
 
 	for i := range p {
@@ -142,7 +142,7 @@ func (encoder *Encoder) mapParameters(p []language.Parameter) []parameter {
 	return ret
 }
 
-func (encoder *Encoder) mapNestedParameters(p [][]language.Parameter) [][]parameter {
+func (encoder *Encoder) mapNestedParameters(p [][]cadence.Parameter) [][]parameter {
 
 	ret := make([][]parameter, len(p))
 	for i := range ret {
@@ -152,7 +152,7 @@ func (encoder *Encoder) mapNestedParameters(p [][]language.Parameter) [][]parame
 	return ret
 }
 
-func (encoder *Encoder) mapTypes(types []language.Type) []interface{} {
+func (encoder *Encoder) mapTypes(types []cadence.Type) []interface{} {
 	ret := make([]interface{}, len(types))
 
 	for i, t := range types {
@@ -163,8 +163,8 @@ func (encoder *Encoder) mapTypes(types []language.Type) []interface{} {
 }
 
 // For function return type Void is redundant, so we remove it
-func (encoder *Encoder) encodeReturnType(returnType language.Type) interface{} {
-	if _, ok := returnType.(language.VoidType); ok == true {
+func (encoder *Encoder) encodeReturnType(returnType cadence.Type) interface{} {
+	if _, ok := returnType.(cadence.VoidType); ok == true {
 		return nil
 	}
 	return encoder.encode(returnType)
@@ -172,7 +172,7 @@ func (encoder *Encoder) encodeReturnType(returnType language.Type) interface{} {
 
 const jsonTypeVariable = "variable"
 
-func (encoder *Encoder) encode(t language.Type) interface{} {
+func (encoder *Encoder) encode(t cadence.Type) interface{} {
 
 	if s := typeToJSONString(t); s != "" {
 		return s
@@ -180,15 +180,15 @@ func (encoder *Encoder) encode(t language.Type) interface{} {
 
 	switch v := (t).(type) {
 
-	case language.VariableSizedArrayType:
+	case cadence.VariableSizedArrayType:
 		return arrayObject{array{Of: encoder.encode(v.ElementType)}}
-	case language.ConstantSizedArrayType:
+	case cadence.ConstantSizedArrayType:
 		return arrayObject{array{Of: encoder.encode(v.ElementType), Size: v.Size}}
 
-	case language.OptionalType:
+	case cadence.OptionalType:
 		return optionalObject{Optional: encoder.encode(v.Type)}
 
-	case language.StructType:
+	case cadence.StructType:
 		return structObject{
 			Struct: compositeData{
 				Fields:       encoder.mapFields(v.Fields),
@@ -196,12 +196,12 @@ func (encoder *Encoder) encode(t language.Type) interface{} {
 			},
 		}
 
-	case language.StructPointer:
+	case cadence.StructPointer:
 		return structPointer{
 			v.TypeName,
 		}
 
-	case language.ResourceType:
+	case cadence.ResourceType:
 		return resourceObject{
 			compositeData{
 				Fields:       encoder.mapFields(v.Fields),
@@ -209,12 +209,12 @@ func (encoder *Encoder) encode(t language.Type) interface{} {
 			},
 		}
 
-	case language.ResourcePointer:
+	case cadence.ResourcePointer:
 		return resourcePointer{
 			v.TypeName,
 		}
 
-	case language.EventType:
+	case cadence.EventType:
 		return eventObject{
 			compositeData{
 				Fields:       encoder.mapFields(v.Fields),
@@ -222,12 +222,12 @@ func (encoder *Encoder) encode(t language.Type) interface{} {
 			},
 		}
 
-	case language.EventPointer:
+	case cadence.EventPointer:
 		return eventPointer{
 			v.TypeName,
 		}
 
-	case language.Function:
+	case cadence.Function:
 		return functionObject{
 			function{
 				Parameters: encoder.mapParameters(v.Parameters),
@@ -235,7 +235,7 @@ func (encoder *Encoder) encode(t language.Type) interface{} {
 			},
 		}
 
-	case language.FunctionType:
+	case cadence.FunctionType:
 		return functionObject{
 			functionType{
 				Parameters: encoder.mapTypes(v.ParameterTypes),
@@ -243,7 +243,7 @@ func (encoder *Encoder) encode(t language.Type) interface{} {
 			},
 		}
 
-	case language.DictionaryType:
+	case cadence.DictionaryType:
 		return dictionaryObject{
 			dictionary{
 				Keys:   encoder.encode(v.KeyType),
@@ -251,7 +251,7 @@ func (encoder *Encoder) encode(t language.Type) interface{} {
 			},
 		}
 
-	case language.Variable:
+	case cadence.Variable:
 		return variableObject{
 			encoder.encode(v.Type),
 		}

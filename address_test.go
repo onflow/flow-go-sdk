@@ -20,8 +20,6 @@ func TestAddressJSON(t *testing.T) {
 	data, err := json.Marshal(addressWrapper{Address: addr})
 	require.Nil(t, err)
 
-	t.Log(string(data))
-
 	var out addressWrapper
 	err = json.Unmarshal(data, &out)
 	require.Nil(t, err)

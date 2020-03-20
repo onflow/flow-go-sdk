@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/dapperlabs/flow-go/crypto"
-	"github.com/dapperlabs/flow-go/language"
+	"github.com/dapperlabs/cadence"
 	"github.com/dapperlabs/flow-go/protobuf/sdk/entities"
 	"github.com/dapperlabs/flow-go/protobuf/services/observation"
 	"github.com/golang/mock/gomock"
@@ -19,7 +19,7 @@ import (
 	"github.com/dapperlabs/flow-go-sdk/client/mocks"
 	"github.com/dapperlabs/flow-go-sdk/convert"
 	"github.com/dapperlabs/flow-go-sdk/utils/unittest"
-	"github.com/dapperlabs/flow-go/language/encoding"
+	"github.com/dapperlabs/cadence/encoding"
 )
 
 func TestPing(t *testing.T) {
@@ -135,7 +135,7 @@ func TestExecuteScript(t *testing.T) {
 	c := client.NewFromRPCClient(mockRPC)
 	ctx := context.Background()
 
-	value := language.NewInt(42)
+	value := cadence.NewInt(42)
 	valueBytes, err := encoding.Encode(value)
 	require.NoError(t, err)
 
@@ -149,10 +149,10 @@ func TestExecuteScript(t *testing.T) {
 		b, err := c.ExecuteScript(ctx, []byte("pub fun main(): Int { return 1 }"))
 		assert.NoError(t, err)
 
-		value, err := encoding.Decode(language.IntType{}, b)
+		value, err := encoding.Decode(cadence.IntType{}, b)
 		assert.NoError(t, err)
 
-		assert.Equal(t, language.NewInt(42), value)
+		assert.Equal(t, cadence.NewInt(42), value)
 	})
 
 	t.Run("Server error", func(t *testing.T) {
@@ -223,32 +223,32 @@ func TestGetEvents(t *testing.T) {
 	ctx := context.Background()
 
 	// declare event type used for decoding event payloads
-	mockEventType := language.EventType{
-		CompositeType: language.CompositeType{
+	mockEventType := cadence.EventType{
+		CompositeType: cadence.CompositeType{
 			Identifier: "Transfer",
-			Fields: []language.Field{
+			Fields: []cadence.Field{
 				{
 					Identifier: "to",
-					Type:       language.AddressType{},
+					Type:       cadence.AddressType{},
 				},
 				{
 					Identifier: "from",
-					Type:       language.AddressType{},
+					Type:       cadence.AddressType{},
 				},
 				{
 					Identifier: "amount",
-					Type:       language.IntType{},
+					Type:       cadence.IntType{},
 				},
 			},
 		},
 	}
 
-	to := language.Address(flow.ZeroAddress)
-	from := language.Address(flow.ZeroAddress)
-	amount := language.NewInt(42)
+	to := cadence.Address(flow.ZeroAddress)
+	from := cadence.Address(flow.ZeroAddress)
+	amount := cadence.NewInt(42)
 
-	mockEventValue := language.
-		NewComposite([]language.Value{to, from, amount}).
+	mockEventValue := cadence.
+		NewComposite([]cadence.Value{to, from, amount}).
 		WithType(mockEventType)
 
 	// encode event payload from mock value
@@ -279,7 +279,7 @@ func TestGetEvents(t *testing.T) {
 		actualEvent := events[0]
 
 		value, err := encoding.Decode(mockEventType, actualEvent.Payload)
-		eventValue := value.(language.Composite)
+		eventValue := value.(cadence.Composite)
 
 		assert.Equal(t, actualEvent.Type, mockEvent.Type)
 		assert.Equal(t, to, eventValue.Fields[0])

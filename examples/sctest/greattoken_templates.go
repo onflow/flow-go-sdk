@@ -16,7 +16,7 @@ func GenerateCreateMinterScript(nftAddr flow.Address, initialID, specialMod int)
 
 		transaction {
 
-		  prepare(acct: Account) {
+		  prepare(acct: AuthAccount) {
 			let existing <- acct.storage[GreatToken.GreatNFTMinter] <- GreatToken.createGreatNFTMinter(firstID: %d, specialMod: %d)
 			assert(existing == nil, message: "existed")
 			destroy existing
@@ -37,7 +37,7 @@ func GenerateMintScript(nftCodeAddr flow.Address) []byte {
 
 		transaction {
 
-		  prepare(acct: Account) {
+		  prepare(acct: AuthAccount) {
 			let minter = acct.storage[&GreatToken.GreatNFTMinter] ?? panic("missing minter")
 			let existing <- acct.storage[GreatToken.GreatNFT] <- minter.mint()
 			destroy existing

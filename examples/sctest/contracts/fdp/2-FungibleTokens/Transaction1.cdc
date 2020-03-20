@@ -5,7 +5,7 @@ import FungibleToken from 0x01
 // This transaction publishes a reference to the account's token vault. The reference
 // can only be used to deposit funds into the account.
 transaction {
-    prepare(acct: Account) {
+    prepare(acct: AuthAccount) {
 
         // Cast the Vault as a FungibleToken.Receiver interface, which only exposes the
         // balance field and deposit function of the underlying vault.

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/dapperlabs/flow-go/language"
-	"github.com/dapperlabs/flow-go/language/encoding"
-	"github.com/dapperlabs/flow-go/language/runtime"
+	"github.com/dapperlabs/cadence"
+	"github.com/dapperlabs/cadence/encoding"
+	"github.com/dapperlabs/cadence/runtime"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -17,17 +17,17 @@ import (
 
 func TestEventEmitted(t *testing.T) {
 	// event type definition that is reused in tests
-	myEventType := language.EventType{
-		CompositeType: language.CompositeType{
+	myEventType := cadence.EventType{
+		CompositeType: cadence.CompositeType{
 			Identifier: "MyEvent",
-			Fields: []language.Field{
+			Fields: []cadence.Field{
 				{
 					Identifier: "x",
-					Type:       language.IntType{},
+					Type:       cadence.IntType{},
 				},
 				{
 					Identifier: "y",
-					Type:       language.IntType{},
+					Type:       cadence.IntType{},
 				},
 			},
 		},
@@ -54,7 +54,7 @@ func TestEventEmitted(t *testing.T) {
 		eventValue, err := encoding.Decode(myEventType, actualEvent.Payload)
 		assert.NoError(t, err)
 
-		decodedEvent := eventValue.(language.Composite)
+		decodedEvent := eventValue.(cadence.Composite)
 
 		location := runtime.ScriptLocation(result.ScriptHash)
 		expectedType := fmt.Sprintf("%s.MyEvent", location.ID())
@@ -62,8 +62,8 @@ func TestEventEmitted(t *testing.T) {
 		// NOTE: ID is undefined for events emitted from scripts
 
 		assert.Equal(t, expectedType, actualEvent.Type)
-		assert.Equal(t, language.NewInt(1), decodedEvent.Fields[0])
-		assert.Equal(t, language.NewInt(2), decodedEvent.Fields[1])
+		assert.Equal(t, cadence.NewInt(1), decodedEvent.Fields[0])
+		assert.Equal(t, cadence.NewInt(2), decodedEvent.Fields[1])
 	})
 
 	t.Run("EmittedFromAccount", func(t *testing.T) {
@@ -130,13 +130,13 @@ func TestEventEmitted(t *testing.T) {
 		eventValue, err := encoding.Decode(myEventType, actualEvent.Payload)
 		assert.NoError(t, err)
 
-		decodedEvent := eventValue.(language.Composite)
+		decodedEvent := eventValue.(cadence.Composite)
 
 		expectedID := flow.Event{TxHash: tx.Hash(), Index: 0}.ID()
 
 		assert.Equal(t, expectedType, actualEvent.Type)
 		assert.Equal(t, expectedID, actualEvent.ID())
-		assert.Equal(t, language.NewInt(1), decodedEvent.Fields[0])
-		assert.Equal(t, language.NewInt(2), decodedEvent.Fields[1])
+		assert.Equal(t, cadence.NewInt(1), decodedEvent.Fields[0])
+		assert.Equal(t, cadence.NewInt(2), decodedEvent.Fields[1])
 	})
 }
