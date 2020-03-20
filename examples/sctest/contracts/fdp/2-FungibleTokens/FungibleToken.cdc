@@ -159,4 +159,3 @@ access(all) contract FungibleToken {
         destroy oldMinter
     }
 }
- 

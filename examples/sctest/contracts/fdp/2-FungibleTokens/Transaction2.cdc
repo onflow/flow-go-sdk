@@ -27,4 +27,3 @@ transaction {
         getAccount(0x02).published[&FungibleToken.Receiver] != nil:  "Vault Receiver Reference was not created correctly"
     }
 }
- 

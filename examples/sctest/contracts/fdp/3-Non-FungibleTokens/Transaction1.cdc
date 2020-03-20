@@ -2,7 +2,7 @@
 
 import NonFungibleToken from 0x04
 
-// This is a transaction that checks if an NFT exists in storage.
+// This transaction checks if an NFT exists in the storage of the given account.
 transaction {
     prepare(acct: Account) {
         if acct.storage[NonFungibleToken.NFT] != nil {
