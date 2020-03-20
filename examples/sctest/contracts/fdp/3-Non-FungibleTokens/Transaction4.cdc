@@ -6,7 +6,7 @@ import NonFungibleToken from 0x02
 // to use the NFT contract by creating a new empty collection,
 // storing it in their account storage, and publishing a reference.
 transaction {
-    prepare(acct: Account) {
+    prepare(acct: AuthAccount) {
 
         // Create a new empty collection
         let collection <- NonFungibleToken.createEmptyCollection()

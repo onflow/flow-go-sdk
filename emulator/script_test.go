@@ -3,7 +3,7 @@ package emulator_test
 import (
 	"testing"
 
-	"github.com/dapperlabs/flow-go/language"
+	"github.com/dapperlabs/cadence"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -39,7 +39,7 @@ func TestExecuteScript(t *testing.T) {
 	// Sample call (value is 0)
 	scriptResult, err := b.ExecuteScript([]byte(callScript))
 	require.NoError(t, err)
-	assert.Equal(t, language.NewInt(0), scriptResult.Value)
+	assert.Equal(t, cadence.NewInt(0), scriptResult.Value)
 
 	// Submit tx (script adds 2)
 	err = b.AddTransaction(tx)
@@ -55,7 +55,7 @@ func TestExecuteScript(t *testing.T) {
 		// Sample call (value is still 0)
 		result, err := b.ExecuteScript([]byte(callScript))
 		require.NoError(t, err)
-		assert.Equal(t, language.NewInt(0), result.Value)
+		assert.Equal(t, cadence.NewInt(0), result.Value)
 	})
 
 	_, err = b.CommitBlock()
@@ -65,7 +65,7 @@ func TestExecuteScript(t *testing.T) {
 		// Sample call (value is 2)
 		result, err := b.ExecuteScript([]byte(callScript))
 		require.NoError(t, err)
-		assert.Equal(t, language.NewInt(2), result.Value)
+		assert.Equal(t, cadence.NewInt(2), result.Value)
 	})
 }
 

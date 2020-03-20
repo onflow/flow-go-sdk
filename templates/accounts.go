@@ -28,7 +28,7 @@ func CreateAccount(accountKeys []flow.AccountPublicKey, code []byte) ([]byte, er
 		`
             transaction {
               execute {
-                Account(publicKeys: %s, code: "%s".decodeHex())
+                AuthAccount(publicKeys: %s, code: "%s".decodeHex())
               }
             }
         `,
@@ -44,7 +44,7 @@ func UpdateAccountCode(code []byte) []byte {
 	return []byte(fmt.Sprintf(
 		`
             transaction {
-              prepare(signer: Account) {
+              prepare(signer: AuthAccount) {
                 signer.setCode("%s".decodeHex())
               }
             }
@@ -64,7 +64,7 @@ func AddAccountKey(accountKey flow.AccountPublicKey) ([]byte, error) {
 
 	script := fmt.Sprintf(`
         transaction {
-          prepare(signer: Account) {
+          prepare(signer: AuthAccount) {
             signer.addPublicKey(%s)
           }
         }
@@ -77,7 +77,7 @@ func AddAccountKey(accountKey flow.AccountPublicKey) ([]byte, error) {
 func RemoveAccountKey(index int) []byte {
 	script := fmt.Sprintf(`
         transaction {
-          prepare(signer: Account) {
+          prepare(signer: AuthAccount) {
             signer.removePublicKey(%d)
           }
         }

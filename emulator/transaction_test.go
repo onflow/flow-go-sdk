@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/dapperlabs/cadence/runtime/interpreter"
 	"github.com/dapperlabs/flow-go/crypto"
-	"github.com/dapperlabs/flow-go/language"
-	"github.com/dapperlabs/flow-go/language/encoding"
-	"github.com/dapperlabs/flow-go/language/runtime"
+	"github.com/dapperlabs/cadence"
+	"github.com/dapperlabs/cadence/encoding"
+	"github.com/dapperlabs/cadence/runtime"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -237,7 +238,7 @@ func TestSubmitTransactionScriptAccounts(t *testing.T) {
 		// script only supports one account
 		script := []byte(`
 		  transaction {
-		    prepare(signer: Account) {}
+		    prepare(signer: AuthAccount) {}
 		  }
 		`)
 
@@ -275,7 +276,7 @@ func TestSubmitTransactionScriptAccounts(t *testing.T) {
 		// script requires two accounts
 		script := []byte(`
 		  transaction {
-		    prepare(signerA: Account, signerB: Account) {}
+		    prepare(signerA: AuthAccount, signerB: AuthAccount) {}
 		  }
 		`)
 
@@ -402,7 +403,7 @@ func TestSubmitTransactionPayerSignature(t *testing.T) {
 
 		script := []byte(`
 		  transaction {
-		    prepare(signer: Account) {}
+		    prepare(signer: AuthAccount) {}
 		  }
 		`)
 
@@ -488,7 +489,7 @@ func TestSubmitTransactionScriptSignatures(t *testing.T) {
 
 		multipleAccountScript := []byte(`
 		  transaction {
-		    prepare(signerA: Account, signerB: Account) {
+		    prepare(signerA: AuthAccount, signerB: AuthAccount) {
 		      log(signerA.address)
 			  log(signerB.address)
 		    }
@@ -520,8 +521,15 @@ func TestSubmitTransactionScriptSignatures(t *testing.T) {
 		assert.NoError(t, err)
 		assert.True(t, result.Succeeded())
 
-		assert.Contains(t, result.Logs, fmt.Sprintf("%x", accountAddressA.Bytes()))
-		assert.Contains(t, result.Logs, fmt.Sprintf("%x", accountAddressB.Bytes()))
+		assert.Contains(t,
+			result.Logs,
+			interpreter.NewAddressValueFromBytes(accountAddressA.Bytes()).String(),
+		)
+
+		assert.Contains(t,
+			result.Logs,
+			interpreter.NewAddressValueFromBytes(accountAddressB.Bytes()).String(),
+		)
 	})
 }
 
@@ -571,7 +579,7 @@ func TestGetTransaction(t *testing.T) {
 		eventValue, err := encoding.Decode(countIncrementedType, actualEvent.Payload)
 		require.NoError(t, err)
 
-		decodedEvent := eventValue.(language.Composite)
+		decodedEvent := eventValue.(cadence.Composite)
 
 		location := runtime.AddressLocation(counterAddress.Bytes())
 		eventType := fmt.Sprintf("%s.Counting.CountIncremented", location.ID())
@@ -579,6 +587,6 @@ func TestGetTransaction(t *testing.T) {
 		assert.Equal(t, tx.Hash(), actualEvent.TxHash)
 		assert.Equal(t, eventType, actualEvent.Type)
 		assert.Equal(t, uint(0), actualEvent.Index)
-		assert.Equal(t, language.NewInt(2), decodedEvent.Fields[0])
+		assert.Equal(t, cadence.NewInt(2), decodedEvent.Fields[0])
 	})
 }

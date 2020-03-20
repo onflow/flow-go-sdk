@@ -17,7 +17,7 @@ transaction {
     // used for the post condition of the transaction.
     var beforeBalance: UInt64
 
-	prepare(acct: Account) {
+	prepare(acct: AuthAccount) {
         // Create a reference to the stored, private minter resource
         self.mintingRef = &acct.storage[FungibleToken.VaultMinter] as &FungibleToken.VaultMinter
 
