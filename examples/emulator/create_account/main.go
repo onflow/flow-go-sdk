@@ -13,41 +13,7 @@ import (
 )
 
 func main() {
-	SendTransaction()
-}
-
-func SendTransaction() {
-	ctx := context.Background()
-	flowClient, err := client.New("127.0.0.1:3569")
-	utils.Handle(err)
-
-	rootAcctAddr, rootAcctKey := utils.RootAccount()
-
-	createAccountTx := flow.Transaction{
-		Script: []byte(`
-			transaction {
-				execute {
-					log("Initialized marketplace")
-					log("Minted 100 tokens, deposited to 0xf5a1c511")
-					log("5 tokens transferred from 0xf5a1c511 to 0xf87db879")
-					log("5 tokens transferred from 0xf5a1c511 to 0x30770201")
-					log("5 tokens transferred from 0xf5a1c511 to a235513c")
-				}
-			}
-		`),
-		Nonce:          utils.GetNonce(),
-		ComputeLimit:   10,
-		ScriptAccounts: nil,
-		PayerAccount:   rootAcctAddr,
-	}
-
-	sig, err := keys.SignTransaction(createAccountTx, rootAcctKey)
-	utils.Handle(err)
-
-	createAccountTx.AddSignature(rootAcctAddr, sig)
-
-	err = flowClient.SendTransaction(ctx, createAccountTx)
-	utils.Handle(err)
+	CreateAccountDemo()
 }
 
 func CreateAccountDemo() {
