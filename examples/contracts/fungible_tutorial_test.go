@@ -1,4 +1,4 @@
-package sctest
+package contracts
 
 import (
 	"fmt"
@@ -8,6 +8,7 @@ import (
 
 	"github.com/dapperlabs/flow-go-sdk"
 	"github.com/dapperlabs/flow-go-sdk/keys"
+	"github.com/dapperlabs/flow-go-sdk/utils/examples"
 )
 
 const (
@@ -15,11 +16,11 @@ const (
 )
 
 func TestFungibleTokenTutorialContractDeployment(t *testing.T) {
-	b := newEmulator()
+	b := examples.NewEmulator()
 
 	// Should be able to deploy a contract as a new account with no keys.
-	tokenCode := ReadFile(fungibleTokenTutorialContractFile)
-	_, err := b.CreateAccount(nil, tokenCode, GetNonce())
+	tokenCode := examples.ReadFile(fungibleTokenTutorialContractFile)
+	_, err := b.CreateAccount(nil, tokenCode, examples.GetNonce())
 	assert.NoError(t, err)
 
 	_, err = b.CommitBlock()
@@ -27,11 +28,11 @@ func TestFungibleTokenTutorialContractDeployment(t *testing.T) {
 }
 
 func TestFungibleTokenTutorialContractCreation(t *testing.T) {
-	b := newEmulator()
+	b := examples.NewEmulator()
 
 	// First, *update* the contract
-	tokenCode := ReadFile(fungibleTokenTutorialContractFile)
-	err := b.UpdateAccountCode(tokenCode, GetNonce())
+	tokenCode := examples.ReadFile(fungibleTokenTutorialContractFile)
+	err := b.UpdateAccountCode(tokenCode, examples.GetNonce())
 	assert.NoError(t, err)
 
 	t.Run("Set up account 1", func(t *testing.T) {
@@ -54,13 +55,13 @@ func TestFungibleTokenTutorialContractCreation(t *testing.T) {
 					b.RootAccountAddress().Short(),
 				),
 			),
-			Nonce:          GetNonce(),
+			Nonce:          examples.GetNonce(),
 			ComputeLimit:   10,
 			PayerAccount:   b.RootAccountAddress(),
 			ScriptAccounts: []flow.Address{b.RootAccountAddress()},
 		}
 
-		SignAndSubmit(t, b, tx, []flow.AccountPrivateKey{b.RootKey()}, []flow.Address{b.RootAccountAddress()}, false)
+		examples.SignAndSubmit(t, b, tx, []flow.AccountPrivateKey{b.RootKey()}, []flow.Address{b.RootAccountAddress()}, false)
 	})
 
 	var account2Address flow.Address
@@ -69,7 +70,7 @@ func TestFungibleTokenTutorialContractCreation(t *testing.T) {
 
 		var err error
 		publicKeys := []flow.AccountPublicKey{b.RootKey().PublicKey(keys.PublicKeyWeightThreshold)}
-		account2Address, err = b.CreateAccount(publicKeys, nil, GetNonce())
+		account2Address, err = b.CreateAccount(publicKeys, nil, examples.GetNonce())
 		assert.NoError(t, err)
 	})
 
@@ -103,12 +104,12 @@ func TestFungibleTokenTutorialContractCreation(t *testing.T) {
 					b.RootAccountAddress().Short(),
 				),
 			),
-			Nonce:          GetNonce(),
+			Nonce:          examples.GetNonce(),
 			ComputeLimit:   10,
 			PayerAccount:   account2Address,
 			ScriptAccounts: []flow.Address{account2Address},
 		}
 
-		SignAndSubmit(t, b, tx, []flow.AccountPrivateKey{b.RootKey()}, []flow.Address{account2Address}, false)
+		examples.SignAndSubmit(t, b, tx, []flow.AccountPrivateKey{b.RootKey()}, []flow.Address{account2Address}, false)
 	})
 }
