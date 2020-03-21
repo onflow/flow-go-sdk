@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/dapperlabs/flow-go/language"
-	"github.com/dapperlabs/flow-go/language/encoding"
+	"github.com/dapperlabs/cadence"
+	"github.com/dapperlabs/cadence/encoding"
 
 	"github.com/dapperlabs/flow-go-sdk"
 	"github.com/dapperlabs/flow-go-sdk/client"
@@ -136,10 +136,10 @@ func main() {
 	result, err := flowClient.ExecuteScript(ctx, contracts.GenerateGetNFTIDScript(nftAddress, myAddress))
 	utils.Handle(err)
 
-	myTokenID, err := encoding.Decode(language.IntType{}, result)
+	myTokenID, err := encoding.Decode(cadence.IntType{}, result)
 	utils.Handle(err)
 
-	id := myTokenID.(language.Int)
+	id := myTokenID.(cadence.Int)
 
 	fmt.Printf("You now own the Great NFT with ID: %d\n", id.Int())
 }
