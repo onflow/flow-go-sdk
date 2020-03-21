@@ -8,7 +8,7 @@ import (
 	"github.com/dapperlabs/flow-go-sdk/client"
 	"github.com/dapperlabs/flow-go-sdk/keys"
 
-	"github.com/dapperlabs/flow-developer-demo/examples/utils"
+	utils "github.com/dapperlabs/flow-go-sdk/utils/examples"
 )
 
 func main() {
@@ -22,8 +22,7 @@ func QueryEventsDemo() {
 	flowClient, err := client.New("127.0.0.1:3569")
 	utils.Handle(err)
 
-	// Deploy a smart contract with an event defined
-	//
+	// Deploy a contract with an event defined
 	contract := `
 		pub contract EventDemo {
 			pub event Add(x: Int, y: Int, sum: Int)
@@ -38,7 +37,6 @@ func QueryEventsDemo() {
 	contractAddr := utils.DeployContract([]byte(contract))
 
 	// Send a tx that emits the event in the deployed contract
-	//
 	script := fmt.Sprintf(`
 		import EventDemo from 0x%s
 

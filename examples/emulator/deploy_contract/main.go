@@ -4,15 +4,15 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/dapperlabs/flow-go-sdk"
-	"github.com/dapperlabs/flow-go-sdk/client"
-	"github.com/dapperlabs/flow-go-sdk/keys"
-	"github.com/dapperlabs/flow-go-sdk/templates"
 	"github.com/dapperlabs/flow-go/language"
 	"github.com/dapperlabs/flow-go/language/encoding"
 
-	"github.com/dapperlabs/flow-developer-demo/examples/contracts"
-	"github.com/dapperlabs/flow-developer-demo/examples/utils"
+	"github.com/dapperlabs/flow-go-sdk"
+	"github.com/dapperlabs/flow-go-sdk/client"
+	"github.com/dapperlabs/flow-go-sdk/examples/contracts"
+	"github.com/dapperlabs/flow-go-sdk/keys"
+	"github.com/dapperlabs/flow-go-sdk/templates"
+	utils "github.com/dapperlabs/flow-go-sdk/utils/examples"
 )
 
 const GreatTokenContractFile = "../contracts/contracts/great-token.cdc"
