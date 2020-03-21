@@ -1,4 +1,4 @@
-package sctest
+package contracts
 
 import (
 	"testing"
@@ -8,6 +8,7 @@ import (
 
 	"github.com/dapperlabs/flow-go-sdk"
 	"github.com/dapperlabs/flow-go-sdk/keys"
+	"github.com/dapperlabs/flow-go-sdk/utils/examples"
 )
 
 const (
@@ -15,11 +16,11 @@ const (
 )
 
 func TestNFTDeployment(t *testing.T) {
-	b := newEmulator()
+	b := examples.NewEmulator()
 
 	// Should be able to deploy a contract as a new account with no keys.
-	tokenCode := ReadFile(NFTContractFile)
-	_, err := b.CreateAccount(nil, tokenCode, GetNonce())
+	tokenCode := examples.ReadFile(NFTContractFile)
+	_, err := b.CreateAccount(nil, tokenCode, examples.GetNonce())
 	if !assert.NoError(t, err) {
 		t.Log(err.Error())
 	}
@@ -28,36 +29,36 @@ func TestNFTDeployment(t *testing.T) {
 }
 
 func TestCreateNFT(t *testing.T) {
-	b := newEmulator()
+	b := examples.NewEmulator()
 
 	// First, deploy the contract
-	tokenCode := ReadFile(NFTContractFile)
-	contractAddr, err := b.CreateAccount(nil, tokenCode, GetNonce())
+	tokenCode := examples.ReadFile(NFTContractFile)
+	contractAddr, err := b.CreateAccount(nil, tokenCode, examples.GetNonce())
 	assert.NoError(t, err)
 
 	// Vault must be instantiated with a positive ID
 	t.Run("Cannot create token with negative ID", func(t *testing.T) {
 		tx := flow.Transaction{
 			Script:         GenerateCreateNFTScript(contractAddr, -7),
-			Nonce:          GetNonce(),
+			Nonce:          examples.GetNonce(),
 			ComputeLimit:   10,
 			PayerAccount:   b.RootAccountAddress(),
 			ScriptAccounts: []flow.Address{b.RootAccountAddress()},
 		}
 
-		SignAndSubmit(t, b, tx, []flow.AccountPrivateKey{b.RootKey()}, []flow.Address{b.RootAccountAddress()}, true)
+		examples.SignAndSubmit(t, b, tx, []flow.AccountPrivateKey{b.RootKey()}, []flow.Address{b.RootAccountAddress()}, true)
 	})
 
 	t.Run("Should be able to create token", func(t *testing.T) {
 		tx := flow.Transaction{
 			Script:         GenerateCreateNFTScript(contractAddr, 1),
-			Nonce:          GetNonce(),
+			Nonce:          examples.GetNonce(),
 			ComputeLimit:   20,
 			PayerAccount:   b.RootAccountAddress(),
 			ScriptAccounts: []flow.Address{b.RootAccountAddress()},
 		}
 
-		SignAndSubmit(t, b, tx, []flow.AccountPrivateKey{b.RootKey()}, []flow.Address{b.RootAccountAddress()}, false)
+		examples.SignAndSubmit(t, b, tx, []flow.AccountPrivateKey{b.RootKey()}, []flow.Address{b.RootAccountAddress()}, false)
 	})
 
 	// Assert that the account's collection is correct
@@ -74,23 +75,23 @@ func TestCreateNFT(t *testing.T) {
 }
 
 func TestTransferNFT(t *testing.T) {
-	b := newEmulator()
+	b := examples.NewEmulator()
 
 	// First, deploy the contract
-	tokenCode := ReadFile(NFTContractFile)
-	contractAddr, err := b.CreateAccount(nil, tokenCode, GetNonce())
+	tokenCode := examples.ReadFile(NFTContractFile)
+	contractAddr, err := b.CreateAccount(nil, tokenCode, examples.GetNonce())
 	assert.NoError(t, err)
 
 	// then deploy a NFT to the root account
 	tx := flow.Transaction{
 		Script:         GenerateCreateNFTScript(contractAddr, 1),
-		Nonce:          GetNonce(),
+		Nonce:          examples.GetNonce(),
 		ComputeLimit:   20,
 		PayerAccount:   b.RootAccountAddress(),
 		ScriptAccounts: []flow.Address{b.RootAccountAddress()},
 	}
 
-	SignAndSubmit(t, b, tx, []flow.AccountPrivateKey{b.RootKey()}, []flow.Address{b.RootAccountAddress()}, false)
+	examples.SignAndSubmit(t, b, tx, []flow.AccountPrivateKey{b.RootKey()}, []flow.Address{b.RootAccountAddress()}, false)
 
 	// Assert that the account's collection is correct
 	result, err := b.ExecuteScript(GenerateInspectCollectionScript(contractAddr, b.RootAccountAddress(), 1, true))
@@ -100,32 +101,32 @@ func TestTransferNFT(t *testing.T) {
 	}
 
 	// create a new account
-	bastianPrivateKey := randomKey()
+	bastianPrivateKey := examples.RandomPrivateKey()
 	bastianPublicKey := bastianPrivateKey.PublicKey(keys.PublicKeyWeightThreshold)
-	bastianAddress, err := b.CreateAccount([]flow.AccountPublicKey{bastianPublicKey}, nil, GetNonce())
+	bastianAddress, err := b.CreateAccount([]flow.AccountPublicKey{bastianPublicKey}, nil, examples.GetNonce())
 
 	// then deploy an NFT to another account
 	tx = flow.Transaction{
 		Script:         GenerateCreateNFTScript(contractAddr, 2),
-		Nonce:          GetNonce(),
+		Nonce:          examples.GetNonce(),
 		ComputeLimit:   20,
 		PayerAccount:   b.RootAccountAddress(),
 		ScriptAccounts: []flow.Address{bastianAddress},
 	}
 
-	SignAndSubmit(t, b, tx, []flow.AccountPrivateKey{b.RootKey(), bastianPrivateKey}, []flow.Address{b.RootAccountAddress(), bastianAddress}, false)
+	examples.SignAndSubmit(t, b, tx, []flow.AccountPrivateKey{b.RootKey(), bastianPrivateKey}, []flow.Address{b.RootAccountAddress(), bastianAddress}, false)
 
 	// transfer an NFT
 	t.Run("Should be able to withdraw an NFT and deposit to another accounts collection", func(t *testing.T) {
 		tx := flow.Transaction{
 			Script:         GenerateDepositScript(contractAddr, bastianAddress, 1),
-			Nonce:          GetNonce(),
+			Nonce:          examples.GetNonce(),
 			ComputeLimit:   20,
 			PayerAccount:   b.RootAccountAddress(),
 			ScriptAccounts: []flow.Address{b.RootAccountAddress()},
 		}
 
-		SignAndSubmit(t, b, tx, []flow.AccountPrivateKey{b.RootKey()}, []flow.Address{b.RootAccountAddress()}, false)
+		examples.SignAndSubmit(t, b, tx, []flow.AccountPrivateKey{b.RootKey()}, []flow.Address{b.RootAccountAddress()}, false)
 
 		// Assert that the account's collection is correct
 		result, err = b.ExecuteScript(GenerateInspectCollectionScript(contractAddr, bastianAddress, 1, true))

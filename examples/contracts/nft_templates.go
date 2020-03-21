@@ -1,4 +1,4 @@
-package sctest
+package contracts
 
 import (
 	"fmt"
