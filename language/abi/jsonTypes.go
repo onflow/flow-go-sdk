@@ -1,73 +1,73 @@
 package abi
 
 import (
-	"github.com/dapperlabs/flow-go/language"
+	"github.com/dapperlabs/cadence"
 )
 
-func jsonStringToType(jsonString string) language.Type {
+func jsonStringToType(jsonString string) cadence.Type {
 	switch jsonString {
 	case "AnyStruct":
-		return language.AnyStructType{}
+		return cadence.AnyStructType{}
 	case "AnyResource":
-		return language.AnyResourceType{}
+		return cadence.AnyResourceType{}
 	case "Bool":
-		return language.BoolType{}
+		return cadence.BoolType{}
 	case "Void":
-		return language.VoidType{}
+		return cadence.VoidType{}
 	case "String":
-		return language.StringType{}
+		return cadence.StringType{}
 	case "Int":
-		return language.IntType{}
+		return cadence.IntType{}
 	case "Int8":
-		return language.Int8Type{}
+		return cadence.Int8Type{}
 	case "Int16":
-		return language.Int16Type{}
+		return cadence.Int16Type{}
 	case "Int32":
-		return language.Int32Type{}
+		return cadence.Int32Type{}
 	case "Int64":
-		return language.Int64Type{}
+		return cadence.Int64Type{}
 	case "UInt8":
-		return language.UInt8Type{}
+		return cadence.UInt8Type{}
 	case "UInt16":
-		return language.UInt16Type{}
+		return cadence.UInt16Type{}
 	case "UInt32":
-		return language.UInt32Type{}
+		return cadence.UInt32Type{}
 	case "UInt64":
-		return language.UInt64Type{}
+		return cadence.UInt64Type{}
 	}
 
 	return nil
 }
 
-func typeToJSONString(t language.Type) string {
+func typeToJSONString(t cadence.Type) string {
 	switch t.(type) {
-	case language.AnyStructType:
+	case cadence.AnyStructType:
 		return "AnyStruct"
-	case language.AnyResourceType:
+	case cadence.AnyResourceType:
 		return "AnyResource"
-	case language.BoolType:
+	case cadence.BoolType:
 		return "Bool"
-	case language.VoidType:
+	case cadence.VoidType:
 		return "Void"
-	case language.StringType:
+	case cadence.StringType:
 		return "String"
-	case language.IntType:
+	case cadence.IntType:
 		return "Int"
-	case language.Int8Type:
+	case cadence.Int8Type:
 		return "Int8"
-	case language.Int16Type:
+	case cadence.Int16Type:
 		return "Int16"
-	case language.Int32Type:
+	case cadence.Int32Type:
 		return "Int32"
-	case language.Int64Type:
+	case cadence.Int64Type:
 		return "Int64"
-	case language.UInt8Type:
+	case cadence.UInt8Type:
 		return "UInt8"
-	case language.UInt16Type:
+	case cadence.UInt16Type:
 		return "UInt16"
-	case language.UInt32Type:
+	case cadence.UInt32Type:
 		return "UInt32"
-	case language.UInt64Type:
+	case cadence.UInt64Type:
 		return "UInt64"
 	}
 

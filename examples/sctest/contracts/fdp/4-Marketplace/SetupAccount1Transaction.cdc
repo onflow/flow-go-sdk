@@ -6,7 +6,7 @@ import NonFungibleToken from 0x02
 // This transaction sets up account 0x01 for the marketplace tutorial
 // by publishing a Vault reference and creating an empty NFT Collection.
 transaction {
-    prepare(acct: Account) {
+    prepare(acct: AuthAccount) {
         // Create a public Receiver reference to the Vault
         let receiverRef = &acct.storage[FungibleToken.Vault] as &FungibleToken.Receiver
         acct.published[&FungibleToken.Receiver] = receiverRef

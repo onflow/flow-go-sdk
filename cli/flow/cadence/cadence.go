@@ -1,7 +1,7 @@
 package cadence
 
 import (
-	"github.com/dapperlabs/flow-go/language/runtime/cmd/execute"
+	"github.com/dapperlabs/cadence/runtime/cmd/execute"
 	"github.com/spf13/cobra"
 
 	"github.com/dapperlabs/flow-go-sdk/cli/flow/cadence/abi"

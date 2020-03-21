@@ -3,8 +3,8 @@ package example
 import (
 	"bytes"
 
-	"github.com/dapperlabs/flow-go/language"
-	"github.com/dapperlabs/flow-go/language/encoding"
+	"github.com/dapperlabs/cadence"
+	"github.com/dapperlabs/cadence/encoding"
 )
 
 type PersonView interface {
@@ -13,7 +13,7 @@ type PersonView interface {
 
 type personView struct {
 	_fullName string
-	value     language.Composite
+	value     cadence.Composite
 }
 
 func (p personView) FullName() string {
@@ -35,9 +35,9 @@ func (p personConstructor) Encode() ([]byte, error) {
 	encoder := encoding.NewEncoder(&w)
 
 	err := encoder.EncodeConstantSizedArray(
-		language.NewConstantSizedArray([]language.Value{
-			language.NewString(p.firstName),
-			language.NewString(p.lastName),
+		cadence.NewConstantSizedArray([]cadence.Value{
+			cadence.NewString(p.firstName),
+			cadence.NewString(p.lastName),
 		}),
 	)
 
@@ -55,22 +55,22 @@ func NewPersonConstructor(firstName string, lastName string) (PersonConstructor,
 	}, nil
 }
 
-var personType = language.CompositeType{
-	Fields: []language.Field{
+var personType = cadence.CompositeType{
+	Fields: []cadence.Field{
 		{
 			Identifier: "FullName",
-			Type:       language.StringType{},
+			Type:       cadence.StringType{},
 		},
 	},
-	Initializers: [][]language.Parameter{
+	Initializers: [][]cadence.Parameter{
 		{
 			{
 				Identifier: "firstName",
-				Type:       language.StringType{},
+				Type:       cadence.StringType{},
 			},
 			{
 				Identifier: "lastName",
-				Type:       language.StringType{},
+				Type:       cadence.StringType{},
 			},
 		},
 	},
@@ -86,6 +86,6 @@ func DecodePersonView(b []byte) (PersonView, error) {
 	}
 
 	return personView{
-		_fullName: string(v.Fields[0].(language.String)),
+		_fullName: string(v.Fields[0].(cadence.String)),
 	}, nil
 }

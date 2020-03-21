@@ -21,7 +21,7 @@ transaction {
 
     // No need to do anything in prepare because we are not working with
     // account storage.
-	prepare(acct: Account) {}
+	prepare(acct: AuthAccount) {}
 	
     // In execute, we simply call the hello function
     // of the HelloWorld contract and log the returned String.

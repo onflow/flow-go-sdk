@@ -8,7 +8,7 @@ transaction {
     // Temporary Vault object that holds the balance that is being transferred
     var temporaryVault: @FungibleToken.Vault
 
-    prepare(acct: Account) {
+    prepare(acct: AuthAccount) {
         // withdraw tokens from your vault
         self.temporaryVault <- acct.storage[FungibleToken.Vault]?.withdraw(amount: 10) ?? panic("No Vault!")
     }

@@ -15,7 +15,7 @@ import (
 	"github.com/dapperlabs/flow-go-sdk"
 	"github.com/dapperlabs/flow-go-sdk/convert"
 	"github.com/dapperlabs/flow-go-sdk/emulator"
-	"github.com/dapperlabs/flow-go/language/encoding"
+	"github.com/dapperlabs/cadence/encoding"
 )
 
 // Backend wraps an emulated blockchain and implements the RPC handlers

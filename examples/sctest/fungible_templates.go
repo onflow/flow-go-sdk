@@ -16,7 +16,7 @@ func GenerateCreateTokenScript(tokenAddr flow.Address, initialBalance int) []byt
 
       transaction {
 
-          prepare(acct: Account) {
+          prepare(acct: AuthAccount) {
               let oldVault <- acct.storage[FlowToken.Vault] <- FlowToken.createVault(initialBalance: %d)
               destroy oldVault
 
@@ -44,7 +44,7 @@ func GenerateCreateThreeTokensArrayScript(tokenAddr flow.Address, initialBalance
 
 		transaction {
 
-		  prepare(acct: Account) {
+		  prepare(acct: AuthAccount) {
 			let vaultA <- FlowToken.createVault(initialBalance: %d)
     		let vaultB <- FlowToken.createVault(initialBalance: %d)
 			let vaultC <- FlowToken.createVault(initialBalance: %d)
@@ -70,7 +70,7 @@ func GenerateWithdrawScript(tokenCodeAddr flow.Address, vaultNumber int, withdra
 		import FungibleToken, FlowToken from 0x%s
 
 		transaction {
-		  prepare(acct: Account) {
+		  prepare(acct: AuthAccount) {
 			var vaultArray <- acct.storage[[FlowToken.Vault]] ?? panic("missing vault array!")
 			
 			let withdrawVault <- vaultArray[%d].withdraw(amount: %d)
@@ -95,7 +95,7 @@ func GenerateWithdrawDepositScript(tokenCodeAddr flow.Address, withdrawVaultNumb
 		import FungibleToken, FlowToken from 0x%s
 
 		transaction {
-		  prepare(acct: Account) {
+		  prepare(acct: AuthAccount) {
 			var vaultArray <- acct.storage[[FlowToken.Vault]] ?? panic("missing vault array!")
 			
 			let withdrawVault <- vaultArray[%d].withdraw(amount: %d)
@@ -120,7 +120,7 @@ func GenerateDepositVaultScript(tokenCodeAddr flow.Address, receiverAddr flow.Ad
 		import FungibleToken, FlowToken from 0x%s
 
 		transaction {
-		  prepare(acct: Account) {
+		  prepare(acct: AuthAccount) {
 			let recipient = getAccount(0x%s)
 
 			let providerRef = acct.published[&AnyResource{FungibleToken.Provider}] ?? panic("missing Provider reference")
