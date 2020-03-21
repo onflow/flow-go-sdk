@@ -17,7 +17,7 @@ func GenerateCreateNFTScript(tokenAddr flow.Address, id int) []byte {
 		import NonFungibleToken, Tokens from 0x%s
 
 		transaction {
-		  prepare(acct: Account) {
+		  prepare(acct: AuthAccount) {
 			let tokenA <- Tokens.createNFT(id: UInt64(%d))
 
 			let collection <- Tokens.createEmptyCollection()
@@ -46,7 +46,7 @@ func GenerateDepositScript(tokenCodeAddr flow.Address, receiverAddr flow.Address
 		import NonFungibleToken, Tokens from 0x%s
 
 		transaction {
-		  prepare(acct: Account) {
+		  prepare(acct: AuthAccount) {
 			let recipient = getAccount(0x%s)
 
 			let collectionRef = acct.published[&NonFungibleToken.Collection] ?? panic("missing NFT collection reference")

@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/dapperlabs/flow-go/language"
+	"github.com/dapperlabs/cadence"
 	"github.com/dapperlabs/flow-go/protobuf/services/observation"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -55,12 +55,12 @@ func TestDecodingUsingABI(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	compositeTypes := map[string]language.CompositeType{}
+	compositeTypes := map[string]cadence.CompositeType{}
 	for name, typ := range allTypes {
 		switch composite := typ.(type) {
-		case language.ResourceType:
+		case cadence.ResourceType:
 			compositeTypes[name] = composite.CompositeType
-		case language.StructType:
+		case cadence.StructType:
 			compositeTypes[name] = composite.CompositeType
 		default:
 			_, err := fmt.Fprintf(os.Stderr, "Definition %s of type %T is not supported, skipping\n", name, typ)

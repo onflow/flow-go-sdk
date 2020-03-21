@@ -28,11 +28,9 @@ func TestEncodeExamples(t *testing.T) {
 				generatedAbi := GetABIJSONFromCadenceCode(string(assetBytes), false, assetName)
 
 				options := jsondiff.DefaultConsoleOptions()
-				diff, s := jsondiff.Compare(generatedAbi, abiAsset, &options)
+				diff, _ := jsondiff.Compare(generatedAbi, abiAsset, &options)
 
 				assert.Equal(t, diff, jsondiff.FullMatch)
-
-				t.Log(s)
 			})
 		}
 	}

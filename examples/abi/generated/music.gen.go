@@ -5,8 +5,8 @@ package generated
 import (
 	"bytes"
 	"fmt"
-	"github.com/dapperlabs/flow-go/language"
-	"github.com/dapperlabs/flow-go/language/encoding"
+	"github.com/dapperlabs/cadence"
+	"github.com/dapperlabs/cadence/encoding"
 )
 
 type AlbumView interface {
@@ -34,8 +34,8 @@ func (t *albumView) Rating() *uint8 {
 func (t *albumView) Year() uint16 {
 	return t._year
 }
-func AlbumViewfromValue(value language.Value) (AlbumView, error) {
-	composite, err := language.CastToComposite(value)
+func AlbumViewfromValue(value cadence.Value) (AlbumView, error) {
+	composite, err := cadence.CastToComposite(value)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +45,7 @@ func AlbumViewfromValue(value language.Value) (AlbumView, error) {
 		return nil, err
 	}
 
-	_name, err := language.CastToString(composite.Fields[1])
+	_name, err := cadence.CastToString(composite.Fields[1])
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func AlbumViewfromValue(value language.Value) (AlbumView, error) {
 		return nil, err
 	}
 
-	_year, err := language.CastToUInt16(composite.Fields[3])
+	_year, err := cadence.CastToUInt16(composite.Fields[3])
 	if err != nil {
 		return nil, err
 	}
@@ -80,14 +80,14 @@ func DecodeAlbumView(b []byte) (AlbumView, error) {
 func DecodeAlbumViewVariableSizedArray(b []byte) ([]AlbumView, error) {
 	r := bytes.NewReader(b)
 	dec := encoding.NewDecoder(r)
-	v, err := dec.DecodeVariableSizedArray(language.VariableSizedArrayType{ElementType: albumType})
+	v, err := dec.DecodeVariableSizedArray(cadence.VariableSizedArrayType{ElementType: albumType})
 	if err != nil {
 		return nil, err
 	}
 
 	array := make([]AlbumView, len(v.Values))
 	for i, t := range v.Values {
-		array[i], err = AlbumViewfromValue(t.(language.Composite))
+		array[i], err = AlbumViewfromValue(t.(cadence.Composite))
 		if err != nil {
 			return nil, err
 		}
@@ -96,37 +96,37 @@ func DecodeAlbumViewVariableSizedArray(b []byte) ([]AlbumView, error) {
 	return array, nil
 }
 
-var albumType = language.CompositeType{
-	Fields: []language.Field{language.Field{
+var albumType = cadence.CompositeType{
+	Fields: []cadence.Field{cadence.Field{
 		Identifier: "artist",
 		Type:       artistType,
-	}, language.Field{
+	}, cadence.Field{
 		Identifier: "name",
-		Type:       language.StringType{},
-	}, language.Field{
+		Type:       cadence.StringType{},
+	}, cadence.Field{
 		Identifier: "rating",
-		Type:       language.OptionalType{Type: language.UInt8Type{}},
-	}, language.Field{
+		Type:       cadence.OptionalType{Type: cadence.UInt8Type{}},
+	}, cadence.Field{
 		Identifier: "year",
-		Type:       language.UInt16Type{},
+		Type:       cadence.UInt16Type{},
 	}},
 	Identifier: "Album",
-	Initializers: [][]language.Parameter{{language.Parameter{
+	Initializers: [][]cadence.Parameter{{cadence.Parameter{
 		Identifier: "artist",
 		Label:      "",
 		Type:       artistType,
-	}, language.Parameter{
+	}, cadence.Parameter{
 		Identifier: "name",
 		Label:      "",
-		Type:       language.StringType{},
-	}, language.Parameter{
+		Type:       cadence.StringType{},
+	}, cadence.Parameter{
 		Identifier: "year",
 		Label:      "",
-		Type:       language.UInt16Type{},
-	}, language.Parameter{
+		Type:       cadence.UInt16Type{},
+	}, cadence.Parameter{
 		Identifier: "rating",
 		Label:      "",
-		Type:       language.OptionalType{Type: language.UInt8Type{}},
+		Type:       cadence.OptionalType{Type: cadence.UInt8Type{}},
 	}}},
 }
 
@@ -140,8 +140,8 @@ type albumConstructor struct {
 	rating *uint8
 }
 
-func (p albumConstructor) toValue() language.ConstantSizedArray {
-	return language.NewConstantSizedArray([]language.Value{language.MustConvertValue(p.artist), language.MustConvertValue(p.name), language.MustConvertValue(p.year), language.MustConvertValue(p.rating)})
+func (p albumConstructor) toValue() cadence.ConstantSizedArray {
+	return cadence.NewConstantSizedArray([]cadence.Value{cadence.MustConvertValue(p.artist), cadence.MustConvertValue(p.name), cadence.MustConvertValue(p.year), cadence.MustConvertValue(p.rating)})
 }
 func (p albumConstructor) Encode() ([]byte, error) {
 	var w bytes.Buffer
@@ -182,13 +182,13 @@ func (t *artistView) Members() *[]string {
 func (t *artistView) Name() string {
 	return t._name
 }
-func ArtistViewfromValue(value language.Value) (ArtistView, error) {
-	composite, err := language.CastToComposite(value)
+func ArtistViewfromValue(value cadence.Value) (ArtistView, error) {
+	composite, err := cadence.CastToComposite(value)
 	if err != nil {
 		return nil, err
 	}
 
-	_country, err := language.CastToString(composite.Fields[0])
+	_country, err := cadence.CastToString(composite.Fields[0])
 	if err != nil {
 		return nil, err
 	}
@@ -198,7 +198,7 @@ func ArtistViewfromValue(value language.Value) (ArtistView, error) {
 		return nil, err
 	}
 
-	_name, err := language.CastToString(composite.Fields[2])
+	_name, err := cadence.CastToString(composite.Fields[2])
 	if err != nil {
 		return nil, err
 	}
@@ -222,14 +222,14 @@ func DecodeArtistView(b []byte) (ArtistView, error) {
 func DecodeArtistViewVariableSizedArray(b []byte) ([]ArtistView, error) {
 	r := bytes.NewReader(b)
 	dec := encoding.NewDecoder(r)
-	v, err := dec.DecodeVariableSizedArray(language.VariableSizedArrayType{ElementType: artistType})
+	v, err := dec.DecodeVariableSizedArray(cadence.VariableSizedArrayType{ElementType: artistType})
 	if err != nil {
 		return nil, err
 	}
 
 	array := make([]ArtistView, len(v.Values))
 	for i, t := range v.Values {
-		array[i], err = ArtistViewfromValue(t.(language.Composite))
+		array[i], err = ArtistViewfromValue(t.(cadence.Composite))
 		if err != nil {
 			return nil, err
 		}
@@ -238,30 +238,30 @@ func DecodeArtistViewVariableSizedArray(b []byte) ([]ArtistView, error) {
 	return array, nil
 }
 
-var artistType = language.CompositeType{
-	Fields: []language.Field{language.Field{
+var artistType = cadence.CompositeType{
+	Fields: []cadence.Field{cadence.Field{
 		Identifier: "country",
-		Type:       language.StringType{},
-	}, language.Field{
+		Type:       cadence.StringType{},
+	}, cadence.Field{
 		Identifier: "members",
-		Type:       language.OptionalType{Type: language.VariableSizedArrayType{ElementType: language.StringType{}}},
-	}, language.Field{
+		Type:       cadence.OptionalType{Type: cadence.VariableSizedArrayType{ElementType: cadence.StringType{}}},
+	}, cadence.Field{
 		Identifier: "name",
-		Type:       language.StringType{},
+		Type:       cadence.StringType{},
 	}},
 	Identifier: "Artist",
-	Initializers: [][]language.Parameter{{language.Parameter{
+	Initializers: [][]cadence.Parameter{{cadence.Parameter{
 		Identifier: "name",
 		Label:      "",
-		Type:       language.StringType{},
-	}, language.Parameter{
+		Type:       cadence.StringType{},
+	}, cadence.Parameter{
 		Identifier: "members",
 		Label:      "",
-		Type:       language.OptionalType{Type: language.VariableSizedArrayType{ElementType: language.StringType{}}},
-	}, language.Parameter{
+		Type:       cadence.OptionalType{Type: cadence.VariableSizedArrayType{ElementType: cadence.StringType{}}},
+	}, cadence.Parameter{
 		Identifier: "country",
 		Label:      "",
-		Type:       language.StringType{},
+		Type:       cadence.StringType{},
 	}}},
 }
 
@@ -274,8 +274,8 @@ type artistConstructor struct {
 	country string
 }
 
-func (p artistConstructor) toValue() language.ConstantSizedArray {
-	return language.NewConstantSizedArray([]language.Value{language.MustConvertValue(p.name), language.MustConvertValue(p.members), language.MustConvertValue(p.country)})
+func (p artistConstructor) toValue() cadence.ConstantSizedArray {
+	return cadence.NewConstantSizedArray([]cadence.Value{cadence.MustConvertValue(p.name), cadence.MustConvertValue(p.members), cadence.MustConvertValue(p.country)})
 }
 func (p artistConstructor) Encode() ([]byte, error) {
 	var w bytes.Buffer
@@ -294,10 +294,10 @@ func NewArtistConstructor(name string, members *[]string, country string) (Artis
 		name:    name,
 	}, nil
 }
-func __converter0(p language.Value) (*uint8, error) {
+func __converter0(p cadence.Value) (*uint8, error) {
 	var ret0 uint8
 	var go0 interface{}
-	cast0, ok := p.(language.Optional)
+	cast0, ok := p.(cadence.Optional)
 	if !ok {
 		return nil, fmt.Errorf("cannot cast %T", p)
 
@@ -308,13 +308,13 @@ func __converter0(p language.Value) (*uint8, error) {
 	if go0 == nil {
 		return nil, nil
 	} else {
-		cast1, ok := cast0.Value.(language.UInt8)
+		cast1, ok := cast0.Value.(cadence.UInt8)
 		if !ok {
 			return nil, fmt.Errorf("cannot cast %T", cast0.Value)
 
 		}
 
-		ret0, err = language.CastToUInt8(cast1)
+		ret0, err = cadence.CastToUInt8(cast1)
 		if err != nil {
 			return nil, err
 		}
@@ -323,10 +323,10 @@ func __converter0(p language.Value) (*uint8, error) {
 	return &ret0, nil
 
 }
-func __converter1(p language.Value) (*[]string, error) {
+func __converter1(p cadence.Value) (*[]string, error) {
 	var ret0 []string
 	var go0 interface{}
-	cast0, ok := p.(language.Optional)
+	cast0, ok := p.(cadence.Optional)
 	if !ok {
 		return nil, fmt.Errorf("cannot cast %T", p)
 
@@ -338,7 +338,7 @@ func __converter1(p language.Value) (*[]string, error) {
 		return nil, nil
 	} else {
 		var ret1 []string
-		cast1, ok := cast0.Value.(language.VariableSizedArray)
+		cast1, ok := cast0.Value.(cadence.VariableSizedArray)
 		if !ok {
 			return nil, fmt.Errorf("cannot cast %T", cast0.Value)
 
@@ -349,13 +349,13 @@ func __converter1(p language.Value) (*[]string, error) {
 		}
 		ret1 = make([]string, len(cast1.Values))
 		for i1, elem1 := range cast1.Values {
-			cast2, ok := elem1.(language.String)
+			cast2, ok := elem1.(cadence.String)
 			if !ok {
 				return nil, fmt.Errorf("cannot cast %T", elem1)
 
 			}
 
-			ret1[i1], err = language.CastToString(cast2)
+			ret1[i1], err = cadence.CastToString(cast2)
 			if err != nil {
 				return nil, err
 			}

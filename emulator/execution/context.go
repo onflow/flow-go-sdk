@@ -6,8 +6,8 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/dapperlabs/flow-go/language"
-	"github.com/dapperlabs/flow-go/language/runtime"
+	"github.com/dapperlabs/cadence"
+	"github.com/dapperlabs/cadence/runtime"
 
 	"github.com/dapperlabs/flow-go-sdk"
 	"github.com/dapperlabs/flow-go-sdk/emulator/types"
@@ -47,7 +47,7 @@ func (r *RuntimeContext) SetSigningAccounts(accounts []flow.Address) {
 	signingAccounts := make([]runtime.Address, len(accounts))
 
 	for i, account := range accounts {
-		signingAccounts[i] = runtime.Address(language.NewAddress(account))
+		signingAccounts[i] = runtime.Address(cadence.NewAddress(account))
 	}
 
 	r.signingAccounts = signingAccounts
@@ -116,7 +116,7 @@ func (r *RuntimeContext) CreateAccount(publicKeys [][]byte) (runtime.Address, er
 	r.Log("Creating new account\n")
 	r.Log(fmt.Sprintf("Address: %x", accountAddress))
 
-	return runtime.Address(language.NewAddress(accountAddress)), nil
+	return runtime.Address(cadence.NewAddress(accountAddress)), nil
 }
 
 // AddAccountKey adds a public key to an existing account.
@@ -208,7 +208,7 @@ func (r *RuntimeContext) getAccountPublicKeys(accountID []byte) (publicKeys [][]
 			return nil, fmt.Errorf("failed to retrieve key from account %s", accountID)
 		}
 
-		publicKeys[i] = language.NewBytes(publicKey)
+		publicKeys[i] = cadence.NewBytes(publicKey)
 	}
 
 	return publicKeys, nil

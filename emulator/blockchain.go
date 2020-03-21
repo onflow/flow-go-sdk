@@ -16,7 +16,7 @@ import (
 	"sync"
 
 	"github.com/dapperlabs/flow-go/crypto"
-	"github.com/dapperlabs/flow-go/language/runtime"
+	"github.com/dapperlabs/cadence/runtime"
 
 	"github.com/dapperlabs/flow-go-sdk"
 	"github.com/dapperlabs/flow-go-sdk/emulator/execution"

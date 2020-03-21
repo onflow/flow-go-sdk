@@ -10,7 +10,7 @@ transaction {
     // transferred to the other account
     let transferToken: @NonFungibleToken.NFT
 	
-    prepare(acct: Account) {
+    prepare(acct: AuthAccount) {
 
         // Call the withdraw function on the sender's Collection
         // to move the NFT out of the collection
