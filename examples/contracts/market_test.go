@@ -1,10 +1,11 @@
-package sctest
+package contracts
 
 import (
 	"testing"
 
 	"github.com/dapperlabs/flow-go-sdk"
 	"github.com/dapperlabs/flow-go-sdk/keys"
+	"github.com/dapperlabs/flow-go-sdk/utils/examples"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -14,19 +15,19 @@ const (
 )
 
 func TestMarketDeployment(t *testing.T) {
-	b := newEmulator()
+	b := examples.NewEmulator()
 
 	// Should be able to deploy a contract as a new account with no keys.
-	tokenCode := ReadFile(resourceTokenContractFile)
-	_, err := b.CreateAccount(nil, tokenCode, GetNonce())
+	tokenCode := examples.ReadFile(resourceTokenContractFile)
+	_, err := b.CreateAccount(nil, tokenCode, examples.GetNonce())
 	if !assert.Nil(t, err) {
 		t.Log(err.Error())
 	}
 	_, err = b.CommitBlock()
 	require.NoError(t, err)
 
-	nftCode := ReadFile(NFTContractFile)
-	_, err = b.CreateAccount(nil, nftCode, GetNonce())
+	nftCode := examples.ReadFile(NFTContractFile)
+	_, err = b.CreateAccount(nil, nftCode, examples.GetNonce())
 	if !assert.Nil(t, err) {
 		t.Log(err.Error())
 	}
@@ -34,8 +35,8 @@ func TestMarketDeployment(t *testing.T) {
 	require.NoError(t, err)
 
 	// Should be able to deploy a contract as a new account with no keys.
-	marketCode := ReadFile(MarketContractFile)
-	_, err = b.CreateAccount(nil, marketCode, GetNonce())
+	marketCode := examples.ReadFile(MarketContractFile)
+	_, err = b.CreateAccount(nil, marketCode, examples.GetNonce())
 	if !assert.Nil(t, err) {
 		t.Log(err.Error())
 	}
@@ -44,34 +45,34 @@ func TestMarketDeployment(t *testing.T) {
 }
 
 func TestCreateSale(t *testing.T) {
-	b := newEmulator()
+	b := examples.NewEmulator()
 
 	// first deploy the FT, NFT, and market code
-	tokenCode := ReadFile(resourceTokenContractFile)
-	tokenAddr, err := b.CreateAccount(nil, tokenCode, GetNonce())
+	tokenCode := examples.ReadFile(resourceTokenContractFile)
+	tokenAddr, err := b.CreateAccount(nil, tokenCode, examples.GetNonce())
 	assert.Nil(t, err)
 	_, err = b.CommitBlock()
 	require.NoError(t, err)
 
-	nftCode := ReadFile(NFTContractFile)
-	nftAddr, err := b.CreateAccount(nil, nftCode, GetNonce())
+	nftCode := examples.ReadFile(NFTContractFile)
+	nftAddr, err := b.CreateAccount(nil, nftCode, examples.GetNonce())
 	assert.Nil(t, err)
 	_, err = b.CommitBlock()
 	require.NoError(t, err)
 
-	marketCode := ReadFile(MarketContractFile)
-	marketAddr, err := b.CreateAccount(nil, marketCode, GetNonce())
+	marketCode := examples.ReadFile(MarketContractFile)
+	marketAddr, err := b.CreateAccount(nil, marketCode, examples.GetNonce())
 	assert.Nil(t, err)
 	_, err = b.CommitBlock()
 	require.NoError(t, err)
 
 	// create two new accounts
-	bastianPrivateKey := randomKey()
+	bastianPrivateKey := examples.RandomPrivateKey()
 	bastianPublicKey := bastianPrivateKey.PublicKey(keys.PublicKeyWeightThreshold)
-	bastianAddress, err := b.CreateAccount([]flow.AccountPublicKey{bastianPublicKey}, nil, GetNonce())
-	joshPrivateKey := randomKey()
+	bastianAddress, err := b.CreateAccount([]flow.AccountPublicKey{bastianPublicKey}, nil, examples.GetNonce())
+	joshPrivateKey := examples.RandomPrivateKey()
 	joshPublicKey := joshPrivateKey.PublicKey(keys.PublicKeyWeightThreshold)
-	joshAddress, err := b.CreateAccount([]flow.AccountPublicKey{joshPublicKey}, nil, GetNonce())
+	joshAddress, err := b.CreateAccount([]flow.AccountPublicKey{joshPublicKey}, nil, examples.GetNonce())
 
 	t.Run("Should be able to create FTs and NFT collections in each accounts storage", func(t *testing.T) {
 		// create Fungible tokens and NFTs in each accounts storage and store references
@@ -81,61 +82,61 @@ func TestCreateSale(t *testing.T) {
 	t.Run("Can create sale collection", func(t *testing.T) {
 		tx := flow.Transaction{
 			Script:         GenerateCreateSaleScript(tokenAddr, marketAddr),
-			Nonce:          GetNonce(),
+			Nonce:          examples.GetNonce(),
 			ComputeLimit:   10,
 			PayerAccount:   b.RootAccountAddress(),
 			ScriptAccounts: []flow.Address{bastianAddress},
 		}
 
-		SignAndSubmit(t, b, tx, []flow.AccountPrivateKey{b.RootKey(), bastianPrivateKey}, []flow.Address{b.RootAccountAddress(), bastianAddress}, false)
+		examples.SignAndSubmit(t, b, tx, []flow.AccountPrivateKey{b.RootKey(), bastianPrivateKey}, []flow.Address{b.RootAccountAddress(), bastianAddress}, false)
 	})
 
 	t.Run("Can put an NFT up for sale", func(t *testing.T) {
 		tx := flow.Transaction{
 			Script:         GenerateStartSaleScript(nftAddr, marketAddr, 1, 10),
-			Nonce:          GetNonce(),
+			Nonce:          examples.GetNonce(),
 			ComputeLimit:   10,
 			PayerAccount:   b.RootAccountAddress(),
 			ScriptAccounts: []flow.Address{bastianAddress},
 		}
 
-		SignAndSubmit(t, b, tx, []flow.AccountPrivateKey{b.RootKey(), bastianPrivateKey}, []flow.Address{b.RootAccountAddress(), bastianAddress}, false)
+		examples.SignAndSubmit(t, b, tx, []flow.AccountPrivateKey{b.RootKey(), bastianPrivateKey}, []flow.Address{b.RootAccountAddress(), bastianAddress}, false)
 	})
 
 	t.Run("Cannot buy an NFT for less than the sale price", func(t *testing.T) {
 		tx := flow.Transaction{
 			Script:         GenerateBuySaleScript(tokenAddr, nftAddr, marketAddr, bastianAddress, 1, 9),
-			Nonce:          GetNonce(),
+			Nonce:          examples.GetNonce(),
 			ComputeLimit:   10,
 			PayerAccount:   b.RootAccountAddress(),
 			ScriptAccounts: []flow.Address{joshAddress},
 		}
 
-		SignAndSubmit(t, b, tx, []flow.AccountPrivateKey{b.RootKey(), joshPrivateKey}, []flow.Address{b.RootAccountAddress(), joshAddress}, true)
+		examples.SignAndSubmit(t, b, tx, []flow.AccountPrivateKey{b.RootKey(), joshPrivateKey}, []flow.Address{b.RootAccountAddress(), joshAddress}, true)
 	})
 
 	t.Run("Cannot buy an NFT that is not for sale", func(t *testing.T) {
 		tx := flow.Transaction{
 			Script:         GenerateBuySaleScript(tokenAddr, nftAddr, marketAddr, bastianAddress, 2, 10),
-			Nonce:          GetNonce(),
+			Nonce:          examples.GetNonce(),
 			ComputeLimit:   10,
 			PayerAccount:   b.RootAccountAddress(),
 			ScriptAccounts: []flow.Address{joshAddress},
 		}
 
-		SignAndSubmit(t, b, tx, []flow.AccountPrivateKey{b.RootKey(), joshPrivateKey}, []flow.Address{b.RootAccountAddress(), joshAddress}, true)
+		examples.SignAndSubmit(t, b, tx, []flow.AccountPrivateKey{b.RootKey(), joshPrivateKey}, []flow.Address{b.RootAccountAddress(), joshAddress}, true)
 	})
 
 	t.Run("Can buy an NFT that is for sale", func(t *testing.T) {
 		tx := flow.Transaction{
 			Script:         GenerateBuySaleScript(tokenAddr, nftAddr, marketAddr, bastianAddress, 1, 10),
-			Nonce:          GetNonce(),
+			Nonce:          examples.GetNonce(),
 			ComputeLimit:   10,
 			PayerAccount:   b.RootAccountAddress(),
 			ScriptAccounts: []flow.Address{joshAddress},
 		}
 
-		SignAndSubmit(t, b, tx, []flow.AccountPrivateKey{b.RootKey(), joshPrivateKey}, []flow.Address{b.RootAccountAddress(), joshAddress}, false)
+		examples.SignAndSubmit(t, b, tx, []flow.AccountPrivateKey{b.RootKey(), joshPrivateKey}, []flow.Address{b.RootAccountAddress(), joshAddress}, false)
 
 		result, err := b.ExecuteScript(GenerateInspectVaultScript(tokenAddr, bastianAddress, 40))
 		require.NoError(t, err)

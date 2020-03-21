@@ -1,4 +1,4 @@
-package sctest
+package contracts
 
 import (
 	"fmt"
@@ -71,4 +71,19 @@ func GenerateInspectNFTScript(nftCodeAddr, userAddr flow.Address, expectedID int
 	`
 
 	return []byte(fmt.Sprintf(template, nftCodeAddr, userAddr, expectedID, expectedIsSpecial))
+}
+
+// GenerateGetNFTIDScript creates a script that retrieves an NFT from storage and returns its ID.
+func GenerateGetNFTIDScript(nftCodeAddr, userAddr flow.Address) []byte {
+	template := `
+		import GreatToken from 0x%s
+
+		pub fun main(): Int {
+		  let acct = getAccount(0x%s)
+		  let nft = acct.published[&GreatToken.GreatNFT] ?? panic("missing nft")
+		  return nft.id()
+		}
+	`
+
+	return []byte(fmt.Sprintf(template, nftCodeAddr, userAddr))
 }
