@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/dapperlabs/flow-go/language"
+	"github.com/dapperlabs/cadence"
 )
 
 func getOnlyEntry(m map[string]interface{}) (string, interface{}, error) {
@@ -90,30 +90,30 @@ func getObject(data map[string]interface{}, key string) (interface{}, error) {
 	return nil, fmt.Errorf("key %s doesn't exist  in %v", key, data)
 }
 
-func toField(data map[string]interface{}) (language.Field, error) {
+func toField(data map[string]interface{}) (cadence.Field, error) {
 	name, err := getString(data, "name")
 	if err != nil {
-		return language.Field{}, err
+		return cadence.Field{}, err
 	}
 
 	typRaw, err := getObject(data, "type")
 	if err != nil {
-		return language.Field{}, err
+		return cadence.Field{}, err
 	}
 
 	typ, err := toType(typRaw, "")
 	if err != nil {
-		return language.Field{}, err
+		return cadence.Field{}, err
 	}
 
-	return language.Field{
+	return cadence.Field{
 		Identifier: name,
 		Type:       typ,
 	}, nil
 }
 
-func toFields(fields []map[string]interface{}) ([]language.Field, error) {
-	ret := make([]language.Field, len(fields))
+func toFields(fields []map[string]interface{}) ([]cadence.Field, error) {
+	ret := make([]cadence.Field, len(fields))
 
 	for i, raw := range fields {
 		f, err := toField(raw)
@@ -127,10 +127,10 @@ func toFields(fields []map[string]interface{}) ([]language.Field, error) {
 	return ret, nil
 }
 
-func toParameter(data map[string]interface{}) (language.Parameter, error) {
+func toParameter(data map[string]interface{}) (cadence.Parameter, error) {
 	name, err := getString(data, "name")
 	if err != nil {
-		return language.Parameter{}, err
+		return cadence.Parameter{}, err
 	}
 
 	label, err := getString(data, "label")
@@ -140,15 +140,15 @@ func toParameter(data map[string]interface{}) (language.Parameter, error) {
 
 	typRaw, err := getObject(data, "type")
 	if err != nil {
-		return language.Parameter{}, err
+		return cadence.Parameter{}, err
 	}
 
 	typ, err := toType(typRaw, "")
 	if err != nil {
-		return language.Parameter{}, err
+		return cadence.Parameter{}, err
 	}
 
-	return language.Parameter{
+	return cadence.Parameter{
 		Label:      label,
 		Identifier: name,
 		Type:       typ,
@@ -171,86 +171,86 @@ func interfaceToListOfMaps(input interface{}) ([]map[string]interface{}, error) 
 	return ret, nil
 }
 
-func toComposite(data map[string]interface{}, name string) (language.CompositeType, error) {
+func toComposite(data map[string]interface{}, name string) (cadence.CompositeType, error) {
 	fieldsRaw, err := getArray(data, "fields")
 	if err != nil {
-		return language.CompositeType{}, err
+		return cadence.CompositeType{}, err
 	}
 
 	fieldsMaps, err := interfaceToListOfMaps(fieldsRaw)
 	if err != nil {
-		return language.CompositeType{}, err
+		return cadence.CompositeType{}, err
 	}
 
 	fields, err := toFields(fieldsMaps)
 	if err != nil {
-		return language.CompositeType{}, err
+		return cadence.CompositeType{}, err
 	}
 
 	initializersRaw, err := getArray(data, "initializers")
 	if err != nil {
-		return language.CompositeType{}, err
+		return cadence.CompositeType{}, err
 	}
 
 	initializerRaw, err := getIndex(initializersRaw, 0)
 	if err != nil {
-		return language.CompositeType{}, err
+		return cadence.CompositeType{}, err
 	}
 
 	initializers, err := interfaceToListOfMaps(initializerRaw)
 	if err != nil {
-		return language.CompositeType{}, err
+		return cadence.CompositeType{}, err
 	}
 
 	parameters, err := toParameters(initializers)
 	if err != nil {
-		return language.CompositeType{}, err
+		return cadence.CompositeType{}, err
 	}
 
-	return language.CompositeType{
+	return cadence.CompositeType{
 		Identifier: name,
 		Fields:     fields,
-		Initializers: [][]language.Parameter{
+		Initializers: [][]cadence.Parameter{
 			parameters,
 		},
 	}, nil
 }
 
-func toStruct(data map[string]interface{}, name string) (language.StructType, error) {
+func toStruct(data map[string]interface{}, name string) (cadence.StructType, error) {
 	composite, err := toComposite(data, name)
 	if err != nil {
-		return language.StructType{}, err
+		return cadence.StructType{}, err
 	}
 
-	return language.StructType{
+	return cadence.StructType{
 		CompositeType: composite,
 	}, nil
 }
 
-func toResource(data map[string]interface{}, name string) (language.ResourceType, error) {
+func toResource(data map[string]interface{}, name string) (cadence.ResourceType, error) {
 	composite, err := toComposite(data, name)
 	if err != nil {
-		return language.ResourceType{}, err
+		return cadence.ResourceType{}, err
 	}
 
-	return language.ResourceType{
+	return cadence.ResourceType{
 		CompositeType: composite,
 	}, nil
 }
 
-func toEvent(data map[string]interface{}, name string) (language.EventType, error) {
+func toEvent(data map[string]interface{}, name string) (cadence.EventType, error) {
 	composite, err := toComposite(data, name)
 	if err != nil {
-		return language.EventType{}, err
+		return cadence.EventType{}, err
 	}
 
-	return language.EventType{
+	return cadence.EventType{
 		CompositeType: composite,
 	}, nil
 }
 
-func toParameters(parameters []map[string]interface{}) ([]language.Parameter, error) {
-	ret := make([]language.Parameter, len(parameters))
+func toParameters(parameters []map[string]interface{}) ([]cadence.Parameter, error) {
+	ret := make([]cadence.Parameter, len(parameters))
 
 	for i, raw := range parameters {
 		p, err := toParameter(raw)
@@ -262,77 +262,77 @@ func toParameters(parameters []map[string]interface{}) ([]language.Parameter, er
 	return ret, nil
 }
 
-func toFunction(data map[string]interface{}) (language.Function, error) {
+func toFunction(data map[string]interface{}) (cadence.Function, error) {
 	returnTypeRaw, err := getObject(data, "returnType")
 
-	var returnType language.Type
+	var returnType cadence.Type
 
 	if err != nil {
-		returnType = language.VoidType{}
+		returnType = cadence.VoidType{}
 	} else {
 		returnType, err = toType(returnTypeRaw, "")
 		if err != nil {
-			return language.Function{}, err
+			return cadence.Function{}, err
 		}
 	}
 
 	parametersListRaw, err := getArray(data, "parameters")
 	if err != nil {
-		return language.Function{}, err
+		return cadence.Function{}, err
 	}
 
 	parametersRaw, err := interfaceToListOfMaps(parametersListRaw)
 	if err != nil {
-		return language.Function{}, err
+		return cadence.Function{}, err
 	}
 
 	parameters, err := toParameters(parametersRaw)
 	if err != nil {
-		return language.Function{}, err
+		return cadence.Function{}, err
 	}
 
-	return language.Function{
+	return cadence.Function{
 		Parameters: parameters,
 		ReturnType: returnType,
 	}, nil
 }
 
-func toFunctionType(data map[string]interface{}) (language.FunctionType, error) {
+func toFunctionType(data map[string]interface{}) (cadence.FunctionType, error) {
 
 	returnTypeRaw, err := getObject(data, "returnType")
 
-	var returnType language.Type
+	var returnType cadence.Type
 
 	if err != nil {
-		returnType = language.VoidType{}
+		returnType = cadence.VoidType{}
 	} else {
 		returnType, err = toType(returnTypeRaw, "")
 		if err != nil {
-			return language.FunctionType{}, err
+			return cadence.FunctionType{}, err
 		}
 	}
 
 	parametersListRaw, err := getArray(data, "parameters")
 	if err != nil {
-		return language.FunctionType{}, err
+		return cadence.FunctionType{}, err
 	}
 
-	parameterTypes := make([]language.Type, len(parametersListRaw))
+	parameterTypes := make([]cadence.Type, len(parametersListRaw))
 
 	for i, parameterTypeRaw := range parametersListRaw {
 		parameterTypes[i], err = toType(parameterTypeRaw, "")
 		if err != nil {
-			return language.FunctionType{}, err
+			return cadence.FunctionType{}, err
 		}
 	}
 
-	return language.FunctionType{
+	return cadence.FunctionType{
 		ParameterTypes: parameterTypes,
 		ReturnType:     returnType,
 	}, nil
 }
 
-func toArray(data map[string]interface{}) (language.Type, error) {
+func toArray(data map[string]interface{}) (cadence.Type, error) {
 
 	ofRaw, err := getObject(data, "of")
 
@@ -353,17 +353,17 @@ func toArray(data map[string]interface{}) (language.Type, error) {
 	}
 
 	if hasSize {
-		return language.ConstantSizedArrayType{
+		return cadence.ConstantSizedArrayType{
 			Size:        size,
 			ElementType: of,
 		}, nil
 	}
-	return language.VariableSizedArrayType{
+	return cadence.VariableSizedArrayType{
 		ElementType: of,
 	}, nil
 }
 
-func toDictionary(data map[string]interface{}) (language.Type, error) {
+func toDictionary(data map[string]interface{}) (cadence.Type, error) {
 
 	keysRaw, err := getObject(data, "keys")
 
@@ -387,13 +387,13 @@ func toDictionary(data map[string]interface{}) (language.Type, error) {
 		return nil, err
 	}
 
-	return language.DictionaryType{
+	return cadence.DictionaryType{
 		KeyType:     keys,
 		ElementType: elements,
 	}, nil
 }
 
-func toType(data interface{}, name string) (language.Type, error) {
+func toType(data interface{}, name string) (cadence.Type, error) {
 
 	switch v := data.(type) {
 
@@ -421,7 +421,7 @@ func toType(data interface{}, name string) (language.Type, error) {
 			if err != nil {
 				return nil, err
 			}
-			return language.Variable{
+			return cadence.Variable{
 				Type: typ,
 			}, nil
 		case "optional":
@@ -429,7 +429,7 @@ func toType(data interface{}, name string) (language.Type, error) {
 			if err != nil {
 				return nil, err
 			}
-			return language.OptionalType{
+			return cadence.OptionalType{
 				Type: typ,
 			}, nil
 		}
@@ -440,11 +440,11 @@ func toType(data interface{}, name string) (language.Type, error) {
 		case string:
 			switch key {
 			case "struct":
-				return language.StructPointer{TypeName: v}, nil
+				return cadence.StructPointer{TypeName: v}, nil
 			case "resource":
-				return language.ResourcePointer{TypeName: v}, nil
+				return cadence.ResourcePointer{TypeName: v}, nil
 			case "event":
-				return language.EventPointer{TypeName: v}, nil
+				return cadence.EventPointer{TypeName: v}, nil
 			}
 
 		// when type inside is complex - { "<struct>" : { "complex": "object" } }
@@ -478,7 +478,7 @@ type jsonContainer struct {
 	Definitions map[string]map[string]interface{}
 }
 
-func Decode(bytes []byte) (map[string]language.Type, error) {
+func Decode(bytes []byte) (map[string]cadence.Type, error) {
 
 	jsonRoot := jsonContainer{}
 
@@ -488,7 +488,7 @@ func Decode(bytes []byte) (map[string]language.Type, error) {
 		panic(err)
 	}
 
-	definitions := map[string]language.Type{}
+	definitions := map[string]cadence.Type{}
 
 	for name, definition := range jsonRoot.Definitions {
 		typ, err := toType(definition, name)

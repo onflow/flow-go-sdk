@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"unicode"
 
-	"github.com/dapperlabs/flow-go/language"
+	"github.com/dapperlabs/cadence"
 	"github.com/dave/jennifer/jen"
 
 	"github.com/dapperlabs/flow-go-sdk/utils/sort"
@@ -34,25 +34,25 @@ func wrap(s *jen.Statement) *abiAwareStatement {
 }
 
 // write type information as a part of statement
-func (a *abiAwareStatement) Type(t language.Type) *abiAwareStatement {
+func (a *abiAwareStatement) Type(t cadence.Type) *abiAwareStatement {
 	switch v := t.(type) {
-	case language.StringType:
+	case cadence.StringType:
 		return wrap(a.String())
-	case language.VariableSizedArrayType:
+	case cadence.VariableSizedArrayType:
 		return a.Index().Type(v.ElementType)
-	case language.StructPointer:
+	case cadence.StructPointer:
 		return a.Id(viewInterfaceName(v.TypeName))
-	case language.ResourcePointer:
+	case cadence.ResourcePointer:
 		return a.Id(viewInterfaceName(v.TypeName))
-	case language.EventPointer:
+	case cadence.EventPointer:
 		return a.Id(viewInterfaceName(v.TypeName))
-	case language.OptionalType:
+	case cadence.OptionalType:
 		return a.Op("*").Type(v.Type)
-	case language.IntType:
+	case cadence.IntType:
 		return wrap(a.Int())
-	case language.UInt8Type:
+	case cadence.UInt8Type:
 		return wrap(a.Uint8())
-	case language.UInt16Type:
+	case cadence.UInt16Type:
 		return wrap(a.Uint16())
 	}
 
@@ -64,7 +64,7 @@ var ifErrorBlock = jen.If(id("err").Op("!=").Nil()).Block(
 ).Line()
 
 var converterFunctions = map[string]*abiAwareStatement{}
-var converterTypesCache = map[language.Type]string{}
+var converterTypesCache = map[cadence.Type]string{}
 var converterCounter = 0
 
 // converterFor generates a converter function which converts
@@ -72,7 +72,7 @@ var converterCounter = 0
 // Due to Go limitation with casting and arbitrary nesting
 // of structures in Cadence, generating this seems like a best
 // approach
-func converterFor(t language.Type) *abiAwareStatement {
+func converterFor(t cadence.Type) *abiAwareStatement {
 
 	paramName := "p"
 
@@ -95,7 +95,7 @@ func converterFor(t language.Type) *abiAwareStatement {
 		return id(name)
 	}
 
-	var convert func(t language.Type, depth int, writeTo *abiAwareStatement, param *abiAwareStatement) *abiAwareStatement
+	var convert func(t cadence.Type, depth int, writeTo *abiAwareStatement, param *abiAwareStatement) *abiAwareStatement
 
 	param := id(paramName)
 
@@ -111,7 +111,7 @@ func converterFor(t language.Type) *abiAwareStatement {
 		).Else().Block(code...).Line())
 	}
 
-	convert = func(t language.Type, depth int, writeTo *abiAwareStatement, param *abiAwareStatement) *abiAwareStatement {
+	convert = func(t cadence.Type, depth int, writeTo *abiAwareStatement, param *abiAwareStatement) *abiAwareStatement {
 
 		retVariable := "ret" + strconv.Itoa(depth)
 		goVariable := "go" + strconv.Itoa(depth)
@@ -133,7 +133,7 @@ func converterFor(t language.Type) *abiAwareStatement {
 		}
 
 		switch v := t.(type) {
-		case language.OptionalType:
+		case cadence.OptionalType:
 			if writeTo == nil {
 				return funcWrapper(&jen.Statement{
 					variable().Id(retVariable).Type(v.Type).Line(),
@@ -156,7 +156,7 @@ func converterFor(t language.Type) *abiAwareStatement {
 				}),
 			})
 
-		case language.IntType:
+		case cadence.IntType:
 			if writeTo == nil {
 				return qual(languageImportPath, "CastToInt")
 			}
@@ -165,7 +165,7 @@ func converterFor(t language.Type) *abiAwareStatement {
 				jen.List(writeTo, id("err")).Op("=").Qual(languageImportPath, "CastToInt").Call(id(castVariable)).Line(),
 				ifErrorBlock,
 			})
-		case language.StringType:
+		case cadence.StringType:
 			if writeTo == nil {
 				return qual(languageImportPath, "CastToString")
 			}
@@ -174,7 +174,7 @@ func converterFor(t language.Type) *abiAwareStatement {
 				jen.List(writeTo, id("err")).Op("=").Qual(languageImportPath, "CastToString").Call(id(castVariable)).Line(),
 				ifErrorBlock,
 			})
-		case language.UInt8Type:
+		case cadence.UInt8Type:
 			if writeTo == nil {
 				return qual(languageImportPath, "CastToUInt8")
 			}
@@ -183,7 +183,7 @@ func converterFor(t language.Type) *abiAwareStatement {
 				jen.List(writeTo, id("err")).Op("=").Qual(languageImportPath, "CastToUInt8").Call(id(castVariable)).Line(),
 				ifErrorBlock,
 			})
-		case language.UInt16Type:
+		case cadence.UInt16Type:
 			if writeTo == nil {
 				return qual(languageImportPath, "CastToUInt16")
 			}
@@ -192,7 +192,7 @@ func converterFor(t language.Type) *abiAwareStatement {
 				jen.List(writeTo, id("err")).Op("=").Qual(languageImportPath, "CastToUInt16").Call(id(castVariable)).Line(),
 				ifErrorBlock,
 			})
-		case language.StructPointer:
+		case cadence.StructPointer:
 			if writeTo == nil {
 				return id(viewInterfaceFromValue(v.TypeName))
 			}
@@ -200,7 +200,7 @@ func converterFor(t language.Type) *abiAwareStatement {
 				jen.List(writeTo, id("err")).Op("=").Id(viewInterfaceFromValue(v.TypeName)).Call(param).Line(),
 				ifErrorBlock,
 			})
-		case language.VariableSizedArrayType:
+		case cadence.VariableSizedArrayType:
 			elemVariable := "elem" + strconv.Itoa(depth)
 			iterVariable := "i" + strconv.Itoa(depth)
 			if writeTo == nil {
@@ -237,16 +237,16 @@ func converterFor(t language.Type) *abiAwareStatement {
 
 const (
 	abiImportPath      = "github.com/dapperlabs/flow-go-sdk/language/abi"
-	encodingImportPath = "github.com/dapperlabs/flow-go/language/encoding"
-	languageImportPath = "github.com/dapperlabs/flow-go/language"
+	encodingImportPath = "github.com/dapperlabs/cadence/encoding"
+	languageImportPath = "github.com/dapperlabs/cadence"
 )
 
 // SelfType writes t as itself in Go
-func (a *abiAwareStatement) SelfType(t language.Type, allTypesMap map[string]language.CompositeType) *abiAwareStatement {
+func (a *abiAwareStatement) SelfType(t cadence.Type, allTypesMap map[string]cadence.CompositeType) *abiAwareStatement {
 	switch v := t.(type) {
-	case language.StringType:
+	case cadence.StringType:
 		return wrap(a.Statement.Qual(languageImportPath, "StringType").Values())
-	case language.CompositeType:
+	case cadence.CompositeType:
 		mappedFields := make([]jen.Code, len(v.Fields))
 
 		for i, field := range v.Fields {
@@ -280,32 +280,32 @@ func (a *abiAwareStatement) SelfType(t language.Type, allTypesMap map[string]lan
 			id("Fields"):       jen.Index().Qual(languageImportPath, "Field").Values(mappedFields...),
 			id("Initializers"): jen.Index().Index().Qual(languageImportPath, "Parameter").Values(mappedInitializers...),
 		}))
-	case language.VariableSizedArrayType:
+	case cadence.VariableSizedArrayType:
 		return wrap(a.Statement.Qual(languageImportPath, "VariableSizedArrayType").Values(jen.Dict{
 			id("ElementType"): empty().SelfType(v.ElementType, allTypesMap),
 		}))
-	case language.StructPointer: //Here we attach real type object rather then re-print pointer
+	case cadence.StructPointer: //Here we attach real type object rather then re-print pointer
 		if _, ok := allTypesMap[v.TypeName]; ok {
 			return a.Id(typeVariableName(v.TypeName))
 		}
 		panic(fmt.Errorf("StructPointer to unknown type name %s", v))
-	case language.ResourcePointer: //Here we attach real type object rather then re-print pointer
+	case cadence.ResourcePointer: //Here we attach real type object rather then re-print pointer
 		if _, ok := allTypesMap[v.TypeName]; ok {
 			return a.Id(typeVariableName(v.TypeName))
 		}
 		panic(fmt.Errorf("ResourcePointer to unknown type name %s", v))
-	case language.EventPointer: //Here we attach real type object rather then re-print pointer
+	case cadence.EventPointer: //Here we attach real type object rather then re-print pointer
 		if _, ok := allTypesMap[v.TypeName]; ok {
 			return a.Id(typeVariableName(v.TypeName))
 		}
 		panic(fmt.Errorf("EventPointer to unknown type name %s", v))
-	case language.OptionalType:
+	case cadence.OptionalType:
 		return wrap(a.Statement.Qual(languageImportPath, "OptionalType").Values(jen.Dict{
 			id("Type"): empty().SelfType(v.Type, allTypesMap),
 		}))
-	case language.UInt8Type:
+	case cadence.UInt8Type:
 		return wrap(a.Statement.Qual(languageImportPath, "UInt8Type").Values())
-	case language.UInt16Type:
+	case cadence.UInt16Type:
 		return wrap(a.Statement.Qual(languageImportPath, "UInt16Type").Values())
 	}
 
@@ -389,7 +389,7 @@ func variable() *abiAwareStatement {
 	return wrap(jen.Var())
 }
 
-func valueConstructor(t language.Type, fieldExpr *jen.Statement) *abiAwareStatement {
+func valueConstructor(t cadence.Type, fieldExpr *jen.Statement) *abiAwareStatement {
 	return qual(languageImportPath, "MustConvertValue").Call(fieldExpr)
 }
 
@@ -409,7 +409,7 @@ func viewInterfaceFromValue(name string) string {
 	return viewInterfaceName(name) + "fromValue"
 }
 
-func GenerateGo(pkg string, typesToGenerate map[string]language.CompositeType, writer io.Writer) error {
+func GenerateGo(pkg string, typesToGenerate map[string]cadence.CompositeType, writer io.Writer) error {
 
 	f := jen.NewFile(pkg)
 
@@ -417,7 +417,7 @@ func GenerateGo(pkg string, typesToGenerate map[string]language.CompositeType, w
 
 	f.ImportName(abiImportPath, "abi")
 	f.ImportName(encodingImportPath, "encoding")
-	f.ImportName(languageImportPath, "language")
+	f.ImportName(languageImportPath, "cadence")
 
 	names := make([]string, 0, len(typesToGenerate))
 	for name, _ := range typesToGenerate {

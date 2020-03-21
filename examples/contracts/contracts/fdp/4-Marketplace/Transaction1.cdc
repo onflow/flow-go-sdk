@@ -9,7 +9,7 @@ import Marketplace from 0x03
 // and creates a public reference to the sale so that others can buy the token.
 transaction {
 
-    prepare(acct: Account) {
+    prepare(acct: AuthAccount) {
 
         // Get a reference to the signer's vault Receiver
         let ownerVault = acct.published[&FungibleToken.Receiver] ?? panic("No receiver reference!")

@@ -14,7 +14,7 @@ transaction {
     // Private minter references for this account to mint tokens
     let minterRef: &FungibleToken.VaultMinter     
     
-    prepare(acct: Account) {
+    prepare(acct: AuthAccount) {
         // Get the public object for account 0x02
         let account2 = getAccount(0x02)
         

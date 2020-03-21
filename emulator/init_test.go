@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/dapperlabs/flow-go/language"
+	"github.com/dapperlabs/cadence"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -51,7 +51,7 @@ func TestInitialization(t *testing.T) {
 
                 transaction {
 
-                  prepare(acct: Account) {
+                  prepare(acct: AuthAccount) {
 
                     let counter <- Counting.createCounter()
                     counter.add(1)
@@ -138,7 +138,7 @@ func TestInitialization(t *testing.T) {
 			result, err := b.ExecuteScript([]byte(readScript))
 			assert.NoError(t, err)
 
-			assert.Equal(t, language.NewInt(1), result.Value)
+			assert.Equal(t, cadence.NewInt(1), result.Value)
 		})
 	})
 }

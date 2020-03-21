@@ -5,7 +5,7 @@ import FungibleToken from 0x01
 // This transaction configures an account to store and receive tokens defined by
 // the FungibleToken contract.
 transaction {
-	prepare(acct: Account) {
+	prepare(acct: AuthAccount) {
 		// Create a new empty Vault object
 		let vaultA <- FungibleToken.createEmptyVault()
 			

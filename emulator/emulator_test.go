@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/dapperlabs/flow-go/language"
+	"github.com/dapperlabs/cadence"
 	"github.com/stretchr/testify/require"
 
 	"github.com/dapperlabs/flow-go-sdk"
@@ -36,13 +36,13 @@ const counterScript = `
   }
 `
 
-var countIncrementedType = language.EventType{
-	CompositeType: language.CompositeType{
+var countIncrementedType = cadence.EventType{
+	CompositeType: cadence.CompositeType{
 		Identifier: "CountIncremented",
-		Fields: []language.Field{
+		Fields: []cadence.Field{
 			{
 				Identifier: "count",
-				Type:       language.IntType{},
+				Type:       cadence.IntType{},
 			},
 		},
 	},
@@ -57,7 +57,7 @@ func generateAddTwoToCounterScript(counterAddress flow.Address) string {
 
             transaction {
 
-                prepare(signer: Account) {
+                prepare(signer: AuthAccount) {
                     if signer.storage[Counting.Counter] == nil {
                         let existing <- signer.storage[Counting.Counter] <- Counting.createCounter()
                         destroy existing
