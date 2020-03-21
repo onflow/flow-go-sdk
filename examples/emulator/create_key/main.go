@@ -5,7 +5,7 @@ import (
 
 	"github.com/dapperlabs/flow-go-sdk/keys"
 
-	"github.com/dapperlabs/flow-developer-demo/examples/utils"
+	utils "github.com/dapperlabs/flow-go-sdk/utils/examples"
 )
 
 func main() {

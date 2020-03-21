@@ -3,12 +3,13 @@ package submit_transaction_test
 import (
 	"testing"
 
-	"github.com/dapperlabs/flow-go-sdk"
-	"github.com/dapperlabs/flow-go-sdk/keys"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/dapperlabs/flow-developer-demo/examples/utils"
+	"github.com/dapperlabs/flow-go-sdk"
+	"github.com/dapperlabs/flow-go-sdk/keys"
+
+	utils "github.com/dapperlabs/flow-go-sdk/utils/examples"
 )
 
 func TestTransactionPayerAccount(t *testing.T) {
