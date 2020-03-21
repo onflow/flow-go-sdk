@@ -285,7 +285,7 @@ fun main(): Int { return 1 }
 ```go
 import (
     "github.com/dapperlabs/cadence"
-    "github.com/dapperlabs/cadence/language/encoding"
+    "github.com/dapperlabs/cadence/encoding"
 )
 
 script := []byte("fun main(): Int { return 1 }")
