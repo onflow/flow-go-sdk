@@ -3,9 +3,9 @@ package flow
 import (
 	"fmt"
 
+	"github.com/dapperlabs/cadence"
+	"github.com/dapperlabs/cadence/encoding"
 	"github.com/dapperlabs/flow-go/crypto"
-	"github.com/dapperlabs/flow-go/language"
-	"github.com/dapperlabs/flow-go/language/encoding"
 	"github.com/dapperlabs/flow-go/model/hash"
 )
 
@@ -61,28 +61,28 @@ type AccountCreatedEvent interface {
 	Address() Address
 }
 
-var AccountCreatedEventType language.Type = language.EventType{
-	CompositeType: language.CompositeType{
-		Fields: []language.Field{
+var AccountCreatedEventType cadence.Type = cadence.EventType{
+	CompositeType: cadence.CompositeType{
+		Fields: []cadence.Field{
 			{
 				Identifier: "address",
-				Type:       language.AddressType{},
+				Type:       cadence.AddressType{},
 			},
 		},
 	},
 }.WithID(EventAccountCreated)
 
-func newAccountCreatedEventFromValue(v language.Value) AccountCreatedEvent {
-	eventValue := v.(language.Composite)
+func newAccountCreatedEventFromValue(v cadence.Value) AccountCreatedEvent {
+	eventValue := v.(cadence.Composite)
 	return accountCreatedEvent{eventValue}
 }
 
 type accountCreatedEvent struct {
-	language.Composite
+	cadence.Composite
 }
 
 func (a accountCreatedEvent) Address() Address {
-	return Address(a.Fields[0].(language.Address))
+	return Address(a.Fields[0].(cadence.Address))
 }
 
 func DecodeAccountCreatedEvent(b []byte) (AccountCreatedEvent, error) {

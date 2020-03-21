@@ -5,9 +5,9 @@ import (
 	"fmt"
 
 	"github.com/dapperlabs/flow-go/crypto"
-	"github.com/dapperlabs/flow-go/language"
-	"github.com/dapperlabs/flow-go/language/encoding"
-	"github.com/dapperlabs/flow-go/language/runtime"
+	"github.com/dapperlabs/cadence"
+	"github.com/dapperlabs/cadence/encoding"
+	"github.com/dapperlabs/cadence/runtime"
 	"github.com/dapperlabs/flow-go/model/hash"
 
 	"github.com/dapperlabs/flow-go-sdk"
@@ -109,7 +109,7 @@ func (c *computer) ExecuteScript(view *types.LedgerView, script []byte) (ScriptR
 		return ScriptResult{}, executionErr
 	}
 
-	convertedValue, err := language.ConvertValue(value)
+	convertedValue, err := cadence.ConvertValue(value)
 	if err != nil {
 		return ScriptResult{}, err
 	}
@@ -127,10 +127,10 @@ func convertEvents(rtEvents []runtime.Event, txHash crypto.Hash) ([]flow.Event, 
 	flowEvents := make([]flow.Event, len(rtEvents))
 
 	for i, event := range rtEvents {
-		fields := make([]language.Value, len(event.Fields))
+		fields := make([]cadence.Value, len(event.Fields))
 
 		for j, field := range event.Fields {
-			convertedField, err := language.ConvertValue(field)
+			convertedField, err := cadence.ConvertValue(field)
 			if err != nil {
 				return nil, fmt.Errorf("failed to convert event field: %w", err)
 			}
@@ -138,7 +138,7 @@ func convertEvents(rtEvents []runtime.Event, txHash crypto.Hash) ([]flow.Event, 
 			fields[j] = convertedField
 		}
 
-		eventValue := language.NewComposite(fields)
+		eventValue := cadence.NewComposite(fields)
 
 		payload, err := encoding.Encode(eventValue)
 		if err != nil {

@@ -12,7 +12,7 @@ transaction {
     // The reference to the Minter resource stored in account storage
     let minterRef: &NonFungibleToken.NFTMinter
 
-    prepare(acct: Account) {
+    prepare(acct: AuthAccount) {
         // Get the owner's collection reference
         self.receiverRef = acct.published[&NonFungibleToken.NFTReceiver] ?? panic("No receiver")
         

@@ -16,7 +16,7 @@ transaction {
     // but the NFT
     let temporaryVault: @FungibleToken.Vault
 
-    prepare(acct: Account) {
+    prepare(acct: AuthAccount) {
 
         // get the references to the buyer's fungible token Vault and NFT Collection Receiver
         self.collectionRef = acct.published[&NonFungibleToken.NFTReceiver] ?? panic("missing collection reference!")

@@ -14,7 +14,7 @@ transaction {
     // Private reference to this account's minter resource
     let minterRef: &NonFungibleToken.NFTMinter
 
-    prepare(acct: Account) {
+    prepare(acct: AuthAccount) {
         // create a new vault instance with an initial balance of 30
         let vaultA <- FungibleToken.createEmptyVault()
 
