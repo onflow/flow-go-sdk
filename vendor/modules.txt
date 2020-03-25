@@ -8,7 +8,7 @@ github.com/beorn7/perks/quantile
 github.com/c-bata/go-prompt
 # github.com/cespare/xxhash/v2 v2.1.1
 github.com/cespare/xxhash/v2
-# github.com/dapperlabs/cadence v0.0.0-20200321002116-1f8e9f246c35
+# github.com/dapperlabs/cadence v0.0.0-20200324225318-9eec8dd8b63b
 github.com/dapperlabs/cadence
 github.com/dapperlabs/cadence/encoding
 github.com/dapperlabs/cadence/runtime
