@@ -11,6 +11,9 @@ import (
 )
 
 func TestDecodeExamples(t *testing.T) {
+	// TODO: skip
+	t.Skip()
+
 	for _, abiName := range AssetNames() {
 		suffix := ".abi.json"
 

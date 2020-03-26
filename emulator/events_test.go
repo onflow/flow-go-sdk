@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/dapperlabs/cadence"
-	"github.com/dapperlabs/cadence/encoding"
+	encoding "github.com/dapperlabs/cadence/encoding/xdr"
 	"github.com/dapperlabs/cadence/runtime"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -18,17 +18,15 @@ import (
 func TestEventEmitted(t *testing.T) {
 	// event type definition that is reused in tests
 	myEventType := cadence.EventType{
-		CompositeType: cadence.CompositeType{
-			Identifier: "MyEvent",
-			Fields: []cadence.Field{
-				{
-					Identifier: "x",
-					Type:       cadence.IntType{},
-				},
-				{
-					Identifier: "y",
-					Type:       cadence.IntType{},
-				},
+		Identifier: "MyEvent",
+		Fields: []cadence.Field{
+			{
+				Identifier: "x",
+				Type:       cadence.IntType{},
+			},
+			{
+				Identifier: "y",
+				Type:       cadence.IntType{},
 			},
 		},
 	}
@@ -54,7 +52,7 @@ func TestEventEmitted(t *testing.T) {
 		eventValue, err := encoding.Decode(myEventType, actualEvent.Payload)
 		assert.NoError(t, err)
 
-		decodedEvent := eventValue.(cadence.Composite)
+		decodedEvent := eventValue.(cadence.Event)
 
 		location := runtime.ScriptLocation(result.ScriptHash)
 		expectedType := fmt.Sprintf("%s.MyEvent", location.ID())
@@ -130,7 +128,7 @@ func TestEventEmitted(t *testing.T) {
 		eventValue, err := encoding.Decode(myEventType, actualEvent.Payload)
 		assert.NoError(t, err)
 
-		decodedEvent := eventValue.(cadence.Composite)
+		decodedEvent := eventValue.(cadence.Event)
 
 		expectedID := flow.Event{TxHash: tx.Hash(), Index: 0}.ID()
 
