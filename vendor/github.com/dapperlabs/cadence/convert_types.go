@@ -70,6 +70,8 @@ func ConvertType(typ runtime.Type) Type {
 		return convertCompositeType(t)
 	case *sema.DictionaryType:
 		return convertDictionaryType(t)
+	case *sema.FunctionType:
+		return convertFunctionType(t)
 	}
 
 	panic(fmt.Sprintf("cannot convert type of type %T", typ))
@@ -91,9 +93,9 @@ func convertConstantSizedType(t *sema.ConstantSizedType) Type {
 	convertedElement := ConvertType(t.Type)
 
 	return ConstantSizedArrayType{
-			Size:        uint(t.Size),
-			ElementType: convertedElement,
-		}
+		Size:        uint(t.Size),
+		ElementType: convertedElement,
+	}
 }
 
 func convertCompositeType(t *sema.CompositeType) Type {
@@ -122,25 +124,26 @@ func convertCompositeType(t *sema.CompositeType) Type {
 		})
 	}
 
-	composite := CompositeType{
-		Identifier:   t.Identifier,
-		Fields:       fields,
-	}.WithID(string(t.ID()))
+	id := string(t.ID())
 
 	switch t.Kind {
 	case common.CompositeKindStructure:
 		return StructType{
-			CompositeType: composite,
+			TypeID:     id,
+			Identifier: t.Identifier,
+			Fields:     fields,
 		}
-
 	case common.CompositeKindResource:
 		return ResourceType{
-			CompositeType: composite,
+			TypeID:     id,
+			Identifier: t.Identifier,
+			Fields:     fields,
 		}
-
 	case common.CompositeKindEvent:
 		return EventType{
-			CompositeType: composite,
+			TypeID:     id,
+			Identifier: t.Identifier,
+			Fields:     fields,
 		}
 	}
 
@@ -155,4 +158,25 @@ func convertDictionaryType(t *sema.DictionaryType) Type {
 		KeyType:     convertedKeyType,
 		ElementType: convertedElementType,
 	}
+}
+
+func convertFunctionType(t *sema.FunctionType) Type {
+	convertedReturnType := ConvertType(t.ReturnTypeAnnotation.Type)
+
+	parameters := make([]Parameter, len(t.Parameters))
+
+	for i, parameter := range t.Parameters {
+		convertedParameterType := ConvertType(parameter.TypeAnnotation.Type)
+
+		parameters[i] = Parameter{
+			Label:      parameter.Label,
+			Identifier: parameter.Identifier,
+			Type:       convertedParameterType,
+		}
+	}
+
+	return Function{
+		Parameters: parameters,
+		ReturnType: convertedReturnType,
+	}.WithID(string(t.ID()))
 }

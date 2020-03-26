@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/dapperlabs/cadence"
-	"github.com/dapperlabs/cadence/encoding"
+	encoding "github.com/dapperlabs/cadence/encoding/xdr"
 	"github.com/dapperlabs/cadence/runtime"
 	"github.com/dapperlabs/flow-go/crypto"
 	"github.com/dapperlabs/flow-go/model/hash"
@@ -155,7 +155,7 @@ func convertEvents(rtEvents []runtime.Event, txHash crypto.Hash) ([]flow.Event, 
 			fields[j] = convertedField
 		}
 
-		eventValue := cadence.NewComposite(fields)
+		eventValue := cadence.NewEvent(fields)
 
 		payload, err := encoding.Encode(eventValue)
 		if err != nil {

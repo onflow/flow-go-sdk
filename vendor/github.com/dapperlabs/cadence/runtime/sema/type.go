@@ -3771,6 +3771,68 @@ var authAccountLoadFunctionType = func() *FunctionType {
 	}
 }()
 
+var authAccountBorrowFunctionType = func() *FunctionType {
+
+	typeParameter := &TypeParameter{
+		Type: &ReferenceType{
+			Type: &AnyResourceType{},
+		},
+		Name: "T",
+	}
+
+	return &FunctionType{
+		TypeParameters: []*TypeParameter{
+			typeParameter,
+		},
+		Parameters: []*Parameter{
+			{
+				Label:          "from",
+				Identifier:     "path",
+				TypeAnnotation: NewTypeAnnotation(&PathType{}),
+			},
+		},
+		ReturnTypeAnnotation: NewTypeAnnotation(
+			&OptionalType{
+				Type: &GenericType{
+					TypeParameter: typeParameter,
+				},
+			},
+		),
+	}
+}()
+
+var authAccountLinkFunctionType = func() *FunctionType {
+
+	typeParameter := &TypeParameter{
+		Type: &ReferenceType{
+			Type: &AnyResourceType{},
+		},
+		Name: "T",
+	}
+
+	return &FunctionType{
+		TypeParameters: []*TypeParameter{
+			typeParameter,
+		},
+		Parameters: []*Parameter{
+			{
+				Label:          ArgumentLabelNotRequired,
+				Identifier:     "newCapabilityPath",
+				TypeAnnotation: NewTypeAnnotation(&PathType{}),
+			},
+			{
+				Identifier:     "target",
+				TypeAnnotation: NewTypeAnnotation(&PathType{}),
+			},
+		},
+		ReturnTypeAnnotation: NewTypeAnnotation(
+			&OptionalType{
+				Type: &CapabilityType{},
+			},
+		),
+	}
+}()
+
 func (t *AuthAccountType) GetMember(identifier string, _ ast.Range, _ func(error)) *Member {
 	newField := func(fieldType Type) *Member {
 		return NewPublicConstantFieldMember(t, identifier, fieldType)
@@ -3804,6 +3866,12 @@ func (t *AuthAccountType) GetMember(identifier string, _ ast.Range, _ func(error
 
 	case "load":
 		return newFunction(authAccountLoadFunctionType)
+
+	case "borrow":
+		return newFunction(authAccountBorrowFunctionType)
+
+	case "link":
+		return newFunction(authAccountLinkFunctionType)
 
 	default:
 		return nil

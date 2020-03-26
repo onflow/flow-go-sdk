@@ -171,81 +171,93 @@ func interfaceToListOfMaps(input interface{}) ([]map[string]interface{}, error) 
 	return ret, nil
 }
 
-func toComposite(data map[string]interface{}, name string) (cadence.CompositeType, error) {
+func toComposite(data map[string]interface{}, name string) (
+	string,
+	[]cadence.Field,
+	[][]cadence.Parameter,
+	error,
+) {
 	fieldsRaw, err := getArray(data, "fields")
 	if err != nil {
-		return cadence.CompositeType{}, err
+		return "", nil, nil, err
 	}
 
 	fieldsMaps, err := interfaceToListOfMaps(fieldsRaw)
 	if err != nil {
-		return cadence.CompositeType{}, err
+		return "", nil, nil, err
 	}
 
 	fields, err := toFields(fieldsMaps)
 	if err != nil {
-		return cadence.CompositeType{}, err
+		return "", nil, nil, err
 	}
 
 	initializersRaw, err := getArray(data, "initializers")
 	if err != nil {
-		return cadence.CompositeType{}, err
+		return "", nil, nil, err
 	}
 
 	initializerRaw, err := getIndex(initializersRaw, 0)
 	if err != nil {
-		return cadence.CompositeType{}, err
+		return "", nil, nil, err
 	}
 
-	initializers, err := interfaceToListOfMaps(initializerRaw)
+	initializer, err := interfaceToListOfMaps(initializerRaw)
 	if err != nil {
-		return cadence.CompositeType{}, err
+		return "", nil, nil, err
 	}
 
-	parameters, err := toParameters(initializers)
+	parameters, err := toParameters(initializer)
 	if err != nil {
-		return cadence.CompositeType{}, err
+		return "", nil, nil, err
 	}
 
-	return cadence.CompositeType{
-		Identifier: name,
-		Fields:     fields,
-		Initializers: [][]cadence.Parameter{
-			parameters,
-		},
-	}, nil
+	initializers := [][]cadence.Parameter{parameters}
+	return name, fields, initializers, nil
 }
 
 func toStruct(data map[string]interface{}, name string) (cadence.StructType, error) {
-	composite, err := toComposite(data, name)
+	identifier, fields, initializers, err := toComposite(data, name)
 	if err != nil {
 		return cadence.StructType{}, err
 	}
 
 	return cadence.StructType{
-		CompositeType: composite,
+		// TODO:
+		TypeID:       "",
+		Identifier:   identifier,
+		Fields:       fields,
+		Initializers: initializers,
 	}, nil
 }
 
 func toResource(data map[string]interface{}, name string) (cadence.ResourceType, error) {
-	composite, err := toComposite(data, name)
+	identifier, fields, initializers, err := toComposite(data, name)
 	if err != nil {
 		return cadence.ResourceType{}, err
 	}
 
 	return cadence.ResourceType{
-		CompositeType: composite,
+		// TODO:
+		TypeID:       "",
+		Identifier:   identifier,
+		Fields:       fields,
+		Initializers: initializers,
 	}, nil
 }
 
 func toEvent(data map[string]interface{}, name string) (cadence.EventType, error) {
-	composite, err := toComposite(data, name)
+	identifier, fields, initializers, err := toComposite(data, name)
 	if err != nil {
 		return cadence.EventType{}, err
 	}
 
 	return cadence.EventType{
-		CompositeType: composite,
+		// TODO:
+		TypeID:       "",
+		Identifier:   identifier,
+		Fields:       fields,
+		Initializer:  initializers[0],
 	}, nil
 }
 
@@ -294,41 +306,6 @@ func toFunction(data map[string]interface{}) (cadence.Function, error) {
 	return cadence.Function{
 		Parameters: parameters,
 		ReturnType: returnType,
-	}, nil
-}
-
-func toFunctionType(data map[string]interface{}) (cadence.FunctionType, error) {
-
-	returnTypeRaw, err := getObject(data, "returnType")
-
-	var returnType cadence.Type
-
-	if err != nil {
-		returnType = cadence.VoidType{}
-	} else {
-		returnType, err = toType(returnTypeRaw, "")
-		if err != nil {
-			return cadence.FunctionType{}, err
-		}
-	}
-
-	parametersListRaw, err := getArray(data, "parameters")
-	if err != nil {
-		return cadence.FunctionType{}, err
-	}
-
-	parameterTypes := make([]cadence.Type, len(parametersListRaw))
-
-	for i, parameterTypeRaw := range parametersListRaw {
-		parameterTypes[i], err = toType(parameterTypeRaw, "")
-		if err != nil {
-			return cadence.FunctionType{}, err
-		}
-	}
-
-	return cadence.FunctionType{
-		ParameterTypes: parameterTypes,
-		ReturnType:     returnType,
 	}, nil
 }
 
@@ -457,10 +434,7 @@ func toType(data interface{}, name string) (cadence.Type, error) {
 			case "event":
 				return toEvent(v, name)
 			case "function":
-				if name != "" {
-					return toFunction(v)
-				}
-				return toFunctionType(v)
+				return toFunction(v)
 			case "array":
 				return toArray(v)
 			case "dictionary":

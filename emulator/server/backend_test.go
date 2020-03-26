@@ -15,6 +15,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	encoding "github.com/dapperlabs/cadence/encoding/xdr"
+
 	"github.com/dapperlabs/flow-go-sdk"
 	"github.com/dapperlabs/flow-go-sdk/convert"
 	"github.com/dapperlabs/flow-go-sdk/emulator"
@@ -22,7 +24,6 @@ import (
 	"github.com/dapperlabs/flow-go-sdk/emulator/server"
 	"github.com/dapperlabs/flow-go-sdk/emulator/types"
 	"github.com/dapperlabs/flow-go-sdk/utils/unittest"
-	"github.com/dapperlabs/cadence/encoding"
 )
 
 func TestPing(t *testing.T) {

@@ -385,40 +385,99 @@ type Parameter struct {
 
 // CompositeType
 
-type CompositeType struct {
-	typeID       string
-	Identifier   string
-	Fields       []Field
-	Initializers [][]Parameter
-}
-
-func (CompositeType) isType() {}
-
-func (t CompositeType) ID() string {
-	return t.typeID
-}
-
-func (t CompositeType) WithID(id string) CompositeType {
-	t.typeID = id
-	return t
+type CompositeType interface {
+	Type
+	isCompositeType()
+	CompositeIdentifier() string
+	CompositeFields() []Field
+	CompositeInitializers() [][]Parameter
 }
 
 // StructType
 
 type StructType struct {
-	CompositeType
+	TypeID       string
+	Identifier   string
+	Fields       []Field
+	Initializers [][]Parameter
+}
+
+func (StructType) isType() {}
+
+func (t StructType) ID() string {
+	return t.TypeID
+}
+
+func (StructType) isCompositeType() {}
+
+func (t StructType) CompositeIdentifier() string {
+	return t.Identifier
+}
+
+func (t StructType) CompositeFields() []Field {
+	return t.Fields
+}
+
+func (t StructType) CompositeInitializers() [][]Parameter {
+	return t.Initializers
 }
 
 // ResourceType
 
 type ResourceType struct {
-	CompositeType
+	TypeID       string
+	Identifier   string
+	Fields       []Field
+	Initializers [][]Parameter
+}
+
+func (ResourceType) isType() {}
+
+func (t ResourceType) ID() string {
+	return t.TypeID
+}
+
+func (ResourceType) isCompositeType() {}
+
+func (t ResourceType) CompositeIdentifier() string {
+	return t.Identifier
+}
+
+func (t ResourceType) CompositeFields() []Field {
+	return t.Fields
+}
+
+func (t ResourceType) CompositeInitializers() [][]Parameter {
+	return t.Initializers
 }
 
 // EventType
 
 type EventType struct {
-	CompositeType
+	TypeID      string
+	Identifier  string
+	Fields      []Field
+	Initializer []Parameter
+}
+
+func (EventType) isType() {}
+
+func (t EventType) ID() string {
+	return t.TypeID
+}
+
+func (EventType) isCompositeType() {}
+
+func (t EventType) CompositeIdentifier() string {
+	return t.Identifier
+}
+
+func (t EventType) CompositeFields() []Field {
+	return t.Fields
+}
+
+func (t EventType) CompositeInitializers() [][]Parameter {
+	return [][]Parameter{t.Initializer}
 }
 
 // Function
@@ -439,20 +498,6 @@ func (t Function) ID() string {
 func (t Function) WithID(id string) Function {
 	t.typeID = id
 	return t
-}
-
-// FunctionType
-
-type FunctionType struct {
-	ParameterTypes []Type
-	ReturnType     Type
-}
-
-func (FunctionType) isType() {}
-
-// TODO:
-func (FunctionType) ID() string {
-	panic("not implemented")
 }
 
 // ResourcePointer

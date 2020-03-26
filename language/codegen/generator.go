@@ -237,71 +237,39 @@ func converterFor(t cadence.Type) *abiAwareStatement {
 
 const (
 	abiImportPath      = "github.com/dapperlabs/flow-go-sdk/language/abi"
-	encodingImportPath = "github.com/dapperlabs/cadence/encoding"
+	encodingImportPath = "github.com/dapperlabs/cadence/encoding/xdr"
 	languageImportPath = "github.com/dapperlabs/cadence"
 )
 
 // SelfType writes t as itself in Go
 func (a *abiAwareStatement) SelfType(t cadence.Type, allTypesMap map[string]cadence.CompositeType) *abiAwareStatement {
-	switch v := t.(type) {
+	switch t := t.(type) {
 	case cadence.StringType:
 		return wrap(a.Statement.Qual(languageImportPath, "StringType").Values())
 	case cadence.CompositeType:
-		mappedFields := make([]jen.Code, len(v.Fields))
-
-		for i, field := range v.Fields {
-			mappedFields[i] = qual(languageImportPath, "Field").Values(
-				jen.Dict{
-					id("Identifier"): jen.Lit(field.Identifier),
-					id("Type"):       empty().SelfType(field.Type, allTypesMap),
-				},
-			)
-		}
-
-		mappedInitializers := make([]jen.Code, len(v.Initializers))
-
-		for i, initializer := range v.Initializers {
-			params := make([]jen.Code, len(initializer))
-			for i, param := range v.Initializers[i] {
-				params[i] = qual(languageImportPath, "Parameter").Values(
-					jen.Dict{
-						id("Label"):      jen.Lit(param.Label),
-						id("Identifier"): jen.Lit(param.Identifier),
-						id("Type"):       empty().SelfType(param.Type, allTypesMap),
-					},
-				)
-			}
-
-			mappedInitializers[i] = jen.Values(params...)
-		}
-
-		return wrap(a.Statement.Qual(languageImportPath, "CompositeType").Values(jen.Dict{
-			id("Identifier"):   jen.Lit(v.Identifier),
-			id("Fields"):       jen.Index().Qual(languageImportPath, "Field").Values(mappedFields...),
-			id("Initializers"): jen.Index().Index().Qual(languageImportPath, "Parameter").Values(mappedInitializers...),
-		}))
+		return a.compositeSelfType(t, allTypesMap)
 	case cadence.VariableSizedArrayType:
 		return wrap(a.Statement.Qual(languageImportPath, "VariableSizedArrayType").Values(jen.Dict{
-			id("ElementType"): empty().SelfType(v.ElementType, allTypesMap),
+			id("ElementType"): empty().SelfType(t.ElementType, allTypesMap),
 		}))
 	case cadence.StructPointer: //Here we attach real type object rather then re-print pointer
-		if _, ok := allTypesMap[v.TypeName]; ok {
-			return a.Id(typeVariableName(v.TypeName))
+		if _, ok := allTypesMap[t.TypeName]; ok {
+			return a.Id(typeVariableName(t.TypeName))
 		}
-		panic(fmt.Errorf("StructPointer to unknown type name %s", v))
+		panic(fmt.Errorf("StructPointer to unknown type name %s", t))
 	case cadence.ResourcePointer: //Here we attach real type object rather then re-print pointer
-		if _, ok := allTypesMap[v.TypeName]; ok {
-			return a.Id(typeVariableName(v.TypeName))
+		if _, ok := allTypesMap[t.TypeName]; ok {
+			return a.Id(typeVariableName(t.TypeName))
 		}
-		panic(fmt.Errorf("ResourcePointer to unknown type name %s", v))
+		panic(fmt.Errorf("ResourcePointer to unknown type name %s", t))
 	case cadence.EventPointer: //Here we attach real type object rather then re-print pointer
-		if _, ok := allTypesMap[v.TypeName]; ok {
-			return a.Id(typeVariableName(v.TypeName))
+		if _, ok := allTypesMap[t.TypeName]; ok {
+			return a.Id(typeVariableName(t.TypeName))
 		}
-		panic(fmt.Errorf("EventPointer to unknown type name %s", v))
+		panic(fmt.Errorf("EventPointer to unknown type name %s", t))
 	case cadence.OptionalType:
 		return wrap(a.Statement.Qual(languageImportPath, "OptionalType").Values(jen.Dict{
-			id("Type"): empty().SelfType(v.Type, allTypesMap),
+			id("Type"): empty().SelfType(t.Type, allTypesMap),
 		}))
 	case cadence.UInt8Type:
 		return wrap(a.Statement.Qual(languageImportPath, "UInt8Type").Values())
@@ -310,6 +278,50 @@ func (a *abiAwareStatement) SelfType(t cadence.Type, allTypesMap map[string]cade
 	}
 
 	panic(fmt.Errorf("not supported type %T", t))
+}
+
+func (a *abiAwareStatement) compositeSelfType(
+	t cadence.CompositeType,
+	allTypesMap map[string]cadence.CompositeType,
+) *abiAwareStatement {
+
+	identifier := t.CompositeIdentifier()
+	fields := t.CompositeFields()
+	initializers := t.CompositeInitializers()
+
+	mappedFields := make([]jen.Code, len(fields))
+
+	for i, field := range fields {
+		mappedFields[i] = qual(languageImportPath, "Field").Values(
+			jen.Dict{
+				id("Identifier"): jen.Lit(field.Identifier),
+				id("Type"):       empty().SelfType(field.Type, allTypesMap),
+			},
+		)
+	}
+
+	mappedInitializers := make([]jen.Code, len(initializers))
+
+	for i, initializerParams := range initializers {
+		params := make([]jen.Code, len(initializerParams))
+		for i, param := range initializerParams {
+			params[i] = qual(languageImportPath, "Parameter").Values(
+				jen.Dict{
+					id("Label"):      jen.Lit(param.Label),
+					id("Identifier"): jen.Lit(param.Identifier),
+					id("Type"):       empty().SelfType(param.Type, allTypesMap),
+				},
+			)
+		}
+
+		mappedInitializers[i] = jen.Values(params...)
+	}
+
+	return wrap(a.Statement.Qual(languageImportPath, "CompositeType").Values(jen.Dict{
+		id("Identifier"):   jen.Lit(identifier),
+		id("Fields"):       jen.Index().Qual(languageImportPath, "Field").Values(mappedFields...),
+		id("Initializers"): jen.Index().Index().Qual(languageImportPath, "Parameter").Values(mappedInitializers...),
+	}))
 }
 
 func (a *abiAwareStatement) Params(params ...jen.Code) *abiAwareStatement {
@@ -429,6 +441,16 @@ func GenerateGo(pkg string, typesToGenerate map[string]cadence.CompositeType, wr
 	for _, name := range names {
 		typ := typesToGenerate[name]
 
+		var kind string
+		switch typ.(type) {
+		case cadence.StructType:
+			kind = "Struct"
+		case cadence.ResourceType:
+			kind = "Resource"
+		case cadence.EventType:
+			kind = "Event"
+		}
+
 		// Generating view-related items
 		viewStructName := startLower(name) + "View"
 		viewInterfaceName := viewInterfaceName(name)
@@ -436,14 +458,16 @@ func GenerateGo(pkg string, typesToGenerate map[string]cadence.CompositeType, wr
 		typeVariableName := typeVariableName(name)
 		viewInterfaceFromValue := viewInterfaceFromValue(name)
 
-		interfaceMethods := make([]jen.Code, 0, len(typ.Fields))
-		viewStructFields := make([]jen.Code, 0, len(typ.Fields))
-		viewInterfaceMethodsImpls := make([]jen.Code, 0, len(typ.Fields))
+		fields := typ.CompositeFields()
+
+		interfaceMethods := make([]jen.Code, 0, len(fields))
+		viewStructFields := make([]jen.Code, 0, len(fields))
+		viewInterfaceMethodsImpls := make([]jen.Code, 0, len(fields))
 
 		decodeFunctionFields := jen.Dict{}
 		decodeFunctionPrepareStatement := make([]jen.Code, 0)
 
-		for i, field := range typ.Fields {
+		for i, field := range fields {
 			viewInterfaceMethodName := startUpper(field.Identifier)
 			viewStructFieldName := _lower(field.Identifier)
 
@@ -499,7 +523,7 @@ func GenerateGo(pkg string, typesToGenerate map[string]cadence.CompositeType, wr
 			// if err != nil {
 			//   return nil, err
 			// }
-			jen.List(id("v"), id("err")).Op(":=").Id("dec").Dot("DecodeComposite").Call(id(typeName)),
+			jen.List(id("v"), id("err")).Op(":=").Id("dec").Dot("Decode"+kind).Call(id(typeName)),
 			ifErrorBlock,
 
 			jen.Return(id(viewInterfaceFromValue).Call(id("v"))),
@@ -543,7 +567,7 @@ func GenerateGo(pkg string, typesToGenerate map[string]cadence.CompositeType, wr
 
 		// Generating constructors
 		// TODO: support multiple constructors
-		initializer := typ.Initializers[0]
+		initializer := typ.CompositeInitializers()[0]
 
 		constructorInterfaceName := startUpper(name) + "Constructor"
 		constructorStructName := constructorStructName(name)
@@ -593,7 +617,7 @@ func GenerateGo(pkg string, typesToGenerate map[string]cadence.CompositeType, wr
 			id("encoder").Op(":=").Qual(encodingImportPath, "NewEncoder").Call(op("&").Id("w")),
 
 			// err := encoder.EncodeConstantSizedArray(
-			id("err").Op(":=").Id("encoder").Dot("EncodeConstantSizedArray").Call(
+			id("err").Op(":=").Id("encoder").Dot("EncodeArray").Call(
 				// p.toValue()
 				id("p").Dot("toValue").Call(),
 			),

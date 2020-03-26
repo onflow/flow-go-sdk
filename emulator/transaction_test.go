@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/dapperlabs/cadence"
+	encoding "github.com/dapperlabs/cadence/encoding/xdr"
+	"github.com/dapperlabs/cadence/runtime"
 	"github.com/dapperlabs/cadence/runtime/interpreter"
 	"github.com/dapperlabs/flow-go/crypto"
-	"github.com/dapperlabs/cadence"
-	"github.com/dapperlabs/cadence/encoding"
-	"github.com/dapperlabs/cadence/runtime"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -579,7 +579,7 @@ func TestGetTransaction(t *testing.T) {
 		eventValue, err := encoding.Decode(countIncrementedType, actualEvent.Payload)
 		require.NoError(t, err)
 
-		decodedEvent := eventValue.(cadence.Composite)
+		decodedEvent := eventValue.(cadence.Event)
 
 		location := runtime.AddressLocation(counterAddress.Bytes())
 		eventType := fmt.Sprintf("%s.Counting.CountIncremented", location.ID())
