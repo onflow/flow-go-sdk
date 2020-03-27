@@ -3,7 +3,7 @@ module github.com/dapperlabs/flow-go-sdk
 go 1.13
 
 require (
-	github.com/dapperlabs/cadence v0.0.0-20200326202617-d22000bb4b20
+	github.com/dapperlabs/cadence v0.0.0-20200327013435-62b917b14380
 	github.com/dapperlabs/flow-go v0.3.2-0.20200312195452-df4550a863b7
 	github.com/dapperlabs/flow-go/crypto v0.3.2-0.20200312195452-df4550a863b7
 	github.com/dapperlabs/flow-go/protobuf v0.3.2-0.20200312195452-df4550a863b7

@@ -82,6 +82,8 @@ github.com/dapperlabs/cadence v0.0.0-20200326194950-f3c33412048b h1:baN9NLshn7Cg
 github.com/dapperlabs/cadence v0.0.0-20200326194950-f3c33412048b/go.mod h1:WgzAWRd7gcxi6dfJmEdeTArtQVGOr48oLxLW4adsztk=
 github.com/dapperlabs/cadence v0.0.0-20200326202617-d22000bb4b20 h1:JoPPc9qHpK+U7zwlV5n3/cgOTaYJN2kToiREqM9PS6U=
 github.com/dapperlabs/cadence v0.0.0-20200326202617-d22000bb4b20/go.mod h1:WgzAWRd7gcxi6dfJmEdeTArtQVGOr48oLxLW4adsztk=
+github.com/dapperlabs/cadence v0.0.0-20200327013435-62b917b14380 h1:MJJIqkxTBg7M/O8tWInb/A8DuncvcqNgJQZX+A9zK5U=
+github.com/dapperlabs/cadence v0.0.0-20200327013435-62b917b14380/go.mod h1:WgzAWRd7gcxi6dfJmEdeTArtQVGOr48oLxLW4adsztk=
 github.com/dapperlabs/flow-go v0.3.2-0.20200312195452-df4550a863b7 h1:mKAzaBSpPMLb2e8E242zITQvP1Jt4wuN+DZQFlRzecA=
 github.com/dapperlabs/flow-go v0.3.2-0.20200312195452-df4550a863b7/go.mod h1:T7BTWgbqZVpUS6m1YOJarI+3lSXPIQhz2XirFz+HeU8=
 github.com/dapperlabs/flow-go/crypto v0.3.1 h1:sct0sh5aDbyqy0v/2xCvBAY9fsxlbkfHAK3abeK163g=
