@@ -18,10 +18,12 @@ type Account struct {
 //
 // An account public key contains the public key, signing and hashing algorithms, and a key weight.
 type AccountPublicKey struct {
-	PublicKey crypto.PublicKey
-	SignAlgo  crypto.SigningAlgorithm
-	HashAlgo  crypto.HashingAlgorithm
-	Weight    int
+	PublicKey      crypto.PublicKey
+	Index          int
+	SignAlgo       crypto.SigningAlgorithm
+	HashAlgo       crypto.HashingAlgorithm
+	Weight         int
+	SequenceNumber int
 }
 
 // AccountPrivateKey is a private key associated with an account.
@@ -39,10 +41,4 @@ func (a AccountPrivateKey) PublicKey(weight int) AccountPublicKey {
 		HashAlgo:  a.HashAlgo,
 		Weight:    weight,
 	}
-}
-
-// AccountSignature is a signature associated with an account.
-type AccountSignature struct {
-	Account   Address
-	Signature []byte
 }
