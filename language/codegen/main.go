@@ -38,9 +38,9 @@ func main() {
 
 		switch composite := typ.(type) {
 		case cadence.ResourceType:
-			compositeTypes[name] = composite.CompositeType
+			compositeTypes[name] = composite
 		case cadence.StructType:
-			compositeTypes[name] = composite.CompositeType
+			compositeTypes[name] = composite
 		default:
 			_, err := fmt.Fprintf(os.Stderr, "Definition %s of type %T is not supported, skipping\n", name, typ)
 			check(err)
@@ -52,7 +52,9 @@ func main() {
 	}
 
 	file, err := os.Create(outputFile)
-	defer file.Close()
+	if file != nil {
+		defer file.Close()
+	}
 
 	check(err)
 

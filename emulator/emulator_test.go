@@ -37,13 +37,11 @@ const counterScript = `
 `
 
 var countIncrementedType = cadence.EventType{
-	CompositeType: cadence.CompositeType{
-		Identifier: "CountIncremented",
-		Fields: []cadence.Field{
-			{
-				Identifier: "count",
-				Type:       cadence.IntType{},
-			},
+	Identifier: "CountIncremented",
+	Fields: []cadence.Field{
+		{
+			Identifier: "count",
+			Type:       cadence.IntType{},
 		},
 	},
 }

@@ -28,12 +28,7 @@ func exportTypesFromChecker(checker *sema.Checker) map[string]cadence.Type {
 
 	values := checker.UserDefinedValues()
 	for _, variable := range values {
-		convertedType, err := cadence.ConvertType(variable.Type, checker.Program, variable)
-		if err != nil {
-			panic(err)
-		}
-
-		exportedTypes[variable.Identifier] = convertedType
+		exportedTypes[variable.Identifier] = cadence.ConvertType(variable.Type)
 	}
 
 	return exportedTypes
