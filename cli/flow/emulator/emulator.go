@@ -3,7 +3,7 @@ package emulator
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/dapperlabs/flow-go-sdk/cli/flow/emulator/start"
+	emu "github.com/dapperlabs/flow-emulator/cmd"
 )
 
 var Cmd = &cobra.Command{
@@ -13,5 +13,5 @@ var Cmd = &cobra.Command{
 }
 
 func init() {
-	Cmd.AddCommand(start.Cmd)
+	Cmd.AddCommand(emu.Cmd)
 }
