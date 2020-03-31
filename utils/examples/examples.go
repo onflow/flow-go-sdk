@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dapperlabs/cadence/runtime/cmd"
 	emulator "github.com/dapperlabs/flow-emulator"
 	"github.com/dapperlabs/flow-go/crypto"
 	"github.com/stretchr/testify/assert"
@@ -102,6 +103,7 @@ func SignAndSubmit(
 	} else {
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
+			cmd.PrettyPrintError(result.Error, "", map[string]string{"": ""})
 		}
 	}
 

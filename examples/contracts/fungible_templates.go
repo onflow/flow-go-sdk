@@ -71,7 +71,7 @@ func GenerateWithdrawScript(tokenCodeAddr flow.Address, vaultNumber int, withdra
 
 		transaction {
 		  prepare(acct: AuthAccount) {
-			var vaultArray <- acct.storage[[FlowToken.Vault]] ?? panic("missing vault array!")
+			var vaultArray <- acct.storage[[FlowToken.Vault]]!
 			
 			let withdrawVault <- vaultArray[%d].withdraw(amount: %d)
 
@@ -96,7 +96,7 @@ func GenerateWithdrawDepositScript(tokenCodeAddr flow.Address, withdrawVaultNumb
 
 		transaction {
 		  prepare(acct: AuthAccount) {
-			var vaultArray <- acct.storage[[FlowToken.Vault]] ?? panic("missing vault array!")
+			var vaultArray <- acct.storage[[FlowToken.Vault]]!
 			
 			let withdrawVault <- vaultArray[%d].withdraw(amount: %d)
 
