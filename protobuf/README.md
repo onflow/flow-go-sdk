@@ -9,5 +9,3 @@ You can use [prototool](https://github.com/uber/prototool) to generate gRPC clie
 ```shell script
 prototool generate
 ```
-
-_Output files are saved to [/flow-go-sdk/protobuf/out](/out)._
