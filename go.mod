@@ -10,6 +10,7 @@ require (
 	github.com/dave/jennifer v1.4.0
 	github.com/go-test/deep v1.0.5
 	github.com/golang/mock v1.4.3
+	github.com/golang/protobuf v1.3.3
 	github.com/lithammer/dedent v1.1.0
 	github.com/magiconair/properties v1.8.1
 	github.com/nsf/jsondiff v0.0.0-20190712045011-8443391ee9b6
