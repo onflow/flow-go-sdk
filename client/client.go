@@ -4,15 +4,15 @@ import (
 	"context"
 
 	"github.com/dapperlabs/flow-go/crypto"
-	"github.com/dapperlabs/flow-go/protobuf/services/observation"
 	"google.golang.org/grpc"
 
 	"github.com/dapperlabs/flow-go-sdk"
-	"github.com/dapperlabs/flow-go-sdk/convert"
+	"github.com/dapperlabs/flow-go-sdk/client/protobuf/convert"
+	proto "github.com/dapperlabs/flow-go-sdk/client/protobuf/flow"
 )
 
 // RPCClient is an RPC client compatible with the Flow Observation API.
-type RPCClient observation.ObserveServiceClient
+type RPCClient proto.AccessAPIClient
 
 // Client is a Flow user agent client.
 type Client struct {
@@ -29,7 +29,7 @@ func New(addr string) (*Client, error) {
 		return nil, err
 	}
 
-	grpcClient := observation.NewObserveServiceClient(conn)
+	grpcClient := proto.NewAccessAPIClient(conn)
 
 	return &Client{
 		rpcClient: grpcClient,
@@ -52,7 +52,7 @@ func (c *Client) Close() error {
 
 // Ping tests the connection to the Observation API.
 func (c *Client) Ping(ctx context.Context) error {
-	_, err := c.rpcClient.Ping(ctx, &observation.PingRequest{})
+	_, err := c.rpcClient.Ping(ctx, &proto.PingRequest{})
 	return err
 }
 
@@ -62,17 +62,17 @@ func (c *Client) SendTransaction(ctx context.Context, tx flow.Transaction) error
 
 	_, err := c.rpcClient.SendTransaction(
 		ctx,
-		&observation.SendTransactionRequest{Transaction: txMsg},
+		&proto.SendTransactionRequest{Transaction: txMsg},
 	)
 
 	return err
 }
 
 // GetLatestBlock gets the header of the latest sealed or unsealed block.
-func (c *Client) GetLatestBlock(ctx context.Context, isSealed bool) (*flow.Header, error) {
-	res, err := c.rpcClient.GetLatestBlock(
+func (c *Client) GetLatestBlockH(ctx context.Context, isSealed bool) (*flow.Header, error) {
+	res, err := c.rpcClient.GetLatestBlockHeader(
 		ctx,
-		&observation.GetLatestBlockRequest{IsSealed: isSealed},
+		&proto.GetLatestBlockHeaderRequest{IsSealed: isSealed},
 	)
 	if err != nil {
 		return nil, err
@@ -85,7 +85,9 @@ func (c *Client) GetLatestBlock(ctx context.Context, isSealed bool) (*flow.Heade
 
 // ExecuteScript executes a script against the latest sealed world state.
 func (c *Client) ExecuteScript(ctx context.Context, script []byte) ([]byte, error) {
-	res, err := c.rpcClient.ExecuteScript(ctx, &observation.ExecuteScriptRequest{Script: script})
+	req := proto.ExecuteScriptAtLatestBlockRequest{Script: script}
+
+	res, err := c.rpcClient.ExecuteScriptAtLatestBlock(ctx, &req)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +99,7 @@ func (c *Client) ExecuteScript(ctx context.Context, script []byte) ([]byte, erro
 func (c *Client) GetTransaction(ctx context.Context, h crypto.Hash) (*flow.Transaction, error) {
 	res, err := c.rpcClient.GetTransaction(
 		ctx,
-		&observation.GetTransactionRequest{Hash: h},
+		&proto.GetTransactionRequest{Id: h},
 	)
 	if err != nil {
 		return nil, err
@@ -108,15 +110,6 @@ func (c *Client) GetTransaction(ctx context.Context, h crypto.Hash) (*flow.Trans
 		return nil, err
 	}
 
-	eventMessages := res.GetEvents()
-	events := make([]flow.Event, len(eventMessages))
-
-	for i, m := range eventMessages {
-		events[i] = convert.MessageToEvent(m)
-	}
-
-	tx.Events = events
-
 	return &tx, nil
 }
 
@@ -124,7 +117,7 @@ func (c *Client) GetTransaction(ctx context.Context, h crypto.Hash) (*flow.Trans
 func (c *Client) GetAccount(ctx context.Context, address flow.Address) (*flow.Account, error) {
 	res, err := c.rpcClient.GetAccount(
 		ctx,
-		&observation.GetAccountRequest{Address: address.Bytes()},
+		&proto.GetAccountRequest{Address: address.Bytes()},
 	)
 	if err != nil {
 		return nil, err
@@ -150,7 +143,7 @@ type EventQuery struct {
 
 // GetEvents queries the Observation API for events and returns the results.
 func (c *Client) GetEvents(ctx context.Context, query EventQuery) ([]flow.Event, error) {
-	req := &observation.GetEventsRequest{
+	req := &proto.GetEventsRequest{
 		Type:       query.Type,
 		StartBlock: query.StartBlock,
 		EndBlock:   query.EndBlock,
