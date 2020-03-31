@@ -6,9 +6,8 @@ import (
 
 	"github.com/dapperlabs/flow-go-sdk"
 	"github.com/dapperlabs/flow-go-sdk/client"
+	"github.com/dapperlabs/flow-go-sdk/examples"
 	"github.com/dapperlabs/flow-go-sdk/keys"
-
-	utils "github.com/dapperlabs/flow-go-sdk/utils/examples"
 )
 
 func main() {
@@ -17,10 +16,10 @@ func main() {
 
 func QueryEventsDemo() {
 	ctx := context.Background()
-	accountKey, accountAddr := utils.CreateAccount()
+	accountKey, accountAddr := examples.CreateAccount()
 
 	flowClient, err := client.New("127.0.0.1:3569")
-	utils.Handle(err)
+	examples.Handle(err)
 
 	// Deploy a contract with an event defined
 	contract := `
@@ -34,7 +33,7 @@ func QueryEventsDemo() {
 		}
 	`
 
-	contractAddr := utils.DeployContract([]byte(contract))
+	contractAddr := examples.DeployContract([]byte(contract))
 
 	// Send a tx that emits the event in the deployed contract
 	script := fmt.Sprintf(`
@@ -49,19 +48,19 @@ func QueryEventsDemo() {
 
 	runScriptTx := flow.Transaction{
 		Script:       []byte(script),
-		Nonce:        utils.GetNonce(),
+		Nonce:        examples.GetNonce(),
 		ComputeLimit: 10,
 		PayerAccount: accountAddr,
 	}
 
 	sig, err := keys.SignTransaction(runScriptTx, accountKey)
-	utils.Handle(err)
+	examples.Handle(err)
 	runScriptTx.AddSignature(accountAddr, sig)
 
 	err = flowClient.SendTransaction(ctx, runScriptTx)
-	utils.Handle(err)
+	examples.Handle(err)
 
-	utils.WaitForSeal(ctx, flowClient, runScriptTx.Hash())
+	examples.WaitForSeal(ctx, flowClient, runScriptTx.Hash())
 
 	// 1
 	// Query for account creation events by type
@@ -70,7 +69,7 @@ func QueryEventsDemo() {
 		StartBlock: 0,
 		EndBlock:   100,
 	})
-	utils.Handle(err)
+	examples.Handle(err)
 
 	fmt.Println("\nQuery for AccountCreated event:")
 	for i, event := range events {
@@ -87,7 +86,7 @@ func QueryEventsDemo() {
 		StartBlock: 0,
 		EndBlock:   100,
 	})
-	utils.Handle(err)
+	examples.Handle(err)
 
 	fmt.Println("\nQuery for Add event:")
 	for i, event := range events {
@@ -100,7 +99,7 @@ func QueryEventsDemo() {
 	// 3
 	// Query by transaction
 	tx, err := flowClient.GetTransaction(ctx, runScriptTx.Hash())
-	utils.Handle(err)
+	examples.Handle(err)
 
 	fmt.Println("\nQuery for tx by hash:")
 	for i, event := range tx.Events {
