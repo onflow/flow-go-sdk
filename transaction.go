@@ -3,8 +3,9 @@ package flow
 import (
 	"sort"
 
-	"github.com/dapperlabs/flow-go-sdk/crypto"
 	"github.com/dapperlabs/flow-go/model/hash"
+
+	"github.com/dapperlabs/flow-go-sdk/crypto"
 )
 
 // A Transaction is a full transaction object containing a body and payer signatures.
@@ -221,20 +222,20 @@ func (t *Transaction) AddPayerSignature(key int, sig []byte) *Transaction {
 //
 // This function conforms to the crypto.Signable interface.
 func (t *Transaction) Message() []byte {
-	temp := t.MessageForm()
+	temp := t.messageForm()
 	return DefaultEncoder.MustEncode(&temp)
 }
 
-func (t *Transaction) MessageForm() interface{} {
+func (t *Transaction) messageForm() interface{} {
 	if t.PayerSignatureSet == nil {
-		return t.Body.MessageForm()
+		return t.Body.messageForm()
 	}
 
 	return struct {
 		Body            interface{}
 		PayerSignatures interface{}
 	}{
-		t.Body.MessageForm(),
+		t.Body.messageForm(),
 		signaturesList(t.PayerSignatureSet.Signatures).messageForm(), // address not included
 	}
 }
@@ -309,11 +310,11 @@ func (t TransactionBody) Signers() []*SignerDeclaration {
 //
 // This function conforms to the crypto.Signable interface.
 func (t TransactionBody) Message() []byte {
-	temp := t.MessageForm()
+	temp := t.messageForm()
 	return DefaultEncoder.MustEncode(&temp)
 }
 
-func (t TransactionBody) MessageForm() interface{} {
+func (t TransactionBody) messageForm() interface{} {
 	return struct {
 		Script           []byte
 		ReferenceBlockID []byte
@@ -396,8 +397,8 @@ func (d SignerDeclaration) messageForm() interface{} {
 			ProposalKeySequenceNumber uint64
 		}{
 			Address:                   d.Address[:],
-			Roles:                     rolesList(d.Roles).MessageForm(),
-			Keys:                      keysList(d.Keys).MessageForm(),
+			Roles:                     rolesList(d.Roles).messageForm(),
+			Keys:                      keysList(d.Keys).messageForm(),
 			ProposalKeyIndex:          uint(d.ProposalKey.KeyIndex),
 			ProposalKeySequenceNumber: d.ProposalKey.SequenceNumber,
 		}
@@ -409,8 +410,8 @@ func (d SignerDeclaration) messageForm() interface{} {
 		Keys    interface{}
 	}{
 		Address: d.Address[:],
-		Roles:   rolesList(d.Roles).MessageForm(),
-		Keys:    keysList(d.Keys).MessageForm(),
+		Roles:   rolesList(d.Roles).messageForm(),
+		Keys:    keysList(d.Keys).messageForm(),
 	}
 }
 
@@ -483,7 +484,7 @@ func (s TransactionSignature) messageForm() interface{} {
 
 type rolesList []SignerRole
 
-func (l rolesList) MessageForm() interface{} {
+func (l rolesList) messageForm() interface{} {
 	roles := make([]interface{}, len(l))
 
 	for i, role := range l {
@@ -495,7 +496,7 @@ func (l rolesList) MessageForm() interface{} {
 
 type keysList []int
 
-func (l keysList) MessageForm() interface{} {
+func (l keysList) messageForm() interface{} {
 	keys := make([]uint, len(l))
 
 	for i, key := range l {
