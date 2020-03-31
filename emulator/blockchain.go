@@ -15,8 +15,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/dapperlabs/flow-go/crypto"
 	"github.com/dapperlabs/cadence/runtime"
+	"github.com/dapperlabs/flow-go/crypto"
 
 	"github.com/dapperlabs/flow-go-sdk"
 	"github.com/dapperlabs/flow-go-sdk/emulator/execution"
@@ -283,11 +283,7 @@ func (b *Blockchain) AddTransaction(tx flow.Transaction) error {
 		return &ErrPendingBlockMidExecution{BlockHash: b.pendingBlock.Hash()}
 	}
 
-	// TODO: add more invalid transaction checks
-	missingFields := tx.MissingFields()
-	if len(missingFields) > 0 {
-		return &ErrInvalidTransaction{TxHash: tx.Hash(), MissingFields: missingFields}
-	}
+	// TODO: validate transaction
 
 	if b.pendingBlock.ContainsTransaction(tx.Hash()) {
 		return &ErrDuplicateTransaction{TxHash: tx.Hash()}
