@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/dapperlabs/flow-go-sdk"
-	"github.com/dapperlabs/flow-go-sdk/utils/unittest"
 )
 
 type addressWrapper struct {
@@ -16,7 +15,7 @@ type addressWrapper struct {
 }
 
 func TestAddressJSON(t *testing.T) {
-	addr := unittest.AddressFixture()
+	addr := flow.RootAddress
 	data, err := json.Marshal(addressWrapper{Address: addr})
 	require.Nil(t, err)
 
