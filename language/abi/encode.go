@@ -218,7 +218,7 @@ func (encoder *Encoder) encode(t cadence.Type) interface{} {
 		return eventObject{
 			compositeData{
 				Fields:       encoder.mapFields(v.Fields),
-				Initializers: encoder.mapNestedParameters(v.Initializers),
+				Initializers: [][]parameter{encoder.mapParameters(v.Initializer)},
 			},
 		}
 
@@ -231,14 +231,6 @@ func (encoder *Encoder) encode(t cadence.Type) interface{} {
 		return functionObject{
 			function{
 				Parameters: encoder.mapParameters(v.Parameters),
-				ReturnType: encoder.encodeReturnType(v.ReturnType),
-			},
-		}
-
-	case cadence.FunctionType:
-		return functionObject{
-			functionType{
-				Parameters: encoder.mapTypes(v.ParameterTypes),
 				ReturnType: encoder.encodeReturnType(v.ReturnType),
 			},
 		}

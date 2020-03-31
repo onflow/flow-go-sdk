@@ -6,20 +6,21 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/dapperlabs/flow-go/crypto"
 	"github.com/dapperlabs/cadence"
+	"github.com/dapperlabs/flow-go/crypto"
 	"github.com/dapperlabs/flow-go/protobuf/sdk/entities"
 	"github.com/dapperlabs/flow-go/protobuf/services/observation"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	encoding "github.com/dapperlabs/cadence/encoding/xdr"
+
 	"github.com/dapperlabs/flow-go-sdk"
 	"github.com/dapperlabs/flow-go-sdk/client"
 	"github.com/dapperlabs/flow-go-sdk/client/mocks"
 	"github.com/dapperlabs/flow-go-sdk/convert"
 	"github.com/dapperlabs/flow-go-sdk/utils/unittest"
-	"github.com/dapperlabs/cadence/encoding"
 )
 
 func TestPing(t *testing.T) {
@@ -224,21 +225,19 @@ func TestGetEvents(t *testing.T) {
 
 	// declare event type used for decoding event payloads
 	mockEventType := cadence.EventType{
-		CompositeType: cadence.CompositeType{
-			Identifier: "Transfer",
-			Fields: []cadence.Field{
-				{
-					Identifier: "to",
-					Type:       cadence.AddressType{},
-				},
-				{
-					Identifier: "from",
-					Type:       cadence.AddressType{},
-				},
-				{
-					Identifier: "amount",
-					Type:       cadence.IntType{},
-				},
+		Identifier: "Transfer",
+		Fields: []cadence.Field{
+			{
+				Identifier: "to",
+				Type:       cadence.AddressType{},
+			},
+			{
+				Identifier: "from",
+				Type:       cadence.AddressType{},
+			},
+			{
+				Identifier: "amount",
+				Type:       cadence.IntType{},
 			},
 		},
 	}
@@ -248,7 +247,7 @@ func TestGetEvents(t *testing.T) {
 	amount := cadence.NewInt(42)
 
 	mockEventValue := cadence.
-		NewComposite([]cadence.Value{to, from, amount}).
+		NewEvent([]cadence.Value{to, from, amount}).
 		WithType(mockEventType)
 
 	// encode event payload from mock value
@@ -279,7 +278,7 @@ func TestGetEvents(t *testing.T) {
 		actualEvent := events[0]
 
 		value, err := encoding.Decode(mockEventType, actualEvent.Payload)
-		eventValue := value.(cadence.Composite)
+		eventValue := value.(cadence.Event)
 
 		assert.Equal(t, actualEvent.Type, mockEvent.Type)
 		assert.Equal(t, to, eventValue.Fields[0])
