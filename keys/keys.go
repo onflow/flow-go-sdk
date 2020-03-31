@@ -74,7 +74,7 @@ func SignTransaction(
 		return nil, err
 	}
 
-	b := tx.Encode()
+	b := tx.Message()
 	return privateKey.PrivateKey.Sign(b, hasher)
 }
 
