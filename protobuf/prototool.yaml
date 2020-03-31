@@ -8,11 +8,9 @@ lint:
       - ENUM_ZERO_VALUES_INVALID_EXCEPT_MESSAGE
 generate:
   go_options:
-    import_path: github.com/dapperlabs/flow-go/protobuf
+    import_path: github.com/dapperlabs/flow-go-sdk/protobuf
   plugins:
     - name: go
       type: go
       flags: plugins=grpc
-      output: ./out/go
-    - name: java
-      output: ./out/java
+      output: ./
