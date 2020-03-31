@@ -1,4 +1,5 @@
-// package client_test
+package client_test
+
 //
 // import (
 // 	"context"
