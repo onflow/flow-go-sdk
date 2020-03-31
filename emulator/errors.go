@@ -79,13 +79,12 @@ func (e *ErrInvalidSignatureAccount) Error() string {
 
 // ErrInvalidTransaction indicates that a submitted transaction is invalid (missing required fields).
 type ErrInvalidTransaction struct {
-	TxHash        crypto.Hash
-	MissingFields []string
+	TxHash crypto.Hash
 }
 
 func (e *ErrInvalidTransaction) Error() string {
 	return fmt.Sprintf(
-		"Transaction with hash %x is invalid (missing required fields): %s",
+		"Transaction with hash %x is invalid",
 		e.TxHash,
 		strings.Join(e.MissingFields, ", "),
 	)
