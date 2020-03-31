@@ -4,7 +4,7 @@ import (
 	"bytes"
 
 	"github.com/dapperlabs/cadence"
-	"github.com/dapperlabs/cadence/encoding"
+	encoding "github.com/dapperlabs/cadence/encoding/xdr"
 )
 
 type PersonView interface {
@@ -13,7 +13,7 @@ type PersonView interface {
 
 type personView struct {
 	_fullName string
-	value     cadence.Composite
+	value     cadence.Struct
 }
 
 func (p personView) FullName() string {
@@ -34,8 +34,8 @@ func (p personConstructor) Encode() ([]byte, error) {
 	var w bytes.Buffer
 	encoder := encoding.NewEncoder(&w)
 
-	err := encoder.EncodeConstantSizedArray(
-		cadence.NewConstantSizedArray([]cadence.Value{
+	err := encoder.EncodeArray(
+		cadence.NewArray([]cadence.Value{
 			cadence.NewString(p.firstName),
 			cadence.NewString(p.lastName),
 		}),
@@ -55,7 +55,7 @@ func NewPersonConstructor(firstName string, lastName string) (PersonConstructor,
 	}, nil
 }
 
-var personType = cadence.CompositeType{
+var personType = cadence.StructType{
 	Fields: []cadence.Field{
 		{
 			Identifier: "FullName",
@@ -80,7 +80,7 @@ func DecodePersonView(b []byte) (PersonView, error) {
 	r := bytes.NewReader(b)
 	dec := encoding.NewDecoder(r)
 
-	v, err := dec.DecodeComposite(personType)
+	v, err := dec.DecodeStruct(personType)
 	if err != nil {
 		return nil, err
 	}
