@@ -15,14 +15,15 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/dapperlabs/cadence/encoding"
+
 	"github.com/dapperlabs/flow-go-sdk"
-	"github.com/dapperlabs/flow-go-sdk/convert"
+	"github.com/dapperlabs/flow-go-sdk/client/protobuf/convert"
 	"github.com/dapperlabs/flow-go-sdk/emulator"
 	"github.com/dapperlabs/flow-go-sdk/emulator/mocks"
 	"github.com/dapperlabs/flow-go-sdk/emulator/server"
 	"github.com/dapperlabs/flow-go-sdk/emulator/types"
 	"github.com/dapperlabs/flow-go-sdk/utils/unittest"
-	"github.com/dapperlabs/cadence/encoding"
 )
 
 func TestPing(t *testing.T) {
