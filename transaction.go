@@ -8,9 +8,9 @@ import (
 	"github.com/dapperlabs/flow-go-sdk/crypto"
 )
 
-// A Transaction is a full transaction object containing a body and payer signatures.
+// A Transaction is a full transaction object containing a payload and payer signatures.
 type Transaction struct {
-	Body              TransactionBody
+	Payload           TransactionPayload
 	PayerSignatureSet *TransactionSignatureSet
 }
 
@@ -26,40 +26,40 @@ func (t *Transaction) ID() Identifier {
 
 // Script returns the Cadence script for this transaction.
 func (t *Transaction) Script() []byte {
-	return t.Body.Script
+	return t.Payload.Script
 }
 
 // SetScript sets the Cadence script for this transaction.
 func (t *Transaction) SetScript(script []byte) *Transaction {
-	t.Body.Script = script
+	t.Payload.Script = script
 	return t
 }
 
 // ReferenceBlockID returns the reference block ID for this transaction.
 func (t *Transaction) ReferenceBlockID() Identifier {
-	return t.Body.ReferenceBlockID
+	return t.Payload.ReferenceBlockID
 }
 
 // SetReferenceBlockID sets the reference block ID for this transaction.
 func (t *Transaction) SetReferenceBlockID(blockID Identifier) *Transaction {
-	t.Body.ReferenceBlockID = blockID
+	t.Payload.ReferenceBlockID = blockID
 	return t
 }
 
 // GasLimit returns the gas limit for this transaction.
 func (t *Transaction) GasLimit() uint64 {
-	return t.Body.GasLimit
+	return t.Payload.GasLimit
 }
 
 // SetGasLimit sets the gas limit for this transaction.
 func (t *Transaction) SetGasLimit(limit uint64) *Transaction {
-	t.Body.GasLimit = limit
+	t.Payload.GasLimit = limit
 	return t
 }
 
 // Proposer returns the proposer declaration for this transaction, or nil if it is not set.
 func (t *Transaction) Proposer() *SignerDeclaration {
-	return t.Body.proposer
+	return t.Payload.proposer
 }
 
 // SetProposer sets the proposer account for this transaction.
@@ -67,7 +67,7 @@ func (t *Transaction) Proposer() *SignerDeclaration {
 // This function takes an account address and a list of key indices representing the
 // account keys that must be used for signing.
 func (t *Transaction) SetProposer(address Address, keyIndices ...int) *Transaction {
-	t.Body.proposer = newSignerDeclaration(address, []SignerRole{SignerRoleProposer}, keyIndices...)
+	t.Payload.proposer = newSignerDeclaration(address, []SignerRole{SignerRoleProposer}, keyIndices...)
 	return t
 }
 
@@ -76,13 +76,13 @@ func (t *Transaction) SetProposer(address Address, keyIndices ...int) *Transacti
 // The first argument is the index of the account key to be used as the proposal key, and the second
 // argument is the sequence number of the proposal key.
 func (t *Transaction) SetProposerSequenceNumber(proposalKeyIndex int, sequenceNum uint64) *Transaction {
-	t.Body.proposer.SetSequenceNumber(proposalKeyIndex, sequenceNum)
+	t.Payload.proposer.SetSequenceNumber(proposalKeyIndex, sequenceNum)
 	return t
 }
 
 // Payer returns the payer declaration for this transaction, or nil if it is not set.
 func (t *Transaction) Payer() *SignerDeclaration {
-	return t.Body.payer
+	return t.Payload.payer
 }
 
 // SetPayer sets the payer account for this transaction.
@@ -90,14 +90,14 @@ func (t *Transaction) Payer() *SignerDeclaration {
 // This function takes an account address and a list of key indices representing the
 // account keys that must be used for signing.
 func (t *Transaction) SetPayer(address Address, keyIndices ...int) *Transaction {
-	t.Body.payer = newSignerDeclaration(address, []SignerRole{SignerRolePayer}, keyIndices...)
+	t.Payload.payer = newSignerDeclaration(address, []SignerRole{SignerRolePayer}, keyIndices...)
 	return t
 }
 
 // Authorizers returns a list of signer declarations for the accounts that are authorizing
 // this transaction.
 func (t *Transaction) Authorizers() []*SignerDeclaration {
-	return t.Body.authorizers
+	return t.Payload.authorizers
 }
 
 // AddAuthorizer adds an authorizer account to this transaction.
@@ -106,7 +106,7 @@ func (t *Transaction) Authorizers() []*SignerDeclaration {
 // account keys that must be used for signing.
 func (t *Transaction) AddAuthorizer(address Address, keyIndices ...int) *Transaction {
 	sd := newSignerDeclaration(address, []SignerRole{SignerRoleAuthorizer}, keyIndices...)
-	t.Body.authorizers = append(t.Body.authorizers, sd)
+	t.Payload.authorizers = append(t.Payload.authorizers, sd)
 	return t
 }
 
@@ -127,39 +127,39 @@ func (t *Transaction) AddAuthorizer(address Address, keyIndices ...int) *Transac
 //
 // Two key-sets are considered equal if they contain the same key indices, regardless of order.
 func (t *Transaction) Signers() []*SignerDeclaration {
-	return t.Body.Signers()
+	return t.Payload.Signers()
 }
 
-// SignBody signs the transaction body within the context of specific account key using
+// SignPayload signs the transaction payload within the context of specific account key using
 // the provided signer.
 //
 // The resulting signature is combined with the account address and key index before
 // being added to the transaction.
 //
 // This function returns an error if the signature cannot be generated.
-func (t *Transaction) SignBody(address Address, keyIndex int, signer crypto.Signer) error {
-	sig, err := signer.Sign(t.Body)
+func (t *Transaction) SignPayload(address Address, keyIndex int, signer crypto.Signer) error {
+	sig, err := signer.Sign(t.Payload)
 	if err != nil {
 		// TODO: wrap error
 		return err
 	}
 
-	t.AddBodySignature(address, keyIndex, sig)
+	t.AddPayloadSignature(address, keyIndex, sig)
 	return nil
 }
 
-// BodySignatures returns a list containing a signature set for each account that
-// has signed the transaction body.
+// PayloadSignatures returns a list containing a signature set for each account that
+// has signed the transaction payload.
 //
 // The list is returned in the following order: the proposer signature is always first, followed
 // by the signatures of the authorizers in the order in which their signer declarations are declared.
-func (t *Transaction) BodySignatures() []*TransactionSignatureSet {
-	return t.Body.Signatures
+func (t *Transaction) PayloadSignatures() []*TransactionSignatureSet {
+	return t.Payload.Signatures
 }
 
-// AddBodySignature adds a body signature to the transaction for the given address and key index.
-func (t *Transaction) AddBodySignature(address Address, keyIndex int, sig []byte) *Transaction {
-	for _, as := range t.Body.Signatures {
+// AddPayloadSignature adds a payload signature to the transaction for the given address and key index.
+func (t *Transaction) AddPayloadSignature(address Address, keyIndex int, sig []byte) *Transaction {
+	for _, as := range t.Payload.Signatures {
 		if as.Address == address {
 			as.Add(keyIndex, sig)
 			return t
@@ -169,12 +169,12 @@ func (t *Transaction) AddBodySignature(address Address, keyIndex int, sig []byte
 	ts := newTransactionSignatureSet(address)
 	ts.Add(keyIndex, sig)
 
-	t.Body.Signatures = append(t.Body.Signatures, ts)
+	t.Payload.Signatures = append(t.Payload.Signatures, ts)
 
 	return t
 }
 
-// SignPayer signs the full transaction (body + body signatures) within the context of the
+// SignPayer signs the full transaction (payload + payload signatures) within the context of the
 // declared payer account and provided key index.
 //
 // The resulting signature is combined with the payer account address and key index before
@@ -228,21 +228,21 @@ func (t *Transaction) Message() []byte {
 
 func (t *Transaction) messageForm() interface{} {
 	if t.PayerSignatureSet == nil {
-		return t.Body.messageForm()
+		return t.Payload.messageForm()
 	}
 
 	return struct {
-		Body            interface{}
+		Payload         interface{}
 		PayerSignatures interface{}
 	}{
-		t.Body.messageForm(),
+		t.Payload.messageForm(),
 		signaturesList(t.PayerSignatureSet.Signatures).messageForm(), // address not included
 	}
 }
 
-// A TransactionBody is the inner portion of a transaction that contains the
+// A TransactionPayload is the inner portion of a transaction that contains the
 // script, signers and other metadata required for transaction execution.
-type TransactionBody struct {
+type TransactionPayload struct {
 	Script           []byte
 	ReferenceBlockID Identifier
 	GasLimit         uint64
@@ -271,7 +271,7 @@ type TransactionBody struct {
 // but require a stricter key-set for payment.
 //
 // Two key-sets are considered equal if they contain the same key indices, regardless of order.
-func (t TransactionBody) Signers() []*SignerDeclaration {
+func (t TransactionPayload) Signers() []*SignerDeclaration {
 	// TODO: handle case when proposer and/or payer is nil
 
 	// proposer + payer + len(authorizers)
@@ -303,18 +303,18 @@ func (t TransactionBody) Signers() []*SignerDeclaration {
 	return signerList
 }
 
-// Message returns the signable message for this transaction body.
+// Message returns the signable message for this transaction payload.
 //
 // This is the portion of the transaction that is signed by the
 // proposer and authorizers.
 //
 // This function conforms to the crypto.Signable interface.
-func (t TransactionBody) Message() []byte {
+func (t TransactionPayload) Message() []byte {
 	temp := t.messageForm()
 	return DefaultEncoder.MustEncode(&temp)
 }
 
-func (t TransactionBody) messageForm() interface{} {
+func (t TransactionPayload) messageForm() interface{} {
 	return struct {
 		Script           []byte
 		ReferenceBlockID []byte
