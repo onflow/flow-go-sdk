@@ -1,7 +1,8 @@
-package send
+package deploy
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -13,6 +14,7 @@ import (
 	"github.com/dapperlabs/flow-go-sdk/cli"
 	"github.com/dapperlabs/flow-go-sdk/client"
 	"github.com/dapperlabs/flow-go-sdk/keys"
+	"github.com/dapperlabs/flow-go-sdk/templates"
 	utils "github.com/dapperlabs/flow-go-sdk/utils/examples"
 )
 
@@ -24,23 +26,28 @@ type Config struct {
 var conf Config
 
 var Cmd = &cobra.Command{
-	Use:   "send [path to script]",
-	Short: "Send a transaction",
+	Use:   "deploy [path to contract]",
+	Short: "Deploy a contract",
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		projectConf := cli.LoadConfig()
 
 		signer := projectConf.Accounts[conf.Signer]
 
-		scriptPath := args[0]
-		script, err := ioutil.ReadFile(scriptPath)
+		contractPath := args[0]
+
+		contract, err := ioutil.ReadFile(contractPath)
+		if err != nil {
+			cli.Exitf(1, "Failed to load Cadence code from %s", contractPath)
+		}
+
+		deployScript, _ := templates.CreateAccount(nil, contract)
 
 		tx := flow.Transaction{
-			Script:         script,
-			Nonce:          rand.Uint64(),
-			ComputeLimit:   10,
-			PayerAccount:   signer.Address,
-			ScriptAccounts: []flow.Address{signer.Address},
+			Script:       deployScript,
+			Nonce:        rand.Uint64(),
+			ComputeLimit: 10,
+			PayerAccount: signer.Address,
 		}
 
 		sig, err := keys.SignTransaction(tx, signer.PrivateKey)
@@ -60,7 +67,20 @@ var Cmd = &cobra.Command{
 			cli.Exitf(1, "Failed to send transaction: %v", err)
 		}
 
-		utils.WaitForSeal(context.Background(), client, tx.Hash())
+		deployContractTxResp := utils.WaitForSeal(context.Background(), client, tx.Hash())
+
+		var contractAddress flow.Address
+
+		for _, event := range deployContractTxResp.Events {
+			if event.Type == flow.EventAccountCreated {
+				accountCreatedEvent, err := flow.DecodeAccountCreatedEvent(event.Payload)
+				utils.Handle(err)
+
+				contractAddress = accountCreatedEvent.Address()
+			}
+		}
+
+		fmt.Printf("Contract deployed to: 0x%s\n", contractAddress.Hex())
 	},
 }
 

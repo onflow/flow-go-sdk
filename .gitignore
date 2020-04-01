@@ -15,7 +15,7 @@ node_modules
 
 .DS_Store
 
-flow.json
+/flow.json
 flowdb
 
 # IDE related files
