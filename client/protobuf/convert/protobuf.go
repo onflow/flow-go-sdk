@@ -4,43 +4,43 @@ import (
 	"errors"
 
 	"github.com/dapperlabs/flow-go/crypto"
-	"github.com/dapperlabs/flow-go/protobuf/sdk/entities"
 
 	"github.com/dapperlabs/flow-go-sdk"
+	proto "github.com/dapperlabs/flow-go-sdk/client/protobuf/flow"
 )
 
 var ErrEmptyMessage = errors.New("protobuf message is empty")
 
-func MessageToBlockHeader(m *entities.BlockHeader) flow.Header {
+func MessageToBlockHeader(m *proto.BlockHeader) flow.Header {
 	return flow.Header{
-		Parent: m.GetPreviousBlockHash(),
-		Number: m.GetNumber(),
+		Parent: m.GetParentId(),
+		Number: m.GetHeight(),
 	}
 }
 
-func BlockHeaderToMessage(b flow.Header) *entities.BlockHeader {
-	return &entities.BlockHeader{
-		Hash:              b.Hash(),
-		PreviousBlockHash: b.Parent,
-		Number:            b.Number,
+func BlockHeaderToMessage(b flow.Header) *proto.BlockHeader {
+	return &proto.BlockHeader{
+		Id:       b.Hash(),
+		ParentId: b.Parent,
+		Height:   b.Number,
 	}
 }
 
-func MessageToAccountSignature(m *entities.AccountSignature) flow.AccountSignature {
+func MessageToAccountSignature(m *proto.AccountSignature) flow.AccountSignature {
 	return flow.AccountSignature{
 		Account:   flow.BytesToAddress(m.GetAccount()),
 		Signature: m.GetSignature(),
 	}
 }
 
-func AccountSignatureToMessage(a flow.AccountSignature) *entities.AccountSignature {
-	return &entities.AccountSignature{
+func AccountSignatureToMessage(a flow.AccountSignature) *proto.AccountSignature {
+	return &proto.AccountSignature{
 		Account:   a.Account.Bytes(),
 		Signature: a.Signature,
 	}
 }
 
-func MessageToTransaction(m *entities.Transaction) (flow.Transaction, error) {
+func MessageToTransaction(m *proto.Transaction) (flow.Transaction, error) {
 	if m == nil {
 		return flow.Transaction{}, ErrEmptyMessage
 	}
@@ -56,41 +56,35 @@ func MessageToTransaction(m *entities.Transaction) (flow.Transaction, error) {
 	}
 
 	return flow.Transaction{
-		Script:             m.GetScript(),
-		ReferenceBlockHash: m.ReferenceBlockHash,
-		Nonce:              m.GetNonce(),
-		ComputeLimit:       m.GetComputeLimit(),
-		PayerAccount:       flow.BytesToAddress(m.PayerAccount),
-		ScriptAccounts:     scriptAccounts,
-		Signatures:         signatures,
-		Status:             flow.TransactionStatus(m.GetStatus()),
+		Script:         m.GetScript(),
+		PayerAccount:   flow.BytesToAddress(m.PayerAccount),
+		ScriptAccounts: scriptAccounts,
+		Signatures:     signatures,
+		Status:         flow.TransactionStatus(m.GetStatus()),
 	}, nil
 }
 
-func TransactionToMessage(t flow.Transaction) *entities.Transaction {
+func TransactionToMessage(t flow.Transaction) *proto.Transaction {
 	scriptAccounts := make([][]byte, len(t.ScriptAccounts))
 	for i, account := range t.ScriptAccounts {
 		scriptAccounts[i] = account.Bytes()
 	}
 
-	signatures := make([]*entities.AccountSignature, len(t.Signatures))
+	signatures := make([]*proto.AccountSignature, len(t.Signatures))
 	for i, accountSig := range t.Signatures {
 		signatures[i] = AccountSignatureToMessage(accountSig)
 	}
 
-	return &entities.Transaction{
-		Script:             t.Script,
-		ReferenceBlockHash: t.ReferenceBlockHash,
-		Nonce:              t.Nonce,
-		ComputeLimit:       t.ComputeLimit,
-		PayerAccount:       t.PayerAccount.Bytes(),
-		ScriptAccounts:     scriptAccounts,
-		Signatures:         signatures,
-		Status:             entities.TransactionStatus(t.Status),
+	return &proto.Transaction{
+		Script:         t.Script,
+		PayerAccount:   t.PayerAccount.Bytes(),
+		ScriptAccounts: scriptAccounts,
+		Signatures:     signatures,
+		Status:         proto.TransactionStatus(t.Status),
 	}
 }
 
-func MessageToAccount(m *entities.Account) (flow.Account, error) {
+func MessageToAccount(m *proto.Account) (flow.Account, error) {
 	if m == nil {
 		return flow.Account{}, ErrEmptyMessage
 	}
@@ -113,8 +107,8 @@ func MessageToAccount(m *entities.Account) (flow.Account, error) {
 	}, nil
 }
 
-func AccountToMessage(a flow.Account) (*entities.Account, error) {
-	accountKeys := make([]*entities.AccountPublicKey, len(a.Keys))
+func AccountToMessage(a flow.Account) (*proto.Account, error) {
+	accountKeys := make([]*proto.AccountPublicKey, len(a.Keys))
 	for i, key := range a.Keys {
 		accountKeyMsg, err := AccountPublicKeyToMessage(key)
 		if err != nil {
@@ -123,7 +117,7 @@ func AccountToMessage(a flow.Account) (*entities.Account, error) {
 		accountKeys[i] = accountKeyMsg
 	}
 
-	return &entities.Account{
+	return &proto.Account{
 		Address: a.Address.Bytes(),
 		Balance: a.Balance,
 		Code:    a.Code,
@@ -131,7 +125,7 @@ func AccountToMessage(a flow.Account) (*entities.Account, error) {
 	}, nil
 }
 
-func MessageToAccountPublicKey(m *entities.AccountPublicKey) (flow.AccountPublicKey, error) {
+func MessageToAccountPublicKey(m *proto.AccountPublicKey) (flow.AccountPublicKey, error) {
 	if m == nil {
 		return flow.AccountPublicKey{}, ErrEmptyMessage
 	}
@@ -152,13 +146,13 @@ func MessageToAccountPublicKey(m *entities.AccountPublicKey) (flow.AccountPublic
 	}, nil
 }
 
-func AccountPublicKeyToMessage(a flow.AccountPublicKey) (*entities.AccountPublicKey, error) {
+func AccountPublicKeyToMessage(a flow.AccountPublicKey) (*proto.AccountPublicKey, error) {
 	publicKey, err := a.PublicKey.Encode()
 	if err != nil {
 		return nil, err
 	}
 
-	return &entities.AccountPublicKey{
+	return &proto.AccountPublicKey{
 		PublicKey: publicKey,
 		SignAlgo:  uint32(a.SignAlgo),
 		HashAlgo:  uint32(a.HashAlgo),
@@ -166,20 +160,20 @@ func AccountPublicKeyToMessage(a flow.AccountPublicKey) (*entities.AccountPublic
 	}, nil
 }
 
-func MessageToEvent(m *entities.Event) flow.Event {
+func MessageToEvent(m *proto.Event) flow.Event {
 	return flow.Event{
 		Type:    m.GetType(),
-		TxHash:  crypto.BytesToHash(m.GetTransactionHash()),
+		TxHash:  crypto.BytesToHash(m.GetTransactionId()),
 		Index:   uint(m.GetIndex()),
 		Payload: m.GetPayload(),
 	}
 }
 
-func EventToMessage(e flow.Event) *entities.Event {
-	return &entities.Event{
-		Type:            e.Type,
-		TransactionHash: e.TxHash,
-		Index:           uint32(e.Index),
-		Payload:         e.Payload,
+func EventToMessage(e flow.Event) *proto.Event {
+	return &proto.Event{
+		Type:          e.Type,
+		TransactionId: e.TxHash,
+		Index:         uint32(e.Index),
+		Payload:       e.Payload,
 	}
 }
