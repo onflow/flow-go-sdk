@@ -69,6 +69,7 @@ $(BINARY):
 versioned-binaries:
 	$(MAKE) OS=linux versioned-binary
 	$(MAKE) OS=darwin versioned-binary
+	$(MAKE) OS=windows versioned-binary
 
 .PHONY: versioned-binary
 versioned-binary:
