@@ -4,6 +4,7 @@ import (
 	"context"
 	"io/ioutil"
 	"log"
+	"math/rand"
 
 	"github.com/psiemens/sconfig"
 	"github.com/spf13/cobra"
@@ -12,40 +13,31 @@ import (
 	"github.com/dapperlabs/flow-go-sdk/cli"
 	"github.com/dapperlabs/flow-go-sdk/client"
 	"github.com/dapperlabs/flow-go-sdk/keys"
+	utils "github.com/dapperlabs/flow-go-sdk/utils/examples"
 )
 
 type Config struct {
 	Signer string `default:"root" flag:"signer,s"`
-	Code   string `flag:"code,c"`
-	Nonce  uint64 `flag:"nonce,n"`
 	Host   string `default:"127.0.0.1:3569" flag:"host" info:"Flow Observation API host address"`
 }
 
 var conf Config
 
 var Cmd = &cobra.Command{
-	Use:   "send",
+	Use:   "send [path to script]",
 	Short: "Send a transaction",
+	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		projectConf := cli.LoadConfig()
 
 		signer := projectConf.Accounts[conf.Signer]
 
-		var (
-			code []byte
-			err  error
-		)
-
-		if conf.Code != "" {
-			code, err = ioutil.ReadFile(conf.Code)
-			if err != nil {
-				cli.Exitf(1, "Failed to load BPL code from %s", conf.Code)
-			}
-		}
+		scriptPath := args[0]
+		script, err := ioutil.ReadFile(scriptPath)
 
 		tx := flow.Transaction{
-			Script:         code,
-			Nonce:          conf.Nonce,
+			Script:         script,
+			Nonce:          rand.Uint64(),
 			ComputeLimit:   10,
 			PayerAccount:   signer.Address,
 			ScriptAccounts: []flow.Address{signer.Address},
@@ -67,6 +59,8 @@ var Cmd = &cobra.Command{
 		if err != nil {
 			cli.Exitf(1, "Failed to send transaction: %v", err)
 		}
+
+		utils.WaitForSeal(context.Background(), client, tx.Hash())
 	},
 }
 
