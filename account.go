@@ -11,19 +11,17 @@ type Account struct {
 	Address Address
 	Balance uint64
 	Code    []byte
-	Keys    []AccountPublicKey
+	Keys    []AccountKey
 }
 
-// AccountPublicKey is a public key associated with an account.
-//
-// An account public key contains the public key, signing and hashing algorithms, and a key weight.
-type AccountPublicKey struct {
+// An AccountKey is a public key associated with an account.
+type AccountKey struct {
 	PublicKey      crypto.PublicKey
 	Index          int
 	SignAlgo       crypto.SigningAlgorithm
 	HashAlgo       crypto.HashingAlgorithm
 	Weight         int
-	SequenceNumber int
+	SequenceNumber uint64
 }
 
 // AccountPrivateKey is a private key associated with an account.
@@ -33,9 +31,10 @@ type AccountPrivateKey struct {
 	HashAlgo   crypto.HashingAlgorithm
 }
 
+// TODO: replace this function with a more intuitive API
 // PublicKey returns a weighted public key.
-func (a AccountPrivateKey) PublicKey(weight int) AccountPublicKey {
-	return AccountPublicKey{
+func (a AccountPrivateKey) PublicKey(weight int) AccountKey {
+	return AccountKey{
 		PublicKey: a.PrivateKey.PublicKey(),
 		SignAlgo:  a.SignAlgo,
 		HashAlgo:  a.HashAlgo,
