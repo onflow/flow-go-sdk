@@ -285,7 +285,7 @@ fun main(): Int { return 1 }
 ```go
 import (
     "github.com/dapperlabs/cadence"
-    "github.com/dapperlabs/cadence/encoding"
+    "github.com/dapperlabs/cadence/encoding/xdr"
 )
 
 script := []byte("fun main(): Int { return 1 }")
@@ -296,7 +296,7 @@ if err != nil {
 }
 
 // the returned value is XDR-encoded, so it must be decoded to its original value
-myTokenID, err := encoding.Decode(language.IntType{}, result)
+myTokenID, err := xdr.Decode(language.IntType{}, result)
 if err != nil {
     panic("failed to decode script result")
 }
