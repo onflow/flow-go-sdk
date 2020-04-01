@@ -14,7 +14,7 @@ type addressWrapper struct {
 	Address flow.Address
 }
 
-func TestAddressJSON(t *testing.T) {
+func TestAddress_JSON(t *testing.T) {
 	addr := flow.RootAddress
 	data, err := json.Marshal(addressWrapper{Address: addr})
 	require.Nil(t, err)
@@ -25,7 +25,7 @@ func TestAddressJSON(t *testing.T) {
 	assert.Equal(t, addr, out.Address)
 }
 
-func TestShort(t *testing.T) {
+func TestAddress_Short(t *testing.T) {
 	type testcase struct {
 		addr     flow.Address
 		expected string
