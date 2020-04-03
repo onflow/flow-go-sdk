@@ -24,7 +24,7 @@ func init() {
 }
 
 func TestCreateAccount(t *testing.T) {
-	accountKey := flow.AccountPublicKey{
+	accountKey := flow.AccountKey{
 		PublicKey: mockPublicKey,
 		SignAlgo:  mockPublicKey.Algorithm(),
 		HashAlgo:  crypto.SHA3_256,
@@ -32,7 +32,7 @@ func TestCreateAccount(t *testing.T) {
 	}
 
 	t.Run("without code", func(t *testing.T) {
-		script, err := templates.CreateAccount([]flow.AccountPublicKey{accountKey}, []byte{})
+		script, err := templates.CreateAccount([]flow.AccountKey{accountKey}, []byte{})
 		assert.NoError(t, err)
 
 		expectedScript := `
@@ -50,7 +50,7 @@ func TestCreateAccount(t *testing.T) {
 	})
 
 	t.Run("with code", func(t *testing.T) {
-		script, err := templates.CreateAccount([]flow.AccountPublicKey{accountKey}, []byte("pub fun main() {}"))
+		script, err := templates.CreateAccount([]flow.AccountKey{accountKey}, []byte("pub fun main() {}"))
 		assert.Nil(t, err)
 
 		expectedScript := `

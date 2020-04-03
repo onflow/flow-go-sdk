@@ -61,7 +61,7 @@ func CreateAccount() (flow.AccountPrivateKey, flow.Address) {
 	privateKey := RandomPrivateKey()
 
 	addr := createAccount(
-		[]flow.AccountPublicKey{privateKey.PublicKey(keys.PublicKeyWeightThreshold)},
+		[]flow.AccountKey{privateKey.PublicKey(keys.PublicKeyWeightThreshold)},
 		nil,
 	)
 
@@ -72,7 +72,7 @@ func DeployContract(code []byte) flow.Address {
 	return createAccount(nil, code)
 }
 
-func createAccount(publicKeys []flow.AccountPublicKey, code []byte) flow.Address {
+func createAccount(publicKeys []flow.AccountKey, code []byte) flow.Address {
 	ctx := context.Background()
 	flowClient, err := client.New("127.0.0.1:3569")
 	Handle(err)
