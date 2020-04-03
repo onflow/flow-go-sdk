@@ -64,10 +64,10 @@ func QueryEventsDemo() {
 
 	// 1
 	// Query for account creation events by type
-	events, err := flowClient.GetEvents(ctx, client.EventQuery{
-		Type:       "flow.AccountCreated",
-		StartBlock: 0,
-		EndBlock:   100,
+	events, err := flowClient.GetEventsForHeightRange(ctx, client.EventRangeQuery{
+		Type:        "flow.AccountCreated",
+		StartHeight: 0,
+		EndHeight:   100,
 	})
 	examples.Handle(err)
 
@@ -81,10 +81,10 @@ func QueryEventsDemo() {
 
 	// 2
 	// Query for our custom event by type
-	events, err = flowClient.GetEvents(ctx, client.EventQuery{
-		Type:       fmt.Sprintf("A.%s.EventDemo.Add", contractAddr.Hex()),
-		StartBlock: 0,
-		EndBlock:   100,
+	events, err = flowClient.GetEventsForHeightRange(ctx, client.EventRangeQuery{
+		Type:        fmt.Sprintf("A.%s.EventDemo.Add", contractAddr.Hex()),
+		StartHeight: 0,
+		EndHeight:   100,
 	})
 	examples.Handle(err)
 
