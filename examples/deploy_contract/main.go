@@ -8,6 +8,7 @@ import (
 
 	"github.com/dapperlabs/flow-go-sdk"
 	"github.com/dapperlabs/flow-go-sdk/client"
+	"github.com/dapperlabs/flow-go-sdk/crypto"
 	"github.com/dapperlabs/flow-go-sdk/examples"
 	"github.com/dapperlabs/flow-go-sdk/keys"
 	"github.com/dapperlabs/flow-go-sdk/templates"
@@ -25,31 +26,39 @@ func DeployContractDemo() {
 	flowClient, err := client.New("127.0.0.1:3569")
 	examples.Handle(err)
 
+	rootAcctAddr, rootAcctKey, rootPrivateKey := examples.RootAccount()
+	rootKeySigner := crypto.NewNaiveSigner(rootPrivateKey, rootAcctKey.HashAlgo)
+
 	myPrivateKey := examples.RandomPrivateKey()
-	myPublicKey := myPrivateKey.PublicKey(keys.PublicKeyWeightThreshold)
-
-	// Generate an account creation script
-	createAccountScript, err := templates.CreateAccount([]flow.AccountPublicKey{myPublicKey}, nil)
-	examples.Handle(err)
-
-	rootAcctAddr, rootAcctKey := examples.RootAccount()
-
-	createAccountTx := flow.Transaction{
-		Script:       createAccountScript,
-		Nonce:        examples.GetNonce(),
-		ComputeLimit: 10,
-		PayerAccount: rootAcctAddr,
+	myAcctKey := flow.AccountKey{
+		PublicKey: myPrivateKey.PublicKey(),
+		SignAlgo:  keys.ECDSA_P256_SHA3_256.SigningAlgorithm(),
+		HashAlgo:  keys.ECDSA_P256_SHA3_256.HashingAlgorithm(),
+		Weight:    keys.PublicKeyWeightThreshold,
 	}
 
-	sig, err := keys.SignTransaction(createAccountTx, rootAcctKey)
+	myKeySigner := crypto.NewNaiveSigner(myPrivateKey, myAcctKey.HashAlgo)
+
+	// Generate an account creation script
+	createAccountScript, err := templates.CreateAccount([]flow.AccountKey{myAcctKey}, nil)
 	examples.Handle(err)
 
-	createAccountTx.AddSignature(rootAcctAddr, sig)
+	createAccountTx := flow.NewTransaction().
+		SetScript(createAccountScript).
+		SetProposalKey(rootAcctAddr, rootAcctKey.Index, rootAcctKey.SequenceNumber).
+		SetPayer(rootAcctAddr, rootAcctKey.Index)
 
-	err = flowClient.SendTransaction(ctx, createAccountTx)
+	err = createAccountTx.SignPayer(
+		rootAcctAddr,
+		rootAcctKey.Index,
+		rootKeySigner,
+	)
 	examples.Handle(err)
 
-	accountCreationTxRes := examples.WaitForSeal(ctx, flowClient, createAccountTx.Hash())
+	err = flowClient.SendTransaction(ctx, *createAccountTx)
+	examples.Handle(err)
+
+	accountCreationTxRes := examples.WaitForSeal(ctx, flowClient, createAccountTx.ID())
 
 	var myAddress flow.Address
 
@@ -66,21 +75,22 @@ func DeployContractDemo() {
 	nftCode := examples.ReadFile(GreatTokenContractFile)
 	deployScript, err := templates.CreateAccount(nil, nftCode)
 
-	deployContractTx := flow.Transaction{
-		Script:       deployScript,
-		Nonce:        examples.GetNonce(),
-		ComputeLimit: 10,
-		PayerAccount: myAddress,
-	}
-	sig, err = keys.SignTransaction(deployContractTx, myPrivateKey)
+	deployContractTx := flow.NewTransaction().
+		SetScript(deployScript).
+		SetProposalKey(myAddress, myAcctKey.Index, myAcctKey.SequenceNumber).
+		SetPayer(myAddress, myAcctKey.Index)
+
+	err = createAccountTx.SignPayer(
+		myAddress,
+		myAcctKey.Index,
+		myKeySigner,
+	)
 	examples.Handle(err)
 
-	deployContractTx.AddSignature(myAddress, sig)
-
-	err = flowClient.SendTransaction(ctx, deployContractTx)
+	err = flowClient.SendTransaction(ctx, *deployContractTx)
 	examples.Handle(err)
 
-	deployContractTxResp := examples.WaitForSeal(ctx, flowClient, deployContractTx.Hash())
+	deployContractTxResp := examples.WaitForSeal(ctx, flowClient, deployContractTx.ID())
 
 	var nftAddress flow.Address
 
@@ -94,40 +104,44 @@ func DeployContractDemo() {
 	fmt.Println("My Address:", nftAddress.Hex())
 
 	// Next, instantiate the minter
-	createMinterTx := flow.Transaction{
-		Script:         GenerateCreateMinterScript(nftAddress, 1, 2),
-		Nonce:          examples.GetNonce(),
-		ComputeLimit:   10,
-		PayerAccount:   myAddress,
-		ScriptAccounts: []flow.Address{myAddress},
-	}
+	createMinterScript := GenerateCreateMinterScript(nftAddress, 1, 2)
 
-	sig, err = keys.SignTransaction(createMinterTx, myPrivateKey)
+	createMinterTx := flow.NewTransaction().
+		SetScript(createMinterScript).
+		SetProposalKey(myAddress, myAcctKey.Index, myAcctKey.SequenceNumber).
+		SetPayer(myAddress, myAcctKey.Index).
+		AddAuthorizer(myAddress, myAcctKey.Index)
+
+	err = createMinterTx.SignPayer(
+		myAddress,
+		myAcctKey.Index,
+		myKeySigner,
+	)
 	examples.Handle(err)
 
-	createMinterTx.AddSignature(myAddress, sig)
-
-	err = flowClient.SendTransaction(ctx, createMinterTx)
+	err = flowClient.SendTransaction(ctx, *createMinterTx)
 	examples.Handle(err)
+
+	mintScript := GenerateMintScript(nftAddress)
 
 	// Mint the NFT
-	mintTx := flow.Transaction{
-		Script:         GenerateMintScript(nftAddress),
-		Nonce:          examples.GetNonce(),
-		ComputeLimit:   10,
-		PayerAccount:   myAddress,
-		ScriptAccounts: []flow.Address{myAddress},
-	}
+	mintTx := flow.NewTransaction().
+		SetScript(mintScript).
+		SetProposalKey(myAddress, myAcctKey.Index, myAcctKey.SequenceNumber).
+		SetPayer(myAddress, myAcctKey.Index).
+		AddAuthorizer(myAddress, myAcctKey.Index)
 
-	sig, err = keys.SignTransaction(mintTx, myPrivateKey)
+	err = mintTx.SignPayer(
+		myAddress,
+		myAcctKey.Index,
+		myKeySigner,
+	)
 	examples.Handle(err)
 
-	mintTx.AddSignature(myAddress, sig)
-
-	err = flowClient.SendTransaction(ctx, mintTx)
+	err = flowClient.SendTransaction(ctx, *mintTx)
 	examples.Handle(err)
 
-	examples.WaitForSeal(ctx, flowClient, mintTx.Hash())
+	examples.WaitForSeal(ctx, flowClient, mintTx.ID())
 
 	fmt.Println("NFT minted!")
 
