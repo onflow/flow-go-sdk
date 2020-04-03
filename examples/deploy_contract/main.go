@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/dapperlabs/cadence"
-	encoding "github.com/dapperlabs/cadence/encoding/xdr"
 
 	"github.com/dapperlabs/flow-go-sdk"
 	"github.com/dapperlabs/flow-go-sdk/client"
@@ -56,9 +55,7 @@ func DeployContractDemo() {
 
 	for _, event := range accountCreationTxRes.Events {
 		if event.Type == flow.EventAccountCreated {
-			accountCreatedEvent, err := flow.DecodeAccountCreatedEvent(event.Payload)
-			examples.Handle(err)
-
+			accountCreatedEvent := flow.AccountCreatedEvent(event)
 			myAddress = accountCreatedEvent.Address()
 		}
 	}
@@ -89,9 +86,7 @@ func DeployContractDemo() {
 
 	for _, event := range deployContractTxResp.Events {
 		if event.Type == flow.EventAccountCreated {
-			accountCreatedEvent, err := flow.DecodeAccountCreatedEvent(event.Payload)
-			examples.Handle(err)
-
+			accountCreatedEvent := flow.AccountCreatedEvent(event)
 			nftAddress = accountCreatedEvent.Address()
 		}
 	}
@@ -136,15 +131,12 @@ func DeployContractDemo() {
 
 	fmt.Println("NFT minted!")
 
-	result, err := flowClient.ExecuteScript(ctx, GenerateGetNFTIDScript(nftAddress, myAddress))
+	result, err := flowClient.ExecuteScriptAtLatestBlock(ctx, GenerateGetNFTIDScript(nftAddress, myAddress))
 	examples.Handle(err)
 
-	myTokenID, err := encoding.Decode(cadence.IntType{}, result)
-	examples.Handle(err)
+	myTokenID := result.(cadence.Int)
 
-	id := myTokenID.(cadence.Int)
-
-	fmt.Printf("You now own the Great NFT with ID: %d\n", id.Int())
+	fmt.Printf("You now own the Great NFT with ID: %d\n", myTokenID.Int())
 }
 
 // GenerateCreateMinterScript Creates a script that instantiates

@@ -57,9 +57,7 @@ func CreateAccountDemo() {
 
 	for _, event := range accountCreationTxRes.Events {
 		if event.Type == flow.EventAccountCreated {
-			accountCreatedEvent, err := flow.DecodeAccountCreatedEvent(event.Payload)
-			examples.Handle(err)
-
+			accountCreatedEvent := flow.AccountCreatedEvent(event)
 			myAddress = accountCreatedEvent.Address()
 		}
 	}
