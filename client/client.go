@@ -2,7 +2,9 @@ package client
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/dapperlabs/cadence"
 	"google.golang.org/grpc"
 
 	proto "github.com/dapperlabs/flow/protobuf/go/flow"
@@ -11,10 +13,10 @@ import (
 	"github.com/dapperlabs/flow-go-sdk/client/protobuf/convert"
 )
 
-// RPCClient is an RPC client compatible with the Flow Observation API.
+// An RPCClient is an RPC client for the Flow Access API.
 type RPCClient proto.AccessAPIClient
 
-// Client is a Flow user agent client.
+// A Client is a gRPC Client for the FLow Access API.
 type Client struct {
 	rpcClient RPCClient
 	close     func() error
@@ -23,8 +25,8 @@ type Client struct {
 // New initializes a Flow client with the default gRPC provider.
 //
 // An error will be returned if the host is unreachable.
-func New(addr string) (*Client, error) {
-	conn, err := grpc.Dial(addr, grpc.WithInsecure())
+func New(addr string, opts ...grpc.DialOption) (*Client, error) {
+	conn, err := grpc.Dial(addr, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -50,116 +52,121 @@ func (c *Client) Close() error {
 	return c.close()
 }
 
-// Ping tests the connection to the Observation API.
+// Ping is used to check if the access node is alive and healthy.
 func (c *Client) Ping(ctx context.Context) error {
 	_, err := c.rpcClient.Ping(ctx, &proto.PingRequest{})
 	return err
 }
 
+// GetLatestBlockHeader gets the latest sealed or unsealed block header.
+func (c *Client) GetLatestBlockHeader(ctx context.Context) error {
+	panic("not implemented")
+}
+
+// GetBlockHeaderByID gets a block header by ID.
+func (c *Client) GetBlockHeaderByID(ctx context.Context) error {
+	panic("not implemented")
+}
+
+// GetBlockHeaderByHeight gets a block header by height.
+func (c *Client) GetBlockHeaderByHeight(ctx context.Context) error {
+	panic("not implemented")
+}
+
+// GetLatestBlock gets the full payload of the latest sealed or unsealed block.
+func (c *Client) GetLatestBlock(ctx context.Context) error {
+	panic("not implemented")
+}
+
+// GetBlockByID gets a full block by ID.
+func (c *Client) GetBlockByID(ctx context.Context) error {
+	panic("not implemented")
+}
+
+// GetBlockByHeight gets a full block by height.
+func (c *Client) GetBlockByHeight(ctx context.Context) error {
+	panic("not implemented")
+}
+
+// GetCollectionByID gets a collection by ID.
+func (c *Client) GetCollectionByID(ctx context.Context) error {
+	panic("not implemented")
+}
+
 // SendTransaction submits a transaction to the network.
-func (c *Client) SendTransaction(ctx context.Context, tx flow.Transaction) error {
-	txMsg := convert.TransactionToMessage(tx)
-
-	_, err := c.rpcClient.SendTransaction(
-		ctx,
-		&proto.SendTransactionRequest{Transaction: txMsg},
-	)
-
-	return err
+func (c *Client) SendTransaction(ctx context.Context, transaction flow.Transaction) error {
+	panic("not implemented")
 }
 
-// GetLatestBlock gets the header of the latest sealed or unsealed block.
-func (c *Client) GetLatestBlockH(ctx context.Context, isSealed bool) (*flow.Header, error) {
-	res, err := c.rpcClient.GetLatestBlockHeader(
-		ctx,
-		&proto.GetLatestBlockHeaderRequest{IsSealed: isSealed},
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	blockHeader := convert.MessageToBlockHeader(res.GetBlock())
-
-	return &blockHeader, nil
+// GetTransaction gets a transaction by ID.
+func (c *Client) GetTransaction(ctx context.Context, id []byte) (*flow.Transaction, error) {
+	panic("not implemented")
 }
 
-// ExecuteScript executes a script against the latest sealed world state.
-func (c *Client) ExecuteScript(ctx context.Context, script []byte) ([]byte, error) {
-	req := proto.ExecuteScriptAtLatestBlockRequest{Script: script}
-
-	res, err := c.rpcClient.ExecuteScriptAtLatestBlock(ctx, &req)
-	if err != nil {
-		return nil, err
-	}
-
-	return res.GetValue(), nil
+// GetTransactionResult gets the result of a transaction.
+func (c *Client) GetTransactionResult(ctx context.Context) error {
+	panic("not implemented")
 }
 
-// GetTransaction fetches a transaction by hash.
-func (c *Client) GetTransaction(ctx context.Context, h crypto.Hash) (*flow.Transaction, error) {
-	res, err := c.rpcClient.GetTransaction(
-		ctx,
-		&proto.GetTransactionRequest{Id: h},
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	tx, err := convert.MessageToTransaction(res.GetTransaction())
-	if err != nil {
-		return nil, err
-	}
-
-	return &tx, nil
+// GetAccount gets an account by address.
+func (c *Client) GetAccount(ctx context.Context) error {
+	panic("not implemented")
 }
 
-// GetAccount fetches an account by address.
-func (c *Client) GetAccount(ctx context.Context, address flow.Address) (*flow.Account, error) {
-	res, err := c.rpcClient.GetAccount(
-		ctx,
-		&proto.GetAccountRequest{Address: address.Bytes()},
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	account, err := convert.MessageToAccount(res.GetAccount())
-	if err != nil {
-		return nil, err
-	}
-
-	return &account, nil
+// ExecuteScriptAtLatestBlock executes a read-only Cadance script against the latest sealed execution state.
+func (c *Client) ExecuteScriptAtLatestBlock(ctx context.Context, script []byte) (cadence.Value, error) {
+	panic("not implemented")
 }
 
-// EventQuery defines a query for Flow events.
-type EventQuery struct {
+// ExecuteScriptAtBlockID executes a ready-only Cadence script against the execution state at the block with the given ID.
+func (c *Client) ExecuteScriptAtBlockID(ctx context.Context) error {
+	panic("not implemented")
+}
+
+// ExecuteScriptAtBlockHeight executes a ready-only Cadence script against the execution state at the given block height.
+func (c *Client) ExecuteScriptAtBlockHeight(ctx context.Context) error {
+	panic("not implemented")
+}
+
+// EventRangeQuery defines a query for Flow events.
+type EventRangeQuery struct {
 	// The event type to search for. If empty, no filtering by type is done.
 	Type string
-	// The block to begin looking for events
-	StartBlock uint64
-	// The block to end looking for events (inclusive)
-	EndBlock uint64
+	// The block height to begin looking for events
+	StartHeight uint64
+	// The block height to end looking for events (inclusive)
+	EndHeight uint64
 }
 
-// GetEvents queries the Observation API for events and returns the results.
-func (c *Client) GetEvents(ctx context.Context, query EventQuery) ([]flow.Event, error) {
-	req := &proto.GetEventsRequest{
-		Type:       query.Type,
-		StartBlock: query.StartBlock,
-		EndBlock:   query.EndBlock,
+// GetEventsForHeightRange retrieves events for all sealed blocks between the start block height and the end block height (inclusive) that have the given type
+func (c *Client) GetEventsForHeightRange(ctx context.Context, query EventRangeQuery) ([]flow.Event, error) {
+	req := &proto.GetEventsForHeightRangeRequest{
+		Type:        query.Type,
+		StartHeight: query.StartHeight,
+		EndHeight:   query.EndHeight,
 	}
 
-	res, err := c.rpcClient.GetEvents(ctx, req)
+	res, err := c.rpcClient.GetEventsForHeightRange(ctx, req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("client: %w", err)
 	}
 
 	eventMessages := res.GetEvents()
 	events := make([]flow.Event, len(eventMessages))
 
 	for i, m := range eventMessages {
-		events[i] = convert.MessageToEvent(m)
+		evt, err := convert.MessageToEvent(m)
+		if err != nil {
+			return nil, fmt.Errorf("client: %w", err)
+		}
+
+		events[i] = evt
 	}
 
 	return events, nil
+}
+
+// GetEventsForBlockIDs retrieves events for all the specified block IDs that have the given type
+func (c *Client) GetEventsForBlockIDs(ctx context.Context, blockIDs [][]byte) ([]flow.Event, error) {
+	panic("not implemented")
 }
