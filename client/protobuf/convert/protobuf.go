@@ -4,9 +4,9 @@ import (
 	"errors"
 
 	"github.com/dapperlabs/flow-go/crypto"
+	proto "github.com/dapperlabs/flow/protobuf/go/flow"
 
 	"github.com/dapperlabs/flow-go-sdk"
-	proto "github.com/dapperlabs/flow-go-sdk/client/protobuf/flow"
 )
 
 var ErrEmptyMessage = errors.New("protobuf message is empty")
