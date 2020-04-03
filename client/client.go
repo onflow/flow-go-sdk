@@ -99,7 +99,7 @@ func (c *Client) SendTransaction(ctx context.Context, transaction flow.Transacti
 }
 
 // GetTransaction gets a transaction by ID.
-func (c *Client) GetTransaction(ctx context.Context, id []byte) (*flow.Transaction, error) {
+func (c *Client) GetTransaction(ctx context.Context, id flow.Identifier) (*flow.Transaction, error) {
 	panic("not implemented")
 }
 
