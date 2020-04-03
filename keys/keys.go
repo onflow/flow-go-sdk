@@ -4,8 +4,9 @@ package keys
 import (
 	"github.com/pkg/errors"
 
-	"github.com/dapperlabs/flow-go-sdk"
 	"github.com/dapperlabs/flow-go/crypto"
+
+	"github.com/dapperlabs/flow-go-sdk"
 )
 
 // KeyType is a key format supported by Flow.
@@ -51,31 +52,8 @@ func (k KeyType) HashingAlgorithm() crypto.HashingAlgorithm {
 const PublicKeyWeightThreshold int = 1000
 
 // GeneratePrivateKey generates a private key of the specified key type.
-func GeneratePrivateKey(keyType KeyType, seed []byte) (flow.AccountPrivateKey, error) {
-	privateKey, err := crypto.GeneratePrivateKey(keyType.SigningAlgorithm(), seed)
-	if err != nil {
-		return flow.AccountPrivateKey{}, err
-	}
-
-	return flow.AccountPrivateKey{
-		PrivateKey: privateKey,
-		SignAlgo:   keyType.SigningAlgorithm(),
-		HashAlgo:   keyType.HashingAlgorithm(),
-	}, nil
-}
-
-// SignTransaction signs a transaction with a private key.
-func SignTransaction(
-	tx flow.Transaction,
-	privateKey flow.AccountPrivateKey,
-) (crypto.Signature, error) {
-	hasher, err := crypto.NewHasher(privateKey.HashAlgo)
-	if err != nil {
-		return nil, err
-	}
-
-	b := tx.Message()
-	return privateKey.PrivateKey.Sign(b, hasher)
+func GeneratePrivateKey(keyType KeyType, seed []byte) (crypto.PrivateKey, error) {
+	return crypto.GeneratePrivateKey(keyType.SigningAlgorithm(), seed)
 }
 
 // ValidateEncodedPublicKey returns an error if the bytes do not represent a valid public key.

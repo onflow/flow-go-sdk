@@ -23,21 +23,3 @@ type AccountKey struct {
 	Weight         int
 	SequenceNumber uint64
 }
-
-// AccountPrivateKey is a private key associated with an account.
-type AccountPrivateKey struct {
-	PrivateKey crypto.PrivateKey
-	SignAlgo   crypto.SigningAlgorithm
-	HashAlgo   crypto.HashingAlgorithm
-}
-
-// TODO: replace this function with a more intuitive API
-// PublicKey returns a weighted public key.
-func (a AccountPrivateKey) PublicKey(weight int) AccountKey {
-	return AccountKey{
-		PublicKey: a.PrivateKey.PublicKey(),
-		SignAlgo:  a.SignAlgo,
-		HashAlgo:  a.HashAlgo,
-		Weight:    weight,
-	}
-}
