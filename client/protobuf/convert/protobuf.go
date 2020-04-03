@@ -128,10 +128,10 @@ func MessageToEvent(m *proto.Event) (flow.Event, error) {
 	}
 
 	return flow.Event{
-		Type:   m.GetType(),
-		TxHash: crypto.BytesToHash(m.GetTransactionId()),
-		Index:  uint(m.GetIndex()),
-		Value:  eventValue,
+		Type:          m.GetType(),
+		TransactionID: flow.HashToID(m.GetTransactionId()),
+		Index:         uint(m.GetIndex()),
+		Value:         eventValue,
 	}, nil
 }
 
@@ -143,7 +143,7 @@ func EventToMessage(e flow.Event) (*proto.Event, error) {
 
 	return &proto.Event{
 		Type:          e.Type,
-		TransactionId: e.TxHash,
+		TransactionId: e.TransactionID[:],
 		Index:         uint32(e.Index),
 		Payload:       payload,
 	}, nil
