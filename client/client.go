@@ -3,12 +3,12 @@ package client
 import (
 	"context"
 
-	"github.com/dapperlabs/flow-go/crypto"
 	"google.golang.org/grpc"
+
+	proto "github.com/dapperlabs/flow/protobuf/go/flow"
 
 	"github.com/dapperlabs/flow-go-sdk"
 	"github.com/dapperlabs/flow-go-sdk/client/protobuf/convert"
-	proto "github.com/dapperlabs/flow-go-sdk/client/protobuf/flow"
 )
 
 // RPCClient is an RPC client compatible with the Flow Observation API.
