@@ -173,14 +173,14 @@ func (t *Transaction) AddPayloadSignature(address Address, keyIndex int, sig []b
 // being added to the transaction.
 //
 // This function returns an error if the signature cannot be generated.
-func (t *Transaction) SignPayer(key int, signer crypto.Signer) error {
+func (t *Transaction) SignPayer(address Address, key int, signer crypto.Signer) error {
 	sig, err := signer.Sign(t)
 	if err != nil {
 		// TODO: wrap error
 		return err
 	}
 
-	t.AddPayerSignature(key, sig)
+	t.AddPayerSignature(address, key, sig)
 
 	return nil
 }
@@ -194,13 +194,13 @@ func (t *Transaction) PayerSignatures() []TransactionSignature {
 }
 
 // AddPayerSignature adds a payer signature to the transaction for the given key index.
-func (t *Transaction) AddPayerSignature(key int, sig []byte) *Transaction {
+func (t *Transaction) AddPayerSignature(address Address, key int, sig []byte) *Transaction {
 	if t.PayerSignatureSet == nil {
 		if t.Payer() == nil {
 			return t
 		}
 
-		t.PayerSignatureSet = newTransactionSignatureSet(t.Payer().Address)
+		t.PayerSignatureSet = newTransactionSignatureSet(address)
 	}
 
 	t.PayerSignatureSet.Add(key, sig)
