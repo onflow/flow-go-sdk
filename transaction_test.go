@@ -75,7 +75,7 @@ func ExampleTransaction() {
 		panic(err)
 	}
 
-	err = tx.SignPayer(blaineHardwareKey.Index, MockSigner(blaineHardwareKey))
+	err = tx.SignPayer(blaine.Address, blaineHardwareKey.Index, MockSigner(blaineHardwareKey))
 	if err != nil {
 		panic(err)
 	}
