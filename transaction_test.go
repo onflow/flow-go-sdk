@@ -14,7 +14,7 @@ func (s MockSigner) Sign(crypto.Signable) ([]byte, error) {
 }
 
 func ExampleTransaction() {
-	// Fake user accounts
+	// Mock user accounts
 
 	adrianLaptopKey := flow.AccountKey{
 		Index:          3,
@@ -46,14 +46,18 @@ func ExampleTransaction() {
 		SetScript([]byte(`transaction { execute { log("Hello, World!") } }`)).
 		SetReferenceBlockID(flow.Identifier{0x01, 0x02}).
 		SetGasLimit(42).
-		SetProposer(adrian.Address, adrianLaptopKey.Index, adrianPhoneKey.Index).
-		SetProposerSequenceNumber(adrianLaptopKey.Index, adrianLaptopKey.SequenceNumber).
+		SetProposalKey(adrian.Address, adrianLaptopKey.Index, adrianLaptopKey.SequenceNumber).
 		SetPayer(blaine.Address, blaineHardwareKey.Index).
 		AddAuthorizer(adrian.Address, adrianLaptopKey.Index, adrianPhoneKey.Index)
 
 	fmt.Println("Signers:")
 	for _, signer := range tx.Signers() {
-		fmt.Printf("Address: %s - %s\n", signer.Address, signer.Roles)
+		fmt.Printf(
+			"Address: %s, Roles: %s, Key Indices: %d\n",
+			signer.Address,
+			signer.Roles,
+			signer.Keys,
+		)
 	}
 	fmt.Println()
 
@@ -104,10 +108,11 @@ func ExampleTransaction() {
 
 	// Output:
 	// Signers:
-	// Address: 0000000000000000000000000000000000000001 - [PROPOSER AUTHORIZER]
-	// Address: 0000000000000000000000000000000000000002 - [PAYER]
+	// Address: 0000000000000000000000000000000000000001, Roles: [PROPOSER], Key Indices: []
+	// Address: 0000000000000000000000000000000000000002, Roles: [PAYER], Key Indices: [7]
+	// Address: 0000000000000000000000000000000000000001, Roles: [AUTHORIZER], Key Indices: [2 3]
 	//
-	// Transaction ID (before signing): f300a2aa2938343d4d4ccff1b1b7d0c798dc3f3adaccb6a0a00fa7b483a77de0
+	// Transaction ID (before signing): 349959c09421ec233b63613f7bb60e4585fbbd8a604b788a0f18cc4f97cd0471
 	//
 	// Payload Signatures:
 	// Address: 0000000000000000000000000000000000000001, Key Index: 2, Signature: 02
@@ -116,5 +121,5 @@ func ExampleTransaction() {
 	// Payer Signatures:
 	// Address: 0000000000000000000000000000000000000002, Key Index: 7, Signature: 07
 	//
-	// Transaction ID (after signing): 75028d12603409a1fd71d7a988b4630630015c928768c620dad95db250378b5c
+	// Transaction ID (after signing): 370a571558f5eb9f44f367cac269757acee59c394162e952788fd4b57ec1c504
 }
