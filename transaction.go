@@ -62,21 +62,13 @@ func (t *Transaction) Proposer() *SignerDeclaration {
 	return t.Payload.proposer
 }
 
-// SetProposer sets the proposer account for this transaction.
+// SetProposalKey sets the proposal key and sequence number for this transaction.
 //
-// This function takes an account address and a list of key indices representing the
-// account keys that must be used for signing.
-func (t *Transaction) SetProposer(address Address, keyIndices ...int) *Transaction {
-	t.Payload.proposer = newSignerDeclaration(address, []SignerRole{SignerRoleProposer}, keyIndices...)
-	return t
-}
-
-// SetProposerSequenceNumber sets the proposal key and sequence number for this transaction.
-//
-// The first argument is the index of the account key to be used as the proposal key, and the second
-// argument is the sequence number of the proposal key.
-func (t *Transaction) SetProposerSequenceNumber(proposalKeyIndex int, sequenceNum uint64) *Transaction {
-	t.Payload.proposer.SetSequenceNumber(proposalKeyIndex, sequenceNum)
+// The first two arguments specify the account key to be used, and the last argument is the sequence
+// number being declared.
+func (t *Transaction) SetProposalKey(address Address, keyIndex int, sequenceNum uint64) *Transaction {
+	t.Payload.proposer = newSignerDeclaration(address, []SignerRole{SignerRoleProposer})
+	t.Payload.proposer.SetSequenceNumber(keyIndex, sequenceNum)
 	return t
 }
 
@@ -272,28 +264,40 @@ type TransactionPayload struct {
 //
 // Two key-sets are considered equal if they contain the same key indices, regardless of order.
 func (t TransactionPayload) Signers() []*SignerDeclaration {
-	// TODO: handle case when proposer and/or payer is nil
+	var (
+		proposer SignerDeclaration
+		payer    SignerDeclaration
+	)
 
-	// proposer + payer + len(authorizers)
-	signerCount := 2 + len(t.authorizers)
+	maxSignerCount := len(t.authorizers) + 2
 
-	signers := make([]*SignerDeclaration, signerCount)
+	signers := make([]*SignerDeclaration, 0, maxSignerCount)
 
-	signers[0] = t.proposer
-	signers[1] = t.payer
+	if t.proposer != nil {
+		proposer = *t.proposer
+		signers = append(signers, &proposer)
+	}
 
-	for i, authorizer := range t.authorizers {
-		signers[2+i] = authorizer
+	if t.payer != nil {
+		payer = *t.payer
+		signers = append(signers, &payer)
+	}
+
+	for _, authorizer := range t.authorizers {
+		a := *authorizer
+		signers = append(signers, &a)
 	}
 
 	signerList := make([]*SignerDeclaration, 0)
 	signerMap := make(map[Address]*SignerDeclaration)
 
 	for _, signer := range signers {
-		seen, ok := signerMap[signer.Address]
-		if ok && signer.hasSameKeysAs(seen) {
-			seen.Roles = append(seen.Roles, signer.Roles...)
-			continue
+		if signer.Address != proposer.Address {
+			seen, ok := signerMap[signer.Address]
+			if ok && signer.hasSameKeysAs(seen) {
+				seen.Roles = append(seen.Roles, signer.Roles...)
+				continue
+			}
 		}
 
 		signerMap[signer.Address] = signer
@@ -391,14 +395,10 @@ func (d SignerDeclaration) messageForm() interface{} {
 	if d.ProposalKey != nil {
 		return struct {
 			Address                   []byte
-			Roles                     interface{}
-			Keys                      interface{}
 			ProposalKeyIndex          uint
 			ProposalKeySequenceNumber uint64
 		}{
 			Address:                   d.Address[:],
-			Roles:                     rolesList(d.Roles).messageForm(),
-			Keys:                      keysList(d.Keys).messageForm(),
 			ProposalKeyIndex:          uint(d.ProposalKey.KeyIndex),
 			ProposalKeySequenceNumber: d.ProposalKey.SequenceNumber,
 		}
