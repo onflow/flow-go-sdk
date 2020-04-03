@@ -104,7 +104,7 @@ func (c *Client) GetTransaction(ctx context.Context, id []byte) (*flow.Transacti
 }
 
 // GetTransactionResult gets the result of a transaction.
-func (c *Client) GetTransactionResult(ctx context.Context) error {
+func (c *Client) GetTransactionResult(ctx context.Context, id flow.Identifier) (*flow.TransactionResult, error) {
 	panic("not implemented")
 }
 

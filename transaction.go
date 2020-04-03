@@ -548,6 +548,11 @@ func (s signaturesList) Add(key int, sig []byte) signaturesList {
 	return s
 }
 
+type TransactionResult struct {
+	Status TransactionStatus
+	Events []Event
+}
+
 // TransactionStatus represents the status of a transaction.
 type TransactionStatus int
 
@@ -558,8 +563,8 @@ const (
 	TransactionPending
 	// TransactionFinalized is the status of a finalized transaction.
 	TransactionFinalized
-	// TransactionReverted is the status of a reverted transaction.
-	TransactionReverted
+	// TransactionExecuted is the status of an executed transaction.
+	TransactionExecuted
 	// TransactionSealed is the status of a sealed transaction.
 	TransactionSealed
 )
