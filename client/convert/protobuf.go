@@ -7,14 +7,14 @@ import (
 	"github.com/dapperlabs/cadence"
 	jsoncdc "github.com/dapperlabs/cadence/encoding/json"
 	"github.com/dapperlabs/flow-go/crypto"
-	proto "github.com/dapperlabs/flow/protobuf/go/flow"
+	"github.com/dapperlabs/flow/protobuf/go/flow/entities"
 
 	"github.com/dapperlabs/flow-go-sdk"
 )
 
 var ErrEmptyMessage = errors.New("protobuf message is empty")
 
-func MessageToBlockHeader(m *proto.BlockHeader) flow.BlockHeader {
+func MessageToBlockHeader(m *entities.BlockHeader) flow.BlockHeader {
 	return flow.BlockHeader{
 		ID:       flow.HashToID(m.GetId()),
 		ParentID: flow.HashToID(m.GetParentId()),
@@ -22,26 +22,28 @@ func MessageToBlockHeader(m *proto.BlockHeader) flow.BlockHeader {
 	}
 }
 
-func BlockHeaderToMessage(b flow.BlockHeader) *proto.BlockHeader {
-	return &proto.BlockHeader{
+func BlockHeaderToMessage(b flow.BlockHeader) *entities.BlockHeader {
+	return &entities.BlockHeader{
 		Id:       b.ID[:],
 		ParentId: b.ParentID[:],
 		Height:   b.Height,
 	}
 }
 
-func MessageToTransaction(m *proto.Transaction) (flow.Transaction, error) {
+func MessageToTransaction(m *entities.Transaction) (flow.Transaction, error) {
+	// TODO: implement new transaction message format
 	if m == nil {
 		return flow.Transaction{}, ErrEmptyMessage
 	}
 	return flow.Transaction{}, nil
 }
 
-func TransactionToMessage(t flow.Transaction) *proto.Transaction {
-	return &proto.Transaction{}
+func TransactionToMessage(t flow.Transaction) *entities.Transaction {
+	// TODO: implement new transaction message format
+	return &entities.Transaction{}
 }
 
-func MessageToAccount(m *proto.Account) (flow.Account, error) {
+func MessageToAccount(m *entities.Account) (flow.Account, error) {
 	if m == nil {
 		return flow.Account{}, ErrEmptyMessage
 	}
@@ -64,8 +66,8 @@ func MessageToAccount(m *proto.Account) (flow.Account, error) {
 	}, nil
 }
 
-func AccountToMessage(a flow.Account) (*proto.Account, error) {
-	accountKeys := make([]*proto.AccountPublicKey, len(a.Keys))
+func AccountToMessage(a flow.Account) (*entities.Account, error) {
+	accountKeys := make([]*entities.AccountPublicKey, len(a.Keys))
 	for i, key := range a.Keys {
 		accountKeyMsg, err := AccountKeyToMessage(key)
 		if err != nil {
@@ -74,7 +76,7 @@ func AccountToMessage(a flow.Account) (*proto.Account, error) {
 		accountKeys[i] = accountKeyMsg
 	}
 
-	return &proto.Account{
+	return &entities.Account{
 		Address: a.Address.Bytes(),
 		Balance: a.Balance,
 		Code:    a.Code,
@@ -82,7 +84,7 @@ func AccountToMessage(a flow.Account) (*proto.Account, error) {
 	}, nil
 }
 
-func MessageToAccountKey(m *proto.AccountPublicKey) (flow.AccountKey, error) {
+func MessageToAccountKey(m *entities.AccountPublicKey) (flow.AccountKey, error) {
 	if m == nil {
 		return flow.AccountKey{}, ErrEmptyMessage
 	}
@@ -103,13 +105,13 @@ func MessageToAccountKey(m *proto.AccountPublicKey) (flow.AccountKey, error) {
 	}, nil
 }
 
-func AccountKeyToMessage(a flow.AccountKey) (*proto.AccountPublicKey, error) {
+func AccountKeyToMessage(a flow.AccountKey) (*entities.AccountPublicKey, error) {
 	publicKey, err := a.PublicKey.Encode()
 	if err != nil {
 		return nil, err
 	}
 
-	return &proto.AccountPublicKey{
+	return &entities.AccountPublicKey{
 		PublicKey: publicKey,
 		SignAlgo:  uint32(a.SignAlgo),
 		HashAlgo:  uint32(a.HashAlgo),
@@ -117,7 +119,7 @@ func AccountKeyToMessage(a flow.AccountKey) (*proto.AccountPublicKey, error) {
 	}, nil
 }
 
-func MessageToEvent(m *proto.Event) (flow.Event, error) {
+func MessageToEvent(m *entities.Event) (flow.Event, error) {
 	value, err := jsoncdc.Decode(m.GetPayload())
 	if err != nil {
 		return flow.Event{}, nil
@@ -136,13 +138,13 @@ func MessageToEvent(m *proto.Event) (flow.Event, error) {
 	}, nil
 }
 
-func EventToMessage(e flow.Event) (*proto.Event, error) {
+func EventToMessage(e flow.Event) (*entities.Event, error) {
 	payload, err := jsoncdc.Encode(e.Value)
 	if err != nil {
 		return nil, fmt.Errorf("convert: %w", err)
 	}
 
-	return &proto.Event{
+	return &entities.Event{
 		Type:          e.Type,
 		TransactionId: e.TransactionID[:],
 		Index:         uint32(e.Index),
