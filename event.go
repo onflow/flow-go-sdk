@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/dapperlabs/cadence"
-	"github.com/dapperlabs/flow-go/crypto"
 	"github.com/dapperlabs/flow-go/model/hash"
 )
 
@@ -17,8 +16,8 @@ const (
 type Event struct {
 	// Type is the qualified event type.
 	Type string
-	// TxHash is the hash of the transaction this event was emitted from.
-	TxHash crypto.Hash
+	// TransactionID is the ID of the transaction this event was emitted from.
+	TransactionID Identifier
 	// Index defines the ordering of events in a transaction. The first event
 	// emitted has index 0, the second has index 1, and so on.
 	Index uint
@@ -33,27 +32,20 @@ func (e Event) String() string {
 
 // ID returns a canonical identifier that is guaranteed to be unique.
 func (e Event) ID() string {
-	return hash.DefaultHasher.ComputeHash(e.Encode()).Hex()
+	return hash.DefaultHasher.ComputeHash(e.Message()).Hex()
 }
 
-// Encode returns the canonical encoding of the event, containing only the
+// Message returns the canonical encoding of the event, containing only the
 // fields necessary to uniquely identify it.
-func (e Event) Encode() []byte {
-	w := wrapEvent(e)
-	return DefaultEncoder.MustEncode(w)
-}
-
-// Defines only the fields needed to uniquely identify an event.
-type eventWrapper struct {
-	TxHash []byte
-	Index  uint
-}
-
-func wrapEvent(e Event) eventWrapper {
-	return eventWrapper{
-		TxHash: e.TxHash,
-		Index:  e.Index,
+func (e Event) Message() []byte {
+	temp := struct {
+		TransactionID []byte
+		Index         uint
+	}{
+		TransactionID: e.TransactionID[:],
+		Index:         e.Index,
 	}
+	return DefaultEncoder.MustEncode(&temp)
 }
 
 type AccountCreatedEvent Event
