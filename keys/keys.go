@@ -52,7 +52,12 @@ const PublicKeyWeightThreshold int = 1000
 
 // GeneratePrivateKey generates a private key of the specified key type.
 func GeneratePrivateKey(keyType KeyType, seed []byte) (flow.AccountPrivateKey, error) {
-	privateKey, err := crypto.GeneratePrivateKey(keyType.SigningAlgorithm(), seed)
+	hasher, err := crypto.NewHasher(crypto.SHA3_384)
+	if err != nil {
+		return flow.AccountPrivateKey{}, err
+	}
+	keyGenSeed := hasher.ComputeHash(seed)
+	privateKey, err := crypto.GeneratePrivateKey(keyType.SigningAlgorithm(), keyGenSeed)
 	if err != nil {
 		return flow.AccountPrivateKey{}, err
 	}
