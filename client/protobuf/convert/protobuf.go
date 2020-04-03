@@ -2,7 +2,10 @@ package convert
 
 import (
 	"errors"
+	"fmt"
 
+	"github.com/dapperlabs/cadence"
+	jsoncdc "github.com/dapperlabs/cadence/encoding/json"
 	"github.com/dapperlabs/flow-go/crypto"
 	proto "github.com/dapperlabs/flow/protobuf/go/flow"
 
@@ -160,20 +163,35 @@ func AccountPublicKeyToMessage(a flow.AccountPublicKey) (*proto.AccountPublicKey
 	}, nil
 }
 
-func MessageToEvent(m *proto.Event) flow.Event {
-	return flow.Event{
-		Type:    m.GetType(),
-		TxHash:  crypto.BytesToHash(m.GetTransactionId()),
-		Index:   uint(m.GetIndex()),
-		Payload: m.GetPayload(),
+func MessageToEvent(m *proto.Event) (flow.Event, error) {
+	value, err := jsoncdc.Decode(m.GetPayload())
+	if err != nil {
+		return flow.Event{}, nil
 	}
+
+	eventValue, isEvent := value.(cadence.Event)
+	if !isEvent {
+		return flow.Event{}, fmt.Errorf("convert: expected Event value, got %s", eventValue.Type().ID())
+	}
+
+	return flow.Event{
+		Type:   m.GetType(),
+		TxHash: crypto.BytesToHash(m.GetTransactionId()),
+		Index:  uint(m.GetIndex()),
+		Value:  eventValue,
+	}, nil
 }
 
-func EventToMessage(e flow.Event) *proto.Event {
+func EventToMessage(e flow.Event) (*proto.Event, error) {
+	payload, err := jsoncdc.Encode(e.Value)
+	if err != nil {
+		return nil, fmt.Errorf("convert: %w", err)
+	}
+
 	return &proto.Event{
 		Type:          e.Type,
 		TransactionId: e.TxHash,
 		Index:         uint32(e.Index),
-		Payload:       e.Payload,
-	}
+		Payload:       payload,
+	}, nil
 }
