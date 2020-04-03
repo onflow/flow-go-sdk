@@ -89,7 +89,7 @@ func ValidateEncodedPublicKey(b []byte) error {
 }
 
 // ValidatePublicKey returns an error if the public key is invalid.
-func ValidatePublicKey(publicKey flow.AccountPublicKey) error {
+func ValidatePublicKey(publicKey flow.AccountKey) error {
 	if !CompatibleAlgorithms(publicKey.SignAlgo, publicKey.HashAlgo) {
 		return errors.Errorf(
 			"signing algorithm (%s) is incompatible with hashing algorithm (%s)",

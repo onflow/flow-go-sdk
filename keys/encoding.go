@@ -74,7 +74,7 @@ func MustDecodePrivateKeyHex(h string) flow.AccountPrivateKey {
 }
 
 // EncodePublicKey encodes a public key as bytes.
-func EncodePublicKey(a flow.AccountPublicKey) ([]byte, error) {
+func EncodePublicKey(a flow.AccountKey) ([]byte, error) {
 	publicKey, err := a.PublicKey.Encode()
 	if err != nil {
 		return nil, err
@@ -91,7 +91,7 @@ func EncodePublicKey(a flow.AccountPublicKey) ([]byte, error) {
 }
 
 // DecodePublicKey decodes a public key.
-func DecodePublicKey(b []byte) (a flow.AccountPublicKey, err error) {
+func DecodePublicKey(b []byte) (a flow.AccountKey, err error) {
 	var w accountPublicKeyWrapper
 
 	err = flow.DefaultEncoder.Decode(b, &w)
@@ -107,7 +107,7 @@ func DecodePublicKey(b []byte) (a flow.AccountPublicKey, err error) {
 		return a, err
 	}
 
-	return flow.AccountPublicKey{
+	return flow.AccountKey{
 		PublicKey: publicKey,
 		SignAlgo:  signAlgo,
 		HashAlgo:  hashAlgo,

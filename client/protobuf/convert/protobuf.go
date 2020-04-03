@@ -26,62 +26,15 @@ func BlockHeaderToMessage(b flow.Header) *proto.BlockHeader {
 	}
 }
 
-func MessageToAccountSignature(m *proto.AccountSignature) flow.AccountSignature {
-	return flow.AccountSignature{
-		Account:   flow.BytesToAddress(m.GetAccount()),
-		Signature: m.GetSignature(),
-	}
-}
-
-func AccountSignatureToMessage(a flow.AccountSignature) *proto.AccountSignature {
-	return &proto.AccountSignature{
-		Account:   a.Account.Bytes(),
-		Signature: a.Signature,
-	}
-}
-
 func MessageToTransaction(m *proto.Transaction) (flow.Transaction, error) {
 	if m == nil {
 		return flow.Transaction{}, ErrEmptyMessage
 	}
-
-	scriptAccounts := make([]flow.Address, len(m.ScriptAccounts))
-	for i, account := range m.ScriptAccounts {
-		scriptAccounts[i] = flow.BytesToAddress(account)
-	}
-
-	signatures := make([]flow.AccountSignature, len(m.Signatures))
-	for i, accountSig := range m.Signatures {
-		signatures[i] = MessageToAccountSignature(accountSig)
-	}
-
-	return flow.Transaction{
-		Script:         m.GetScript(),
-		PayerAccount:   flow.BytesToAddress(m.PayerAccount),
-		ScriptAccounts: scriptAccounts,
-		Signatures:     signatures,
-		Status:         flow.TransactionStatus(m.GetStatus()),
-	}, nil
+	return flow.Transaction{}, nil
 }
 
 func TransactionToMessage(t flow.Transaction) *proto.Transaction {
-	scriptAccounts := make([][]byte, len(t.ScriptAccounts))
-	for i, account := range t.ScriptAccounts {
-		scriptAccounts[i] = account.Bytes()
-	}
-
-	signatures := make([]*proto.AccountSignature, len(t.Signatures))
-	for i, accountSig := range t.Signatures {
-		signatures[i] = AccountSignatureToMessage(accountSig)
-	}
-
-	return &proto.Transaction{
-		Script:         t.Script,
-		PayerAccount:   t.PayerAccount.Bytes(),
-		ScriptAccounts: scriptAccounts,
-		Signatures:     signatures,
-		Status:         proto.TransactionStatus(t.Status),
-	}
+	return &proto.Transaction{}
 }
 
 func MessageToAccount(m *proto.Account) (flow.Account, error) {
@@ -89,9 +42,9 @@ func MessageToAccount(m *proto.Account) (flow.Account, error) {
 		return flow.Account{}, ErrEmptyMessage
 	}
 
-	accountKeys := make([]flow.AccountPublicKey, len(m.Keys))
+	accountKeys := make([]flow.AccountKey, len(m.Keys))
 	for i, key := range m.Keys {
-		accountKey, err := MessageToAccountPublicKey(key)
+		accountKey, err := MessageToAccountKey(key)
 		if err != nil {
 			return flow.Account{}, err
 		}
@@ -110,7 +63,7 @@ func MessageToAccount(m *proto.Account) (flow.Account, error) {
 func AccountToMessage(a flow.Account) (*proto.Account, error) {
 	accountKeys := make([]*proto.AccountPublicKey, len(a.Keys))
 	for i, key := range a.Keys {
-		accountKeyMsg, err := AccountPublicKeyToMessage(key)
+		accountKeyMsg, err := AccountKeyToMessage(key)
 		if err != nil {
 			return nil, err
 		}
@@ -125,9 +78,9 @@ func AccountToMessage(a flow.Account) (*proto.Account, error) {
 	}, nil
 }
 
-func MessageToAccountPublicKey(m *proto.AccountPublicKey) (flow.AccountPublicKey, error) {
+func MessageToAccountKey(m *proto.AccountPublicKey) (flow.AccountKey, error) {
 	if m == nil {
-		return flow.AccountPublicKey{}, ErrEmptyMessage
+		return flow.AccountKey{}, ErrEmptyMessage
 	}
 
 	signAlgo := crypto.SigningAlgorithm(m.GetSignAlgo())
@@ -135,10 +88,10 @@ func MessageToAccountPublicKey(m *proto.AccountPublicKey) (flow.AccountPublicKey
 
 	publicKey, err := crypto.DecodePublicKey(signAlgo, m.GetPublicKey())
 	if err != nil {
-		return flow.AccountPublicKey{}, err
+		return flow.AccountKey{}, err
 	}
 
-	return flow.AccountPublicKey{
+	return flow.AccountKey{
 		PublicKey: publicKey,
 		SignAlgo:  signAlgo,
 		HashAlgo:  hashAlgo,
@@ -146,7 +99,7 @@ func MessageToAccountPublicKey(m *proto.AccountPublicKey) (flow.AccountPublicKey
 	}, nil
 }
 
-func AccountPublicKeyToMessage(a flow.AccountPublicKey) (*proto.AccountPublicKey, error) {
+func AccountKeyToMessage(a flow.AccountKey) (*proto.AccountPublicKey, error) {
 	publicKey, err := a.PublicKey.Encode()
 	if err != nil {
 		return nil, err
