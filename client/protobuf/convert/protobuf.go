@@ -14,18 +14,19 @@ import (
 
 var ErrEmptyMessage = errors.New("protobuf message is empty")
 
-func MessageToBlockHeader(m *proto.BlockHeader) flow.Header {
-	return flow.Header{
-		Parent: m.GetParentId(),
-		Number: m.GetHeight(),
+func MessageToBlockHeader(m *proto.BlockHeader) flow.BlockHeader {
+	return flow.BlockHeader{
+		ID:       flow.HashToID(m.GetId()),
+		ParentID: flow.HashToID(m.GetParentId()),
+		Height:   m.GetHeight(),
 	}
 }
 
-func BlockHeaderToMessage(b flow.Header) *proto.BlockHeader {
+func BlockHeaderToMessage(b flow.BlockHeader) *proto.BlockHeader {
 	return &proto.BlockHeader{
-		Id:       b.Hash(),
-		ParentId: b.Parent,
-		Height:   b.Number,
+		Id:       b.ID[:],
+		ParentId: b.ParentID[:],
+		Height:   b.Height,
 	}
 }
 
