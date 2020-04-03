@@ -3,6 +3,7 @@ package examples
 import (
 	"context"
 	"crypto/rand"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"time"
@@ -118,6 +119,10 @@ func WaitForSeal(ctx context.Context, c *client.Client, hash crypto.Hash) *flow.
 	fmt.Printf("Waiting for transaction %x to be sealed...\n", hash)
 
 	for tx.Status != flow.TransactionSealed {
+		if tx.Status == flow.TransactionReverted {
+			Handle(errors.New("transaction reverted"))
+		}
+
 		time.Sleep(time.Second)
 		fmt.Print(".")
 		tx, err = c.GetTransaction(ctx, hash)
