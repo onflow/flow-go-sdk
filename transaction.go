@@ -315,7 +315,7 @@ func (t TransactionPayload) Signers() []*SignerDeclaration {
 
 		if payer.canMergeWith(proposer) {
 			payer.mergeWith(proposer)
-			// *proposer = *payer
+			*proposer = *payer
 			payer = proposer
 		}
 	}
