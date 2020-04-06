@@ -261,9 +261,10 @@ type TransactionPayload struct {
 // Signers returns a list of signer declarations for all accounts that are required
 // to sign this transaction.
 //
-// The list is returned in the following order: the PROPOSER is always first, followed
-// by PAYER declaration, and then the AUTHORIZER declarations in the order in which they
-// were added.
+// The list is returned in the following order:
+// 1. PROPOSER declaration
+// 2. AUTHORIZER declarations (in insertion order)
+// 3. PAYER declaration
 //
 // In addition, the resulting list is reduced as following:
 // 1. PROPOSER can be merged into any declaration D if PROPOSER.PROPOSAL_KEY exists in D.KEYS
@@ -285,8 +286,6 @@ func (t TransactionPayload) Signers() []*SignerDeclaration {
 	if t.ProposalKey != nil {
 		proposer = newSignerDeclaration(SignerRoleProposer, t.ProposalKey.Address, t.ProposalKey.KeyIndex)
 		proposer.ProposalKey = t.ProposalKey
-
-		signers = append(signers, proposer)
 	}
 
 	if t.Payer != nil {
@@ -296,9 +295,11 @@ func (t TransactionPayload) Signers() []*SignerDeclaration {
 			payer.mergeWith(proposer)
 			*proposer = *payer
 			payer = proposer
-		} else {
-			signers = append(signers, payer)
 		}
+	}
+
+	if proposer != payer {
+		signers = append(signers, proposer)
 	}
 
 	for _, authorizer := range t.Authorizers {
@@ -316,6 +317,8 @@ func (t TransactionPayload) Signers() []*SignerDeclaration {
 			signers = append(signers, auth)
 		}
 	}
+
+	signers = append(signers, payer)
 
 	return signers
 }
