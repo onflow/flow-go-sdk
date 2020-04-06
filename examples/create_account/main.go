@@ -45,7 +45,7 @@ func CreateAccountDemo() {
 
 	// Sign the transaction with the root account, which already exists
 	// All new accounts must be created by an existing account
-	err = createAccountTx.SignPayer(
+	err = createAccountTx.SignContainer(
 		rootAcctAddr,
 		rootAcctKey.Index,
 		rootKeySigner,

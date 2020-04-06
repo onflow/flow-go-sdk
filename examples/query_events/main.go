@@ -51,7 +51,7 @@ func QueryEventsDemo() {
 		SetPayer(accountAddr, accountKey.Index).
 		SetProposalKey(accountAddr, accountKey.Index, accountKey.SequenceNumber)
 
-	err = runScriptTx.SignPayer(
+	err = runScriptTx.SignContainer(
 		accountAddr,
 		accountKey.Index,
 		crypto.NewNaiveSigner(accountPrivateKey, accountKey.HashAlgo),

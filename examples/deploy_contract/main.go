@@ -48,7 +48,7 @@ func DeployContractDemo() {
 		SetProposalKey(rootAcctAddr, rootAcctKey.Index, rootAcctKey.SequenceNumber).
 		SetPayer(rootAcctAddr, rootAcctKey.Index)
 
-	err = createAccountTx.SignPayer(
+	err = createAccountTx.SignContainer(
 		rootAcctAddr,
 		rootAcctKey.Index,
 		rootKeySigner,
@@ -80,7 +80,7 @@ func DeployContractDemo() {
 		SetProposalKey(myAddress, myAcctKey.Index, myAcctKey.SequenceNumber).
 		SetPayer(myAddress, myAcctKey.Index)
 
-	err = createAccountTx.SignPayer(
+	err = createAccountTx.SignContainer(
 		myAddress,
 		myAcctKey.Index,
 		myKeySigner,
@@ -112,7 +112,7 @@ func DeployContractDemo() {
 		SetPayer(myAddress, myAcctKey.Index).
 		AddAuthorizer(myAddress, myAcctKey.Index)
 
-	err = createMinterTx.SignPayer(
+	err = createMinterTx.SignContainer(
 		myAddress,
 		myAcctKey.Index,
 		myKeySigner,
@@ -131,7 +131,7 @@ func DeployContractDemo() {
 		SetPayer(myAddress, myAcctKey.Index).
 		AddAuthorizer(myAddress, myAcctKey.Index)
 
-	err = mintTx.SignPayer(
+	err = mintTx.SignContainer(
 		myAddress,
 		myAcctKey.Index,
 		myKeySigner,

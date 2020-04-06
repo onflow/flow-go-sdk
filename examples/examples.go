@@ -105,7 +105,7 @@ func createAccount(publicKeys []flow.AccountKey, code []byte) flow.Address {
 
 	rootKeySigner := crypto.NewNaiveSigner(rootPrivateKey, rootAcctKey.HashAlgo)
 
-	err = createAccountTx.SignPayer(
+	err = createAccountTx.SignContainer(
 		rootAcctAddr,
 		rootAcctKey.Index,
 		rootKeySigner,

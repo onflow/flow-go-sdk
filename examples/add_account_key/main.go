@@ -47,7 +47,7 @@ func AddAccountKeyDemo() {
 	accountKeySigner := crypto.NewNaiveSigner(accountPrivateKey, accountKey.HashAlgo)
 
 	// Sign the transaction with the new account.
-	err = addKeyTx.SignPayer(
+	err = addKeyTx.SignContainer(
 		accountAddr,
 		accountKey.Index,
 		accountKeySigner,
