@@ -67,11 +67,15 @@ func (t *Transaction) ProposalKey() *ProposalKey {
 // The first two arguments specify the account key to be used, and the last argument is the sequence
 // number being declared.
 func (t *Transaction) SetProposalKey(address Address, keyIndex int, sequenceNum uint64) *Transaction {
-	t.Payload.ProposalKey = &ProposalKey{
+	proposalKey := ProposalKey{
 		Address:        address,
 		KeyIndex:       keyIndex,
 		SequenceNumber: sequenceNum,
 	}
+
+	t.Payload.ProposalKey = &proposalKey
+	t.Payload.signersHaveChanged = true
+
 	return t
 }
 
@@ -91,6 +95,8 @@ func (t *Transaction) SetPayer(address Address, keyIndices ...int) *Transaction 
 	}
 
 	t.Payload.Payer = &payer
+	t.Payload.signersHaveChanged = true
+
 	return t
 }
 
@@ -111,6 +117,8 @@ func (t *Transaction) AddAuthorizer(address Address, keyIndices ...int) *Transac
 	}
 
 	t.Payload.Authorizers = append(t.Payload.Authorizers, &authorizer)
+	t.Payload.signersHaveChanged = true
+
 	return t
 }
 
@@ -215,7 +223,10 @@ func (t *Transaction) addSignature(
 	keyIndex int,
 	sig []byte,
 ) *Transaction {
+	index := t.Payload.GetSignerKeyIndex(address, keyIndex)
+
 	s := TransactionSignature{
+		Index:     index,
 		Kind:      kind,
 		Address:   address,
 		KeyIndex:  keyIndex,
@@ -223,6 +234,8 @@ func (t *Transaction) addSignature(
 	}
 
 	t.Signatures = append(t.Signatures, s)
+
+	sort.Slice(t.Signatures, func(i, j int) bool { return t.Signatures[i].Index < t.Signatures[j].Index })
 
 	return t
 }
@@ -256,6 +269,11 @@ type TransactionPayload struct {
 	ProposalKey      *ProposalKey
 	Payer            *TransactionPayer
 	Authorizers      []*TransactionAuthorizer
+
+	// fields used to cache signer list
+	signers            []*SignerDeclaration
+	signerKeys         map[Address]map[int]int
+	signersHaveChanged bool
 }
 
 // Signers returns a list of signer declarations for all accounts that are required
@@ -274,6 +292,10 @@ type TransactionPayload struct {
 // 1. An account cannot exist in two declarations that fulfill the same role
 // 2. An account cannot exist in two declarations if either declaration's key-set is a subset of the other
 func (t TransactionPayload) Signers() []*SignerDeclaration {
+	if t.signers != nil && !t.signersHaveChanged {
+		return t.signers
+	}
+
 	var (
 		proposer *SignerDeclaration
 		payer    *SignerDeclaration
@@ -291,9 +313,9 @@ func (t TransactionPayload) Signers() []*SignerDeclaration {
 	if t.Payer != nil {
 		payer = newSignerDeclaration(SignerRolePayer, t.Payer.Address, t.Payer.KeyIndices...)
 
-		if proposer != nil && payer.canMergeWith(proposer) {
+		if payer.canMergeWith(proposer) {
 			payer.mergeWith(proposer)
-			*proposer = *payer
+			// *proposer = *payer
 			payer = proposer
 		}
 	}
@@ -320,7 +342,50 @@ func (t TransactionPayload) Signers() []*SignerDeclaration {
 
 	signers = append(signers, payer)
 
+	t.signers = signers
+	t.signersHaveChanged = false
+
 	return signers
+}
+
+func (t TransactionPayload) signerKeyIndex() map[Address]map[int]int {
+	if t.signerKeys != nil && !t.signersHaveChanged {
+		return t.signerKeys
+	}
+
+	signers := t.Signers()
+
+	keys := make(map[Address]map[int]int)
+
+	i := 0
+
+	for _, signer := range signers {
+		for _, key := range signer.KeyIndices {
+			if keys[signer.Address] == nil {
+				keys[signer.Address] = make(map[int]int)
+			}
+
+			keys[signer.Address][key] = i
+
+			i++
+		}
+	}
+
+	t.signerKeys = keys
+
+	return keys
+}
+
+func (t TransactionPayload) GetSignerKeyIndex(address Address, keyIndex int) int {
+	keys := t.signerKeyIndex()
+
+	if signer, ok := keys[address]; ok {
+		if index, ok := signer[keyIndex]; ok {
+			return index
+		}
+	}
+
+	return -1
 }
 
 // Message returns the signable message for this transaction payload.
@@ -400,6 +465,10 @@ func newSignerDeclaration(role SignerRole, address Address, keyIndices ...int) *
 }
 
 func (d *SignerDeclaration) canMergeWith(other *SignerDeclaration) bool {
+	if other == nil {
+		return false
+	}
+
 	// can only merge with same account
 	if d.Address != other.Address {
 		return false
@@ -519,6 +588,7 @@ func (s TransactionSignatureKind) canonicalForm() interface{} {
 // A TransactionSignature is a signature associated with a specific account key.
 type TransactionSignature struct {
 	Kind      TransactionSignatureKind
+	Index     int
 	Address   Address
 	KeyIndex  int
 	Signature []byte

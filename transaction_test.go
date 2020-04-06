@@ -87,7 +87,8 @@ func ExampleTransaction() {
 	fmt.Println("Signatures:")
 	for _, sig := range tx.Signatures {
 		fmt.Printf(
-			"Kind: %s, Address: %s, Key Index: %d, Signature: %x\n",
+			"%d - Kind: %s, Address: %s, Key Index: %d, Signature: %x\n",
+			sig.Index,
 			sig.Kind,
 			sig.Address,
 			sig.KeyIndex,
