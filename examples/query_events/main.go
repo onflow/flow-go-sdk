@@ -6,8 +6,8 @@ import (
 
 	"github.com/dapperlabs/flow-go-sdk"
 	"github.com/dapperlabs/flow-go-sdk/client"
+	"github.com/dapperlabs/flow-go-sdk/crypto"
 	"github.com/dapperlabs/flow-go-sdk/examples"
-	"github.com/dapperlabs/flow-go-sdk/keys"
 )
 
 func main() {
@@ -16,7 +16,7 @@ func main() {
 
 func QueryEventsDemo() {
 	ctx := context.Background()
-	accountKey, accountAddr := examples.CreateAccount()
+	accountAddr, accountKey, accountPrivateKey := examples.CreateAccount()
 
 	flowClient, err := client.New("127.0.0.1:3569")
 	examples.Handle(err)
@@ -46,21 +46,22 @@ func QueryEventsDemo() {
 		}
 	`, contractAddr.Hex())
 
-	runScriptTx := flow.Transaction{
-		Script:       []byte(script),
-		Nonce:        examples.GetNonce(),
-		ComputeLimit: 10,
-		PayerAccount: accountAddr,
-	}
+	runScriptTx := flow.NewTransaction().
+		SetScript([]byte(script)).
+		SetPayer(accountAddr, accountKey.Index).
+		SetProposalKey(accountAddr, accountKey.Index, accountKey.SequenceNumber)
 
-	sig, err := keys.SignTransaction(runScriptTx, accountKey)
-	examples.Handle(err)
-	runScriptTx.AddSignature(accountAddr, sig)
-
-	err = flowClient.SendTransaction(ctx, runScriptTx)
+	err = runScriptTx.SignContainer(
+		accountAddr,
+		accountKey.Index,
+		crypto.NewNaiveSigner(accountPrivateKey, accountKey.HashAlgo),
+	)
 	examples.Handle(err)
 
-	examples.WaitForSeal(ctx, flowClient, runScriptTx.Hash())
+	err = flowClient.SendTransaction(ctx, *runScriptTx)
+	examples.Handle(err)
+
+	examples.WaitForSeal(ctx, flowClient, runScriptTx.ID())
 
 	// 1
 	// Query for account creation events by type
@@ -74,8 +75,8 @@ func QueryEventsDemo() {
 	fmt.Println("\nQuery for AccountCreated event:")
 	for i, event := range events {
 		fmt.Printf("Found event #%d\n", i+1)
-		fmt.Println("Tx Hash: ", event.TxHash.Hex())
-		fmt.Println("Event ID: ", event.ID())
+		fmt.Printf("Transaction ID: %x\n", event.TransactionID)
+		fmt.Printf("Event ID: %x\n", event.ID())
 		fmt.Println(event.String())
 	}
 
@@ -91,21 +92,21 @@ func QueryEventsDemo() {
 	fmt.Println("\nQuery for Add event:")
 	for i, event := range events {
 		fmt.Printf("Found event #%d\n", i+1)
-		fmt.Println("Tx Hash: ", event.TxHash.Hex())
-		fmt.Println("Event ID: ", event.ID())
+		fmt.Printf("Transaction ID: %x\n", event.TransactionID)
+		fmt.Printf("Event ID: %x\n", event.ID())
 		fmt.Println(event.String())
 	}
 
 	// 3
 	// Query by transaction
-	tx, err := flowClient.GetTransaction(ctx, runScriptTx.Hash())
+	result, err := flowClient.GetTransactionResult(ctx, runScriptTx.ID())
 	examples.Handle(err)
 
 	fmt.Println("\nQuery for tx by hash:")
-	for i, event := range tx.Events {
+	for i, event := range result.Events {
 		fmt.Printf("Found event #%d\n", i+1)
-		fmt.Println("Tx Hash: ", event.TxHash.Hex())
-		fmt.Println("Event ID: ", event.ID())
+		fmt.Printf("Transaction ID: %x\n", event.TransactionID)
+		fmt.Printf("Event ID: %x\n", event.ID())
 		fmt.Println(event.String())
 	}
 }

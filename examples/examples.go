@@ -3,15 +3,13 @@ package examples
 import (
 	"context"
 	"crypto/rand"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"time"
 
-	"github.com/dapperlabs/flow-go/crypto"
-
 	"github.com/dapperlabs/flow-go-sdk"
 	"github.com/dapperlabs/flow-go-sdk/client"
+	"github.com/dapperlabs/flow-go-sdk/crypto"
 	"github.com/dapperlabs/flow-go-sdk/keys"
 	"github.com/dapperlabs/flow-go-sdk/templates"
 )
@@ -35,7 +33,7 @@ var GetNonce = func() func() uint64 {
 }()
 
 // RandomPrivateKey returns a randomly generated private key.
-func RandomPrivateKey() flow.AccountPrivateKey {
+func RandomPrivateKey() crypto.PrivateKey {
 	seed := make([]byte, 40)
 	rand.Read(seed)
 
@@ -47,59 +45,79 @@ func RandomPrivateKey() flow.AccountPrivateKey {
 	return privateKey
 }
 
-func RootAccount() (flow.Address, flow.AccountPrivateKey) {
+func RootAccount() (flow.Address, flow.AccountKey, crypto.PrivateKey) {
 	privateKeyHex := "f87db87930770201010420c2e6c8cb9e8c9b9a7afe1df8ae431e68317ff7a9f42f8982b7877a9da76b28a7a00a06082a8648ce3d030107a14403420004c2c482bf01344a085af036f9413dd17a0d98a5b6fb4915c3ad4c3cb574e03ea5e2d47608093a26081c165722621bf9d8ff4b880cac0e7c586af3d86c0818a4af0203"
-	privateKey := keys.MustDecodePrivateKeyHex(privateKeyHex)
+	privateKey := keys.MustDecodePrivateKeyHex(keys.ECDSA_P256_SHA3_256.SigningAlgorithm(), privateKeyHex)
 
 	// root account always has address 0x01
 	addr := flow.HexToAddress("01")
 
-	return addr, privateKey
+	accountKey := flow.AccountKey{
+		PublicKey:      privateKey.PublicKey(),
+		Index:          0,
+		SignAlgo:       keys.ECDSA_P256_SHA2_256.SigningAlgorithm(),
+		HashAlgo:       keys.ECDSA_P256_SHA3_256.HashingAlgorithm(),
+		Weight:         keys.PublicKeyWeightThreshold,
+		SequenceNumber: 0,
+	}
+
+	return addr, accountKey, privateKey
 }
 
-func CreateAccount() (flow.AccountPrivateKey, flow.Address) {
+func CreateAccount() (flow.Address, flow.AccountKey, crypto.PrivateKey) {
 	privateKey := RandomPrivateKey()
 
+	accountKey := flow.AccountKey{
+		PublicKey:      privateKey.PublicKey(),
+		Index:          0,
+		SignAlgo:       keys.ECDSA_P256_SHA3_256.SigningAlgorithm(),
+		HashAlgo:       keys.ECDSA_P256_SHA3_256.HashingAlgorithm(),
+		Weight:         keys.PublicKeyWeightThreshold,
+		SequenceNumber: 0,
+	}
+
 	addr := createAccount(
-		[]flow.AccountPublicKey{privateKey.PublicKey(keys.PublicKeyWeightThreshold)},
+		[]flow.AccountKey{accountKey},
 		nil,
 	)
 
-	return privateKey, addr
+	return addr, accountKey, privateKey
 }
 
 func DeployContract(code []byte) flow.Address {
 	return createAccount(nil, code)
 }
 
-func createAccount(publicKeys []flow.AccountPublicKey, code []byte) flow.Address {
+func createAccount(publicKeys []flow.AccountKey, code []byte) flow.Address {
 	ctx := context.Background()
 	flowClient, err := client.New("127.0.0.1:3569")
 	Handle(err)
 
-	rootAcctAddr, rootAcctKey := RootAccount()
+	rootAcctAddr, rootAcctKey, rootPrivateKey := RootAccount()
 
 	createAccountScript, err := templates.CreateAccount(publicKeys, code)
 	Handle(err)
 
-	createAccountTx := flow.Transaction{
-		Script:       createAccountScript,
-		Nonce:        GetNonce(),
-		ComputeLimit: 10,
-		PayerAccount: rootAcctAddr,
-	}
+	createAccountTx := flow.NewTransaction().
+		SetScript(createAccountScript).
+		SetProposalKey(rootAcctAddr, rootAcctKey.Index, rootAcctKey.SequenceNumber).
+		SetPayer(rootAcctAddr, rootAcctKey.Index)
 
-	sig, err := keys.SignTransaction(createAccountTx, rootAcctKey)
+	rootKeySigner := crypto.NewNaiveSigner(rootPrivateKey, rootAcctKey.HashAlgo)
+
+	err = createAccountTx.SignContainer(
+		rootAcctAddr,
+		rootAcctKey.Index,
+		rootKeySigner,
+	)
 	Handle(err)
 
-	createAccountTx.AddSignature(rootAcctAddr, sig)
-
-	err = flowClient.SendTransaction(ctx, createAccountTx)
+	err = flowClient.SendTransaction(ctx, *createAccountTx)
 	Handle(err)
 
-	tx := WaitForSeal(ctx, flowClient, createAccountTx.Hash())
+	result := WaitForSeal(ctx, flowClient, createAccountTx.ID())
 
-	accountCreatedEvent := flow.AccountCreatedEvent(tx.Events[0])
+	accountCreatedEvent := flow.AccountCreatedEvent(result.Events[0])
 	Handle(err)
 
 	return accountCreatedEvent.Address()
@@ -112,25 +130,21 @@ func Handle(err error) {
 	}
 }
 
-func WaitForSeal(ctx context.Context, c *client.Client, hash crypto.Hash) *flow.Transaction {
-	tx, err := c.GetTransaction(ctx, hash)
+func WaitForSeal(ctx context.Context, c *client.Client, id flow.Identifier) *flow.TransactionResult {
+	result, err := c.GetTransactionResult(ctx, id)
 	Handle(err)
 
-	fmt.Printf("Waiting for transaction %x to be sealed...\n", hash)
+	fmt.Printf("Waiting for transaction %x to be sealed...\n", id)
 
-	for tx.Status != flow.TransactionSealed {
-		if tx.Status == flow.TransactionReverted {
-			Handle(errors.New("transaction reverted"))
-		}
-
+	for result.Status != flow.TransactionSealed {
 		time.Sleep(time.Second)
 		fmt.Print(".")
-		tx, err = c.GetTransaction(ctx, hash)
+		result, err = c.GetTransactionResult(ctx, id)
 		Handle(err)
 	}
 
 	fmt.Println()
-	fmt.Printf("Transaction %x sealed\n", hash)
+	fmt.Printf("Transaction %x sealed\n", id)
 
-	return tx
+	return result
 }
