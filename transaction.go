@@ -301,10 +301,6 @@ func (t TransactionPayload) Signers() []*SignerDeclaration {
 		payer    *SignerDeclaration
 	)
 
-	maxSignerCount := len(t.Authorizers) + 2
-
-	signers := make([]*SignerDeclaration, 0, maxSignerCount)
-
 	if t.ProposalKey != nil {
 		proposer = newSignerDeclaration(SignerRoleProposer, t.ProposalKey.Address, t.ProposalKey.KeyIndex)
 		proposer.ProposalKey = t.ProposalKey
@@ -319,6 +315,8 @@ func (t TransactionPayload) Signers() []*SignerDeclaration {
 			payer = proposer
 		}
 	}
+
+	signers := make([]*SignerDeclaration, 0)
 
 	if proposer != payer {
 		signers = append(signers, proposer)
