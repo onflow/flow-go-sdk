@@ -513,36 +513,6 @@ func (s TransactionSignatureKind) canonicalForm() interface{} {
 	return uint(s)
 }
 
-// type TransactionSignatures []*TransactionSignatureSet
-//
-// // An TransactionSignatureSet is a set of signatures associated with a specific account.
-// type TransactionSignatureSet struct {
-// 	Address    Address
-// 	Signatures []TransactionSignature
-// }
-//
-// func newTransactionSignatureSet(address Address) *TransactionSignatureSet {
-// 	return &TransactionSignatureSet{
-// 		Address:    address,
-// 		Signatures: make([]TransactionSignature, 0),
-// 	}
-// }
-//
-// // Add adds a signature to this set for the given key index.
-// func (s *TransactionSignatureSet) Add(keyIndex int, sigType string, sig []byte) {
-// 	s.Signatures = signaturesList(s.Signatures).Add(keyIndex, sigType, sig)
-// }
-//
-// func (s *TransactionSignatureSet) canonicalForm() interface{} {
-// 	return struct {
-// 		Address    []byte
-// 		Signatures interface{}
-// 	}{
-// 		Address:    s.Address.Bytes(),
-// 		Signatures: signaturesList(s.Signatures).canonicalForm(),
-// 	}
-// }
-
 // A TransactionSignature is a signature associated with a specific account key.
 type TransactionSignature struct {
 	Kind      TransactionSignatureKind
@@ -598,10 +568,6 @@ func (l signersList) canonicalForm() interface{} {
 }
 
 type signaturesList []TransactionSignature
-
-func (s signaturesList) Len() int           { return len(s) }
-func (s signaturesList) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
-func (s signaturesList) Less(i, j int) bool { return s[i].KeyIndex < s[j].KeyIndex }
 
 func (s signaturesList) canonicalForm() interface{} {
 	signatures := make([]interface{}, len(s))
