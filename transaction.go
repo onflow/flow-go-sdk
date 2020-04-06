@@ -235,7 +235,9 @@ func (t *Transaction) addSignature(
 
 	t.Signatures = append(t.Signatures, s)
 
-	sort.Slice(t.Signatures, func(i, j int) bool { return t.Signatures[i].Index < t.Signatures[j].Index })
+	sort.Slice(t.Signatures, func(i, j int) bool {
+		return t.Signatures[i].Index < t.Signatures[j].Index
+	})
 
 	return t
 }
