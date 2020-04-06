@@ -502,7 +502,9 @@ func (d *SignerDeclaration) mergeWith(other *SignerDeclaration) *SignerDeclarati
 	// 1 - PROPOSER
 	// 2 - PAYER
 	// 3 - AUTHORIZER
-	sort.Slice(d.Roles, func(i, j int) bool { return d.Roles[i] < d.Roles[j] })
+	sort.Slice(d.Roles, func(i, j int) bool {
+		return d.Roles[i] < d.Roles[j]
+	})
 
 	// when merging, incoming key-set is always a subset of the current key-set, therefore
 	// the current key-set does not change
