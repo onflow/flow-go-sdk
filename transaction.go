@@ -233,17 +233,17 @@ func (t *Transaction) addSignature(
 //
 // This function conforms to the crypto.Signable interface.
 func (t *Transaction) Message() []byte {
-	temp := t.messageForm()
+	temp := t.canonicalForm()
 	return DefaultEncoder.MustEncode(&temp)
 }
 
-func (t *Transaction) messageForm() interface{} {
+func (t *Transaction) canonicalForm() interface{} {
 	return struct {
 		Payload    interface{}
 		Signatures interface{}
 	}{
-		t.Payload.messageForm(),
-		signaturesList(t.PayloadSignatures()).messageForm(),
+		t.Payload.canonicalForm(),
+		signaturesList(t.PayloadSignatures()).canonicalForm(),
 	}
 }
 
@@ -327,11 +327,11 @@ func (t TransactionPayload) Signers() []*SignerDeclaration {
 //
 // This function conforms to the crypto.Signable interface.
 func (t TransactionPayload) Message() []byte {
-	temp := t.messageForm()
+	temp := t.canonicalForm()
 	return DefaultEncoder.MustEncode(&temp)
 }
 
-func (t TransactionPayload) messageForm() interface{} {
+func (t TransactionPayload) canonicalForm() interface{} {
 	return struct {
 		Script           []byte
 		ReferenceBlockID []byte
@@ -341,7 +341,7 @@ func (t TransactionPayload) messageForm() interface{} {
 		t.Script,
 		t.ReferenceBlockID[:],
 		t.GasLimit,
-		signersList(t.Signers()).messageForm(),
+		signersList(t.Signers()).canonicalForm(),
 	}
 }
 
@@ -443,7 +443,7 @@ func (d *SignerDeclaration) mergeWith(other *SignerDeclaration) *SignerDeclarati
 	return d
 }
 
-func (d SignerDeclaration) messageForm() interface{} {
+func (d SignerDeclaration) canonicalForm() interface{} {
 	if d.ProposalKey != nil {
 		return struct {
 			Address                   []byte
@@ -462,8 +462,8 @@ func (d SignerDeclaration) messageForm() interface{} {
 		Keys    interface{}
 	}{
 		Address: d.Address[:],
-		Roles:   rolesList(d.Roles).messageForm(),
-		Keys:    keysList(d.KeyIndices).messageForm(),
+		Roles:   rolesList(d.Roles).canonicalForm(),
+		Keys:    keysList(d.KeyIndices).canonicalForm(),
 	}
 }
 
@@ -486,7 +486,7 @@ func (s SignerRole) String() string {
 	return [...]string{"UNKNOWN", "PROPOSER", "PAYER", "AUTHORIZER"}[s]
 }
 
-func (s SignerRole) messageForm() interface{} {
+func (s SignerRole) canonicalForm() interface{} {
 	return uint(s)
 }
 
@@ -507,7 +507,7 @@ func (s TransactionSignatureKind) String() string {
 	return [...]string{"UNKNOWN", "PAYLOAD", "CONTAINER"}[s]
 }
 
-func (s TransactionSignatureKind) messageForm() interface{} {
+func (s TransactionSignatureKind) canonicalForm() interface{} {
 	return uint(s)
 }
 
@@ -531,13 +531,13 @@ func (s TransactionSignatureKind) messageForm() interface{} {
 // 	s.Signatures = signaturesList(s.Signatures).Add(keyIndex, sigType, sig)
 // }
 //
-// func (s *TransactionSignatureSet) messageForm() interface{} {
+// func (s *TransactionSignatureSet) canonicalForm() interface{} {
 // 	return struct {
 // 		Address    []byte
 // 		Signatures interface{}
 // 	}{
 // 		Address:    s.Address.Bytes(),
-// 		Signatures: signaturesList(s.Signatures).messageForm(),
+// 		Signatures: signaturesList(s.Signatures).canonicalForm(),
 // 	}
 // }
 
@@ -549,7 +549,7 @@ type TransactionSignature struct {
 	Signature []byte
 }
 
-func (s TransactionSignature) messageForm() interface{} {
+func (s TransactionSignature) canonicalForm() interface{} {
 	return struct {
 		KeyIndex  uint
 		Signature []byte
@@ -561,11 +561,11 @@ func (s TransactionSignature) messageForm() interface{} {
 
 type rolesList []SignerRole
 
-func (l rolesList) messageForm() interface{} {
+func (l rolesList) canonicalForm() interface{} {
 	roles := make([]interface{}, len(l))
 
 	for i, role := range l {
-		roles[i] = role.messageForm()
+		roles[i] = role.canonicalForm()
 	}
 
 	return roles
@@ -573,7 +573,7 @@ func (l rolesList) messageForm() interface{} {
 
 type keysList []int
 
-func (l keysList) messageForm() interface{} {
+func (l keysList) canonicalForm() interface{} {
 	keys := make([]uint, len(l))
 
 	for i, key := range l {
@@ -585,11 +585,11 @@ func (l keysList) messageForm() interface{} {
 
 type signersList []*SignerDeclaration
 
-func (l signersList) messageForm() interface{} {
+func (l signersList) canonicalForm() interface{} {
 	signers := make([]interface{}, len(l))
 
 	for i, signer := range l {
-		signers[i] = signer.messageForm()
+		signers[i] = signer.canonicalForm()
 	}
 
 	return signers
@@ -601,11 +601,11 @@ func (s signaturesList) Len() int           { return len(s) }
 func (s signaturesList) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 func (s signaturesList) Less(i, j int) bool { return s[i].KeyIndex < s[j].KeyIndex }
 
-func (s signaturesList) messageForm() interface{} {
+func (s signaturesList) canonicalForm() interface{} {
 	signatures := make([]interface{}, len(s))
 
 	for i, signature := range s {
-		signatures[i] = signature.messageForm()
+		signatures[i] = signature.canonicalForm()
 	}
 
 	return signatures
