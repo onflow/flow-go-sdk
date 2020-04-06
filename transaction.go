@@ -438,7 +438,9 @@ func (d *SignerDeclaration) mergeWith(other *SignerDeclaration) *SignerDeclarati
 	// the current key-set does not change
 
 	// copy the proposal key from the incoming declaration
-	d.ProposalKey = other.ProposalKey
+	if other.ProposalKey != nil {
+		d.ProposalKey = other.ProposalKey
+	}
 
 	return d
 }
