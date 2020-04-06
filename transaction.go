@@ -10,8 +10,8 @@ import (
 
 // A Transaction is a full transaction object containing a payload and payer signatures.
 type Transaction struct {
-	Payload           TransactionPayload
-	PayerSignatureSet *TransactionSignatureSet
+	Payload    TransactionPayload
+	Signatures []TransactionSignature
 }
 
 // NewTransaction initializes and returns an empty transaction.
@@ -57,9 +57,9 @@ func (t *Transaction) SetGasLimit(limit uint64) *Transaction {
 	return t
 }
 
-// Proposer returns the proposer declaration for this transaction, or nil if it is not set.
-func (t *Transaction) Proposer() *SignerDeclaration {
-	return t.Payload.proposer
+// ProposalKey returns the proposal key declaration for this transaction, or nil if it is not set.
+func (t *Transaction) ProposalKey() *ProposalKey {
+	return t.Payload.ProposalKey
 }
 
 // SetProposalKey sets the proposal key and sequence number for this transaction.
@@ -67,14 +67,17 @@ func (t *Transaction) Proposer() *SignerDeclaration {
 // The first two arguments specify the account key to be used, and the last argument is the sequence
 // number being declared.
 func (t *Transaction) SetProposalKey(address Address, keyIndex int, sequenceNum uint64) *Transaction {
-	t.Payload.proposer = newSignerDeclaration(address, []SignerRole{SignerRoleProposer})
-	t.Payload.proposer.SetSequenceNumber(keyIndex, sequenceNum)
+	t.Payload.ProposalKey = &ProposalKey{
+		Address:        address,
+		KeyIndex:       keyIndex,
+		SequenceNumber: sequenceNum,
+	}
 	return t
 }
 
 // Payer returns the payer declaration for this transaction, or nil if it is not set.
-func (t *Transaction) Payer() *SignerDeclaration {
-	return t.Payload.payer
+func (t *Transaction) Payer() *TransactionPayer {
+	return t.Payload.Payer
 }
 
 // SetPayer sets the payer account for this transaction.
@@ -82,14 +85,19 @@ func (t *Transaction) Payer() *SignerDeclaration {
 // This function takes an account address and a list of key indices representing the
 // account keys that must be used for signing.
 func (t *Transaction) SetPayer(address Address, keyIndices ...int) *Transaction {
-	t.Payload.payer = newSignerDeclaration(address, []SignerRole{SignerRolePayer}, keyIndices...)
+	payer := TransactionPayer{
+		Address:    address,
+		KeyIndices: keyIndices,
+	}
+
+	t.Payload.Payer = &payer
 	return t
 }
 
 // Authorizers returns a list of signer declarations for the accounts that are authorizing
 // this transaction.
-func (t *Transaction) Authorizers() []*SignerDeclaration {
-	return t.Payload.authorizers
+func (t *Transaction) Authorizers() []*TransactionAuthorizer {
+	return t.Payload.Authorizers
 }
 
 // AddAuthorizer adds an authorizer account to this transaction.
@@ -97,8 +105,12 @@ func (t *Transaction) Authorizers() []*SignerDeclaration {
 // This function takes an account address and a list of key indices representing the
 // account keys that must be used for signing.
 func (t *Transaction) AddAuthorizer(address Address, keyIndices ...int) *Transaction {
-	sd := newSignerDeclaration(address, []SignerRole{SignerRoleAuthorizer}, keyIndices...)
-	t.Payload.authorizers = append(t.Payload.authorizers, sd)
+	authorizer := TransactionAuthorizer{
+		Address:    address,
+		KeyIndices: keyIndices,
+	}
+
+	t.Payload.Authorizers = append(t.Payload.Authorizers, &authorizer)
 	return t
 }
 
@@ -122,8 +134,7 @@ func (t *Transaction) Signers() []*SignerDeclaration {
 	return t.Payload.Signers()
 }
 
-// SignPayload signs the transaction payload within the context of specific account key using
-// the provided signer.
+// SignPayload signs the transaction payload within the context of an account key.
 //
 // The resulting signature is combined with the account address and key index before
 // being added to the transaction.
@@ -137,73 +148,81 @@ func (t *Transaction) SignPayload(address Address, keyIndex int, signer crypto.S
 	}
 
 	t.AddPayloadSignature(address, keyIndex, sig)
+
 	return nil
 }
 
-// PayloadSignatures returns a list containing a signature set for each account that
-// has signed the transaction payload.
+// SignContainer signs the full transaction (payload + payload signatures) within the context of an account key.
 //
-// The list is returned in the following order: the proposer signature is always first, followed
-// by the signatures of the authorizers in the order in which their signer declarations are declared.
-func (t *Transaction) PayloadSignatures() []*TransactionSignatureSet {
-	return t.Payload.Signatures
-}
-
-// AddPayloadSignature adds a payload signature to the transaction for the given address and key index.
-func (t *Transaction) AddPayloadSignature(address Address, keyIndex int, sig []byte) *Transaction {
-	for _, as := range t.Payload.Signatures {
-		if as.Address == address {
-			as.Add(keyIndex, sig)
-			return t
-		}
-	}
-
-	ts := newTransactionSignatureSet(address)
-	ts.Add(keyIndex, sig)
-
-	t.Payload.Signatures = append(t.Payload.Signatures, ts)
-
-	return t
-}
-
-// SignPayer signs the full transaction (payload + payload signatures) within the context of the
-// declared payer account and provided key index.
-//
-// The resulting signature is combined with the payer account address and key index before
+// The resulting signature is combined with the account address and key index before
 // being added to the transaction.
 //
 // This function returns an error if the signature cannot be generated.
-func (t *Transaction) SignPayer(address Address, key int, signer crypto.Signer) error {
+func (t *Transaction) SignContainer(address Address, keyIndex int, signer crypto.Signer) error {
 	sig, err := signer.Sign(t)
 	if err != nil {
 		// TODO: wrap error
 		return err
 	}
 
-	t.AddPayerSignature(address, key, sig)
+	t.AddContainerSignature(address, keyIndex, sig)
 
 	return nil
 }
 
-// PayerSignatures returns a list of payer signatures for this transaction.
+// PayloadSignatures returns a list of signatures of the transaction payload.
 //
-// Each signature is associated with a different account key, and the returned
-// list is ordered by key index.
-func (t *Transaction) PayerSignatures() []TransactionSignature {
-	return t.PayerSignatureSet.Signatures
-}
+// The list is returned in the following order: the proposer signature is always first, followed
+// by the signatures of the authorizers in the order in which their signer declarations are declared.
+func (t *Transaction) PayloadSignatures() []TransactionSignature {
+	sigs := make([]TransactionSignature, 0)
 
-// AddPayerSignature adds a payer signature to the transaction for the given key index.
-func (t *Transaction) AddPayerSignature(address Address, key int, sig []byte) *Transaction {
-	if t.PayerSignatureSet == nil {
-		if t.Payer() == nil {
-			return t
+	for _, sig := range t.Signatures {
+		if sig.Kind == TransactionSignatureKindPayload {
+			sigs = append(sigs, sig)
 		}
-
-		t.PayerSignatureSet = newTransactionSignatureSet(address)
 	}
 
-	t.PayerSignatureSet.Add(key, sig)
+	return sigs
+}
+
+// ContainerSignatures returns a list of signatures of the full transaction container.
+func (t *Transaction) ContainerSignatures() []TransactionSignature {
+	sigs := make([]TransactionSignature, 0)
+
+	for _, sig := range t.Signatures {
+		if sig.Kind == TransactionSignatureKindContainer {
+			sigs = append(sigs, sig)
+		}
+	}
+
+	return sigs
+}
+
+// AddPayloadSignature adds a payload signature to the transaction for the given address and key index.
+func (t *Transaction) AddPayloadSignature(address Address, keyIndex int, sig []byte) *Transaction {
+	return t.addSignature(TransactionSignatureKindPayload, address, keyIndex, sig)
+}
+
+// AddContainerSignature adds a container signature to the transaction for the given address and key index.
+func (t *Transaction) AddContainerSignature(address Address, keyIndex int, sig []byte) *Transaction {
+	return t.addSignature(TransactionSignatureKindContainer, address, keyIndex, sig)
+}
+
+func (t *Transaction) addSignature(
+	kind TransactionSignatureKind,
+	address Address,
+	keyIndex int,
+	sig []byte,
+) *Transaction {
+	s := TransactionSignature{
+		Kind:      kind,
+		Address:   address,
+		KeyIndex:  keyIndex,
+		Signature: sig,
+	}
+
+	t.Signatures = append(t.Signatures, s)
 
 	return t
 }
@@ -219,16 +238,12 @@ func (t *Transaction) Message() []byte {
 }
 
 func (t *Transaction) messageForm() interface{} {
-	if t.PayerSignatureSet == nil {
-		return t.Payload.messageForm()
-	}
-
 	return struct {
-		Payload         interface{}
-		PayerSignatures interface{}
+		Payload    interface{}
+		Signatures interface{}
 	}{
 		t.Payload.messageForm(),
-		signaturesList(t.PayerSignatureSet.Signatures).messageForm(), // address not included
+		signaturesList(t.PayloadSignatures()).messageForm(),
 	}
 }
 
@@ -238,73 +253,71 @@ type TransactionPayload struct {
 	Script           []byte
 	ReferenceBlockID Identifier
 	GasLimit         uint64
-
-	// Signers
-	proposer    *SignerDeclaration
-	payer       *SignerDeclaration
-	authorizers []*SignerDeclaration
-
-	Signatures []*TransactionSignatureSet
+	ProposalKey      *ProposalKey
+	Payer            *TransactionPayer
+	Authorizers      []*TransactionAuthorizer
 }
 
 // Signers returns a list of signer declarations for all accounts that are required
 // to sign this transaction.
 //
-// The list is returned in the following order: the proposer is always first, followed
-// by payer declaration, and then the authorizer declarations in the order in which they
+// The list is returned in the following order: the PROPOSER is always first, followed
+// by PAYER declaration, and then the AUTHORIZER declarations in the order in which they
 // were added.
 //
-// In addition, the resulting list is reduced as following: any two declarations that specify
-// the same account and key-set but different signer roles are combined into a single declaration.
-// This allows the same account to fulfill multiple (or all) signer roles.
+// In addition, the resulting list is reduced as following:
+// 1. PROPOSER can be merged into any declaration D if PROPOSER.PROPOSAL_KEY exists in D.KEYS
+// 2. Any declaration D can be merged into PAYER if D.KEYS is a subset of PAYER.KEYS
 //
-// The same account can be used in multiple signer declarations if each declaration specifies
-// a unique key-set. For example, you may want to use the same account for payment and authorization
-// but require a stricter key-set for payment.
-//
-// Two key-sets are considered equal if they contain the same key indices, regardless of order.
+// The same account can be used in multiple signer declarations under these conditions:
+// 1. An account cannot exist in two declarations that fulfill the same role
+// 2. An account cannot exist in two declarations if either declaration's key-set is a subset of the other
 func (t TransactionPayload) Signers() []*SignerDeclaration {
 	var (
-		proposer SignerDeclaration
-		payer    SignerDeclaration
+		proposer *SignerDeclaration
+		payer    *SignerDeclaration
 	)
 
-	maxSignerCount := len(t.authorizers) + 2
+	maxSignerCount := len(t.Authorizers) + 2
 
 	signers := make([]*SignerDeclaration, 0, maxSignerCount)
 
-	if t.proposer != nil {
-		proposer = *t.proposer
-		signers = append(signers, &proposer)
+	if t.ProposalKey != nil {
+		proposer = newSignerDeclaration(SignerRoleProposer, t.ProposalKey.Address, t.ProposalKey.KeyIndex)
+		proposer.ProposalKey = t.ProposalKey
+
+		signers = append(signers, proposer)
 	}
 
-	if t.payer != nil {
-		payer = *t.payer
-		signers = append(signers, &payer)
-	}
+	if t.Payer != nil {
+		payer = newSignerDeclaration(SignerRolePayer, t.Payer.Address, t.Payer.KeyIndices...)
 
-	for _, authorizer := range t.authorizers {
-		a := *authorizer
-		signers = append(signers, &a)
-	}
-
-	signerList := make([]*SignerDeclaration, 0)
-	signerMap := make(map[Address]*SignerDeclaration)
-
-	for _, signer := range signers {
-		if signer.Address != proposer.Address {
-			seen, ok := signerMap[signer.Address]
-			if ok && signer.hasSameKeysAs(seen) {
-				seen.Roles = append(seen.Roles, signer.Roles...)
-				continue
-			}
+		if proposer != nil && payer.canMergeWith(proposer) {
+			payer.mergeWith(proposer)
+			*proposer = *payer
+			payer = proposer
+		} else {
+			signers = append(signers, payer)
 		}
-
-		signerMap[signer.Address] = signer
-		signerList = append(signerList, signer)
 	}
 
-	return signerList
+	for _, authorizer := range t.Authorizers {
+		auth := newSignerDeclaration(SignerRoleAuthorizer, authorizer.Address, authorizer.KeyIndices...)
+
+		// If authorizer key-set is a subset of payer key-set, merge with payer.
+		// If proposer key-set is a subset of authorizer key-set, merge with proposer.
+		// Otherwise, append authorizer to signer list.
+		if payer != nil && payer.canMergeWith(auth) {
+			payer.mergeWith(auth)
+		} else if proposer != nil && auth.canMergeWith(proposer) {
+			auth.mergeWith(proposer)
+			*proposer = *auth
+		} else {
+			signers = append(signers, auth)
+		}
+	}
+
+	return signers
 }
 
 // Message returns the signable message for this transaction payload.
@@ -332,6 +345,27 @@ func (t TransactionPayload) messageForm() interface{} {
 	}
 }
 
+// A ProposalKey is the key that specifies the proposal key and sequence number for a transaction.
+type ProposalKey struct {
+	Address        Address
+	KeyIndex       int
+	SequenceNumber uint64
+}
+
+// A TransactionPayer specifies the account that is paying for a transaction and the
+// keys required to sign.
+type TransactionPayer struct {
+	Address    Address
+	KeyIndices []int
+}
+
+// A TransactionAuthorizer specifies an account that is authorizing a transaction and the
+// keys required to sign.
+type TransactionAuthorizer struct {
+	Address    Address
+	KeyIndices []int
+}
+
 // A SignerDeclaration specifies an account that is required to sign transaction.
 //
 // A declaration includes the address of the signer account, the roles
@@ -342,17 +376,11 @@ func (t TransactionPayload) messageForm() interface{} {
 type SignerDeclaration struct {
 	Address     Address
 	Roles       []SignerRole
-	Keys        []int
+	KeyIndices  []int
 	ProposalKey *ProposalKey
 }
 
-// A ProposalKey is the key that specifies the sequence number for a transaction.
-type ProposalKey struct {
-	KeyIndex       int
-	SequenceNumber uint64
-}
-
-func newSignerDeclaration(address Address, roles []SignerRole, keyIndices ...int) *SignerDeclaration {
+func newSignerDeclaration(role SignerRole, address Address, keyIndices ...int) *SignerDeclaration {
 	sortedKeys := make([]int, len(keyIndices))
 
 	for i, key := range keyIndices {
@@ -362,33 +390,57 @@ func newSignerDeclaration(address Address, roles []SignerRole, keyIndices ...int
 	sort.Ints(sortedKeys)
 
 	return &SignerDeclaration{
-		Address: address,
-		Roles:   roles,
-		Keys:    sortedKeys,
+		Address:    address,
+		Roles:      []SignerRole{role},
+		KeyIndices: sortedKeys,
 	}
 }
 
-// SetSequenceNumber sets the proposal key and sequence number for this declaration.
-func (d *SignerDeclaration) SetSequenceNumber(keyIndex int, sequenceNum uint64) *SignerDeclaration {
-	d.ProposalKey = &ProposalKey{
-		KeyIndex:       keyIndex,
-		SequenceNumber: sequenceNum,
-	}
-	return d
-}
-
-func (d *SignerDeclaration) hasSameKeysAs(other *SignerDeclaration) bool {
-	if len(d.Keys) != len(other.Keys) {
+func (d *SignerDeclaration) canMergeWith(other *SignerDeclaration) bool {
+	// can only merge with same account
+	if d.Address != other.Address {
 		return false
 	}
 
-	for i, key := range d.Keys {
-		if key != other.Keys[i] {
+	// cannot merge with an empty declaration
+	if len(other.KeyIndices) == 0 {
+		return false
+	}
+
+	// create lookup table for keys
+	keys := make(map[int]struct{})
+	for _, key := range d.KeyIndices {
+		keys[key] = struct{}{}
+	}
+
+	// other can be merged into this declaration if its key-set
+	// is a subset of this declaration's key-set
+	for _, key := range other.KeyIndices {
+		_, ok := keys[key]
+		if !ok {
 			return false
 		}
 	}
 
 	return true
+}
+
+func (d *SignerDeclaration) mergeWith(other *SignerDeclaration) *SignerDeclaration {
+	d.Roles = append(d.Roles, other.Roles...)
+
+	// sort roles list in following order:
+	// 1 - PROPOSER
+	// 2 - PAYER
+	// 3 - AUTHORIZER
+	sort.Slice(d.Roles, func(i, j int) bool { return d.Roles[i] < d.Roles[j] })
+
+	// when merging, incoming key-set is always a subset of the current key-set, therefore
+	// the current key-set does not change
+
+	// copy the proposal key from the incoming declaration
+	d.ProposalKey = other.ProposalKey
+
+	return d
 }
 
 func (d SignerDeclaration) messageForm() interface{} {
@@ -411,7 +463,7 @@ func (d SignerDeclaration) messageForm() interface{} {
 	}{
 		Address: d.Address[:],
 		Roles:   rolesList(d.Roles).messageForm(),
-		Keys:    keysList(d.Keys).messageForm(),
+		Keys:    keysList(d.KeyIndices).messageForm(),
 	}
 }
 
@@ -438,36 +490,61 @@ func (s SignerRole) messageForm() interface{} {
 	return uint(s)
 }
 
-// An TransactionSignatureSet is a set of signatures associated with a specific account.
-type TransactionSignatureSet struct {
-	Address    Address
-	Signatures []TransactionSignature
+// A TransactionSignatureKind is a kind of transaction signature.
+type TransactionSignatureKind int
+
+const (
+	// TransactionSignatureKindUnknown indicates that the signature kind is not known.
+	TransactionSignatureKindUnknown TransactionSignatureKind = iota
+	// TransactionSignatureKindPayload is a signature of the transaction payload.
+	TransactionSignatureKindPayload
+	// TransactionSignatureKindContainer is a signature of the full transaction container.
+	TransactionSignatureKindContainer
+)
+
+// String returns the string representation of a signer role.
+func (s TransactionSignatureKind) String() string {
+	return [...]string{"UNKNOWN", "PAYLOAD", "CONTAINER"}[s]
 }
 
-func newTransactionSignatureSet(address Address) *TransactionSignatureSet {
-	return &TransactionSignatureSet{
-		Address:    address,
-		Signatures: make([]TransactionSignature, 0),
-	}
+func (s TransactionSignatureKind) messageForm() interface{} {
+	return uint(s)
 }
 
-// Add adds a signature to this set for the given key index.
-func (s *TransactionSignatureSet) Add(keyIndex int, sig []byte) {
-	s.Signatures = signaturesList(s.Signatures).Add(keyIndex, sig)
-}
-
-func (s *TransactionSignatureSet) messageForm() interface{} {
-	return struct {
-		Address    []byte
-		Signatures interface{}
-	}{
-		Address:    s.Address.Bytes(),
-		Signatures: signaturesList(s.Signatures).messageForm(),
-	}
-}
+// type TransactionSignatures []*TransactionSignatureSet
+//
+// // An TransactionSignatureSet is a set of signatures associated with a specific account.
+// type TransactionSignatureSet struct {
+// 	Address    Address
+// 	Signatures []TransactionSignature
+// }
+//
+// func newTransactionSignatureSet(address Address) *TransactionSignatureSet {
+// 	return &TransactionSignatureSet{
+// 		Address:    address,
+// 		Signatures: make([]TransactionSignature, 0),
+// 	}
+// }
+//
+// // Add adds a signature to this set for the given key index.
+// func (s *TransactionSignatureSet) Add(keyIndex int, sigType string, sig []byte) {
+// 	s.Signatures = signaturesList(s.Signatures).Add(keyIndex, sigType, sig)
+// }
+//
+// func (s *TransactionSignatureSet) messageForm() interface{} {
+// 	return struct {
+// 		Address    []byte
+// 		Signatures interface{}
+// 	}{
+// 		Address:    s.Address.Bytes(),
+// 		Signatures: signaturesList(s.Signatures).messageForm(),
+// 	}
+// }
 
 // A TransactionSignature is a signature associated with a specific account key.
 type TransactionSignature struct {
+	Kind      TransactionSignatureKind
+	Address   Address
 	KeyIndex  int
 	Signature []byte
 }
@@ -532,20 +609,6 @@ func (s signaturesList) messageForm() interface{} {
 	}
 
 	return signatures
-}
-
-func (s signaturesList) Add(key int, sig []byte) signaturesList {
-	ts := TransactionSignature{
-		KeyIndex:  key,
-		Signature: sig,
-	}
-
-	s = append(s, ts)
-
-	// sort list by key index on insertion
-	sort.Sort(s)
-
-	return s
 }
 
 type TransactionResult struct {

@@ -56,7 +56,7 @@ func ExampleTransaction() {
 			"Address: %s, Roles: %s, Key Indices: %d\n",
 			signer.Address,
 			signer.Roles,
-			signer.Keys,
+			signer.KeyIndices,
 		)
 	}
 	fmt.Println()
@@ -75,29 +75,17 @@ func ExampleTransaction() {
 		panic(err)
 	}
 
-	err = tx.SignPayer(blaine.Address, blaineHardwareKey.Index, MockSigner(blaineHardwareKey))
+	err = tx.SignContainer(blaine.Address, blaineHardwareKey.Index, MockSigner(blaineHardwareKey))
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Println("Payload Signatures:")
-	for _, set := range tx.PayloadSignatures() {
-		for _, sig := range set.Signatures {
-			fmt.Printf(
-				"Address: %s, Key Index: %d, Signature: %x\n",
-				set.Address,
-				sig.KeyIndex,
-				sig.Signature,
-			)
-		}
-	}
-	fmt.Println()
-
-	fmt.Println("Payer Signatures:")
-	for _, sig := range tx.PayerSignatures() {
+	fmt.Println("Signatures:")
+	for _, sig := range tx.Signatures {
 		fmt.Printf(
-			"Address: %s, Key Index: %d, Signature: %x\n",
-			tx.Payer().Address,
+			"Kind: %s, Address: %s, Key Index: %d, Signature: %x\n",
+			sig.Kind,
+			sig.Address,
 			sig.KeyIndex,
 			sig.Signature,
 		)
@@ -108,18 +96,15 @@ func ExampleTransaction() {
 
 	// Output:
 	// Signers:
-	// Address: 0000000000000000000000000000000000000001, Roles: [PROPOSER], Key Indices: []
+	// Address: 0000000000000000000000000000000000000001, Roles: [PROPOSER AUTHORIZER], Key Indices: [2 3]
 	// Address: 0000000000000000000000000000000000000002, Roles: [PAYER], Key Indices: [7]
-	// Address: 0000000000000000000000000000000000000001, Roles: [AUTHORIZER], Key Indices: [2 3]
 	//
-	// Transaction ID (before signing): 349959c09421ec233b63613f7bb60e4585fbbd8a604b788a0f18cc4f97cd0471
+	// Transaction ID (before signing): 4cd86595c7dc854b371644060c1b4cbc478726b7e3c8be2176353c169e1a76d3
 	//
-	// Payload Signatures:
-	// Address: 0000000000000000000000000000000000000001, Key Index: 2, Signature: 02
-	// Address: 0000000000000000000000000000000000000001, Key Index: 3, Signature: 03
+	// Signatures:
+	// Kind: PAYLOAD, Address: 0000000000000000000000000000000000000001, Key Index: 3, Signature: 03
+	// Kind: PAYLOAD, Address: 0000000000000000000000000000000000000001, Key Index: 2, Signature: 02
+	// Kind: CONTAINER, Address: 0000000000000000000000000000000000000002, Key Index: 7, Signature: 07
 	//
-	// Payer Signatures:
-	// Address: 0000000000000000000000000000000000000002, Key Index: 7, Signature: 07
-	//
-	// Transaction ID (after signing): 370a571558f5eb9f44f367cac269757acee59c394162e952788fd4b57ec1c504
+	// Transaction ID (after signing): 63271c5cb5429bcabbb3fd0f174afd1d22ca4c2e5fb237cf940ce1c61e2176f3
 }
