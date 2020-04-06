@@ -5,16 +5,15 @@ import (
 	"fmt"
 
 	"github.com/dapperlabs/cadence"
+	"github.com/dapperlabs/flow/protobuf/go/flow/access"
 	"google.golang.org/grpc"
 
-	proto "github.com/dapperlabs/flow/protobuf/go/flow"
-
 	"github.com/dapperlabs/flow-go-sdk"
-	"github.com/dapperlabs/flow-go-sdk/client/protobuf/convert"
+	"github.com/dapperlabs/flow-go-sdk/client/convert"
 )
 
 // An RPCClient is an RPC client for the Flow Access API.
-type RPCClient proto.AccessAPIClient
+type RPCClient access.AccessAPIClient
 
 // A Client is a gRPC Client for the FLow Access API.
 type Client struct {
@@ -31,7 +30,7 @@ func New(addr string, opts ...grpc.DialOption) (*Client, error) {
 		return nil, err
 	}
 
-	grpcClient := proto.NewAccessAPIClient(conn)
+	grpcClient := access.NewAccessAPIClient(conn)
 
 	return &Client{
 		rpcClient: grpcClient,
@@ -54,7 +53,7 @@ func (c *Client) Close() error {
 
 // Ping is used to check if the access node is alive and healthy.
 func (c *Client) Ping(ctx context.Context) error {
-	_, err := c.rpcClient.Ping(ctx, &proto.PingRequest{})
+	_, err := c.rpcClient.Ping(ctx, &access.PingRequest{})
 	return err
 }
 
@@ -99,12 +98,12 @@ func (c *Client) SendTransaction(ctx context.Context, transaction flow.Transacti
 }
 
 // GetTransaction gets a transaction by ID.
-func (c *Client) GetTransaction(ctx context.Context, id []byte) (*flow.Transaction, error) {
+func (c *Client) GetTransaction(ctx context.Context, id flow.Identifier) (*flow.Transaction, error) {
 	panic("not implemented")
 }
 
 // GetTransactionResult gets the result of a transaction.
-func (c *Client) GetTransactionResult(ctx context.Context) error {
+func (c *Client) GetTransactionResult(ctx context.Context, id flow.Identifier) (*flow.TransactionResult, error) {
 	panic("not implemented")
 }
 
@@ -140,7 +139,7 @@ type EventRangeQuery struct {
 
 // GetEventsForHeightRange retrieves events for all sealed blocks between the start block height and the end block height (inclusive) that have the given type
 func (c *Client) GetEventsForHeightRange(ctx context.Context, query EventRangeQuery) ([]flow.Event, error) {
-	req := &proto.GetEventsForHeightRangeRequest{
+	req := &access.GetEventsForHeightRangeRequest{
 		Type:        query.Type,
 		StartHeight: query.StartHeight,
 		EndHeight:   query.EndHeight,
