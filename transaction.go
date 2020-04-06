@@ -596,10 +596,10 @@ type TransactionSignature struct {
 
 func (s TransactionSignature) canonicalForm() interface{} {
 	return struct {
-		KeyIndex  uint
+		Index     uint
 		Signature []byte
 	}{
-		KeyIndex:  uint(s.KeyIndex), // int is not RLP-serializable
+		Index:     uint(s.Index), // int is not RLP-serializable
 		Signature: s.Signature,
 	}
 }
