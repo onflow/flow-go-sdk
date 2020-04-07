@@ -139,7 +139,7 @@ func (t *Transaction) AddAuthorizer(address Address, keyIDs ...int) *Transaction
 //
 // Two key-sets are considered equal if they contain the same key indices, regardless of order.
 func (t *Transaction) Signers() []*TransactionSigner {
-	return t.Payload.Signers()
+	return t.Payload.getSigners()
 }
 
 // SignPayload signs the transaction payload within the context of an account key.
@@ -218,7 +218,7 @@ func (t *Transaction) AddContainerSignature(address Address, keyID int, sig []by
 }
 
 func (t *Transaction) AddSignatureAtIndex(index int, sig []byte) *Transaction {
-	sr := t.Payload.GetSignatureRequirementByIndex(index)
+	sr := t.Payload.getSignatureRequirementByIndex(index)
 	return t.addSignature(sr.Kind, sr.Address, sr.KeyID, sig)
 }
 
@@ -228,7 +228,7 @@ func (t *Transaction) addSignature(
 	keyID int,
 	sig []byte,
 ) *Transaction {
-	index := t.Payload.GetSignatureIndex(address, keyID)
+	index := t.Payload.getSignatureIndex(address, keyID)
 
 	s := TransactionSignature{
 		Index:     index,
@@ -297,7 +297,7 @@ type TransactionPayload struct {
 	signatureRequirementTable sigReqLookupTable
 }
 
-// Signers returns a list of signer declarations for all accounts that are required
+// getSigners returns a list of signer declarations for all accounts that are required
 // to sign this transaction.
 //
 // The list is returned in the following order:
@@ -312,7 +312,7 @@ type TransactionPayload struct {
 // The same account can be used in multiple signer declarations under these conditions:
 // 1. An account cannot exist in two declarations that fulfill the same role
 // 2. An account cannot exist in two declarations if either declaration's key-set is a subset of the other
-func (t TransactionPayload) Signers() []*TransactionSigner {
+func (t TransactionPayload) getSigners() []*TransactionSigner {
 	if t.signers != nil && !t.signersHaveChanged {
 		return t.signers
 	}
@@ -379,7 +379,7 @@ func (t TransactionPayload) getSignatureRequirements() ([]*TransactionSignatureR
 		return t.signatureRequirements, t.signatureRequirementTable
 	}
 
-	signers := t.Signers()
+	signers := t.getSigners()
 
 	signatureRequirements := make([]*TransactionSignatureRequirement, 0)
 	signatureRequirementTable := make(sigReqLookupTable)
@@ -409,7 +409,7 @@ func (t TransactionPayload) getSignatureRequirements() ([]*TransactionSignatureR
 }
 
 //
-func (t TransactionPayload) GetSignatureIndex(address Address, keyID int) int {
+func (t TransactionPayload) getSignatureIndex(address Address, keyID int) int {
 	_, signatureRequirementTable := t.getSignatureRequirements()
 
 	sr := signatureRequirementTable[sigReqKey{address, keyID}]
@@ -421,7 +421,7 @@ func (t TransactionPayload) GetSignatureIndex(address Address, keyID int) int {
 	return sr.Index
 }
 
-func (t TransactionPayload) GetSignatureRequirementByIndex(index int) TransactionSignatureRequirement {
+func (t TransactionPayload) getSignatureRequirementByIndex(index int) TransactionSignatureRequirement {
 	signatureRequirements, _ := t.getSignatureRequirements()
 
 	if index >= len(signatureRequirements) {
@@ -452,7 +452,7 @@ func (t TransactionPayload) canonicalForm() interface{} {
 		t.Script,
 		t.ReferenceBlockID[:],
 		t.GasLimit,
-		signersList(t.Signers()).canonicalForm(),
+		signersList(t.getSigners()).canonicalForm(),
 	}
 }
 
