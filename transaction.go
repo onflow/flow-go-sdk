@@ -273,9 +273,10 @@ type TransactionPayload struct {
 	Authorizers      []*TransactionAuthorizer
 
 	// fields used to cache signer list
-	signers            []*SignerDeclaration
-	signerKeys         map[Address]map[int]int
-	signersHaveChanged bool
+	signers                   []*SignerDeclaration
+	signersHaveChanged        bool
+	signatureRequirements     []*TransactionSignatureRequirement
+	signatureRequirementTable sigReqLookupTable
 }
 
 // Signers returns a list of signer declarations for all accounts that are required
@@ -348,44 +349,68 @@ func (t TransactionPayload) Signers() []*SignerDeclaration {
 	return signers
 }
 
-func (t TransactionPayload) signerKeyIndex() map[Address]map[int]int {
-	if t.signerKeys != nil && !t.signersHaveChanged {
-		return t.signerKeys
+type sigReqKey struct {
+	address Address
+	keyID   int
+}
+
+type sigReqLookupTable map[sigReqKey]*TransactionSignatureRequirement
+
+func (t TransactionPayload) getSignatureRequirements() ([]*TransactionSignatureRequirement, sigReqLookupTable) {
+	if t.signatureRequirements != nil && !t.signersHaveChanged {
+		return t.signatureRequirements, t.signatureRequirementTable
 	}
 
 	signers := t.Signers()
 
-	keys := make(map[Address]map[int]int)
+	signatureRequirements := make([]*TransactionSignatureRequirement, 0)
+	signatureRequirementTable := make(sigReqLookupTable)
 
 	i := 0
 
 	for _, signer := range signers {
-		for _, key := range signer.KeyIndices {
-			if keys[signer.Address] == nil {
-				keys[signer.Address] = make(map[int]int)
+		for _, keyID := range signer.KeyIDs {
+			sr := &TransactionSignatureRequirement{
+				Index:   i,
+				Address: signer.Address,
+				KeyID:   keyID,
+				Kind:    signer.signatureKind(),
 			}
 
-			keys[signer.Address][key] = i
+			signatureRequirementTable[sigReqKey{signer.Address, keyID}] = sr
+			signatureRequirements = append(signatureRequirements, sr)
 
 			i++
 		}
 	}
 
-	t.signerKeys = keys
+	t.signatureRequirements = signatureRequirements
+	t.signatureRequirementTable = signatureRequirementTable
 
 	return keys
 }
 
-func (t TransactionPayload) GetSignerKeyIndex(address Address, keyIndex int) int {
-	keys := t.signerKeyIndex()
+//
+func (t TransactionPayload) GetSignatureIndex(address Address, keyID int) int {
+	_, signatureRequirementTable := t.getSignatureRequirements()
 
-	if signer, ok := keys[address]; ok {
-		if index, ok := signer[keyIndex]; ok {
-			return index
-		}
+	sr := signatureRequirementTable[sigReqKey{address, keyID}]
+
+	if sr == nil {
+		return -1
 	}
 
-	return -1
+	return sr.Index
+}
+
+func (t TransactionPayload) GetSignatureRequirementByIndex(index int) TransactionSignatureRequirement {
+	signatureRequirements, _ := t.getSignatureRequirements()
+
+	if index >= len(signatureRequirements) {
+		return TransactionSignatureRequirement{}
+	}
+
+	return *signatureRequirements[index]
 }
 
 // Message returns the signable message for this transaction payload.
@@ -604,6 +629,15 @@ func (s TransactionSignature) canonicalForm() interface{} {
 		Index:     uint(s.Index), // int is not RLP-serializable
 		Signature: s.Signature,
 	}
+}
+
+// A TransactionSignatureRequirement is specifies a signature that is required
+// to form a valid transaction.
+type TransactionSignatureRequirement struct {
+	Index   int
+	Address Address
+	KeyID   int
+	Kind    TransactionSignatureKind
 }
 
 type rolesList []SignerRole
