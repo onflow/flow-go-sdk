@@ -102,10 +102,10 @@ func ExampleTransaction() {
 	//
 	// Signatures:
 	// 0 - Kind: PAYLOAD, Address: 0000000000000000000000000000000000000001, Key ID: 2, Signature: 02
-	// 1 - Kind: PAYLOAD, Address: 0000000000000000000000000000000000000001, Key ID: 3, Signature: 03
-	// 2 - Kind: CONTAINER, Address: 0000000000000000000000000000000000000002, Key ID: 7, Signature: 07
+	// 1 - Kind: PAYLOAD, Address: 0000000000000000000000000000000000000001, Key ID: 3, Signature: 01
+	// 2 - Kind: CONTAINER, Address: 0000000000000000000000000000000000000002, Key ID: 7, Signature: 03
 	//
-	// Transaction ID (after signing): 395cf1a841d82569c8fedd67678c67fefda7b76436be581d405ab39bfbe35263
+	// Transaction ID (after signing): 66c53a2ccadbfe345ec818e8e713acb7d455498852a267108653493f3b4babd3
 }
 
 var (

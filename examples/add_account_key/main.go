@@ -39,17 +39,17 @@ func AddAccountKeyDemo() {
 	// The transaction is signed by our account key so it has permission to add keys.
 	addKeyTx := flow.NewTransaction().
 		SetScript(addKeyScript).
-		SetProposalKey(accountAddr, accountKey.Index, accountKey.SequenceNumber).
-		SetPayer(accountAddr, accountKey.Index).
+		SetProposalKey(accountAddr, accountKey.ID, accountKey.SequenceNumber).
+		SetPayer(accountAddr, accountKey.ID).
 		// This defines which accounts are accessed by this transaction
-		AddAuthorizer(accountAddr, accountKey.Index)
+		AddAuthorizer(accountAddr, accountKey.ID)
 
 	accountKeySigner := crypto.NewNaiveSigner(accountPrivateKey, accountKey.HashAlgo)
 
 	// Sign the transaction with the new account.
 	err = addKeyTx.SignContainer(
 		accountAddr,
-		accountKey.Index,
+		accountKey.ID,
 		accountKeySigner,
 	)
 	examples.Handle(err)

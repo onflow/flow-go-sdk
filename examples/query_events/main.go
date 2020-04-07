@@ -48,12 +48,12 @@ func QueryEventsDemo() {
 
 	runScriptTx := flow.NewTransaction().
 		SetScript([]byte(script)).
-		SetPayer(accountAddr, accountKey.Index).
-		SetProposalKey(accountAddr, accountKey.Index, accountKey.SequenceNumber)
+		SetPayer(accountAddr, accountKey.ID).
+		SetProposalKey(accountAddr, accountKey.ID, accountKey.SequenceNumber)
 
 	err = runScriptTx.SignContainer(
 		accountAddr,
-		accountKey.Index,
+		accountKey.ID,
 		crypto.NewNaiveSigner(accountPrivateKey, accountKey.HashAlgo),
 	)
 	examples.Handle(err)
