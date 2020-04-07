@@ -17,7 +17,7 @@ type RPCClient interface {
 	access.AccessAPIClient
 }
 
-// A Client is a gRPC Client for the FLow Access API.
+// A Client is a gRPC Client for the Flow Access API.
 type Client struct {
 	rpcClient RPCClient
 	close     func() error
