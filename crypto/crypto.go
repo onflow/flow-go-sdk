@@ -31,3 +31,9 @@ func NewNaiveSigner(privateKey crypto.PrivateKey, hashAlgo crypto.HashingAlgorit
 func (s NaiveSigner) Sign(obj Signable) ([]byte, error) {
 	return s.PrivateKey.Sign(obj.Message(), s.Hasher)
 }
+
+type MockSigner []byte
+
+func (s MockSigner) Sign(Signable) ([]byte, error) {
+	return s, nil
+}
