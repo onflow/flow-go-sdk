@@ -78,12 +78,10 @@ func MessageToTransaction(m *entities.Transaction) (flow.Transaction, error) {
 }
 
 func TransactionToMessage(t flow.Transaction) *entities.Transaction {
-	var (
-		proposalKeyMessage *entities.TransactionProposalKey
-		payerMessage       *entities.TransactionSigner
-	)
 
+	var proposalKeyMessage *entities.TransactionProposalKey
 	proposalKey := t.ProposalKey()
+
 	if proposalKey != nil {
 		proposalKeyMessage = &entities.TransactionProposalKey{
 			Address:        proposalKey.Address.Bytes(),
@@ -92,7 +90,9 @@ func TransactionToMessage(t flow.Transaction) *entities.Transaction {
 		}
 	}
 
+	var payerMessage *entities.TransactionSigner
 	payer := t.Payer()
+
 	if payer != nil {
 		payerMessage = transactionSignerToMessage(payer.Address, payer.KeyIDs)
 	}
