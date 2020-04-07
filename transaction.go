@@ -138,7 +138,7 @@ func (t *Transaction) AddAuthorizer(address Address, keyIDs ...int) *Transaction
 // but require a stricter key-set for payment.
 //
 // Two key-sets are considered equal if they contain the same key indices, regardless of order.
-func (t *Transaction) Signers() []*SignerDeclaration {
+func (t *Transaction) Signers() []*TransactionSigner {
 	return t.Payload.Signers()
 }
 
@@ -291,7 +291,7 @@ type TransactionPayload struct {
 	Authorizers      []*TransactionAuthorizer
 
 	// fields used to cache signer list
-	signers                   []*SignerDeclaration
+	signers                   []*TransactionSigner
 	signersHaveChanged        bool
 	signatureRequirements     []*TransactionSignatureRequirement
 	signatureRequirementTable sigReqLookupTable
@@ -312,23 +312,23 @@ type TransactionPayload struct {
 // The same account can be used in multiple signer declarations under these conditions:
 // 1. An account cannot exist in two declarations that fulfill the same role
 // 2. An account cannot exist in two declarations if either declaration's key-set is a subset of the other
-func (t TransactionPayload) Signers() []*SignerDeclaration {
+func (t TransactionPayload) Signers() []*TransactionSigner {
 	if t.signers != nil && !t.signersHaveChanged {
 		return t.signers
 	}
 
 	var (
-		proposer *SignerDeclaration
-		payer    *SignerDeclaration
+		proposer *TransactionSigner
+		payer    *TransactionSigner
 	)
 
 	if t.ProposalKey != nil {
-		proposer = newSignerDeclaration(SignerRoleProposer, t.ProposalKey.Address, t.ProposalKey.KeyID)
+		proposer = newTransactionSigner(SignerRoleProposer, t.ProposalKey.Address, t.ProposalKey.KeyID)
 		proposer.ProposalKey = t.ProposalKey
 	}
 
 	if t.Payer != nil {
-		payer = newSignerDeclaration(SignerRolePayer, t.Payer.Address, t.Payer.KeyIDs...)
+		payer = newTransactionSigner(SignerRolePayer, t.Payer.Address, t.Payer.KeyIDs...)
 
 		if payer.canMergeWith(proposer) {
 			payer.mergeWith(proposer)
@@ -337,14 +337,14 @@ func (t TransactionPayload) Signers() []*SignerDeclaration {
 		}
 	}
 
-	signers := make([]*SignerDeclaration, 0)
+	signers := make([]*TransactionSigner, 0)
 
 	if proposer != payer {
 		signers = append(signers, proposer)
 	}
 
 	for _, authorizer := range t.Authorizers {
-		auth := newSignerDeclaration(SignerRoleAuthorizer, authorizer.Address, authorizer.KeyIDs...)
+		auth := newTransactionSigner(SignerRoleAuthorizer, authorizer.Address, authorizer.KeyIDs...)
 
 		// If authorizer key-set is a subset of payer key-set, merge with payer.
 		// If proposer key-set is a subset of authorizer key-set, merge with proposer.
@@ -477,21 +477,21 @@ type TransactionAuthorizer struct {
 	KeyIDs  []int
 }
 
-// A SignerDeclaration specifies an account that is required to sign transaction.
+// A TransactionSigner specifies an account that is required to sign transaction.
 //
 // A declaration includes the address of the signer account, the roles
 // that it fulfills, and a list of required key indices.
 //
 // A declaration also specifies an optional proposal key that must be set if
 // the signer is fulfilling the PROPOSER role.
-type SignerDeclaration struct {
+type TransactionSigner struct {
 	Address     Address
 	Roles       []SignerRole
 	KeyIDs      []int
 	ProposalKey *ProposalKey
 }
 
-func newSignerDeclaration(role SignerRole, address Address, keyIDs ...int) *SignerDeclaration {
+func newTransactionSigner(role SignerRole, address Address, keyIDs ...int) *TransactionSigner {
 	sortedKeys := make([]int, len(keyIDs))
 
 	for i, key := range keyIDs {
@@ -500,14 +500,14 @@ func newSignerDeclaration(role SignerRole, address Address, keyIDs ...int) *Sign
 
 	sort.Ints(sortedKeys)
 
-	return &SignerDeclaration{
+	return &TransactionSigner{
 		Address: address,
 		Roles:   []SignerRole{role},
 		KeyIDs:  sortedKeys,
 	}
 }
 
-func (d *SignerDeclaration) canMergeWith(other *SignerDeclaration) bool {
+func (d *TransactionSigner) canMergeWith(other *TransactionSigner) bool {
 	if other == nil {
 		return false
 	}
@@ -540,7 +540,7 @@ func (d *SignerDeclaration) canMergeWith(other *SignerDeclaration) bool {
 	return true
 }
 
-func (d *SignerDeclaration) mergeWith(other *SignerDeclaration) *SignerDeclaration {
+func (d *TransactionSigner) mergeWith(other *TransactionSigner) *TransactionSigner {
 	d.Roles = append(d.Roles, other.Roles...)
 
 	// sort roles list in following order:
@@ -566,7 +566,7 @@ func (d *SignerDeclaration) mergeWith(other *SignerDeclaration) *SignerDeclarati
 //
 // If one of the signer's roles is PAYER, it must sign the CONTAINER.
 // Otherwise, it must sign the PAYLOAD.
-func (d SignerDeclaration) signatureKind() TransactionSignatureKind {
+func (d TransactionSigner) signatureKind() TransactionSignatureKind {
 	for _, role := range d.Roles {
 		if role == SignerRolePayer {
 			return TransactionSignatureKindContainer
@@ -576,7 +576,7 @@ func (d SignerDeclaration) signatureKind() TransactionSignatureKind {
 	return TransactionSignatureKindPayload
 }
 
-func (d SignerDeclaration) canonicalForm() interface{} {
+func (d TransactionSigner) canonicalForm() interface{} {
 	if d.ProposalKey != nil {
 		return struct {
 			Address                   []byte
@@ -696,7 +696,7 @@ func (l keysList) canonicalForm() interface{} {
 	return keys
 }
 
-type signersList []*SignerDeclaration
+type signersList []*TransactionSigner
 
 func (l signersList) canonicalForm() interface{} {
 	signers := make([]interface{}, len(l))
