@@ -13,7 +13,9 @@ import (
 )
 
 // An RPCClient is an RPC client for the Flow Access API.
-type RPCClient access.AccessAPIClient
+type RPCClient interface {
+	access.AccessAPIClient
+}
 
 // A Client is a gRPC Client for the FLow Access API.
 type Client struct {
