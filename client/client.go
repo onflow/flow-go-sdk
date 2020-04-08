@@ -95,18 +95,17 @@ func (c *Client) GetCollectionByID(ctx context.Context) error {
 }
 
 // SendTransaction submits a transaction to the network.
-func (c *Client) SendTransaction(ctx context.Context, transaction flow.Transaction) (flow.Identifier, error) {
+func (c *Client) SendTransaction(ctx context.Context, transaction flow.Transaction) error {
 	req := &access.SendTransactionRequest{
 		Transaction: convert.TransactionToMessage(transaction),
 	}
 
-	res, err := c.rpcClient.SendTransaction(ctx, req)
+	_, err := c.rpcClient.SendTransaction(ctx, req)
 	if err != nil {
-		return flow.ZeroID, fmt.Errorf("client: %w", err)
+		return fmt.Errorf("client: %w", err)
 	}
 
-	id := flow.HashToID(res.GetId())
-	return id, nil
+	return nil
 }
 
 // GetTransaction gets a transaction by ID.
