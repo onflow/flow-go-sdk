@@ -40,14 +40,14 @@ func CreateAccountDemo() {
 	// by the root account.
 	createAccountTx := flow.NewTransaction().
 		SetScript(createAccountScript).
-		SetProposalKey(rootAcctAddr, rootAcctKey.Index, rootAcctKey.SequenceNumber).
-		SetPayer(rootAcctAddr, rootAcctKey.Index)
+		SetProposalKey(rootAcctAddr, rootAcctKey.ID, rootAcctKey.SequenceNumber).
+		SetPayer(rootAcctAddr, rootAcctKey.ID)
 
 	// Sign the transaction with the root account, which already exists
 	// All new accounts must be created by an existing account
 	err = createAccountTx.SignContainer(
 		rootAcctAddr,
-		rootAcctKey.Index,
+		rootAcctKey.ID,
 		rootKeySigner,
 	)
 	examples.Handle(err)

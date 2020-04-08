@@ -21,7 +21,7 @@ func NewTransaction() *Transaction {
 
 // ID returns the canonical SHA3-256 hash of this transaction.
 func (t *Transaction) ID() Identifier {
-	return HashToID(hash.DefaultHasher.ComputeHash(t.Message()))
+	return HashToID(hash.DefaultHasher.ComputeHash(t.Encode()))
 }
 
 // Script returns the Cadence script for this transaction.
@@ -66,10 +66,10 @@ func (t *Transaction) ProposalKey() *ProposalKey {
 //
 // The first two arguments specify the account key to be used, and the last argument is the sequence
 // number being declared.
-func (t *Transaction) SetProposalKey(address Address, keyIndex int, sequenceNum uint64) *Transaction {
+func (t *Transaction) SetProposalKey(address Address, keyID int, sequenceNum uint64) *Transaction {
 	proposalKey := ProposalKey{
 		Address:        address,
-		KeyIndex:       keyIndex,
+		KeyID:          keyID,
 		SequenceNumber: sequenceNum,
 	}
 
@@ -88,10 +88,10 @@ func (t *Transaction) Payer() *TransactionPayer {
 //
 // This function takes an account address and a list of key indices representing the
 // account keys that must be used for signing.
-func (t *Transaction) SetPayer(address Address, keyIndices ...int) *Transaction {
+func (t *Transaction) SetPayer(address Address, keyIDs ...int) *Transaction {
 	payer := TransactionPayer{
-		Address:    address,
-		KeyIndices: keyIndices,
+		Address: address,
+		KeyIDs:  keyIDs,
 	}
 
 	t.Payload.Payer = &payer
@@ -110,10 +110,10 @@ func (t *Transaction) Authorizers() []*TransactionAuthorizer {
 //
 // This function takes an account address and a list of key indices representing the
 // account keys that must be used for signing.
-func (t *Transaction) AddAuthorizer(address Address, keyIndices ...int) *Transaction {
+func (t *Transaction) AddAuthorizer(address Address, keyIDs ...int) *Transaction {
 	authorizer := TransactionAuthorizer{
-		Address:    address,
-		KeyIndices: keyIndices,
+		Address: address,
+		KeyIDs:  keyIDs,
 	}
 
 	t.Payload.Authorizers = append(t.Payload.Authorizers, &authorizer)
@@ -138,42 +138,42 @@ func (t *Transaction) AddAuthorizer(address Address, keyIndices ...int) *Transac
 // but require a stricter key-set for payment.
 //
 // Two key-sets are considered equal if they contain the same key indices, regardless of order.
-func (t *Transaction) Signers() []*SignerDeclaration {
-	return t.Payload.Signers()
+func (t *Transaction) Signers() []*TransactionSigner {
+	return t.Payload.getSigners()
 }
 
 // SignPayload signs the transaction payload within the context of an account key.
 //
-// The resulting signature is combined with the account address and key index before
+// The resulting signature is combined with the account address and key ID before
 // being added to the transaction.
 //
 // This function returns an error if the signature cannot be generated.
-func (t *Transaction) SignPayload(address Address, keyIndex int, signer crypto.Signer) error {
+func (t *Transaction) SignPayload(address Address, keyID int, signer crypto.Signer) error {
 	sig, err := signer.Sign(t.Payload)
 	if err != nil {
 		// TODO: wrap error
 		return err
 	}
 
-	t.AddPayloadSignature(address, keyIndex, sig)
+	t.AddPayloadSignature(address, keyID, sig)
 
 	return nil
 }
 
 // SignContainer signs the full transaction (payload + payload signatures) within the context of an account key.
 //
-// The resulting signature is combined with the account address and key index before
+// The resulting signature is combined with the account address and key ID before
 // being added to the transaction.
 //
 // This function returns an error if the signature cannot be generated.
-func (t *Transaction) SignContainer(address Address, keyIndex int, signer crypto.Signer) error {
+func (t *Transaction) SignContainer(address Address, keyID int, signer crypto.Signer) error {
 	sig, err := signer.Sign(t)
 	if err != nil {
 		// TODO: wrap error
 		return err
 	}
 
-	t.AddContainerSignature(address, keyIndex, sig)
+	t.AddContainerSignature(address, keyID, sig)
 
 	return nil
 }
@@ -207,29 +207,34 @@ func (t *Transaction) ContainerSignatures() []TransactionSignature {
 	return sigs
 }
 
-// AddPayloadSignature adds a payload signature to the transaction for the given address and key index.
-func (t *Transaction) AddPayloadSignature(address Address, keyIndex int, sig []byte) *Transaction {
-	return t.addSignature(TransactionSignatureKindPayload, address, keyIndex, sig)
+// AddPayloadSignature adds a payload signature to the transaction for the given address and key ID.
+func (t *Transaction) AddPayloadSignature(address Address, keyID int, sig []byte) *Transaction {
+	return t.addSignature(TransactionSignatureKindPayload, address, keyID, sig)
 }
 
-// AddContainerSignature adds a container signature to the transaction for the given address and key index.
-func (t *Transaction) AddContainerSignature(address Address, keyIndex int, sig []byte) *Transaction {
-	return t.addSignature(TransactionSignatureKindContainer, address, keyIndex, sig)
+// AddContainerSignature adds a container signature to the transaction for the given address and key ID.
+func (t *Transaction) AddContainerSignature(address Address, keyID int, sig []byte) *Transaction {
+	return t.addSignature(TransactionSignatureKindContainer, address, keyID, sig)
+}
+
+func (t *Transaction) AddSignatureAtIndex(index int, sig []byte) *Transaction {
+	sr := t.Payload.getSignatureRequirementByIndex(index)
+	return t.addSignature(sr.Kind, sr.Address, sr.KeyID, sig)
 }
 
 func (t *Transaction) addSignature(
 	kind TransactionSignatureKind,
 	address Address,
-	keyIndex int,
+	keyID int,
 	sig []byte,
 ) *Transaction {
-	index := t.Payload.GetSignerKeyIndex(address, keyIndex)
+	index := t.Payload.getSignatureIndex(address, keyID)
 
 	s := TransactionSignature{
 		Index:     index,
 		Kind:      kind,
 		Address:   address,
-		KeyIndex:  keyIndex,
+		KeyID:     keyID,
 		Signature: sig,
 	}
 
@@ -262,6 +267,19 @@ func (t *Transaction) canonicalForm() interface{} {
 	}
 }
 
+// Encode serializes the full transaction data including the payload and all signatures.
+func (t *Transaction) Encode() []byte {
+	temp := struct {
+		Payload    interface{}
+		Signatures interface{}
+	}{
+		t.Payload.canonicalForm(),
+		signaturesList(t.Signatures).canonicalForm(),
+	}
+
+	return DefaultEncoder.MustEncode(&temp)
+}
+
 // A TransactionPayload is the inner portion of a transaction that contains the
 // script, signers and other metadata required for transaction execution.
 type TransactionPayload struct {
@@ -273,12 +291,13 @@ type TransactionPayload struct {
 	Authorizers      []*TransactionAuthorizer
 
 	// fields used to cache signer list
-	signers            []*SignerDeclaration
-	signerKeys         map[Address]map[int]int
-	signersHaveChanged bool
+	signers                   []*TransactionSigner
+	signersHaveChanged        bool
+	signatureRequirements     []*TransactionSignatureRequirement
+	signatureRequirementTable sigReqLookupTable
 }
 
-// Signers returns a list of signer declarations for all accounts that are required
+// getSigners returns a list of signer declarations for all accounts that are required
 // to sign this transaction.
 //
 // The list is returned in the following order:
@@ -293,23 +312,23 @@ type TransactionPayload struct {
 // The same account can be used in multiple signer declarations under these conditions:
 // 1. An account cannot exist in two declarations that fulfill the same role
 // 2. An account cannot exist in two declarations if either declaration's key-set is a subset of the other
-func (t TransactionPayload) Signers() []*SignerDeclaration {
+func (t TransactionPayload) getSigners() []*TransactionSigner {
 	if t.signers != nil && !t.signersHaveChanged {
 		return t.signers
 	}
 
 	var (
-		proposer *SignerDeclaration
-		payer    *SignerDeclaration
+		proposer *TransactionSigner
+		payer    *TransactionSigner
 	)
 
 	if t.ProposalKey != nil {
-		proposer = newSignerDeclaration(SignerRoleProposer, t.ProposalKey.Address, t.ProposalKey.KeyIndex)
+		proposer = newTransactionSigner(SignerRoleProposer, t.ProposalKey.Address, t.ProposalKey.KeyID)
 		proposer.ProposalKey = t.ProposalKey
 	}
 
 	if t.Payer != nil {
-		payer = newSignerDeclaration(SignerRolePayer, t.Payer.Address, t.Payer.KeyIndices...)
+		payer = newTransactionSigner(SignerRolePayer, t.Payer.Address, t.Payer.KeyIDs...)
 
 		if payer.canMergeWith(proposer) {
 			payer.mergeWith(proposer)
@@ -318,14 +337,14 @@ func (t TransactionPayload) Signers() []*SignerDeclaration {
 		}
 	}
 
-	signers := make([]*SignerDeclaration, 0)
+	signers := make([]*TransactionSigner, 0)
 
 	if proposer != payer {
 		signers = append(signers, proposer)
 	}
 
 	for _, authorizer := range t.Authorizers {
-		auth := newSignerDeclaration(SignerRoleAuthorizer, authorizer.Address, authorizer.KeyIndices...)
+		auth := newTransactionSigner(SignerRoleAuthorizer, authorizer.Address, authorizer.KeyIDs...)
 
 		// If authorizer key-set is a subset of payer key-set, merge with payer.
 		// If proposer key-set is a subset of authorizer key-set, merge with proposer.
@@ -348,44 +367,68 @@ func (t TransactionPayload) Signers() []*SignerDeclaration {
 	return signers
 }
 
-func (t TransactionPayload) signerKeyIndex() map[Address]map[int]int {
-	if t.signerKeys != nil && !t.signersHaveChanged {
-		return t.signerKeys
+type sigReqKey struct {
+	address Address
+	keyID   int
+}
+
+type sigReqLookupTable map[sigReqKey]*TransactionSignatureRequirement
+
+func (t TransactionPayload) getSignatureRequirements() ([]*TransactionSignatureRequirement, sigReqLookupTable) {
+	if t.signatureRequirements != nil && !t.signersHaveChanged {
+		return t.signatureRequirements, t.signatureRequirementTable
 	}
 
-	signers := t.Signers()
+	signers := t.getSigners()
 
-	keys := make(map[Address]map[int]int)
+	signatureRequirements := make([]*TransactionSignatureRequirement, 0)
+	signatureRequirementTable := make(sigReqLookupTable)
 
 	i := 0
 
 	for _, signer := range signers {
-		for _, key := range signer.KeyIndices {
-			if keys[signer.Address] == nil {
-				keys[signer.Address] = make(map[int]int)
+		for _, keyID := range signer.KeyIDs {
+			sr := &TransactionSignatureRequirement{
+				Index:   i,
+				Address: signer.Address,
+				KeyID:   keyID,
+				Kind:    signer.signatureKind(),
 			}
 
-			keys[signer.Address][key] = i
+			signatureRequirementTable[sigReqKey{signer.Address, keyID}] = sr
+			signatureRequirements = append(signatureRequirements, sr)
 
 			i++
 		}
 	}
 
-	t.signerKeys = keys
+	t.signatureRequirements = signatureRequirements
+	t.signatureRequirementTable = signatureRequirementTable
 
-	return keys
+	return signatureRequirements, signatureRequirementTable
 }
 
-func (t TransactionPayload) GetSignerKeyIndex(address Address, keyIndex int) int {
-	keys := t.signerKeyIndex()
+//
+func (t TransactionPayload) getSignatureIndex(address Address, keyID int) int {
+	_, signatureRequirementTable := t.getSignatureRequirements()
 
-	if signer, ok := keys[address]; ok {
-		if index, ok := signer[keyIndex]; ok {
-			return index
-		}
+	sr := signatureRequirementTable[sigReqKey{address, keyID}]
+
+	if sr == nil {
+		return -1
 	}
 
-	return -1
+	return sr.Index
+}
+
+func (t TransactionPayload) getSignatureRequirementByIndex(index int) TransactionSignatureRequirement {
+	signatureRequirements, _ := t.getSignatureRequirements()
+
+	if index >= len(signatureRequirements) {
+		return TransactionSignatureRequirement{}
+	}
+
+	return *signatureRequirements[index]
 }
 
 // Message returns the signable message for this transaction payload.
@@ -409,62 +452,62 @@ func (t TransactionPayload) canonicalForm() interface{} {
 		t.Script,
 		t.ReferenceBlockID[:],
 		t.GasLimit,
-		signersList(t.Signers()).canonicalForm(),
+		signersList(t.getSigners()).canonicalForm(),
 	}
 }
 
 // A ProposalKey is the key that specifies the proposal key and sequence number for a transaction.
 type ProposalKey struct {
 	Address        Address
-	KeyIndex       int
+	KeyID          int
 	SequenceNumber uint64
 }
 
 // A TransactionPayer specifies the account that is paying for a transaction and the
 // keys required to sign.
 type TransactionPayer struct {
-	Address    Address
-	KeyIndices []int
+	Address Address
+	KeyIDs  []int
 }
 
 // A TransactionAuthorizer specifies an account that is authorizing a transaction and the
 // keys required to sign.
 type TransactionAuthorizer struct {
-	Address    Address
-	KeyIndices []int
+	Address Address
+	KeyIDs  []int
 }
 
-// A SignerDeclaration specifies an account that is required to sign transaction.
+// A TransactionSigner specifies an account that is required to sign transaction.
 //
 // A declaration includes the address of the signer account, the roles
 // that it fulfills, and a list of required key indices.
 //
 // A declaration also specifies an optional proposal key that must be set if
 // the signer is fulfilling the PROPOSER role.
-type SignerDeclaration struct {
+type TransactionSigner struct {
 	Address     Address
 	Roles       []SignerRole
-	KeyIndices  []int
+	KeyIDs      []int
 	ProposalKey *ProposalKey
 }
 
-func newSignerDeclaration(role SignerRole, address Address, keyIndices ...int) *SignerDeclaration {
-	sortedKeys := make([]int, len(keyIndices))
+func newTransactionSigner(role SignerRole, address Address, keyIDs ...int) *TransactionSigner {
+	sortedKeys := make([]int, len(keyIDs))
 
-	for i, key := range keyIndices {
+	for i, key := range keyIDs {
 		sortedKeys[i] = key
 	}
 
 	sort.Ints(sortedKeys)
 
-	return &SignerDeclaration{
-		Address:    address,
-		Roles:      []SignerRole{role},
-		KeyIndices: sortedKeys,
+	return &TransactionSigner{
+		Address: address,
+		Roles:   []SignerRole{role},
+		KeyIDs:  sortedKeys,
 	}
 }
 
-func (d *SignerDeclaration) canMergeWith(other *SignerDeclaration) bool {
+func (d *TransactionSigner) canMergeWith(other *TransactionSigner) bool {
 	if other == nil {
 		return false
 	}
@@ -475,19 +518,19 @@ func (d *SignerDeclaration) canMergeWith(other *SignerDeclaration) bool {
 	}
 
 	// cannot merge with an empty declaration
-	if len(other.KeyIndices) == 0 {
+	if len(other.KeyIDs) == 0 {
 		return false
 	}
 
 	// create lookup table for keys
 	keys := make(map[int]struct{})
-	for _, key := range d.KeyIndices {
+	for _, key := range d.KeyIDs {
 		keys[key] = struct{}{}
 	}
 
 	// other can be merged into this declaration if its key-set
 	// is a subset of this declaration's key-set
-	for _, key := range other.KeyIndices {
+	for _, key := range other.KeyIDs {
 		_, ok := keys[key]
 		if !ok {
 			return false
@@ -497,7 +540,7 @@ func (d *SignerDeclaration) canMergeWith(other *SignerDeclaration) bool {
 	return true
 }
 
-func (d *SignerDeclaration) mergeWith(other *SignerDeclaration) *SignerDeclaration {
+func (d *TransactionSigner) mergeWith(other *TransactionSigner) *TransactionSigner {
 	d.Roles = append(d.Roles, other.Roles...)
 
 	// sort roles list in following order:
@@ -519,15 +562,29 @@ func (d *SignerDeclaration) mergeWith(other *SignerDeclaration) *SignerDeclarati
 	return d
 }
 
-func (d SignerDeclaration) canonicalForm() interface{} {
+// signatureKind returns the portion of the transaction this signer is required to sign.
+//
+// If one of the signer's roles is PAYER, it must sign the CONTAINER.
+// Otherwise, it must sign the PAYLOAD.
+func (d TransactionSigner) signatureKind() TransactionSignatureKind {
+	for _, role := range d.Roles {
+		if role == SignerRolePayer {
+			return TransactionSignatureKindContainer
+		}
+	}
+
+	return TransactionSignatureKindPayload
+}
+
+func (d TransactionSigner) canonicalForm() interface{} {
 	if d.ProposalKey != nil {
 		return struct {
 			Address                   []byte
-			ProposalKeyIndex          uint
+			ProposalKeyID             uint
 			ProposalKeySequenceNumber uint64
 		}{
 			Address:                   d.Address[:],
-			ProposalKeyIndex:          uint(d.ProposalKey.KeyIndex),
+			ProposalKeyID:             uint(d.ProposalKey.KeyID),
 			ProposalKeySequenceNumber: d.ProposalKey.SequenceNumber,
 		}
 	}
@@ -535,11 +592,11 @@ func (d SignerDeclaration) canonicalForm() interface{} {
 	return struct {
 		Address []byte
 		Roles   interface{}
-		Keys    interface{}
+		KeyIDs  interface{}
 	}{
 		Address: d.Address[:],
 		Roles:   rolesList(d.Roles).canonicalForm(),
-		Keys:    keysList(d.KeyIndices).canonicalForm(),
+		KeyIDs:  keysList(d.KeyIDs).canonicalForm(),
 	}
 }
 
@@ -592,7 +649,7 @@ type TransactionSignature struct {
 	Kind      TransactionSignatureKind
 	Index     int
 	Address   Address
-	KeyIndex  int
+	KeyID     int
 	Signature []byte
 }
 
@@ -604,6 +661,15 @@ func (s TransactionSignature) canonicalForm() interface{} {
 		Index:     uint(s.Index), // int is not RLP-serializable
 		Signature: s.Signature,
 	}
+}
+
+// A TransactionSignatureRequirement is specifies a signature that is required
+// to form a valid transaction.
+type TransactionSignatureRequirement struct {
+	Index   int
+	Address Address
+	KeyID   int
+	Kind    TransactionSignatureKind
 }
 
 type rolesList []SignerRole
@@ -630,7 +696,7 @@ func (l keysList) canonicalForm() interface{} {
 	return keys
 }
 
-type signersList []*SignerDeclaration
+type signersList []*TransactionSigner
 
 func (l signersList) canonicalForm() interface{} {
 	signers := make([]interface{}, len(l))
