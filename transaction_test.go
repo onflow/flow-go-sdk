@@ -11,21 +11,15 @@ import (
 	"github.com/dapperlabs/flow-go-sdk/crypto"
 )
 
-type MockSigner flow.AccountKey
-
-func (s MockSigner) Sign(crypto.Signable) ([]byte, error) {
-	return []byte{uint8(s.Index)}, nil
-}
-
 func ExampleTransaction() {
 	// Mock user accounts
 
 	adrianLaptopKey := flow.AccountKey{
-		Index:          3,
+		ID:             3,
 		SequenceNumber: 42,
 	}
 
-	adrianPhoneKey := flow.AccountKey{Index: 2}
+	adrianPhoneKey := flow.AccountKey{ID: 2}
 
 	adrian := flow.Account{
 		Address: flow.HexToAddress("01"),
@@ -35,7 +29,7 @@ func ExampleTransaction() {
 		},
 	}
 
-	blaineHardwareKey := flow.AccountKey{Index: 7}
+	blaineHardwareKey := flow.AccountKey{ID: 7}
 
 	blaine := flow.Account{
 		Address: flow.HexToAddress("02"),
@@ -50,17 +44,17 @@ func ExampleTransaction() {
 		SetScript([]byte(`transaction { execute { log("Hello, World!") } }`)).
 		SetReferenceBlockID(flow.Identifier{0x01, 0x02}).
 		SetGasLimit(42).
-		SetProposalKey(adrian.Address, adrianLaptopKey.Index, adrianLaptopKey.SequenceNumber).
-		SetPayer(blaine.Address, blaineHardwareKey.Index).
-		AddAuthorizer(adrian.Address, adrianLaptopKey.Index, adrianPhoneKey.Index)
+		SetProposalKey(adrian.Address, adrianLaptopKey.ID, adrianLaptopKey.SequenceNumber).
+		SetPayer(blaine.Address, blaineHardwareKey.ID).
+		AddAuthorizer(adrian.Address, adrianLaptopKey.ID, adrianPhoneKey.ID)
 
 	fmt.Println("Signers:")
 	for _, signer := range tx.Signers() {
 		fmt.Printf(
-			"Address: %s, Roles: %s, Key Indices: %d\n",
+			"Address: %s, Roles: %s, Key IDs: %d\n",
 			signer.Address,
 			signer.Roles,
-			signer.KeyIndices,
+			signer.KeyIDs,
 		)
 	}
 	fmt.Println()
@@ -69,17 +63,17 @@ func ExampleTransaction() {
 
 	// Signing
 
-	err := tx.SignPayload(adrian.Address, adrianLaptopKey.Index, MockSigner(adrianLaptopKey))
+	err := tx.SignPayload(adrian.Address, adrianLaptopKey.ID, crypto.MockSigner([]byte{1}))
 	if err != nil {
 		panic(err)
 	}
 
-	err = tx.SignPayload(adrian.Address, adrianPhoneKey.Index, MockSigner(adrianPhoneKey))
+	err = tx.SignPayload(adrian.Address, adrianPhoneKey.ID, crypto.MockSigner([]byte{2}))
 	if err != nil {
 		panic(err)
 	}
 
-	err = tx.SignContainer(blaine.Address, blaineHardwareKey.Index, MockSigner(blaineHardwareKey))
+	err = tx.SignContainer(blaine.Address, blaineHardwareKey.ID, crypto.MockSigner([]byte{3}))
 	if err != nil {
 		panic(err)
 	}
@@ -87,11 +81,11 @@ func ExampleTransaction() {
 	fmt.Println("Signatures:")
 	for _, sig := range tx.Signatures {
 		fmt.Printf(
-			"%d - Kind: %s, Address: %s, Key Index: %d, Signature: %x\n",
+			"%d - Kind: %s, Address: %s, Key ID: %d, Signature: %x\n",
 			sig.Index,
 			sig.Kind,
 			sig.Address,
-			sig.KeyIndex,
+			sig.KeyID,
 			sig.Signature,
 		)
 	}
@@ -101,17 +95,17 @@ func ExampleTransaction() {
 
 	// Output:
 	// Signers:
-	// Address: 0000000000000000000000000000000000000001, Roles: [PROPOSER AUTHORIZER], Key Indices: [2 3]
-	// Address: 0000000000000000000000000000000000000002, Roles: [PAYER], Key Indices: [7]
+	// Address: 0000000000000000000000000000000000000001, Roles: [PROPOSER AUTHORIZER], Key IDs: [2 3]
+	// Address: 0000000000000000000000000000000000000002, Roles: [PAYER], Key IDs: [7]
 	//
 	// Transaction ID (before signing): 4cd86595c7dc854b371644060c1b4cbc478726b7e3c8be2176353c169e1a76d3
 	//
 	// Signatures:
-	// 0 - Kind: PAYLOAD, Address: 0000000000000000000000000000000000000001, Key Index: 2, Signature: 02
-	// 1 - Kind: PAYLOAD, Address: 0000000000000000000000000000000000000001, Key Index: 3, Signature: 03
-	// 2 - Kind: CONTAINER, Address: 0000000000000000000000000000000000000002, Key Index: 7, Signature: 07
+	// 0 - Kind: PAYLOAD, Address: 0000000000000000000000000000000000000001, Key ID: 2, Signature: 02
+	// 1 - Kind: PAYLOAD, Address: 0000000000000000000000000000000000000001, Key ID: 3, Signature: 01
+	// 2 - Kind: CONTAINER, Address: 0000000000000000000000000000000000000002, Key ID: 7, Signature: 03
 	//
-	// Transaction ID (after signing): 395cf1a841d82569c8fedd67678c67fefda7b76436be581d405ab39bfbe35263
+	// Transaction ID (after signing): 66c53a2ccadbfe345ec818e8e713acb7d455498852a267108653493f3b4babd3
 }
 
 var (
@@ -157,11 +151,11 @@ func TestTransaction_Signers_SeparateSigners(t *testing.T) {
 
 		assert.Equal(t, AddressA, signers[0].Address)
 		assert.Equal(t, RolesProposer, signers[0].Roles)
-		assert.Equal(t, []int{1}, signers[0].KeyIndices)
+		assert.Equal(t, []int{1}, signers[0].KeyIDs)
 
 		assert.Equal(t, AddressB, signers[1].Address)
 		assert.Equal(t, RolesPayer, signers[1].Roles)
-		assert.Equal(t, []int{1}, signers[1].KeyIndices)
+		assert.Equal(t, []int{1}, signers[1].KeyIDs)
 	})
 
 	t.Run("With authorizer", func(t *testing.T) {
@@ -175,15 +169,15 @@ func TestTransaction_Signers_SeparateSigners(t *testing.T) {
 
 		assert.Equal(t, AddressA, signers[0].Address)
 		assert.Equal(t, RolesProposer, signers[0].Roles)
-		assert.Equal(t, []int{1}, signers[0].KeyIndices)
+		assert.Equal(t, []int{1}, signers[0].KeyIDs)
 
 		assert.Equal(t, AddressB, signers[1].Address)
 		assert.Equal(t, RolesAuthorizer, signers[1].Roles)
-		assert.Equal(t, []int{1}, signers[1].KeyIndices)
+		assert.Equal(t, []int{1}, signers[1].KeyIDs)
 
 		assert.Equal(t, AddressC, signers[2].Address)
 		assert.Equal(t, RolesPayer, signers[2].Roles)
-		assert.Equal(t, []int{1}, signers[2].KeyIndices)
+		assert.Equal(t, []int{1}, signers[2].KeyIDs)
 	})
 }
 
@@ -198,11 +192,11 @@ func TestTransaction_Signers_DeclarationOrder(t *testing.T) {
 
 		assert.Equal(t, AddressA, signers[0].Address)
 		assert.Equal(t, RolesProposer, signers[0].Roles)
-		assert.Equal(t, []int{1}, signers[0].KeyIndices)
+		assert.Equal(t, []int{1}, signers[0].KeyIDs)
 
 		assert.Equal(t, AddressB, signers[1].Address)
 		assert.Equal(t, RolesPayer, signers[1].Roles)
-		assert.Equal(t, []int{1}, signers[1].KeyIndices)
+		assert.Equal(t, []int{1}, signers[1].KeyIDs)
 	})
 
 	t.Run("Authorizer before proposer", func(t *testing.T) {
@@ -216,15 +210,15 @@ func TestTransaction_Signers_DeclarationOrder(t *testing.T) {
 
 		assert.Equal(t, AddressA, signers[0].Address)
 		assert.Equal(t, RolesProposer, signers[0].Roles)
-		assert.Equal(t, []int{1}, signers[0].KeyIndices)
+		assert.Equal(t, []int{1}, signers[0].KeyIDs)
 
 		assert.Equal(t, AddressB, signers[1].Address)
 		assert.Equal(t, RolesAuthorizer, signers[1].Roles)
-		assert.Equal(t, []int{1}, signers[1].KeyIndices)
+		assert.Equal(t, []int{1}, signers[1].KeyIDs)
 
 		assert.Equal(t, AddressC, signers[2].Address)
 		assert.Equal(t, RolesPayer, signers[2].Roles)
-		assert.Equal(t, []int{1}, signers[2].KeyIndices)
+		assert.Equal(t, []int{1}, signers[2].KeyIDs)
 	})
 
 	t.Run("Authorizer after payer", func(t *testing.T) {
@@ -238,15 +232,15 @@ func TestTransaction_Signers_DeclarationOrder(t *testing.T) {
 
 		assert.Equal(t, AddressA, signers[0].Address)
 		assert.Equal(t, RolesProposer, signers[0].Roles)
-		assert.Equal(t, []int{1}, signers[0].KeyIndices)
+		assert.Equal(t, []int{1}, signers[0].KeyIDs)
 
 		assert.Equal(t, AddressB, signers[1].Address)
 		assert.Equal(t, RolesAuthorizer, signers[1].Roles)
-		assert.Equal(t, []int{1}, signers[1].KeyIndices)
+		assert.Equal(t, []int{1}, signers[1].KeyIDs)
 
 		assert.Equal(t, AddressC, signers[2].Address)
 		assert.Equal(t, RolesPayer, signers[2].Roles)
-		assert.Equal(t, []int{1}, signers[2].KeyIndices)
+		assert.Equal(t, []int{1}, signers[2].KeyIDs)
 	})
 
 	t.Run("Authorizer before and after payer", func(t *testing.T) {
@@ -261,19 +255,19 @@ func TestTransaction_Signers_DeclarationOrder(t *testing.T) {
 
 		assert.Equal(t, AddressA, signers[0].Address)
 		assert.Equal(t, RolesProposer, signers[0].Roles)
-		assert.Equal(t, []int{1}, signers[0].KeyIndices)
+		assert.Equal(t, []int{1}, signers[0].KeyIDs)
 
 		assert.Equal(t, AddressB, signers[1].Address)
 		assert.Equal(t, RolesAuthorizer, signers[1].Roles)
-		assert.Equal(t, []int{1}, signers[1].KeyIndices)
+		assert.Equal(t, []int{1}, signers[1].KeyIDs)
 
 		assert.Equal(t, AddressC, signers[2].Address)
 		assert.Equal(t, RolesAuthorizer, signers[2].Roles)
-		assert.Equal(t, []int{1}, signers[2].KeyIndices)
+		assert.Equal(t, []int{1}, signers[2].KeyIDs)
 
 		assert.Equal(t, AddressD, signers[3].Address)
 		assert.Equal(t, RolesPayer, signers[3].Roles)
-		assert.Equal(t, []int{1}, signers[3].KeyIndices)
+		assert.Equal(t, []int{1}, signers[3].KeyIDs)
 	})
 }
 
@@ -287,7 +281,7 @@ func TestTransaction_Signers_KeysOutOfOrder(t *testing.T) {
 
 	assert.Equal(t, AddressA, signers[0].Address)
 	assert.Equal(t, RolesProposerPayer, signers[0].Roles)
-	assert.Equal(t, []int{1, 2, 3, 4}, signers[0].KeyIndices)
+	assert.Equal(t, []int{1, 2, 3, 4}, signers[0].KeyIDs)
 }
 
 func TestTransaction_Signers_MultipleAuthorizers(t *testing.T) {
@@ -303,15 +297,15 @@ func TestTransaction_Signers_MultipleAuthorizers(t *testing.T) {
 
 	assert.Equal(t, AddressB, signers[1].Address)
 	assert.Equal(t, RolesAuthorizer, signers[1].Roles)
-	assert.Equal(t, []int{1}, signers[1].KeyIndices)
+	assert.Equal(t, []int{1}, signers[1].KeyIDs)
 
 	assert.Equal(t, AddressC, signers[2].Address)
 	assert.Equal(t, RolesAuthorizer, signers[2].Roles)
-	assert.Equal(t, []int{2}, signers[2].KeyIndices)
+	assert.Equal(t, []int{2}, signers[2].KeyIDs)
 
 	assert.Equal(t, AddressD, signers[3].Address)
 	assert.Equal(t, RolesAuthorizer, signers[3].Roles)
-	assert.Equal(t, []int{3}, signers[3].KeyIndices)
+	assert.Equal(t, []int{3}, signers[3].KeyIDs)
 }
 
 func TestTransaction_Signers_ProposerPayerAuthorizerSameAddress(t *testing.T) {
@@ -330,12 +324,12 @@ func TestTransaction_Signers_ProposerPayerAuthorizerSameAddress(t *testing.T) {
 			t,
 			&flow.ProposalKey{
 				Address:        AddressA,
-				KeyIndex:       1,
+				KeyID:          1,
 				SequenceNumber: 42,
 			},
 			signers[0].ProposalKey,
 		)
-		assert.Equal(t, []int{1}, signers[0].KeyIndices)
+		assert.Equal(t, []int{1}, signers[0].KeyIDs)
 	})
 
 	t.Run("Identical key-sets", func(t *testing.T) {
@@ -350,7 +344,7 @@ func TestTransaction_Signers_ProposerPayerAuthorizerSameAddress(t *testing.T) {
 
 		assert.Equal(t, AddressA, signers[0].Address)
 		assert.Equal(t, RolesProposerPayerAuthorizer, signers[0].Roles)
-		assert.Equal(t, []int{1, 2}, signers[0].KeyIndices)
+		assert.Equal(t, []int{1, 2}, signers[0].KeyIDs)
 	})
 
 	t.Run("Subset of payer key-set", func(t *testing.T) {
@@ -366,7 +360,7 @@ func TestTransaction_Signers_ProposerPayerAuthorizerSameAddress(t *testing.T) {
 
 		assert.Equal(t, AddressA, signers[0].Address)
 		assert.Equal(t, RolesProposerPayerAuthorizer, signers[0].Roles)
-		assert.Equal(t, []int{1, 2}, signers[0].KeyIndices)
+		assert.Equal(t, []int{1, 2}, signers[0].KeyIDs)
 	})
 }
 
@@ -381,7 +375,7 @@ func TestTransaction_Signers_ProposerPayerSameAddress(t *testing.T) {
 
 		assert.Equal(t, AddressA, signers[0].Address)
 		assert.Equal(t, RolesProposerPayer, signers[0].Roles)
-		assert.Equal(t, []int{1, 2}, signers[0].KeyIndices)
+		assert.Equal(t, []int{1, 2}, signers[0].KeyIDs)
 	})
 
 	t.Run("With authorizer", func(t *testing.T) {
@@ -395,11 +389,11 @@ func TestTransaction_Signers_ProposerPayerSameAddress(t *testing.T) {
 
 		assert.Equal(t, AddressB, signers[0].Address)
 		assert.Equal(t, RolesAuthorizer, signers[0].Roles)
-		assert.Equal(t, []int{1}, signers[0].KeyIndices)
+		assert.Equal(t, []int{1}, signers[0].KeyIDs)
 
 		assert.Equal(t, AddressA, signers[1].Address)
 		assert.Equal(t, RolesProposerPayer, signers[1].Roles)
-		assert.Equal(t, []int{1, 2}, signers[1].KeyIndices)
+		assert.Equal(t, []int{1, 2}, signers[1].KeyIDs)
 	})
 
 	t.Run("Disjoint key-sets", func(t *testing.T) {
@@ -412,11 +406,11 @@ func TestTransaction_Signers_ProposerPayerSameAddress(t *testing.T) {
 
 		assert.Equal(t, AddressA, signers[0].Address)
 		assert.Equal(t, RolesProposer, signers[0].Roles)
-		assert.Equal(t, []int{1}, signers[0].KeyIndices)
+		assert.Equal(t, []int{1}, signers[0].KeyIDs)
 
 		assert.Equal(t, AddressA, signers[1].Address)
 		assert.Equal(t, RolesPayer, signers[1].Roles)
-		assert.Equal(t, []int{2, 3}, signers[1].KeyIndices)
+		assert.Equal(t, []int{2, 3}, signers[1].KeyIDs)
 	})
 }
 
@@ -437,7 +431,7 @@ func TestTransaction_Signers_PayerAuthorizerSameAddress(t *testing.T) {
 
 		assert.Equal(t, AddressB, signers[1].Address)
 		assert.Equal(t, RolesPayerAuthorizer, signers[1].Roles)
-		assert.Equal(t, []int{1, 2}, signers[1].KeyIndices)
+		assert.Equal(t, []int{1, 2}, signers[1].KeyIDs)
 	})
 
 	t.Run("Subset of payer key-set", func(t *testing.T) {
@@ -456,7 +450,7 @@ func TestTransaction_Signers_PayerAuthorizerSameAddress(t *testing.T) {
 
 		assert.Equal(t, AddressB, signers[1].Address)
 		assert.Equal(t, RolesPayerAuthorizer, signers[1].Roles)
-		assert.Equal(t, []int{1, 2}, signers[1].KeyIndices)
+		assert.Equal(t, []int{1, 2}, signers[1].KeyIDs)
 	})
 
 	t.Run("Disjoint key-sets", func(t *testing.T) {
@@ -472,15 +466,15 @@ func TestTransaction_Signers_PayerAuthorizerSameAddress(t *testing.T) {
 
 		assert.Equal(t, AddressA, signers[0].Address)
 		assert.Equal(t, RolesProposer, signers[0].Roles)
-		assert.Equal(t, []int{1}, signers[0].KeyIndices)
+		assert.Equal(t, []int{1}, signers[0].KeyIDs)
 
 		assert.Equal(t, AddressB, signers[1].Address)
 		assert.Equal(t, RolesAuthorizer, signers[1].Roles)
-		assert.Equal(t, []int{3, 4}, signers[1].KeyIndices)
+		assert.Equal(t, []int{3, 4}, signers[1].KeyIDs)
 
 		assert.Equal(t, AddressB, signers[2].Address)
 		assert.Equal(t, RolesPayer, signers[2].Roles)
-		assert.Equal(t, []int{1, 2}, signers[2].KeyIndices)
+		assert.Equal(t, []int{1, 2}, signers[2].KeyIDs)
 	})
 
 	t.Run("Overlapping key-sets", func(t *testing.T) {
@@ -496,15 +490,15 @@ func TestTransaction_Signers_PayerAuthorizerSameAddress(t *testing.T) {
 
 		assert.Equal(t, AddressA, signers[0].Address)
 		assert.Equal(t, RolesProposer, signers[0].Roles)
-		assert.Equal(t, []int{1}, signers[0].KeyIndices)
+		assert.Equal(t, []int{1}, signers[0].KeyIDs)
 
 		assert.Equal(t, AddressB, signers[1].Address)
 		assert.Equal(t, RolesAuthorizer, signers[1].Roles)
-		assert.Equal(t, []int{2, 3}, signers[1].KeyIndices)
+		assert.Equal(t, []int{2, 3}, signers[1].KeyIDs)
 
 		assert.Equal(t, AddressB, signers[2].Address)
 		assert.Equal(t, RolesPayer, signers[2].Roles)
-		assert.Equal(t, []int{1, 2}, signers[2].KeyIndices)
+		assert.Equal(t, []int{1, 2}, signers[2].KeyIDs)
 	})
 }
 
@@ -522,11 +516,11 @@ func TestTransaction_Signers_ProposerAuthorizerSameAddress(t *testing.T) {
 
 		assert.Equal(t, AddressA, signers[0].Address)
 		assert.Equal(t, RolesProposerAuthorizer, signers[0].Roles)
-		assert.Equal(t, []int{1, 2}, signers[0].KeyIndices)
+		assert.Equal(t, []int{1, 2}, signers[0].KeyIDs)
 
 		assert.Equal(t, AddressB, signers[1].Address)
 		assert.Equal(t, RolesPayer, signers[1].Roles)
-		assert.Equal(t, []int{1}, signers[1].KeyIndices)
+		assert.Equal(t, []int{1}, signers[1].KeyIDs)
 	})
 
 	t.Run("Disjoint key-sets", func(t *testing.T) {
@@ -542,14 +536,14 @@ func TestTransaction_Signers_ProposerAuthorizerSameAddress(t *testing.T) {
 
 		assert.Equal(t, AddressA, signers[0].Address)
 		assert.Equal(t, RolesProposer, signers[0].Roles)
-		assert.Equal(t, []int{1}, signers[0].KeyIndices)
+		assert.Equal(t, []int{1}, signers[0].KeyIDs)
 
 		assert.Equal(t, AddressA, signers[1].Address)
 		assert.Equal(t, RolesAuthorizer, signers[1].Roles)
-		assert.Equal(t, []int{2}, signers[1].KeyIndices)
+		assert.Equal(t, []int{2}, signers[1].KeyIDs)
 
 		assert.Equal(t, AddressB, signers[2].Address)
 		assert.Equal(t, RolesPayer, signers[2].Roles)
-		assert.Equal(t, []int{1}, signers[2].KeyIndices)
+		assert.Equal(t, []int{1}, signers[2].KeyIDs)
 	})
 }

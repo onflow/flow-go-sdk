@@ -54,7 +54,7 @@ func RootAccount() (flow.Address, flow.AccountKey, crypto.PrivateKey) {
 
 	accountKey := flow.AccountKey{
 		PublicKey:      privateKey.PublicKey(),
-		Index:          0,
+		ID:             0,
 		SignAlgo:       keys.ECDSA_P256_SHA2_256.SigningAlgorithm(),
 		HashAlgo:       keys.ECDSA_P256_SHA3_256.HashingAlgorithm(),
 		Weight:         keys.PublicKeyWeightThreshold,
@@ -69,7 +69,7 @@ func CreateAccount() (flow.Address, flow.AccountKey, crypto.PrivateKey) {
 
 	accountKey := flow.AccountKey{
 		PublicKey:      privateKey.PublicKey(),
-		Index:          0,
+		ID:             0,
 		SignAlgo:       keys.ECDSA_P256_SHA3_256.SigningAlgorithm(),
 		HashAlgo:       keys.ECDSA_P256_SHA3_256.HashingAlgorithm(),
 		Weight:         keys.PublicKeyWeightThreshold,
@@ -100,14 +100,14 @@ func createAccount(publicKeys []flow.AccountKey, code []byte) flow.Address {
 
 	createAccountTx := flow.NewTransaction().
 		SetScript(createAccountScript).
-		SetProposalKey(rootAcctAddr, rootAcctKey.Index, rootAcctKey.SequenceNumber).
-		SetPayer(rootAcctAddr, rootAcctKey.Index)
+		SetProposalKey(rootAcctAddr, rootAcctKey.ID, rootAcctKey.SequenceNumber).
+		SetPayer(rootAcctAddr, rootAcctKey.ID)
 
 	rootKeySigner := crypto.NewNaiveSigner(rootPrivateKey, rootAcctKey.HashAlgo)
 
 	err = createAccountTx.SignContainer(
 		rootAcctAddr,
-		rootAcctKey.Index,
+		rootAcctKey.ID,
 		rootKeySigner,
 	)
 	Handle(err)

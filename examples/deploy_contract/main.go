@@ -45,12 +45,12 @@ func DeployContractDemo() {
 
 	createAccountTx := flow.NewTransaction().
 		SetScript(createAccountScript).
-		SetProposalKey(rootAcctAddr, rootAcctKey.Index, rootAcctKey.SequenceNumber).
-		SetPayer(rootAcctAddr, rootAcctKey.Index)
+		SetProposalKey(rootAcctAddr, rootAcctKey.ID, rootAcctKey.SequenceNumber).
+		SetPayer(rootAcctAddr, rootAcctKey.ID)
 
 	err = createAccountTx.SignContainer(
 		rootAcctAddr,
-		rootAcctKey.Index,
+		rootAcctKey.ID,
 		rootKeySigner,
 	)
 	examples.Handle(err)
@@ -77,12 +77,12 @@ func DeployContractDemo() {
 
 	deployContractTx := flow.NewTransaction().
 		SetScript(deployScript).
-		SetProposalKey(myAddress, myAcctKey.Index, myAcctKey.SequenceNumber).
-		SetPayer(myAddress, myAcctKey.Index)
+		SetProposalKey(myAddress, myAcctKey.ID, myAcctKey.SequenceNumber).
+		SetPayer(myAddress, myAcctKey.ID)
 
 	err = createAccountTx.SignContainer(
 		myAddress,
-		myAcctKey.Index,
+		myAcctKey.ID,
 		myKeySigner,
 	)
 	examples.Handle(err)
@@ -108,13 +108,13 @@ func DeployContractDemo() {
 
 	createMinterTx := flow.NewTransaction().
 		SetScript(createMinterScript).
-		SetProposalKey(myAddress, myAcctKey.Index, myAcctKey.SequenceNumber).
-		SetPayer(myAddress, myAcctKey.Index).
-		AddAuthorizer(myAddress, myAcctKey.Index)
+		SetProposalKey(myAddress, myAcctKey.ID, myAcctKey.SequenceNumber).
+		SetPayer(myAddress, myAcctKey.ID).
+		AddAuthorizer(myAddress, myAcctKey.ID)
 
 	err = createMinterTx.SignContainer(
 		myAddress,
-		myAcctKey.Index,
+		myAcctKey.ID,
 		myKeySigner,
 	)
 	examples.Handle(err)
@@ -127,13 +127,13 @@ func DeployContractDemo() {
 	// Mint the NFT
 	mintTx := flow.NewTransaction().
 		SetScript(mintScript).
-		SetProposalKey(myAddress, myAcctKey.Index, myAcctKey.SequenceNumber).
-		SetPayer(myAddress, myAcctKey.Index).
-		AddAuthorizer(myAddress, myAcctKey.Index)
+		SetProposalKey(myAddress, myAcctKey.ID, myAcctKey.SequenceNumber).
+		SetPayer(myAddress, myAcctKey.ID).
+		AddAuthorizer(myAddress, myAcctKey.ID)
 
 	err = mintTx.SignContainer(
 		myAddress,
-		myAcctKey.Index,
+		myAcctKey.ID,
 		myKeySigner,
 	)
 	examples.Handle(err)

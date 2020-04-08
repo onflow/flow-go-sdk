@@ -16,8 +16,8 @@ type Account struct {
 
 // An AccountKey is a public key associated with an account.
 type AccountKey struct {
+	ID             int
 	PublicKey      crypto.PublicKey
-	Index          int
 	SignAlgo       crypto.SigningAlgorithm
 	HashAlgo       crypto.HashingAlgorithm
 	Weight         int
