@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/dapperlabs/flow-go-sdk"
 	"github.com/dapperlabs/flow-go-sdk/client"
 	"github.com/dapperlabs/flow-go-sdk/client/mocks"
 	"github.com/dapperlabs/flow-go-sdk/test"
@@ -33,10 +32,9 @@ func TestClient_SendTransaction(t *testing.T) {
 
 		c := client.NewFromRPCClient(rpc)
 
-		id, err := c.SendTransaction(ctx, *tx)
+		err := c.SendTransaction(ctx, *tx)
 
 		assert.NoError(t, err)
-		assert.Equal(t, tx.ID(), id)
 	})
 
 	t.Run("Error", func(t *testing.T) {
@@ -51,9 +49,8 @@ func TestClient_SendTransaction(t *testing.T) {
 
 		c := client.NewFromRPCClient(rpc)
 
-		id, err := c.SendTransaction(ctx, *tx)
+		err := c.SendTransaction(ctx, *tx)
 
 		assert.Error(t, err)
-		assert.Equal(t, flow.ZeroID, id)
 	})
 }
