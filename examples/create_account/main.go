@@ -6,7 +6,6 @@ import (
 
 	"github.com/dapperlabs/flow-go-sdk"
 	"github.com/dapperlabs/flow-go-sdk/client"
-	"github.com/dapperlabs/flow-go-sdk/crypto"
 	"github.com/dapperlabs/flow-go-sdk/examples"
 	"github.com/dapperlabs/flow-go-sdk/keys"
 	"github.com/dapperlabs/flow-go-sdk/templates"
@@ -22,7 +21,6 @@ func CreateAccountDemo() {
 	examples.Handle(err)
 
 	rootAcctAddr, rootAcctKey, rootPrivateKey := examples.RootAccount()
-	rootKeySigner := crypto.NewNaiveSigner(rootPrivateKey, rootAcctKey.HashAlgo)
 
 	myPrivateKey := examples.RandomPrivateKey()
 	myPublicKey := flow.AccountKey{
@@ -48,7 +46,7 @@ func CreateAccountDemo() {
 	err = createAccountTx.SignContainer(
 		rootAcctAddr,
 		rootAcctKey.ID,
-		rootKeySigner,
+		rootPrivateKey.Signer(),
 	)
 	examples.Handle(err)
 
