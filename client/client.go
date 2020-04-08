@@ -13,9 +13,11 @@ import (
 )
 
 // An RPCClient is an RPC client for the Flow Access API.
-type RPCClient access.AccessAPIClient
+type RPCClient interface {
+	access.AccessAPIClient
+}
 
-// A Client is a gRPC Client for the FLow Access API.
+// A Client is a gRPC Client for the Flow Access API.
 type Client struct {
 	rpcClient RPCClient
 	close     func() error
@@ -94,7 +96,16 @@ func (c *Client) GetCollectionByID(ctx context.Context) error {
 
 // SendTransaction submits a transaction to the network.
 func (c *Client) SendTransaction(ctx context.Context, transaction flow.Transaction) error {
-	panic("not implemented")
+	req := &access.SendTransactionRequest{
+		Transaction: convert.TransactionToMessage(transaction),
+	}
+
+	_, err := c.rpcClient.SendTransaction(ctx, req)
+	if err != nil {
+		return fmt.Errorf("client: %w", err)
+	}
+
+	return nil
 }
 
 // GetTransaction gets a transaction by ID.
