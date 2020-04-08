@@ -59,7 +59,7 @@ func ExampleTransaction() {
 	}
 	fmt.Println()
 
-	fmt.Printf("Transaction ID (before signing): %x\n\n", tx.ID())
+	fmt.Printf("Transaction ID (before signing): %s\n\n", tx.ID())
 
 	// Signing
 
@@ -91,7 +91,7 @@ func ExampleTransaction() {
 	}
 	fmt.Println()
 
-	fmt.Printf("Transaction ID (after signing): %x\n", tx.ID())
+	fmt.Printf("Transaction ID (after signing): %s\n", tx.ID())
 
 	// Output:
 	// Signers:
