@@ -360,7 +360,7 @@ func (t TransactionPayload) getSigners() []*TransactionSigner {
 
 	signers := make([]*TransactionSigner, 0)
 
-	if proposer != payer {
+	if proposer != nil && proposer != payer {
 		signers = append(signers, proposer)
 	}
 
@@ -380,7 +380,9 @@ func (t TransactionPayload) getSigners() []*TransactionSigner {
 		}
 	}
 
-	signers = append(signers, payer)
+	if payer != nil {
+		signers = append(signers, payer)
+	}
 
 	t.signers = signers
 	t.signersHaveChanged = false
