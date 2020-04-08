@@ -1,6 +1,7 @@
 package flow
 
 import (
+	"fmt"
 	"sort"
 
 	"github.com/dapperlabs/flow-go/model/hash"
@@ -142,7 +143,27 @@ func (t *Transaction) Signers() []*TransactionSigner {
 	return t.Payload.getSigners()
 }
 
-// SignPayload signs the transaction payload within the context of an account key.
+// Sign signs the transaction with the specified account key.
+//
+// The portion of the transaction that is signed depends on the provided signature kind,
+// which is one of PAYLOAD or CONTAINER.
+//
+// The resulting signature is combined with the account address and key ID before
+// being added to the transaction.
+//
+// This function returns an error if the signature cannot be generated.
+func (t *Transaction) Sign(kind TransactionSignatureKind, address Address, keyID int, signer crypto.Signer) error {
+	switch kind {
+	case TransactionSignatureKindPayload:
+		return t.SignPayload(address, keyID, signer)
+	case TransactionSignatureKindContainer:
+		return t.SignContainer(address, keyID, signer)
+	}
+
+	return fmt.Errorf("invalid signature kind %s", kind)
+}
+
+// SignPayload signs the transaction payload with the specified account key.
 //
 // The resulting signature is combined with the account address and key ID before
 // being added to the transaction.
@@ -160,7 +181,7 @@ func (t *Transaction) SignPayload(address Address, keyID int, signer crypto.Sign
 	return nil
 }
 
-// SignContainer signs the full transaction (payload + payload signatures) within the context of an account key.
+// SignContainer signs the full transaction (payload + payload signatures) with the specified account key.
 //
 // The resulting signature is combined with the account address and key ID before
 // being added to the transaction.
@@ -392,7 +413,7 @@ func (t TransactionPayload) getSignatureRequirements() ([]*TransactionSignatureR
 				Index:   i,
 				Address: signer.Address,
 				KeyID:   keyID,
-				Kind:    signer.signatureKind(),
+				Kind:    signer.SignatureKind(),
 			}
 
 			signatureRequirementTable[sigReqKey{signer.Address, keyID}] = sr
@@ -408,7 +429,6 @@ func (t TransactionPayload) getSignatureRequirements() ([]*TransactionSignatureR
 	return signatureRequirements, signatureRequirementTable
 }
 
-//
 func (t TransactionPayload) getSignatureIndex(address Address, keyID int) int {
 	_, signatureRequirementTable := t.getSignatureRequirements()
 
@@ -562,11 +582,11 @@ func (d *TransactionSigner) mergeWith(other *TransactionSigner) *TransactionSign
 	return d
 }
 
-// signatureKind returns the portion of the transaction this signer is required to sign.
+// SignatureKind returns the portion of the transaction this signer is required to sign.
 //
 // If one of the signer's roles is PAYER, it must sign the CONTAINER.
 // Otherwise, it must sign the PAYLOAD.
-func (d TransactionSigner) signatureKind() TransactionSignatureKind {
+func (d TransactionSigner) SignatureKind() TransactionSignatureKind {
 	for _, role := range d.Roles {
 		if role == SignerRolePayer {
 			return TransactionSignatureKindContainer
