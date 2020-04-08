@@ -8,7 +8,6 @@ import (
 
 	"github.com/dapperlabs/flow-go-sdk"
 	"github.com/dapperlabs/flow-go-sdk/client"
-	"github.com/dapperlabs/flow-go-sdk/crypto"
 	"github.com/dapperlabs/flow-go-sdk/examples"
 	"github.com/dapperlabs/flow-go-sdk/keys"
 	"github.com/dapperlabs/flow-go-sdk/templates"
@@ -27,7 +26,6 @@ func DeployContractDemo() {
 	examples.Handle(err)
 
 	rootAcctAddr, rootAcctKey, rootPrivateKey := examples.RootAccount()
-	rootKeySigner := crypto.NewNaiveSigner(rootPrivateKey, rootAcctKey.HashAlgo)
 
 	myPrivateKey := examples.RandomPrivateKey()
 	myAcctKey := flow.AccountKey{
@@ -36,8 +34,6 @@ func DeployContractDemo() {
 		HashAlgo:  keys.ECDSA_P256_SHA3_256.HashingAlgorithm(),
 		Weight:    keys.PublicKeyWeightThreshold,
 	}
-
-	myKeySigner := crypto.NewNaiveSigner(myPrivateKey, myAcctKey.HashAlgo)
 
 	// Generate an account creation script
 	createAccountScript, err := templates.CreateAccount([]flow.AccountKey{myAcctKey}, nil)
@@ -51,7 +47,7 @@ func DeployContractDemo() {
 	err = createAccountTx.SignContainer(
 		rootAcctAddr,
 		rootAcctKey.ID,
-		rootKeySigner,
+		rootPrivateKey.Signer(),
 	)
 	examples.Handle(err)
 
@@ -83,7 +79,7 @@ func DeployContractDemo() {
 	err = createAccountTx.SignContainer(
 		myAddress,
 		myAcctKey.ID,
-		myKeySigner,
+		myPrivateKey.Signer(),
 	)
 	examples.Handle(err)
 
@@ -115,7 +111,7 @@ func DeployContractDemo() {
 	err = createMinterTx.SignContainer(
 		myAddress,
 		myAcctKey.ID,
-		myKeySigner,
+		myPrivateKey.Signer(),
 	)
 	examples.Handle(err)
 
@@ -134,7 +130,7 @@ func DeployContractDemo() {
 	err = mintTx.SignContainer(
 		myAddress,
 		myAcctKey.ID,
-		myKeySigner,
+		myPrivateKey.Signer(),
 	)
 	examples.Handle(err)
 

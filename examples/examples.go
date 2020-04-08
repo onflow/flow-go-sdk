@@ -9,7 +9,6 @@ import (
 
 	"github.com/dapperlabs/flow-go-sdk"
 	"github.com/dapperlabs/flow-go-sdk/client"
-	"github.com/dapperlabs/flow-go-sdk/crypto"
 	"github.com/dapperlabs/flow-go-sdk/keys"
 	"github.com/dapperlabs/flow-go-sdk/templates"
 )
@@ -33,7 +32,7 @@ var GetNonce = func() func() uint64 {
 }()
 
 // RandomPrivateKey returns a randomly generated private key.
-func RandomPrivateKey() crypto.PrivateKey {
+func RandomPrivateKey() flow.AccountPrivateKey {
 	seed := make([]byte, 40)
 	rand.Read(seed)
 
@@ -45,9 +44,9 @@ func RandomPrivateKey() crypto.PrivateKey {
 	return privateKey
 }
 
-func RootAccount() (flow.Address, flow.AccountKey, crypto.PrivateKey) {
+func RootAccount() (flow.Address, flow.AccountKey, flow.AccountPrivateKey) {
 	privateKeyHex := "f87db87930770201010420c2e6c8cb9e8c9b9a7afe1df8ae431e68317ff7a9f42f8982b7877a9da76b28a7a00a06082a8648ce3d030107a14403420004c2c482bf01344a085af036f9413dd17a0d98a5b6fb4915c3ad4c3cb574e03ea5e2d47608093a26081c165722621bf9d8ff4b880cac0e7c586af3d86c0818a4af0203"
-	privateKey := keys.MustDecodePrivateKeyHex(keys.ECDSA_P256_SHA3_256.SigningAlgorithm(), privateKeyHex)
+	privateKey := keys.MustDecodePrivateKeyHex(privateKeyHex)
 
 	// root account always has address 0x01
 	addr := flow.HexToAddress("01")
@@ -64,7 +63,7 @@ func RootAccount() (flow.Address, flow.AccountKey, crypto.PrivateKey) {
 	return addr, accountKey, privateKey
 }
 
-func CreateAccount() (flow.Address, flow.AccountKey, crypto.PrivateKey) {
+func CreateAccount() (flow.Address, flow.AccountKey, flow.AccountPrivateKey) {
 	privateKey := RandomPrivateKey()
 
 	accountKey := flow.AccountKey{
@@ -103,12 +102,10 @@ func createAccount(publicKeys []flow.AccountKey, code []byte) flow.Address {
 		SetProposalKey(rootAcctAddr, rootAcctKey.ID, rootAcctKey.SequenceNumber).
 		SetPayer(rootAcctAddr, rootAcctKey.ID)
 
-	rootKeySigner := crypto.NewNaiveSigner(rootPrivateKey, rootAcctKey.HashAlgo)
-
 	err = createAccountTx.SignContainer(
 		rootAcctAddr,
 		rootAcctKey.ID,
-		rootKeySigner,
+		rootPrivateKey.Signer(),
 	)
 	Handle(err)
 
