@@ -28,12 +28,8 @@ func DeployContractDemo() {
 	rootAcctAddr, rootAcctKey, rootPrivateKey := examples.RootAccount()
 
 	myPrivateKey := examples.RandomPrivateKey()
-	myAcctKey := flow.AccountKey{
-		PublicKey: myPrivateKey.PublicKey(),
-		SignAlgo:  keys.ECDSA_P256_SHA3_256.SigningAlgorithm(),
-		HashAlgo:  keys.ECDSA_P256_SHA3_256.HashingAlgorithm(),
-		Weight:    keys.PublicKeyWeightThreshold,
-	}
+	myAcctKey := myPrivateKey.ToAccountKey()
+	myAcctKey.Weight = keys.PublicKeyWeightThreshold
 
 	// Generate an account creation script
 	createAccountScript, err := templates.CreateAccount([]flow.AccountKey{myAcctKey}, nil)
