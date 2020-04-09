@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"google.golang.org/grpc"
+
 	"github.com/dapperlabs/cadence"
 
 	"github.com/dapperlabs/flow-go-sdk"
@@ -22,10 +24,10 @@ func main() {
 func DeployContractDemo() {
 	// Connect to an emulator running locally
 	ctx := context.Background()
-	flowClient, err := client.New("127.0.0.1:3569")
+	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
 	examples.Handle(err)
 
-	rootAcctAddr, rootAcctKey, rootPrivateKey := examples.RootAccount()
+	rootAcctAddr, rootAcctKey, rootPrivateKey := examples.RootAccount(flowClient)
 
 	myPrivateKey := examples.RandomPrivateKey()
 	myAcctKey := myPrivateKey.ToAccountKey()

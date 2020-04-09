@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"google.golang.org/grpc"
+
 	"github.com/dapperlabs/flow-go-sdk"
 	"github.com/dapperlabs/flow-go-sdk/client"
 	"github.com/dapperlabs/flow-go-sdk/examples"
@@ -17,7 +19,7 @@ func QueryEventsDemo() {
 	ctx := context.Background()
 	accountAddr, accountKey, accountPrivateKey := examples.CreateAccount()
 
-	flowClient, err := client.New("127.0.0.1:3569")
+	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
 	examples.Handle(err)
 
 	// Deploy a contract with an event defined
