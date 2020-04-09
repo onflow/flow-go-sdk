@@ -9,20 +9,65 @@ import (
 	"github.com/dapperlabs/flow-go-sdk"
 )
 
-// DecodePrivateKeyHex decodes a private key from a hexadecimal string.
-func DecodePrivateKeyHex(signAlgo crypto.SigningAlgorithm, h string) (crypto.PrivateKey, error) {
-	b, err := hex.DecodeString(h)
+// EncodePrivateKey encodes a private key as bytes.
+func EncodePrivateKey(a flow.AccountPrivateKey) ([]byte, error) {
+	privateKey, err := a.PrivateKey.Encode()
 	if err != nil {
-		return nil, errors.New("failed to decode hex")
+		return nil, err
 	}
 
-	return crypto.DecodePrivateKey(signAlgo, b)
+	w := accountPrivateKeyWrapper{
+		EncodedPrivateKey: privateKey,
+		SignAlgo:          uint(a.SignAlgo),
+		HashAlgo:          uint(a.HashAlgo),
+	}
+
+	return flow.DefaultEncoder.Encode(&w)
+}
+
+// DecodePrivateKey decodes a private key.
+func DecodePrivateKey(b []byte) (a flow.AccountPrivateKey, err error) {
+	var w accountPrivateKeyWrapper
+
+	err = flow.DefaultEncoder.Decode(b, &w)
+	if err != nil {
+		return a, err
+	}
+
+	signAlgo := crypto.SigningAlgorithm(w.SignAlgo)
+	hashAlgo := crypto.HashingAlgorithm(w.HashAlgo)
+
+	privateKey, err := crypto.DecodePrivateKey(signAlgo, w.EncodedPrivateKey)
+	if err != nil {
+		return a, err
+	}
+
+	return flow.AccountPrivateKey{
+		PrivateKey: privateKey,
+		SignAlgo:   signAlgo,
+		HashAlgo:   hashAlgo,
+	}, nil
+}
+
+// DecodePrivateKeyHex decodes a private key from a hexadecimal string.
+func DecodePrivateKeyHex(h string) (flow.AccountPrivateKey, error) {
+	b, err := hex.DecodeString(h)
+	if err != nil {
+		return flow.AccountPrivateKey{}, errors.New("failed to decode hex")
+	}
+
+	a, err := DecodePrivateKey(b)
+	if err != nil {
+		return flow.AccountPrivateKey{}, errors.New("failed to decode private key bytes")
+	}
+
+	return a, nil
 }
 
 // MustDecodePrivateKeyHex is the same as DecodePrivateKeyHex but panics if the
 // input string does not represent a valid private key.
-func MustDecodePrivateKeyHex(signAlgo crypto.SigningAlgorithm, h string) crypto.PrivateKey {
-	k, err := DecodePrivateKeyHex(signAlgo, h)
+func MustDecodePrivateKeyHex(h string) flow.AccountPrivateKey {
+	k, err := DecodePrivateKeyHex(h)
 	if err != nil {
 		panic(err)
 	}
@@ -36,16 +81,11 @@ func EncodePublicKey(a flow.AccountKey) ([]byte, error) {
 		return nil, err
 	}
 
-	temp := struct {
-		PublicKey []byte
-		SignAlgo  uint
-		HashAlgo  uint
-		Weight    uint
-	}{
-		PublicKey: publicKey,
-		SignAlgo:  uint(a.SignAlgo),
-		HashAlgo:  uint(a.HashAlgo),
-		Weight:    uint(a.Weight),
+	temp := accountPublicKeyWrapper{
+		EncodedPublicKey: publicKey,
+		SignAlgo:         uint(a.SignAlgo),
+		HashAlgo:         uint(a.HashAlgo),
+		Weight:           uint(a.Weight),
 	}
 
 	return flow.DefaultEncoder.Encode(&temp)
@@ -53,12 +93,7 @@ func EncodePublicKey(a flow.AccountKey) ([]byte, error) {
 
 // DecodePublicKey decodes a public key.
 func DecodePublicKey(b []byte) (a flow.AccountKey, err error) {
-	var temp struct {
-		PublicKey []byte
-		SignAlgo  uint
-		HashAlgo  uint
-		Weight    uint
-	}
+	var temp accountPublicKeyWrapper
 
 	err = flow.DefaultEncoder.Decode(b, &temp)
 	if err != nil {
@@ -68,7 +103,7 @@ func DecodePublicKey(b []byte) (a flow.AccountKey, err error) {
 	signAlgo := crypto.SigningAlgorithm(temp.SignAlgo)
 	hashAlgo := crypto.HashingAlgorithm(temp.HashAlgo)
 
-	publicKey, err := crypto.DecodePublicKey(signAlgo, temp.PublicKey)
+	publicKey, err := crypto.DecodePublicKey(signAlgo, temp.EncodedPublicKey)
 	if err != nil {
 		return a, err
 	}
@@ -79,4 +114,17 @@ func DecodePublicKey(b []byte) (a flow.AccountKey, err error) {
 		HashAlgo:  hashAlgo,
 		Weight:    int(temp.Weight),
 	}, nil
+}
+
+type accountPublicKeyWrapper struct {
+	EncodedPublicKey []byte
+	SignAlgo         uint
+	HashAlgo         uint
+	Weight           uint
+}
+
+type accountPrivateKeyWrapper struct {
+	EncodedPrivateKey []byte
+	SignAlgo          uint
+	HashAlgo          uint
 }

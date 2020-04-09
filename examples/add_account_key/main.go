@@ -6,7 +6,6 @@ import (
 
 	"github.com/dapperlabs/flow-go-sdk"
 	"github.com/dapperlabs/flow-go-sdk/client"
-	"github.com/dapperlabs/flow-go-sdk/crypto"
 	"github.com/dapperlabs/flow-go-sdk/examples"
 	"github.com/dapperlabs/flow-go-sdk/keys"
 	"github.com/dapperlabs/flow-go-sdk/templates"
@@ -44,13 +43,11 @@ func AddAccountKeyDemo() {
 		// This defines which accounts are accessed by this transaction
 		AddAuthorizer(accountAddr, accountKey.ID)
 
-	accountKeySigner := crypto.NewNaiveSigner(accountPrivateKey, accountKey.HashAlgo)
-
 	// Sign the transaction with the new account.
 	err = addKeyTx.SignContainer(
 		accountAddr,
 		accountKey.ID,
-		accountKeySigner,
+		accountPrivateKey.Signer(),
 	)
 	examples.Handle(err)
 
