@@ -1,6 +1,9 @@
 package test
 
 import (
+	"fmt"
+
+	"github.com/dapperlabs/cadence"
 	"github.com/dapperlabs/flow-go/crypto"
 
 	"github.com/dapperlabs/flow-go-sdk"
@@ -71,7 +74,7 @@ func (g *AccountKeys) New() flow.AccountKey {
 		panic(err)
 	}
 
-	return flow.AccountKey{
+	accountKey := flow.AccountKey{
 		ID:             g.count,
 		PublicKey:      privateKey.PublicKey(),
 		SignAlgo:       crypto.ECDSA_P256,
@@ -79,19 +82,21 @@ func (g *AccountKeys) New() flow.AccountKey {
 		Weight:         keys.PublicKeyWeightThreshold,
 		SequenceNumber: 42,
 	}
+
+	g.count++
+
+	return accountKey
 }
 
 type Accounts struct {
 	addresses   *Addresses
 	accountKeys *AccountKeys
-	count       int
 }
 
 func AccountGenerator() *Accounts {
 	return &Accounts{
 		addresses:   AddressGenerator(),
 		accountKeys: AccountKeyGenerator(),
-		count:       0,
 	}
 }
 
@@ -148,4 +153,76 @@ func (g *Transactions) NewUnsigned() *flow.Transaction {
 		SetProposalKey(accountA.Address, accountA.Keys[0].ID, accountA.Keys[0].SequenceNumber).
 		AddAuthorizer(accountA.Address, accountA.Keys[0].ID, accountA.Keys[1].ID).
 		SetPayer(accountB.Address, accountB.Keys[0].ID)
+}
+
+type TransactionResults struct {
+	events *Events
+}
+
+func TransactionResultGenerator() *TransactionResults {
+	return &TransactionResults{
+		events: EventGenerator(),
+	}
+}
+
+func (g *TransactionResults) New() flow.TransactionResult {
+	eventA := g.events.New()
+	eventB := g.events.New()
+
+	return flow.TransactionResult{
+		Status: flow.TransactionStatusSealed,
+		Events: []flow.Event{
+			eventA,
+			eventB,
+		},
+	}
+}
+
+type Events struct {
+	count int
+	ids   *Identifiers
+}
+
+func EventGenerator() *Events {
+	return &Events{
+		count: 0,
+		ids:   IdentifierGenerator(),
+	}
+}
+
+func (g *Events) New() flow.Event {
+	identifier := fmt.Sprintf("FooEvent%d", g.count)
+	typeID := "test." + identifier
+
+	testEventType := cadence.EventType{
+		TypeID:     typeID,
+		Identifier: identifier,
+		Fields: []cadence.Field{
+			{
+				Identifier: "a",
+				Type:       cadence.IntType{},
+			},
+			{
+				Identifier: "b",
+				Type:       cadence.StringType{},
+			},
+		},
+	}
+
+	testEvent := cadence.NewEvent(
+		[]cadence.Value{
+			cadence.NewInt(g.count),
+			cadence.NewString("foo"),
+		}).WithType(testEventType)
+
+	event := flow.Event{
+		Type:          typeID,
+		TransactionID: g.ids.New(),
+		Index:         uint(g.count),
+		Value:         testEvent,
+	}
+
+	g.count++
+
+	return event
 }
