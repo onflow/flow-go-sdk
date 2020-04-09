@@ -753,14 +753,14 @@ type TransactionStatus int
 const (
 	// TransactionStatusUnknown indicates that the transaction status is not known.
 	TransactionStatusUnknown TransactionStatus = iota
-	// TransactionPending is the status of a pending transaction.
-	TransactionPending
-	// TransactionFinalized is the status of a finalized transaction.
-	TransactionFinalized
-	// TransactionExecuted is the status of an executed transaction.
-	TransactionExecuted
-	// TransactionSealed is the status of a sealed transaction.
-	TransactionSealed
+	// TransactionStatusPending is the status of a pending transaction.
+	TransactionStatusPending
+	// TransactionStatusFinalized is the status of a finalized transaction.
+	TransactionStatusFinalized
+	// TransactionStatusExecuted is the status of an executed transaction.
+	TransactionStatusExecuted
+	// TransactionStatusSealed is the status of a sealed transaction.
+	TransactionStatusSealed
 )
 
 // String returns the string representation of a transaction status.

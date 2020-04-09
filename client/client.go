@@ -102,6 +102,7 @@ func (c *Client) SendTransaction(ctx context.Context, transaction flow.Transacti
 
 	_, err := c.rpcClient.SendTransaction(ctx, req)
 	if err != nil {
+		// TODO: improve errors
 		return fmt.Errorf("client: %w", err)
 	}
 
@@ -114,8 +115,24 @@ func (c *Client) GetTransaction(ctx context.Context, id flow.Identifier) (*flow.
 }
 
 // GetTransactionResult gets the result of a transaction.
-func (c *Client) GetTransactionResult(ctx context.Context, id flow.Identifier) (*flow.TransactionResult, error) {
-	panic("not implemented")
+func (c *Client) GetTransactionResult(ctx context.Context, txID flow.Identifier) (*flow.TransactionResult, error) {
+	req := &access.GetTransactionRequest{
+		Id: txID.Bytes(),
+	}
+
+	res, err := c.rpcClient.GetTransactionResult(ctx, req)
+	if err != nil {
+		// TODO: improve errors
+		return nil, fmt.Errorf("client: %w", err)
+	}
+
+	result, err := convert.MessageToTransactionResult(res)
+	if err != nil {
+		// TODO: improve errors
+		return nil, fmt.Errorf("client: %w", err)
+	}
+
+	return &result, nil
 }
 
 // GetAccount gets an account by address.
@@ -158,6 +175,7 @@ func (c *Client) GetEventsForHeightRange(ctx context.Context, query EventRangeQu
 
 	res, err := c.rpcClient.GetEventsForHeightRange(ctx, req)
 	if err != nil {
+		// TODO: improve errors
 		return nil, fmt.Errorf("client: %w", err)
 	}
 
@@ -167,6 +185,7 @@ func (c *Client) GetEventsForHeightRange(ctx context.Context, query EventRangeQu
 	for i, m := range eventMessages {
 		evt, err := convert.MessageToEvent(m)
 		if err != nil {
+			// TODO: improve errors
 			return nil, fmt.Errorf("client: %w", err)
 		}
 
