@@ -74,7 +74,7 @@ func DeployContractDemo() {
 		SetProposalKey(myAddress, myAcctKey.ID, myAcctKey.SequenceNumber).
 		SetPayer(myAddress, myAcctKey.ID)
 
-	err = createAccountTx.SignContainer(
+	err = deployContractTx.SignContainer(
 		myAddress,
 		myAcctKey.ID,
 		myPrivateKey.Signer(),
