@@ -56,15 +56,13 @@ func RootAccount(flowClient *client.Client) (flow.Address, flow.AccountKey, flow
 	acc, err := flowClient.GetAccount(context.Background(), addr)
 	Handle(err)
 
-	accKey := acc.Keys[0]
-
 	accountKey := flow.AccountKey{
 		PublicKey:      privateKey.PublicKey(),
 		ID:             0,
 		SignAlgo:       keys.ECDSA_P256_SHA2_256.SigningAlgorithm(),
 		HashAlgo:       keys.ECDSA_P256_SHA3_256.HashingAlgorithm(),
 		Weight:         keys.PublicKeyWeightThreshold,
-		SequenceNumber: accKey.SequenceNumber,
+		SequenceNumber: acc.Keys[0].SequenceNumber,
 	}
 
 	return addr, accountKey, privateKey
