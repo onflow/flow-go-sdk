@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"google.golang.org/grpc"
+
 	"github.com/dapperlabs/flow-go-sdk"
 	"github.com/dapperlabs/flow-go-sdk/client"
 	"github.com/dapperlabs/flow-go-sdk/examples"
@@ -27,7 +29,7 @@ func AddAccountKeyDemo() {
 		Weight:    keys.PublicKeyWeightThreshold,
 	}
 
-	flowClient, err := client.New("127.0.0.1:3569")
+	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
 	examples.Handle(err)
 
 	// Create a Cadence script that will add another key to our account.

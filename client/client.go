@@ -4,9 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/dapperlabs/cadence"
-	"github.com/dapperlabs/flow/protobuf/go/flow/access"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
+	"github.com/dapperlabs/cadence"
+	encoding "github.com/dapperlabs/cadence/encoding/json"
+	"github.com/dapperlabs/flow/protobuf/go/flow/access"
 
 	"github.com/dapperlabs/flow-go-sdk"
 	"github.com/dapperlabs/flow-go-sdk/client/convert"
@@ -155,7 +159,16 @@ func (c *Client) GetAccount(ctx context.Context, address flow.Address) (*flow.Ac
 
 // ExecuteScriptAtLatestBlock executes a read-only Cadance script against the latest sealed execution state.
 func (c *Client) ExecuteScriptAtLatestBlock(ctx context.Context, script []byte) (cadence.Value, error) {
-	panic("not implemented")
+	res, err := c.rpcClient.ExecuteScriptAtLatestBlock(ctx, &access.ExecuteScriptAtLatestBlockRequest{Script: script})
+	if err != nil {
+		return nil, err
+	}
+
+	value, err := encoding.Decode(res.GetValue())
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	return value, nil
 }
 
 // ExecuteScriptAtBlockID executes a ready-only Cadence script against the execution state at the block with the given ID.

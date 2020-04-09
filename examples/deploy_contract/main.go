@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"google.golang.org/grpc"
+
 	"github.com/dapperlabs/cadence"
 
 	"github.com/dapperlabs/flow-go-sdk"
@@ -13,7 +15,7 @@ import (
 	"github.com/dapperlabs/flow-go-sdk/templates"
 )
 
-const GreatTokenContractFile = "../great-token.cdc"
+const GreatTokenContractFile = "./great-token.cdc"
 
 func main() {
 	DeployContractDemo()
@@ -22,10 +24,10 @@ func main() {
 func DeployContractDemo() {
 	// Connect to an emulator running locally
 	ctx := context.Background()
-	flowClient, err := client.New("127.0.0.1:3569")
+	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
 	examples.Handle(err)
 
-	rootAcctAddr, rootAcctKey, rootPrivateKey := examples.RootAccount()
+	rootAcctAddr, rootAcctKey, rootPrivateKey := examples.RootAccount(flowClient)
 
 	myPrivateKey := examples.RandomPrivateKey()
 	myAcctKey := myPrivateKey.ToAccountKey()
@@ -51,6 +53,10 @@ func DeployContractDemo() {
 	examples.Handle(err)
 
 	accountCreationTxRes := examples.WaitForSeal(ctx, flowClient, createAccountTx.ID())
+	examples.Handle(accountCreationTxRes.Error)
+
+	// Successful Tx, increment sequence number
+	rootAcctKey.SequenceNumber++
 
 	var myAddress flow.Address
 
@@ -72,7 +78,7 @@ func DeployContractDemo() {
 		SetProposalKey(myAddress, myAcctKey.ID, myAcctKey.SequenceNumber).
 		SetPayer(myAddress, myAcctKey.ID)
 
-	err = createAccountTx.SignContainer(
+	err = deployContractTx.SignContainer(
 		myAddress,
 		myAcctKey.ID,
 		myPrivateKey.Signer(),
@@ -83,6 +89,10 @@ func DeployContractDemo() {
 	examples.Handle(err)
 
 	deployContractTxResp := examples.WaitForSeal(ctx, flowClient, deployContractTx.ID())
+	examples.Handle(deployContractTxResp.Error)
+
+	// Successful Tx, increment sequence number
+	myAcctKey.SequenceNumber++
 
 	var nftAddress flow.Address
 
@@ -114,6 +124,12 @@ func DeployContractDemo() {
 	err = flowClient.SendTransaction(ctx, *createMinterTx)
 	examples.Handle(err)
 
+	createMinterTxResp := examples.WaitForSeal(ctx, flowClient, deployContractTx.ID())
+	examples.Handle(createMinterTxResp.Error)
+
+	// Successful Tx, increment sequence number
+	myAcctKey.SequenceNumber++
+
 	mintScript := GenerateMintScript(nftAddress)
 
 	// Mint the NFT
@@ -133,7 +149,11 @@ func DeployContractDemo() {
 	err = flowClient.SendTransaction(ctx, *mintTx)
 	examples.Handle(err)
 
-	examples.WaitForSeal(ctx, flowClient, mintTx.ID())
+	mintTxResp := examples.WaitForSeal(ctx, flowClient, mintTx.ID())
+	examples.Handle(mintTxResp.Error)
+
+	// Successful Tx, increment sequence number
+	myAcctKey.SequenceNumber++
 
 	fmt.Println("NFT minted!")
 
