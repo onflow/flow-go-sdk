@@ -139,8 +139,21 @@ func MessageToTransactionResult(m *access.TransactionResultResponse) (flow.Trans
 		events[i] = event
 	}
 
+	var err error
+
+	statusCode := m.GetStatusCode()
+	if statusCode != 0 {
+		errorMsg := m.GetErrorMessage()
+		if errorMsg != "" {
+			err = errors.New(errorMsg)
+		} else {
+			err = errors.New("transaction execution failed")
+		}
+	}
+
 	return flow.TransactionResult{
 		Status: flow.TransactionStatus(m.GetStatus()),
+		Error:  err,
 		Events: events,
 	}, nil
 }
@@ -157,9 +170,19 @@ func TransactionResultToMessage(result flow.TransactionResult) (*access.Transact
 		eventMessages[i] = eventMsg
 	}
 
+	statusCode := 0
+	errorMsg := ""
+
+	if result.Error != nil {
+		statusCode = 1
+		errorMsg = result.Error.Error()
+	}
+
 	return &access.TransactionResultResponse{
-		Status: entities.TransactionStatus(result.Status),
-		Events: eventMessages,
+		Status:       entities.TransactionStatus(result.Status),
+		StatusCode:   uint32(statusCode),
+		ErrorMessage: errorMsg,
+		Events:       eventMessages,
 	}, nil
 }
 
