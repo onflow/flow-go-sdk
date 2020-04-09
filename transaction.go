@@ -744,6 +744,7 @@ func (s signaturesList) canonicalForm() interface{} {
 
 type TransactionResult struct {
 	Status TransactionStatus
+	Error  error
 	Events []Event
 }
 
