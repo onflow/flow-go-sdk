@@ -98,12 +98,7 @@ func EncodePublicKey(a flow.AccountKey) ([]byte, error) {
 
 // DecodePublicKey decodes a public key.
 func DecodePublicKey(b []byte) (a flow.AccountKey, err error) {
-	var temp struct {
-		PublicKey []byte
-		SignAlgo  uint
-		HashAlgo  uint
-		Weight    uint
-	}
+	var temp accountPublicKeyWrapper
 
 	err = flow.DefaultEncoder.Decode(b, &temp)
 	if err != nil {
@@ -113,7 +108,7 @@ func DecodePublicKey(b []byte) (a flow.AccountKey, err error) {
 	signAlgo := crypto.SigningAlgorithm(temp.SignAlgo)
 	hashAlgo := crypto.HashingAlgorithm(temp.HashAlgo)
 
-	publicKey, err := crypto.DecodePublicKey(signAlgo, temp.PublicKey)
+	publicKey, err := crypto.DecodePublicKey(signAlgo, temp.EncodedPublicKey)
 	if err != nil {
 		return a, err
 	}
@@ -126,8 +121,15 @@ func DecodePublicKey(b []byte) (a flow.AccountKey, err error) {
 	}, nil
 }
 
+type accountPublicKeyWrapper struct {
+	EncodedPublicKey []byte
+	SignAlgo         uint
+	HashAlgo         uint
+	Weight           uint
+}
+
 type accountPrivateKeyWrapper struct {
-	PrivateKey []byte
-	SignAlgo   uint
-	HashAlgo   uint
+	EncodedPrivateKey []byte
+	SignAlgo          uint
+	HashAlgo          uint
 }
