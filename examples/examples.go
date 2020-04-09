@@ -53,7 +53,9 @@ func RootAccount(flowClient *client.Client) (flow.Address, flow.AccountKey, flow
 	// root account always has address 0x01
 	addr := flow.HexToAddress("01")
 
-	acc, _ := flowClient.GetAccount(context.Background(), addr)
+	acc, err := flowClient.GetAccount(context.Background(), addr)
+	Handle(err)
+
 	accKey := acc.Keys[0]
 
 	accountKey := flow.AccountKey{
@@ -118,6 +120,7 @@ func createAccount(publicKeys []flow.AccountKey, code []byte) flow.Address {
 	Handle(err)
 
 	result := WaitForSeal(ctx, flowClient, createAccountTx.ID())
+	Handle(result.Error)
 
 	accountCreatedEvent := flow.AccountCreatedEvent(result.Events[0])
 	Handle(err)
