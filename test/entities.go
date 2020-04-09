@@ -1,6 +1,7 @@
 package test
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/dapperlabs/cadence"
@@ -171,6 +172,7 @@ func (g *TransactionResults) New() flow.TransactionResult {
 
 	return flow.TransactionResult{
 		Status: flow.TransactionStatusSealed,
+		Error:  errors.New("transaction execution error"),
 		Events: []flow.Event{
 			eventA,
 			eventB,
