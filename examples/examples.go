@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"time"
 
+	"google.golang.org/grpc"
+
 	"github.com/dapperlabs/flow-go-sdk"
 	"github.com/dapperlabs/flow-go-sdk/client"
 	"github.com/dapperlabs/flow-go-sdk/keys"
@@ -44,12 +46,15 @@ func RandomPrivateKey() flow.AccountPrivateKey {
 	return privateKey
 }
 
-func RootAccount() (flow.Address, flow.AccountKey, flow.AccountPrivateKey) {
+func RootAccount(flowClient *client.Client) (flow.Address, flow.AccountKey, flow.AccountPrivateKey) {
 	privateKeyHex := "f87db87930770201010420c2e6c8cb9e8c9b9a7afe1df8ae431e68317ff7a9f42f8982b7877a9da76b28a7a00a06082a8648ce3d030107a14403420004c2c482bf01344a085af036f9413dd17a0d98a5b6fb4915c3ad4c3cb574e03ea5e2d47608093a26081c165722621bf9d8ff4b880cac0e7c586af3d86c0818a4af0203"
 	privateKey := keys.MustDecodePrivateKeyHex(privateKeyHex)
 
 	// root account always has address 0x01
 	addr := flow.HexToAddress("01")
+
+	acc, err := flowClient.GetAccount(context.Background(), addr)
+	Handle(err)
 
 	accountKey := flow.AccountKey{
 		PublicKey:      privateKey.PublicKey(),
@@ -57,7 +62,7 @@ func RootAccount() (flow.Address, flow.AccountKey, flow.AccountPrivateKey) {
 		SignAlgo:       keys.ECDSA_P256_SHA2_256.SigningAlgorithm(),
 		HashAlgo:       keys.ECDSA_P256_SHA3_256.HashingAlgorithm(),
 		Weight:         keys.PublicKeyWeightThreshold,
-		SequenceNumber: 0,
+		SequenceNumber: acc.Keys[0].SequenceNumber,
 	}
 
 	return addr, accountKey, privateKey
@@ -89,10 +94,10 @@ func DeployContract(code []byte) flow.Address {
 
 func createAccount(publicKeys []flow.AccountKey, code []byte) flow.Address {
 	ctx := context.Background()
-	flowClient, err := client.New("127.0.0.1:3569")
+	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
 	Handle(err)
 
-	rootAcctAddr, rootAcctKey, rootPrivateKey := RootAccount()
+	rootAcctAddr, rootAcctKey, rootPrivateKey := RootAccount(flowClient)
 
 	createAccountScript, err := templates.CreateAccount(publicKeys, code)
 	Handle(err)
@@ -113,6 +118,7 @@ func createAccount(publicKeys []flow.AccountKey, code []byte) flow.Address {
 	Handle(err)
 
 	result := WaitForSeal(ctx, flowClient, createAccountTx.ID())
+	Handle(result.Error)
 
 	accountCreatedEvent := flow.AccountCreatedEvent(result.Events[0])
 	Handle(err)

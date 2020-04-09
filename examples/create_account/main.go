@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"google.golang.org/grpc"
+
 	"github.com/dapperlabs/flow-go-sdk"
 	"github.com/dapperlabs/flow-go-sdk/client"
 	"github.com/dapperlabs/flow-go-sdk/examples"
@@ -17,10 +19,10 @@ func main() {
 
 func CreateAccountDemo() {
 	ctx := context.Background()
-	flowClient, err := client.New("127.0.0.1:3569")
+	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
 	examples.Handle(err)
 
-	rootAcctAddr, rootAcctKey, rootPrivateKey := examples.RootAccount()
+	rootAcctAddr, rootAcctKey, rootPrivateKey := examples.RootAccount(flowClient)
 
 	myPrivateKey := examples.RandomPrivateKey()
 	myPublicKey := flow.AccountKey{
