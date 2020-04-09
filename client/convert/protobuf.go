@@ -253,10 +253,11 @@ func MessageToAccountKey(m *entities.AccountKey) (flow.AccountKey, error) {
 	}
 
 	return flow.AccountKey{
-		PublicKey: publicKey,
-		SignAlgo:  signAlgo,
-		HashAlgo:  hashAlgo,
-		Weight:    int(m.GetWeight()),
+		PublicKey:      publicKey,
+		SignAlgo:       signAlgo,
+		HashAlgo:       hashAlgo,
+		Weight:         int(m.GetWeight()),
+		SequenceNumber: uint64(m.GetSequenceNumber()),
 	}, nil
 }
 
@@ -267,10 +268,11 @@ func AccountKeyToMessage(a flow.AccountKey) (*entities.AccountKey, error) {
 	}
 
 	return &entities.AccountKey{
-		PublicKey: publicKey,
-		SignAlgo:  uint32(a.SignAlgo),
-		HashAlgo:  uint32(a.HashAlgo),
-		Weight:    uint32(a.Weight),
+		PublicKey:      publicKey,
+		SignAlgo:       uint32(a.SignAlgo),
+		HashAlgo:       uint32(a.HashAlgo),
+		Weight:         uint32(a.Weight),
+		SequenceNumber: uint32(a.SequenceNumber),
 	}, nil
 }
 
