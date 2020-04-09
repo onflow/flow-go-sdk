@@ -92,6 +92,8 @@ github.com/dapperlabs/flow/protobuf/go/flow v0.0.0-20200406231535-5fcfc2bd72c5 h
 github.com/dapperlabs/flow/protobuf/go/flow v0.0.0-20200406231535-5fcfc2bd72c5/go.mod h1:ThpXZwEduNJCzmpEVEUy3Ml5dDAWttnzlBJPTOSAin0=
 github.com/dapperlabs/flow/protobuf/go/flow v0.0.0-20200407055017-1aa4ec9fa16c h1:MfPILPGSWvIu4kVPiK1DI01G3eWHEz73UHehvzhk6Bo=
 github.com/dapperlabs/flow/protobuf/go/flow v0.0.0-20200407055017-1aa4ec9fa16c/go.mod h1:ThpXZwEduNJCzmpEVEUy3Ml5dDAWttnzlBJPTOSAin0=
+github.com/dapperlabs/flow/protobuf/go/flow v0.0.0-20200409042800-60d3bad7767d h1:Uc4OR+K49jlzQL6sjgGE+txRP/4cB7+eN1Ca+hsvFvM=
+github.com/dapperlabs/flow/protobuf/go/flow v0.0.0-20200409042800-60d3bad7767d/go.mod h1:ThpXZwEduNJCzmpEVEUy3Ml5dDAWttnzlBJPTOSAin0=
 github.com/davecgh/go-spew v0.0.0-20171005155431-ecdeabc65495/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
