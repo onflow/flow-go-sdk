@@ -139,8 +139,21 @@ func MessageToTransactionResult(m *access.TransactionResultResponse) (flow.Trans
 		events[i] = event
 	}
 
+	var err error
+
+	statusCode := m.GetStatusCode()
+	if statusCode != 0 {
+		errorMsg := m.GetErrorMessage()
+		if errorMsg != "" {
+			err = errors.New(errorMsg)
+		} else {
+			err = errors.New("transaction execution failed")
+		}
+	}
+
 	return flow.TransactionResult{
 		Status: flow.TransactionStatus(m.GetStatus()),
+		Error:  err,
 		Events: events,
 	}, nil
 }
@@ -157,9 +170,19 @@ func TransactionResultToMessage(result flow.TransactionResult) (*access.Transact
 		eventMessages[i] = eventMsg
 	}
 
+	statusCode := 0
+	errorMsg := ""
+
+	if result.Error != nil {
+		statusCode = 1
+		errorMsg = result.Error.Error()
+	}
+
 	return &access.TransactionResultResponse{
-		Status: entities.TransactionStatus(result.Status),
-		Events: eventMessages,
+		Status:       entities.TransactionStatus(result.Status),
+		StatusCode:   uint32(statusCode),
+		ErrorMessage: errorMsg,
+		Events:       eventMessages,
 	}, nil
 }
 
@@ -230,10 +253,11 @@ func MessageToAccountKey(m *entities.AccountKey) (flow.AccountKey, error) {
 	}
 
 	return flow.AccountKey{
-		PublicKey: publicKey,
-		SignAlgo:  signAlgo,
-		HashAlgo:  hashAlgo,
-		Weight:    int(m.GetWeight()),
+		PublicKey:      publicKey,
+		SignAlgo:       signAlgo,
+		HashAlgo:       hashAlgo,
+		Weight:         int(m.GetWeight()),
+		SequenceNumber: uint64(m.GetSequenceNumber()),
 	}, nil
 }
 
@@ -244,10 +268,11 @@ func AccountKeyToMessage(a flow.AccountKey) (*entities.AccountKey, error) {
 	}
 
 	return &entities.AccountKey{
-		PublicKey: publicKey,
-		SignAlgo:  uint32(a.SignAlgo),
-		HashAlgo:  uint32(a.HashAlgo),
-		Weight:    uint32(a.Weight),
+		PublicKey:      publicKey,
+		SignAlgo:       uint32(a.SignAlgo),
+		HashAlgo:       uint32(a.HashAlgo),
+		Weight:         uint32(a.Weight),
+		SequenceNumber: uint32(a.SequenceNumber),
 	}, nil
 }
 

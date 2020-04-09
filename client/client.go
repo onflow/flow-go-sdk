@@ -136,8 +136,21 @@ func (c *Client) GetTransactionResult(ctx context.Context, txID flow.Identifier)
 }
 
 // GetAccount gets an account by address.
-func (c *Client) GetAccount(ctx context.Context) error {
-	panic("not implemented")
+func (c *Client) GetAccount(ctx context.Context, address flow.Address) (*flow.Account, error) {
+	res, err := c.rpcClient.GetAccount(
+		ctx,
+		&access.GetAccountRequest{Address: address.Bytes()},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	account, err := convert.MessageToAccount(res.GetAccount())
+	if err != nil {
+		return nil, err
+	}
+
+	return &account, nil
 }
 
 // ExecuteScriptAtLatestBlock executes a read-only Cadance script against the latest sealed execution state.
