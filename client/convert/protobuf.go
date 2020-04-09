@@ -7,6 +7,7 @@ import (
 	"github.com/dapperlabs/cadence"
 	jsoncdc "github.com/dapperlabs/cadence/encoding/json"
 	"github.com/dapperlabs/flow-go/crypto"
+	"github.com/dapperlabs/flow/protobuf/go/flow/access"
 	"github.com/dapperlabs/flow/protobuf/go/flow/entities"
 
 	"github.com/dapperlabs/flow-go-sdk"
@@ -123,6 +124,43 @@ func TransactionToMessage(t flow.Transaction) *entities.Transaction {
 		Authorizers:      authorizerMessages,
 		Signatures:       signatureMessages,
 	}
+}
+
+func MessageToTransactionResult(m *access.TransactionResultResponse) (flow.TransactionResult, error) {
+	eventMessages := m.GetEvents()
+
+	events := make([]flow.Event, len(eventMessages))
+	for i, eventMsg := range eventMessages {
+		event, err := MessageToEvent(eventMsg)
+		if err != nil {
+			return flow.TransactionResult{}, err
+		}
+
+		events[i] = event
+	}
+
+	return flow.TransactionResult{
+		Status: flow.TransactionStatus(m.GetStatus()),
+		Events: events,
+	}, nil
+}
+
+func TransactionResultToMessage(result flow.TransactionResult) (*access.TransactionResultResponse, error) {
+	eventMessages := make([]*entities.Event, len(result.Events))
+
+	for i, event := range result.Events {
+		eventMsg, err := EventToMessage(event)
+		if err != nil {
+			return nil, err
+		}
+
+		eventMessages[i] = eventMsg
+	}
+
+	return &access.TransactionResultResponse{
+		Status: entities.TransactionStatus(result.Status),
+		Events: eventMessages,
+	}, nil
 }
 
 func transactionSignerToMessage(address flow.Address, keyIndices []int) *entities.TransactionSigner {
