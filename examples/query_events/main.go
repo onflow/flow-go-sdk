@@ -6,7 +6,6 @@ import (
 
 	"github.com/dapperlabs/flow-go-sdk"
 	"github.com/dapperlabs/flow-go-sdk/client"
-	"github.com/dapperlabs/flow-go-sdk/crypto"
 	"github.com/dapperlabs/flow-go-sdk/examples"
 )
 
@@ -54,7 +53,7 @@ func QueryEventsDemo() {
 	err = runScriptTx.SignContainer(
 		accountAddr,
 		accountKey.ID,
-		crypto.NewNaiveSigner(accountPrivateKey, accountKey.HashAlgo),
+		accountPrivateKey.Signer(),
 	)
 	examples.Handle(err)
 
