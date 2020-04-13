@@ -191,8 +191,15 @@ type EventRangeQuery struct {
 	EndHeight uint64
 }
 
-// GetEventsForHeightRange retrieves events for all sealed blocks between the start block height and the end block height (inclusive) that have the given type
-func (c *Client) GetEventsForHeightRange(ctx context.Context, query EventRangeQuery) ([]flow.Event, error) {
+type EventRangeResult struct {
+	BlockID flow.Identifier
+	Height  uint64
+	Events  []flow.Event
+}
+
+// GetEventsForHeightRange retrieves events for all sealed blocks between the start and end block
+// heights (inclusive) with the given type.
+func (c *Client) GetEventsForHeightRange(ctx context.Context, query EventRangeQuery) ([]EventRangeResult, error) {
 	req := &access.GetEventsForHeightRangeRequest{
 		Type:        query.Type,
 		StartHeight: query.StartHeight,
@@ -205,20 +212,32 @@ func (c *Client) GetEventsForHeightRange(ctx context.Context, query EventRangeQu
 		return nil, fmt.Errorf("client: %w", err)
 	}
 
-	eventMessages := res.GetEvents()
-	events := make([]flow.Event, len(eventMessages))
+	resultMessages := res.GetResults()
 
-	for i, m := range eventMessages {
-		evt, err := convert.MessageToEvent(m)
-		if err != nil {
-			// TODO: improve errors
-			return nil, fmt.Errorf("client: %w", err)
+	results := make([]EventRangeResult, len(resultMessages))
+	for i, result := range resultMessages {
+		eventMessages := result.GetEvents()
+
+		events := make([]flow.Event, len(eventMessages))
+
+		for i, m := range eventMessages {
+			evt, err := convert.MessageToEvent(m)
+			if err != nil {
+				// TODO: improve errors
+				return nil, fmt.Errorf("client: %w", err)
+			}
+
+			events[i] = evt
 		}
 
-		events[i] = evt
+		results[i] = EventRangeResult{
+			BlockID: flow.HashToID(result.GetBlockId()),
+			Height:  result.GetBlockHeight(),
+			Events:  events,
+		}
 	}
 
-	return events, nil
+	return results, nil
 }
 
 // GetEventsForBlockIDs retrieves events for all the specified block IDs that have the given type
