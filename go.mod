@@ -6,7 +6,7 @@ require (
 	github.com/dapperlabs/cadence v0.0.0-20200401151421-7c78a2da20a6
 	github.com/dapperlabs/flow-go v0.3.2-0.20200331201607-7630da6300eb
 	github.com/dapperlabs/flow-go/crypto v0.3.2-0.20200331201607-7630da6300eb
-	github.com/dapperlabs/flow/protobuf/go/flow v0.0.0-20200409042800-60d3bad7767d
+	github.com/dapperlabs/flow/protobuf/go/flow v0.0.0-20200413194623-ccc4f4197409
 	github.com/lithammer/dedent v1.1.0
 	github.com/logrusorgru/aurora v0.0.0-20200102142835-e9ef32dff381 // indirect
 	github.com/magiconair/properties v1.8.1
