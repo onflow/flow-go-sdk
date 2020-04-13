@@ -41,12 +41,12 @@ func AddAccountKeyDemo() {
 	addKeyTx := flow.NewTransaction().
 		SetScript(addKeyScript).
 		SetProposalKey(accountAddr, accountKey.ID, accountKey.SequenceNumber).
-		SetPayer(accountAddr, accountKey.ID).
+		SetPayer(accountAddr).
 		// This defines which accounts are accessed by this transaction
-		AddAuthorizer(accountAddr, accountKey.ID)
+		AddAuthorizer(accountAddr)
 
 	// Sign the transaction with the new account.
-	err = addKeyTx.SignContainer(
+	err = addKeyTx.SignEnvelope(
 		accountAddr,
 		accountKey.ID,
 		accountPrivateKey.Signer(),

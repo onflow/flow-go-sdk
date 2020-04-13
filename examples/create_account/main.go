@@ -41,11 +41,11 @@ func CreateAccountDemo() {
 	createAccountTx := flow.NewTransaction().
 		SetScript(createAccountScript).
 		SetProposalKey(rootAcctAddr, rootAcctKey.ID, rootAcctKey.SequenceNumber).
-		SetPayer(rootAcctAddr, rootAcctKey.ID)
+		SetPayer(rootAcctAddr)
 
 	// Sign the transaction with the root account, which already exists
 	// All new accounts must be created by an existing account
-	err = createAccountTx.SignContainer(
+	err = createAccountTx.SignEnvelope(
 		rootAcctAddr,
 		rootAcctKey.ID,
 		rootPrivateKey.Signer(),
