@@ -10,7 +10,12 @@ import (
 
 // A Transaction is a full transaction object containing a payload and payer signatures.
 type Transaction struct {
-	Payload            TransactionPayload
+	Script             []byte
+	ReferenceBlockID   Identifier
+	GasLimit           uint64
+	ProposalKey        ProposalKey
+	Payer              Address
+	Authorizers        []Address
 	PayloadSignatures  []TransactionSignature
 	EnvelopeSignatures []TransactionSignature
 }
@@ -25,42 +30,22 @@ func (t *Transaction) ID() Identifier {
 	return HashToID(hash.DefaultHasher.ComputeHash(t.Encode()))
 }
 
-// Script returns the Cadence script for this transaction.
-func (t *Transaction) Script() []byte {
-	return t.Payload.Script
-}
-
 // SetScript sets the Cadence script for this transaction.
 func (t *Transaction) SetScript(script []byte) *Transaction {
-	t.Payload.Script = script
+	t.Script = script
 	return t
-}
-
-// ReferenceBlockID returns the reference block ID for this transaction.
-func (t *Transaction) ReferenceBlockID() Identifier {
-	return t.Payload.ReferenceBlockID
 }
 
 // SetReferenceBlockID sets the reference block ID for this transaction.
 func (t *Transaction) SetReferenceBlockID(blockID Identifier) *Transaction {
-	t.Payload.ReferenceBlockID = blockID
+	t.ReferenceBlockID = blockID
 	return t
-}
-
-// GasLimit returns the gas limit for this transaction.
-func (t *Transaction) GasLimit() uint64 {
-	return t.Payload.GasLimit
 }
 
 // SetGasLimit sets the gas limit for this transaction.
 func (t *Transaction) SetGasLimit(limit uint64) *Transaction {
-	t.Payload.GasLimit = limit
+	t.GasLimit = limit
 	return t
-}
-
-// ProposalKey returns the proposal key declaration for this transaction, or nil if it is not set.
-func (t *Transaction) ProposalKey() ProposalKey {
-	return t.Payload.ProposalKey
 }
 
 // SetProposalKey sets the proposal key and sequence number for this transaction.
@@ -73,52 +58,70 @@ func (t *Transaction) SetProposalKey(address Address, keyID int, sequenceNum uin
 		KeyID:          keyID,
 		SequenceNumber: sequenceNum,
 	}
-	t.Payload.ProposalKey = proposalKey
+	t.ProposalKey = proposalKey
 	return t
-}
-
-// Payer returns the payer declaration for this transaction, or nil if it is not set.
-func (t *Transaction) Payer() Address {
-	return t.Payload.Payer
 }
 
 // SetPayer sets the payer account for this transaction.
 func (t *Transaction) SetPayer(address Address) *Transaction {
-	t.Payload.Payer = address
+	t.Payer = address
 	return t
-}
-
-// Authorizers returns a list of signer declarations for the accounts that are authorizing
-// this transaction.
-func (t *Transaction) Authorizers() []Address {
-	return t.Payload.Authorizers
 }
 
 // AddAuthorizer adds an authorizer account to this transaction.
 func (t *Transaction) AddAuthorizer(address Address) *Transaction {
-	t.Payload.Authorizers = append(t.Payload.Authorizers, address)
+	t.Authorizers = append(t.Authorizers, address)
 	return t
 }
 
-// Signers returns a list of signer declarations for all accounts that are required
-// to sign this transaction.
+// signerList returns a list of unique accounts required to sign this transaction.
 //
-// The list is returned in the following order: the proposer is always first, followed
-// by payer declaration, and then the authorizer declarations in the order in which they
-// were added.
+// The list is returned in the following order:
+// 1. PROPOSER
+// 2. PAYER
+// 2. AUTHORIZERS (in insertion order)
 //
-// In addition, the resulting list is reduced as following: any two declarations that specify
-// the same account and key-set but different signer roles are combined into a single declaration.
-// This allows the same account to fulfill multiple (or all) signer roles.
-//
-// The same account can be used in multiple signer declarations if each declaration specifies
-// a unique key-set. For example, you may want to use the same account for payment and authorization
-// but require a stricter key-set for payment.
-//
-// Two key-sets are considered equal if they contain the same key indices, regardless of order.
-// func (t *Transaction) Signers() []*TransactionSigner {
-// 	return t.Payload.getSigners()
-// }
+// The only exception to the above ordering is for deduplication; if the same account
+// is used in multiple signing roles, only the first occurrence is included in the list.
+func (t *Transaction) signerList() []Address {
+	signers := make([]Address, 0)
+	seen := make(map[Address]struct{})
+
+	var addSigner = func(address Address) {
+		_, ok := seen[address]
+		if ok {
+			return
+		}
+
+		signers = append(signers, address)
+		seen[address] = struct{}{}
+	}
+
+	if t.ProposalKey.Address != ZeroAddress {
+		addSigner(t.ProposalKey.Address)
+	}
+
+	if t.Payer != ZeroAddress {
+		addSigner(t.Payer)
+	}
+
+	for _, authorizer := range t.Authorizers {
+		addSigner(authorizer)
+	}
+
+	return signers
+}
+
+// signerMap returns a mapping from address to signer index.
+func (t *Transaction) signerMap() map[Address]int {
+	signers := make(map[Address]int)
+
+	for i, signer := range t.signerList() {
+		signers[signer] = i
+	}
+
+	return signers
+}
 
 // SignPayload signs the transaction payload with the specified account key.
 //
@@ -177,7 +180,7 @@ func (t *Transaction) AddEnvelopeSignature(address Address, keyID int, sig []byt
 }
 
 func (t *Transaction) createSignature(address Address, keyID int, sig []byte) TransactionSignature {
-	signerIndex, signerExists := t.Payload.getSignerMap()[address]
+	signerIndex, signerExists := t.signerMap()[address]
 	if !signerExists {
 		signerIndex = -1
 	}
@@ -191,111 +194,11 @@ func (t *Transaction) createSignature(address Address, keyID int, sig []byte) Tr
 }
 
 func (t *Transaction) PayloadMessage() []byte {
-	return t.Payload.Message()
-}
-
-// EnvelopeMessage returns the signable message for transaction envelope.
-//
-// This message is only signed by the payer account.
-func (t *Transaction) EnvelopeMessage() []byte {
-	temp := t.canonicalForm()
+	temp := t.payloadCanonicalForm()
 	return DefaultEncoder.MustEncode(&temp)
 }
 
-func (t *Transaction) canonicalForm() interface{} {
-	return struct {
-		Payload    interface{}
-		Signatures interface{}
-	}{
-		t.Payload.canonicalForm(),
-		signaturesList(t.PayloadSignatures).canonicalForm(),
-	}
-}
-
-// Encode serializes the full transaction data including the payload and all signatures.
-func (t *Transaction) Encode() []byte {
-	temp := struct {
-		Payload            interface{}
-		PayloadSignatures  interface{}
-		EnvelopeSignatures interface{}
-	}{
-		t.Payload.canonicalForm(),
-		signaturesList(t.PayloadSignatures).canonicalForm(),
-		signaturesList(t.EnvelopeSignatures).canonicalForm(),
-	}
-
-	return DefaultEncoder.MustEncode(&temp)
-}
-
-// A TransactionPayload is the inner portion of a transaction that contains the
-// script, signers and other metadata required for transaction execution.
-type TransactionPayload struct {
-	Script           []byte
-	ReferenceBlockID Identifier
-	GasLimit         uint64
-	ProposalKey      ProposalKey
-	Payer            Address
-	Authorizers      []Address
-}
-
-// getSignerList returns a list of unique accounts required to sign this transaction.
-//
-// The list is returned in the following order:
-// 1. PROPOSER
-// 2. PAYER
-// 2. AUTHORIZERS (in insertion order)
-//
-// The only exception to the above ordering is for deduplication; if the same account
-// is used in multiple signing roles, only the first occurrence is included in the list.
-func (t TransactionPayload) getSignerList() []Address {
-	signers := make([]Address, 0)
-	seen := make(map[Address]struct{})
-
-	var addSigner = func(address Address) {
-		_, ok := seen[address]
-		if ok {
-			return
-		}
-
-		signers = append(signers, address)
-		seen[address] = struct{}{}
-	}
-
-	if t.ProposalKey.Address != ZeroAddress {
-		addSigner(t.ProposalKey.Address)
-	}
-
-	if t.Payer != ZeroAddress {
-		addSigner(t.Payer)
-	}
-
-	for _, authorizer := range t.Authorizers {
-		addSigner(authorizer)
-	}
-
-	return signers
-}
-
-// getSignerMap returns a mapping from address to signer index.
-func (t TransactionPayload) getSignerMap() map[Address]int {
-	signers := make(map[Address]int)
-
-	for i, signer := range t.getSignerList() {
-		signers[signer] = i
-	}
-
-	return signers
-}
-
-// Message returns the signable message for this transaction payload.
-//
-// This portion of the transaction is signed by the proposer and authorizers.
-func (t TransactionPayload) Message() []byte {
-	temp := t.canonicalForm()
-	return DefaultEncoder.MustEncode(&temp)
-}
-
-func (t TransactionPayload) canonicalForm() interface{} {
+func (t *Transaction) payloadCanonicalForm() interface{} {
 	authorizers := make([][]byte, len(t.Authorizers))
 	for i, auth := range t.Authorizers {
 		authorizers[i] = auth.Bytes()
@@ -320,6 +223,39 @@ func (t TransactionPayload) canonicalForm() interface{} {
 		t.Payer.Bytes(),
 		authorizers,
 	}
+}
+
+// EnvelopeMessage returns the signable message for transaction envelope.
+//
+// This message is only signed by the payer account.
+func (t *Transaction) EnvelopeMessage() []byte {
+	temp := t.envelopeCanonicalForm()
+	return DefaultEncoder.MustEncode(&temp)
+}
+
+func (t *Transaction) envelopeCanonicalForm() interface{} {
+	return struct {
+		Payload           interface{}
+		PayloadSignatures interface{}
+	}{
+		t.payloadCanonicalForm(),
+		signaturesList(t.PayloadSignatures).canonicalForm(),
+	}
+}
+
+// Encode serializes the full transaction data including the payload and all signatures.
+func (t *Transaction) Encode() []byte {
+	temp := struct {
+		Payload            interface{}
+		PayloadSignatures  interface{}
+		EnvelopeSignatures interface{}
+	}{
+		t.payloadCanonicalForm(),
+		signaturesList(t.PayloadSignatures).canonicalForm(),
+		signaturesList(t.EnvelopeSignatures).canonicalForm(),
+	}
+
+	return DefaultEncoder.MustEncode(&temp)
 }
 
 // A ProposalKey is the key that specifies the proposal key and sequence number for a transaction.
@@ -416,5 +352,5 @@ const (
 
 // String returns the string representation of a transaction status.
 func (s TransactionStatus) String() string {
-	return [...]string{"UNKNOWN", "PENDING", "FINALIZED", "REVERTED", "SEALED"}[s]
+	return [...]string{"UNKNOWN", "PENDING", "FINALIZED", "EXECUTED", "SEALED"}[s]
 }
