@@ -4,12 +4,8 @@ import (
 	"github.com/dapperlabs/flow-go/crypto"
 )
 
-type Signable interface {
-	Message() []byte
-}
-
 type Signer interface {
-	Sign(obj Signable) ([]byte, error)
+	Sign(message []byte) ([]byte, error)
 }
 
 type PrivateKey crypto.PrivateKey
@@ -28,12 +24,12 @@ func NewNaiveSigner(privateKey crypto.PrivateKey, hashAlgo crypto.HashingAlgorit
 	}
 }
 
-func (s NaiveSigner) Sign(obj Signable) ([]byte, error) {
-	return s.PrivateKey.Sign(obj.Message(), s.Hasher)
+func (s NaiveSigner) Sign(message []byte) ([]byte, error) {
+	return s.PrivateKey.Sign(message, s.Hasher)
 }
 
 type MockSigner []byte
 
-func (s MockSigner) Sign(Signable) ([]byte, error) {
+func (s MockSigner) Sign(message []byte) ([]byte, error) {
 	return s, nil
 }
