@@ -75,18 +75,15 @@ func MessageToTransaction(m *entities.Transaction) (flow.Transaction, error) {
 }
 
 func TransactionToMessage(t flow.Transaction) *entities.Transaction {
-	proposalKey := t.ProposalKey()
 	proposalKeyMessage := &entities.Transaction_ProposalKey{
-		Address:        proposalKey.Address.Bytes(),
-		KeyId:          uint32(proposalKey.KeyID),
-		SequenceNumber: proposalKey.SequenceNumber,
+		Address:        t.ProposalKey.Address.Bytes(),
+		KeyId:          uint32(t.ProposalKey.KeyID),
+		SequenceNumber: t.ProposalKey.SequenceNumber,
 	}
 
-	authorizers := t.Authorizers()
-	authorizerMessages := make([][]byte, len(authorizers))
-
-	for i, authorizer := range authorizers {
-		authorizerMessages[i] = authorizer.Bytes()
+	authMessages := make([][]byte, len(t.Authorizers))
+	for i, auth := range t.Authorizers {
+		authMessages[i] = auth.Bytes()
 	}
 
 	payloadSigMessages := make([]*entities.Transaction_Signature, len(t.PayloadSignatures))
@@ -110,12 +107,12 @@ func TransactionToMessage(t flow.Transaction) *entities.Transaction {
 	}
 
 	return &entities.Transaction{
-		Script:             t.Script(),
-		ReferenceBlockId:   t.ReferenceBlockID().Bytes(),
-		GasLimit:           t.GasLimit(),
+		Script:             t.Script,
+		ReferenceBlockId:   t.ReferenceBlockID.Bytes(),
+		GasLimit:           t.GasLimit,
 		ProposalKey:        proposalKeyMessage,
-		Payer:              t.Payer().Bytes(),
-		Authorizers:        authorizerMessages,
+		Payer:              t.Payer.Bytes(),
+		Authorizers:        authMessages,
 		PayloadSignatures:  payloadSigMessages,
 		EnvelopeSignatures: envelopeSigMessages,
 	}
