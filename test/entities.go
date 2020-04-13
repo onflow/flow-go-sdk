@@ -124,18 +124,20 @@ func TransactionGenerator() *Transactions {
 func (g *Transactions) New() *flow.Transaction {
 	tx := g.NewUnsigned()
 
-	signers := tx.Signers()
+	// sign payload with proposal key
+	_ = tx.SignPayload(
+		tx.ProposalKey().Address,
+		tx.ProposalKey().KeyID,
+		sdkcrypto.MockSigner([]byte{uint8(tx.ProposalKey().KeyID)}),
+	)
 
-	for _, signer := range signers {
-		for _, keyID := range signer.KeyIDs {
-			_ = tx.Sign(
-				signer.SignatureKind(),
-				signer.Address,
-				keyID,
-				sdkcrypto.MockSigner([]byte{uint8(keyID)}),
-			)
-		}
+	// sign payload as each authorizer
+	for _, addr := range tx.Authorizers() {
+		_ = tx.SignPayload(addr, 0, sdkcrypto.MockSigner(addr.Bytes()))
 	}
+
+	// sign envelope as payer
+	_ = tx.SignEnvelope(tx.Payer(), 0, sdkcrypto.MockSigner(tx.Payer().Bytes()))
 
 	return tx
 }
@@ -152,8 +154,8 @@ func (g *Transactions) NewUnsigned() *flow.Transaction {
 		SetReferenceBlockID(blockID).
 		SetGasLimit(42).
 		SetProposalKey(accountA.Address, accountA.Keys[0].ID, accountA.Keys[0].SequenceNumber).
-		AddAuthorizer(accountA.Address, accountA.Keys[0].ID, accountA.Keys[1].ID).
-		SetPayer(accountB.Address, accountB.Keys[0].ID)
+		AddAuthorizer(accountA.Address).
+		SetPayer(accountB.Address)
 }
 
 type TransactionResults struct {
