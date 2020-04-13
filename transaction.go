@@ -8,7 +8,7 @@ import (
 	"github.com/dapperlabs/flow-go-sdk/crypto"
 )
 
-// A Transaction is a full transaction object containing a payload and payer signatures.
+// A Transaction is a full transaction object containing a payload and signatures.
 type Transaction struct {
 	Script             []byte
 	ReferenceBlockID   Identifier
