@@ -105,9 +105,9 @@ func createAccount(publicKeys []flow.AccountKey, code []byte) flow.Address {
 	createAccountTx := flow.NewTransaction().
 		SetScript(createAccountScript).
 		SetProposalKey(rootAcctAddr, rootAcctKey.ID, rootAcctKey.SequenceNumber).
-		SetPayer(rootAcctAddr, rootAcctKey.ID)
+		SetPayer(rootAcctAddr)
 
-	err = createAccountTx.SignContainer(
+	err = createAccountTx.SignEnvelope(
 		rootAcctAddr,
 		rootAcctKey.ID,
 		rootPrivateKey.Signer(),
