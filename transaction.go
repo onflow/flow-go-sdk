@@ -265,29 +265,6 @@ type ProposalKey struct {
 	SequenceNumber uint64
 }
 
-// A SignerRole is a role fulfilled by a signer.
-type SignerRole int
-
-const (
-	// SignerRoleUnknown indicates that the signer role is not known.
-	SignerRoleUnknown SignerRole = iota
-	// SignerRoleProposer is the role of the transaction proposer.
-	SignerRoleProposer
-	// SignerRolePayer is the role of the transaction payer.
-	SignerRolePayer
-	// SignerRoleAuthorizer is the role of a transaction authorizer.
-	SignerRoleAuthorizer
-)
-
-// String returns the string representation of a signer role.
-func (s SignerRole) String() string {
-	return [...]string{"UNKNOWN", "PROPOSER", "PAYER", "AUTHORIZER"}[s]
-}
-
-func (s SignerRole) canonicalForm() interface{} {
-	return uint(s)
-}
-
 // A TransactionSignature is a signature associated with a specific account key.
 type TransactionSignature struct {
 	Address     Address
