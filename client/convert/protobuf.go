@@ -268,10 +268,11 @@ func MessageToEvent(m *entities.Event) (flow.Event, error) {
 	}
 
 	return flow.Event{
-		Type:          m.GetType(),
-		TransactionID: flow.HashToID(m.GetTransactionId()),
-		Index:         uint(m.GetEventIndex()),
-		Value:         eventValue,
+		Type:             m.GetType(),
+		TransactionID:    flow.HashToID(m.GetTransactionId()),
+		TransactionIndex: int(m.GetTransactionIndex()),
+		EventIndex:       int(m.GetEventIndex()),
+		Value:            eventValue,
 	}, nil
 }
 
@@ -282,9 +283,10 @@ func EventToMessage(e flow.Event) (*entities.Event, error) {
 	}
 
 	return &entities.Event{
-		Type:          e.Type,
-		TransactionId: e.TransactionID[:],
-		EventIndex:    uint32(e.Index),
-		Payload:       payload,
+		Type:             e.Type,
+		TransactionId:    e.TransactionID[:],
+		TransactionIndex: uint32(e.TransactionIndex),
+		EventIndex:       uint32(e.EventIndex),
+		Payload:          payload,
 	}, nil
 }
