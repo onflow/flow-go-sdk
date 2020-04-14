@@ -18,9 +18,10 @@ type Event struct {
 	Type string
 	// TransactionID is the ID of the transaction this event was emitted from.
 	TransactionID Identifier
-	// Index defines the ordering of events in a transaction. The first event
-	// emitted has index 0, the second has index 1, and so on.
-	Index uint
+	// TransactionIndex is the index of the transaction this event was emitted from within its containing block.
+	TransactionIndex int
+	// EventIndex is the index of the event within the transaction it was emitted from.
+	EventIndex int
 	// Value contains the event data.
 	Value cadence.Event
 }
@@ -32,18 +33,18 @@ func (e Event) String() string {
 
 // ID returns a canonical identifier that is guaranteed to be unique.
 func (e Event) ID() string {
-	return hash.DefaultHasher.ComputeHash(e.Message()).Hex()
+	return hash.DefaultHasher.ComputeHash(e.Encode()).Hex()
 }
 
-// Message returns the canonical encoding of the event, containing only the
+// Encode returns the canonical encoding of the event, containing only the
 // fields necessary to uniquely identify it.
-func (e Event) Message() []byte {
+func (e Event) Encode() []byte {
 	temp := struct {
 		TransactionID []byte
-		Index         uint
+		EventIndex    uint
 	}{
 		TransactionID: e.TransactionID[:],
-		Index:         e.Index,
+		EventIndex:    uint(e.EventIndex),
 	}
 	return DefaultEncoder.MustEncode(&temp)
 }
