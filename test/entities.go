@@ -19,7 +19,7 @@ type Identifiers struct {
 }
 
 func IdentifierGenerator() *Identifiers {
-	return &Identifiers{0}
+	return &Identifiers{1}
 }
 
 func (g *Identifiers) New() flow.Identifier {
@@ -42,7 +42,7 @@ type Addresses struct {
 }
 
 func AddressGenerator() *Addresses {
-	return &Addresses{0}
+	return &Addresses{1}
 }
 
 func (g *Addresses) New() flow.Address {
@@ -58,7 +58,7 @@ type AccountKeys struct {
 
 func AccountKeyGenerator() *AccountKeys {
 	return &AccountKeys{
-		count: 0,
+		count: 1,
 		ids:   IdentifierGenerator(),
 	}
 }
@@ -118,7 +118,7 @@ type Transactions struct {
 }
 
 func TransactionGenerator() *Transactions {
-	return &Transactions{0}
+	return &Transactions{1}
 }
 
 func (g *Transactions) New() *flow.Transaction {
@@ -198,7 +198,7 @@ type Events struct {
 
 func EventGenerator() *Events {
 	return &Events{
-		count: 0,
+		count: 1,
 		ids:   IdentifierGenerator(),
 	}
 }
@@ -229,10 +229,11 @@ func (g *Events) New() flow.Event {
 		}).WithType(testEventType)
 
 	event := flow.Event{
-		Type:          typeID,
-		TransactionID: g.ids.New(),
-		Index:         uint(g.count),
-		Value:         testEvent,
+		Type:             typeID,
+		TransactionID:    g.ids.New(),
+		TransactionIndex: g.count,
+		EventIndex:       g.count,
+		Value:            testEvent,
 	}
 
 	g.count++
