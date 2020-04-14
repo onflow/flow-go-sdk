@@ -9,6 +9,7 @@ import (
 
 	"github.com/dapperlabs/flow-go-sdk"
 	"github.com/dapperlabs/flow-go-sdk/crypto"
+	"github.com/dapperlabs/flow-go-sdk/test"
 )
 
 func ExampleTransaction() {
@@ -45,19 +46,8 @@ func ExampleTransaction() {
 		SetReferenceBlockID(flow.Identifier{0x01, 0x02}).
 		SetGasLimit(42).
 		SetProposalKey(adrian.Address, adrianLaptopKey.ID, adrianLaptopKey.SequenceNumber).
-		SetPayer(blaine.Address, blaineHardwareKey.ID).
-		AddAuthorizer(adrian.Address, adrianLaptopKey.ID, adrianPhoneKey.ID)
-
-	fmt.Println("Signers:")
-	for _, signer := range tx.Signers() {
-		fmt.Printf(
-			"Address: %s, Roles: %s, Key IDs: %d\n",
-			signer.Address,
-			signer.Roles,
-			signer.KeyIDs,
-		)
-	}
-	fmt.Println()
+		SetPayer(blaine.Address).
+		AddAuthorizer(adrian.Address)
 
 	fmt.Printf("Transaction ID (before signing): %s\n\n", tx.ID())
 
@@ -73,17 +63,26 @@ func ExampleTransaction() {
 		panic(err)
 	}
 
-	err = tx.SignContainer(blaine.Address, blaineHardwareKey.ID, crypto.MockSigner([]byte{3}))
+	err = tx.SignEnvelope(blaine.Address, blaineHardwareKey.ID, crypto.MockSigner([]byte{3}))
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Println("Signatures:")
-	for _, sig := range tx.Signatures {
+	fmt.Println("Payload signatures:")
+	for _, sig := range tx.PayloadSignatures {
 		fmt.Printf(
-			"%d - Kind: %s, Address: %s, Key ID: %d, Signature: %x\n",
-			sig.Index,
-			sig.Kind,
+			"Address: %s, Key ID: %d, Signature: %x\n",
+			sig.Address,
+			sig.KeyID,
+			sig.Signature,
+		)
+	}
+	fmt.Println()
+
+	fmt.Println("Envelope signatures:")
+	for _, sig := range tx.EnvelopeSignatures {
+		fmt.Printf(
+			"Address: %s, Key ID: %d, Signature: %x\n",
 			sig.Address,
 			sig.KeyID,
 			sig.Signature,
@@ -94,456 +93,247 @@ func ExampleTransaction() {
 	fmt.Printf("Transaction ID (after signing): %s\n", tx.ID())
 
 	// Output:
-	// Signers:
-	// Address: 0000000000000000000000000000000000000001, Roles: [PROPOSER AUTHORIZER], Key IDs: [2 3]
-	// Address: 0000000000000000000000000000000000000002, Roles: [PAYER], Key IDs: [7]
+	// Transaction ID (before signing): 142a7862e1718bae9bae109d950a45a2540f98593edf1916ad89f4e22a0960c9
 	//
-	// Transaction ID (before signing): 4cd86595c7dc854b371644060c1b4cbc478726b7e3c8be2176353c169e1a76d3
+	// Payload signatures:
+	// Address: 0000000000000000000000000000000000000001, Key ID: 2, Signature: 02
+	// Address: 0000000000000000000000000000000000000001, Key ID: 3, Signature: 01
 	//
-	// Signatures:
-	// 0 - Kind: PAYLOAD, Address: 0000000000000000000000000000000000000001, Key ID: 2, Signature: 02
-	// 1 - Kind: PAYLOAD, Address: 0000000000000000000000000000000000000001, Key ID: 3, Signature: 01
-	// 2 - Kind: CONTAINER, Address: 0000000000000000000000000000000000000002, Key ID: 7, Signature: 03
+	// Envelope signatures:
+	// Address: 0000000000000000000000000000000000000002, Key ID: 7, Signature: 03
 	//
-	// Transaction ID (after signing): 66c53a2ccadbfe345ec818e8e713acb7d455498852a267108653493f3b4babd3
+	// Transaction ID (after signing): ae9ef40a6f74117ded103e8bd8c8b0fb97c5a2b3503c1e7ba4aa467f662e31fb
 }
 
-var (
-	AddressA flow.Address
-	AddressB flow.Address
-	AddressC flow.Address
-	AddressD flow.Address
-	AddressE flow.Address
+func TestTransaction_SetScript(t *testing.T) {
+	tx := flow.NewTransaction().
+		SetScript(test.ScriptHelloWorld)
 
-	RolesProposerPayerAuthorizer []flow.SignerRole
-	RolesProposerPayer           []flow.SignerRole
-	RolesProposerAuthorizer      []flow.SignerRole
-	RolesPayerAuthorizer         []flow.SignerRole
-	RolesProposer                []flow.SignerRole
-	RolesPayer                   []flow.SignerRole
-	RolesAuthorizer              []flow.SignerRole
-)
-
-func init() {
-	AddressA = flow.HexToAddress("01")
-	AddressB = flow.HexToAddress("02")
-	AddressC = flow.HexToAddress("03")
-	AddressD = flow.HexToAddress("04")
-	AddressE = flow.HexToAddress("05")
-
-	RolesProposerPayerAuthorizer = []flow.SignerRole{flow.SignerRoleProposer, flow.SignerRolePayer, flow.SignerRoleAuthorizer}
-	RolesProposerPayer = []flow.SignerRole{flow.SignerRoleProposer, flow.SignerRolePayer}
-	RolesProposerAuthorizer = []flow.SignerRole{flow.SignerRoleProposer, flow.SignerRoleAuthorizer}
-	RolesPayerAuthorizer = []flow.SignerRole{flow.SignerRolePayer, flow.SignerRoleAuthorizer}
-	RolesProposer = []flow.SignerRole{flow.SignerRoleProposer}
-	RolesPayer = []flow.SignerRole{flow.SignerRolePayer}
-	RolesAuthorizer = []flow.SignerRole{flow.SignerRoleAuthorizer}
+	assert.Equal(t, test.ScriptHelloWorld, tx.Script)
 }
 
-func TestTransaction_Signers_SeparateSigners(t *testing.T) {
-	t.Run("No authorizers", func(t *testing.T) {
-		signers := flow.NewTransaction().
-			SetProposalKey(AddressA, 1, 42).
-			SetPayer(AddressB, 1).
-			Signers()
+func TestTransaction_SetReferenceBlockID(t *testing.T) {
+	blockID := test.IdentifierGenerator().New()
 
-		require.Len(t, signers, 2)
+	tx := flow.NewTransaction().
+		SetReferenceBlockID(blockID)
 
-		assert.Equal(t, AddressA, signers[0].Address)
-		assert.Equal(t, RolesProposer, signers[0].Roles)
-		assert.Equal(t, []int{1}, signers[0].KeyIDs)
-
-		assert.Equal(t, AddressB, signers[1].Address)
-		assert.Equal(t, RolesPayer, signers[1].Roles)
-		assert.Equal(t, []int{1}, signers[1].KeyIDs)
-	})
-
-	t.Run("With authorizer", func(t *testing.T) {
-		signers := flow.NewTransaction().
-			SetProposalKey(AddressA, 1, 42).
-			AddAuthorizer(AddressB, 1).
-			SetPayer(AddressC, 1).
-			Signers()
-
-		require.Len(t, signers, 3)
-
-		assert.Equal(t, AddressA, signers[0].Address)
-		assert.Equal(t, RolesProposer, signers[0].Roles)
-		assert.Equal(t, []int{1}, signers[0].KeyIDs)
-
-		assert.Equal(t, AddressB, signers[1].Address)
-		assert.Equal(t, RolesAuthorizer, signers[1].Roles)
-		assert.Equal(t, []int{1}, signers[1].KeyIDs)
-
-		assert.Equal(t, AddressC, signers[2].Address)
-		assert.Equal(t, RolesPayer, signers[2].Roles)
-		assert.Equal(t, []int{1}, signers[2].KeyIDs)
-	})
+	assert.Equal(t, blockID, tx.ReferenceBlockID)
 }
 
-func TestTransaction_Signers_DeclarationOrder(t *testing.T) {
-	t.Run("Payer before proposer", func(t *testing.T) {
-		signers := flow.NewTransaction().
-			SetPayer(AddressB, 1).
-			SetProposalKey(AddressA, 1, 42).
-			Signers()
+func TestTransaction_SetGasLimit(t *testing.T) {
+	var gasLimit uint64 = 42
 
-		require.Len(t, signers, 2)
+	tx := flow.NewTransaction().
+		SetGasLimit(gasLimit)
 
-		assert.Equal(t, AddressA, signers[0].Address)
-		assert.Equal(t, RolesProposer, signers[0].Roles)
-		assert.Equal(t, []int{1}, signers[0].KeyIDs)
-
-		assert.Equal(t, AddressB, signers[1].Address)
-		assert.Equal(t, RolesPayer, signers[1].Roles)
-		assert.Equal(t, []int{1}, signers[1].KeyIDs)
-	})
-
-	t.Run("Authorizer before proposer", func(t *testing.T) {
-		signers := flow.NewTransaction().
-			AddAuthorizer(AddressB, 1).
-			SetProposalKey(AddressA, 1, 42).
-			SetPayer(AddressC, 1).
-			Signers()
-
-		require.Len(t, signers, 3)
-
-		assert.Equal(t, AddressA, signers[0].Address)
-		assert.Equal(t, RolesProposer, signers[0].Roles)
-		assert.Equal(t, []int{1}, signers[0].KeyIDs)
-
-		assert.Equal(t, AddressB, signers[1].Address)
-		assert.Equal(t, RolesAuthorizer, signers[1].Roles)
-		assert.Equal(t, []int{1}, signers[1].KeyIDs)
-
-		assert.Equal(t, AddressC, signers[2].Address)
-		assert.Equal(t, RolesPayer, signers[2].Roles)
-		assert.Equal(t, []int{1}, signers[2].KeyIDs)
-	})
-
-	t.Run("Authorizer after payer", func(t *testing.T) {
-		signers := flow.NewTransaction().
-			SetProposalKey(AddressA, 1, 42).
-			SetPayer(AddressC, 1).
-			AddAuthorizer(AddressB, 1).
-			Signers()
-
-		require.Len(t, signers, 3)
-
-		assert.Equal(t, AddressA, signers[0].Address)
-		assert.Equal(t, RolesProposer, signers[0].Roles)
-		assert.Equal(t, []int{1}, signers[0].KeyIDs)
-
-		assert.Equal(t, AddressB, signers[1].Address)
-		assert.Equal(t, RolesAuthorizer, signers[1].Roles)
-		assert.Equal(t, []int{1}, signers[1].KeyIDs)
-
-		assert.Equal(t, AddressC, signers[2].Address)
-		assert.Equal(t, RolesPayer, signers[2].Roles)
-		assert.Equal(t, []int{1}, signers[2].KeyIDs)
-	})
-
-	t.Run("Authorizer before and after payer", func(t *testing.T) {
-		signers := flow.NewTransaction().
-			SetProposalKey(AddressA, 1, 42).
-			AddAuthorizer(AddressB, 1).
-			SetPayer(AddressD, 1).
-			AddAuthorizer(AddressC, 1).
-			Signers()
-
-		require.Len(t, signers, 4)
-
-		assert.Equal(t, AddressA, signers[0].Address)
-		assert.Equal(t, RolesProposer, signers[0].Roles)
-		assert.Equal(t, []int{1}, signers[0].KeyIDs)
-
-		assert.Equal(t, AddressB, signers[1].Address)
-		assert.Equal(t, RolesAuthorizer, signers[1].Roles)
-		assert.Equal(t, []int{1}, signers[1].KeyIDs)
-
-		assert.Equal(t, AddressC, signers[2].Address)
-		assert.Equal(t, RolesAuthorizer, signers[2].Roles)
-		assert.Equal(t, []int{1}, signers[2].KeyIDs)
-
-		assert.Equal(t, AddressD, signers[3].Address)
-		assert.Equal(t, RolesPayer, signers[3].Roles)
-		assert.Equal(t, []int{1}, signers[3].KeyIDs)
-	})
+	assert.Equal(t, gasLimit, tx.GasLimit)
 }
 
-func TestTransaction_Signers_KeysOutOfOrder(t *testing.T) {
-	signers := flow.NewTransaction().
-		SetProposalKey(AddressA, 1, 42).
-		SetPayer(AddressA, 4, 2, 1, 3).
-		Signers()
+func TestTransaction_SetProposalKey(t *testing.T) {
+	address := test.AddressGenerator().New()
+	keyID := 7
+	var sequenceNumber uint64 = 42
 
-	require.Len(t, signers, 1)
+	tx := flow.NewTransaction().
+		SetProposalKey(address, keyID, sequenceNumber)
 
-	assert.Equal(t, AddressA, signers[0].Address)
-	assert.Equal(t, RolesProposerPayer, signers[0].Roles)
-	assert.Equal(t, []int{1, 2, 3, 4}, signers[0].KeyIDs)
+	assert.Equal(t, address, tx.ProposalKey.Address)
+	assert.Equal(t, keyID, tx.ProposalKey.KeyID)
+	assert.Equal(t, sequenceNumber, tx.ProposalKey.SequenceNumber)
 }
 
-func TestTransaction_Signers_MultipleAuthorizers(t *testing.T) {
-	signers := flow.NewTransaction().
-		SetProposalKey(AddressA, 1, 42).
-		AddAuthorizer(AddressB, 1).
-		AddAuthorizer(AddressC, 2).
-		AddAuthorizer(AddressD, 3).
-		SetPayer(AddressE, 1).
-		Signers()
+func TestTransaction_SetPayer(t *testing.T) {
+	address := test.AddressGenerator().New()
 
-	require.Len(t, signers, 5)
+	tx := flow.NewTransaction().
+		SetPayer(address)
 
-	assert.Equal(t, AddressB, signers[1].Address)
-	assert.Equal(t, RolesAuthorizer, signers[1].Roles)
-	assert.Equal(t, []int{1}, signers[1].KeyIDs)
-
-	assert.Equal(t, AddressC, signers[2].Address)
-	assert.Equal(t, RolesAuthorizer, signers[2].Roles)
-	assert.Equal(t, []int{2}, signers[2].KeyIDs)
-
-	assert.Equal(t, AddressD, signers[3].Address)
-	assert.Equal(t, RolesAuthorizer, signers[3].Roles)
-	assert.Equal(t, []int{3}, signers[3].KeyIDs)
+	assert.Equal(t, address, tx.Payer)
 }
 
-func TestTransaction_Signers_ProposerPayerAuthorizerSameAddress(t *testing.T) {
-	t.Run("Single key", func(t *testing.T) {
-		signers := flow.NewTransaction().
-			SetProposalKey(AddressA, 1, 42).
-			SetPayer(AddressA, 1).
-			AddAuthorizer(AddressA, 1).
-			Signers()
+func TestTransaction_AddAuthorizer(t *testing.T) {
+	addresses := test.AddressGenerator()
 
-		require.Len(t, signers, 1)
+	addressA := addresses.New()
+	addressB := addresses.New()
 
-		assert.Equal(t, AddressA, signers[0].Address)
-		assert.Equal(t, RolesProposerPayerAuthorizer, signers[0].Roles)
-		assert.Equal(
-			t,
-			&flow.ProposalKey{
-				Address:        AddressA,
-				KeyID:          1,
-				SequenceNumber: 42,
-			},
-			signers[0].ProposalKey,
-		)
-		assert.Equal(t, []int{1}, signers[0].KeyIDs)
+	tx := flow.NewTransaction().
+		AddAuthorizer(addressA)
+
+	require.Len(t, tx.Authorizers, 1)
+	assert.Equal(t, addressA, tx.Authorizers[0])
+
+	tx.AddAuthorizer(addressB)
+
+	require.Len(t, tx.Authorizers, 2)
+	assert.Equal(t, addressA, tx.Authorizers[0])
+	assert.Equal(t, addressB, tx.Authorizers[1])
+}
+
+func TestTransaction_AddPayloadSignature(t *testing.T) {
+	addresses := test.AddressGenerator()
+
+	t.Run("Invalid signer", func(t *testing.T) {
+		tx := flow.NewTransaction()
+
+		address := addresses.New()
+
+		tx.AddPayloadSignature(address, 7, []byte{42})
+
+		require.Len(t, tx.PayloadSignatures, 1)
+
+		// signer cannot be found, so index is -1
+		assert.Equal(t, -1, tx.PayloadSignatures[0].SignerIndex)
 	})
 
-	t.Run("Identical key-sets", func(t *testing.T) {
-		// All key-sets contain the elements [1, 2]
-		signers := flow.NewTransaction().
-			SetProposalKey(AddressA, 1, 42).
-			SetPayer(AddressA, 1, 2).
-			AddAuthorizer(AddressA, 1, 2).
-			Signers()
+	t.Run("Valid signers", func(t *testing.T) {
+		addressA := addresses.New()
+		addressB := addresses.New()
 
-		require.Len(t, signers, 1)
+		keyID := 7
+		sig := []byte{42}
 
-		assert.Equal(t, AddressA, signers[0].Address)
-		assert.Equal(t, RolesProposerPayerAuthorizer, signers[0].Roles)
-		assert.Equal(t, []int{1, 2}, signers[0].KeyIDs)
+		tx := flow.NewTransaction().
+			AddAuthorizer(addressA).
+			AddAuthorizer(addressB)
+
+		// add signatures in reverse order of declaration
+		tx.AddPayloadSignature(addressB, keyID, sig)
+		tx.AddPayloadSignature(addressA, keyID, sig)
+
+		require.Len(t, tx.PayloadSignatures, 2)
+
+		assert.Equal(t, 0, tx.PayloadSignatures[0].SignerIndex)
+		assert.Equal(t, addressA, tx.PayloadSignatures[0].Address)
+		assert.Equal(t, keyID, tx.PayloadSignatures[0].KeyID)
+		assert.Equal(t, sig, tx.PayloadSignatures[0].Signature)
+
+		assert.Equal(t, 1, tx.PayloadSignatures[1].SignerIndex)
+		assert.Equal(t, addressB, tx.PayloadSignatures[1].Address)
+		assert.Equal(t, keyID, tx.PayloadSignatures[1].KeyID)
+		assert.Equal(t, sig, tx.PayloadSignatures[1].Signature)
 	})
 
-	t.Run("Subset of payer key-set", func(t *testing.T) {
-		// Payer key-set: [1, 2]
-		// Authorizer key-set: [1]
-		signers := flow.NewTransaction().
-			SetProposalKey(AddressA, 1, 42).
-			SetPayer(AddressA, 1, 2).
-			AddAuthorizer(AddressA, 1).
-			Signers()
+	t.Run("Duplicate signers", func(t *testing.T) {
+		addressA := addresses.New()
+		addressB := addresses.New()
 
-		require.Len(t, signers, 1)
+		keyID := 7
+		sig := []byte{42}
 
-		assert.Equal(t, AddressA, signers[0].Address)
-		assert.Equal(t, RolesProposerPayerAuthorizer, signers[0].Roles)
-		assert.Equal(t, []int{1, 2}, signers[0].KeyIDs)
+		tx := flow.NewTransaction().
+			SetProposalKey(addressA, keyID, 42).
+			AddAuthorizer(addressB).
+			AddAuthorizer(addressA)
+
+		// add signatures in reverse order of declaration
+		tx.AddPayloadSignature(addressB, keyID, sig)
+		tx.AddPayloadSignature(addressA, keyID, sig)
+
+		require.Len(t, tx.PayloadSignatures, 2)
+
+		assert.Equal(t, 0, tx.PayloadSignatures[0].SignerIndex)
+		assert.Equal(t, addressA, tx.PayloadSignatures[0].Address)
+		assert.Equal(t, keyID, tx.PayloadSignatures[0].KeyID)
+		assert.Equal(t, sig, tx.PayloadSignatures[0].Signature)
+
+		assert.Equal(t, 1, tx.PayloadSignatures[1].SignerIndex)
+		assert.Equal(t, addressB, tx.PayloadSignatures[1].Address)
+		assert.Equal(t, keyID, tx.PayloadSignatures[1].KeyID)
+		assert.Equal(t, sig, tx.PayloadSignatures[1].Signature)
+	})
+
+	t.Run("Multiple signatures", func(t *testing.T) {
+		address := addresses.New()
+
+		keyIDA := 7
+		sigA := []byte{42}
+
+		keyIDB := 8
+		sigB := []byte{43}
+
+		tx := flow.NewTransaction().AddAuthorizer(address)
+
+		// add signatures in descending order by key ID
+		tx.AddPayloadSignature(address, keyIDB, sigB)
+		tx.AddPayloadSignature(address, keyIDA, sigA)
+
+		require.Len(t, tx.PayloadSignatures, 2)
+
+		// signatures should be sorted in ascending order by key ID
+		assert.Equal(t, 0, tx.PayloadSignatures[0].SignerIndex)
+		assert.Equal(t, address, tx.PayloadSignatures[0].Address)
+		assert.Equal(t, keyIDA, tx.PayloadSignatures[0].KeyID)
+		assert.Equal(t, sigA, tx.PayloadSignatures[0].Signature)
+
+		assert.Equal(t, 0, tx.PayloadSignatures[1].SignerIndex)
+		assert.Equal(t, address, tx.PayloadSignatures[1].Address)
+		assert.Equal(t, keyIDB, tx.PayloadSignatures[1].KeyID)
+		assert.Equal(t, sigB, tx.PayloadSignatures[1].Signature)
 	})
 }
 
-func TestTransaction_Signers_ProposerPayerSameAddress(t *testing.T) {
-	t.Run("No authorizers", func(t *testing.T) {
-		signers := flow.NewTransaction().
-			SetProposalKey(AddressA, 1, 42).
-			SetPayer(AddressA, 1, 2).
-			Signers()
+func TestTransaction_AddEnvelopeSignature(t *testing.T) {
+	addresses := test.AddressGenerator()
 
-		require.Len(t, signers, 1)
+	t.Run("Invalid signer", func(t *testing.T) {
+		tx := flow.NewTransaction()
 
-		assert.Equal(t, AddressA, signers[0].Address)
-		assert.Equal(t, RolesProposerPayer, signers[0].Roles)
-		assert.Equal(t, []int{1, 2}, signers[0].KeyIDs)
+		address := addresses.New()
+
+		tx.AddEnvelopeSignature(address, 7, []byte{42})
+
+		require.Len(t, tx.EnvelopeSignatures, 1)
+
+		// signer cannot be found, so index is -1
+		assert.Equal(t, -1, tx.EnvelopeSignatures[0].SignerIndex)
 	})
 
-	t.Run("With authorizer", func(t *testing.T) {
-		signers := flow.NewTransaction().
-			SetProposalKey(AddressA, 1, 42).
-			AddAuthorizer(AddressB, 1).
-			SetPayer(AddressA, 1, 2).
-			Signers()
+	t.Run("Valid signer", func(t *testing.T) {
+		address := addresses.New()
 
-		require.Len(t, signers, 2)
+		keyID := 7
+		sig := []byte{42}
 
-		assert.Equal(t, AddressB, signers[0].Address)
-		assert.Equal(t, RolesAuthorizer, signers[0].Roles)
-		assert.Equal(t, []int{1}, signers[0].KeyIDs)
+		tx := flow.NewTransaction().SetPayer(address)
 
-		assert.Equal(t, AddressA, signers[1].Address)
-		assert.Equal(t, RolesProposerPayer, signers[1].Roles)
-		assert.Equal(t, []int{1, 2}, signers[1].KeyIDs)
+		tx.AddEnvelopeSignature(address, keyID, sig)
+
+		require.Len(t, tx.EnvelopeSignatures, 1)
+
+		assert.Equal(t, 0, tx.EnvelopeSignatures[0].SignerIndex)
+		assert.Equal(t, address, tx.EnvelopeSignatures[0].Address)
+		assert.Equal(t, keyID, tx.EnvelopeSignatures[0].KeyID)
+		assert.Equal(t, sig, tx.EnvelopeSignatures[0].Signature)
 	})
 
-	t.Run("Disjoint key-sets", func(t *testing.T) {
-		signers := flow.NewTransaction().
-			SetProposalKey(AddressA, 1, 42).
-			SetPayer(AddressA, 2, 3).
-			Signers()
+	t.Run("Multiple signatures", func(t *testing.T) {
+		address := addresses.New()
 
-		require.Len(t, signers, 2)
+		keyIDA := 7
+		sigA := []byte{42}
 
-		assert.Equal(t, AddressA, signers[0].Address)
-		assert.Equal(t, RolesProposer, signers[0].Roles)
-		assert.Equal(t, []int{1}, signers[0].KeyIDs)
+		keyIDB := 8
+		sigB := []byte{43}
 
-		assert.Equal(t, AddressA, signers[1].Address)
-		assert.Equal(t, RolesPayer, signers[1].Roles)
-		assert.Equal(t, []int{2, 3}, signers[1].KeyIDs)
-	})
-}
+		tx := flow.NewTransaction().AddAuthorizer(address)
 
-func TestTransaction_Signers_PayerAuthorizerSameAddress(t *testing.T) {
-	t.Run("Identical key-sets", func(t *testing.T) {
-		// Payer key-set: [1, 2]
-		// Authorizer key-set: [1, 2]
-		signers := flow.NewTransaction().
-			SetProposalKey(AddressA, 1, 42).
-			AddAuthorizer(AddressB, 1, 2).
-			SetPayer(AddressB, 1, 2).
-			Signers()
+		// add signatures in descending order by key ID
+		tx.AddEnvelopeSignature(address, keyIDB, sigB)
+		tx.AddEnvelopeSignature(address, keyIDA, sigA)
 
-		require.Len(t, signers, 2)
+		require.Len(t, tx.EnvelopeSignatures, 2)
 
-		assert.Equal(t, AddressA, signers[0].Address)
-		assert.Equal(t, RolesProposer, signers[0].Roles)
+		// signatures should be sorted in ascending order by key ID
+		assert.Equal(t, 0, tx.EnvelopeSignatures[0].SignerIndex)
+		assert.Equal(t, address, tx.EnvelopeSignatures[0].Address)
+		assert.Equal(t, keyIDA, tx.EnvelopeSignatures[0].KeyID)
+		assert.Equal(t, sigA, tx.EnvelopeSignatures[0].Signature)
 
-		assert.Equal(t, AddressB, signers[1].Address)
-		assert.Equal(t, RolesPayerAuthorizer, signers[1].Roles)
-		assert.Equal(t, []int{1, 2}, signers[1].KeyIDs)
-	})
-
-	t.Run("Subset of payer key-set", func(t *testing.T) {
-		// Payer key-set: [1, 2]
-		// Authorizer key-set: [1]
-		signers := flow.NewTransaction().
-			SetProposalKey(AddressA, 1, 42).
-			AddAuthorizer(AddressB, 1).
-			SetPayer(AddressB, 1, 2).
-			Signers()
-
-		require.Len(t, signers, 2)
-
-		assert.Equal(t, AddressA, signers[0].Address)
-		assert.Equal(t, RolesProposer, signers[0].Roles)
-
-		assert.Equal(t, AddressB, signers[1].Address)
-		assert.Equal(t, RolesPayerAuthorizer, signers[1].Roles)
-		assert.Equal(t, []int{1, 2}, signers[1].KeyIDs)
-	})
-
-	t.Run("Disjoint key-sets", func(t *testing.T) {
-		// Payer key-set: [1, 2]
-		// Authorizer key-set: [3, 4]
-		signers := flow.NewTransaction().
-			SetProposalKey(AddressA, 1, 42).
-			AddAuthorizer(AddressB, 3, 4).
-			SetPayer(AddressB, 1, 2).
-			Signers()
-
-		require.Len(t, signers, 3)
-
-		assert.Equal(t, AddressA, signers[0].Address)
-		assert.Equal(t, RolesProposer, signers[0].Roles)
-		assert.Equal(t, []int{1}, signers[0].KeyIDs)
-
-		assert.Equal(t, AddressB, signers[1].Address)
-		assert.Equal(t, RolesAuthorizer, signers[1].Roles)
-		assert.Equal(t, []int{3, 4}, signers[1].KeyIDs)
-
-		assert.Equal(t, AddressB, signers[2].Address)
-		assert.Equal(t, RolesPayer, signers[2].Roles)
-		assert.Equal(t, []int{1, 2}, signers[2].KeyIDs)
-	})
-
-	t.Run("Overlapping key-sets", func(t *testing.T) {
-		// Payer key-set: [1, 2]
-		// Authorizer key-set: [2, 3]
-		signers := flow.NewTransaction().
-			SetProposalKey(AddressA, 1, 42).
-			AddAuthorizer(AddressB, 2, 3).
-			SetPayer(AddressB, 1, 2).
-			Signers()
-
-		require.Len(t, signers, 3)
-
-		assert.Equal(t, AddressA, signers[0].Address)
-		assert.Equal(t, RolesProposer, signers[0].Roles)
-		assert.Equal(t, []int{1}, signers[0].KeyIDs)
-
-		assert.Equal(t, AddressB, signers[1].Address)
-		assert.Equal(t, RolesAuthorizer, signers[1].Roles)
-		assert.Equal(t, []int{2, 3}, signers[1].KeyIDs)
-
-		assert.Equal(t, AddressB, signers[2].Address)
-		assert.Equal(t, RolesPayer, signers[2].Roles)
-		assert.Equal(t, []int{1, 2}, signers[2].KeyIDs)
-	})
-}
-
-func TestTransaction_Signers_ProposerAuthorizerSameAddress(t *testing.T) {
-	t.Run("Overlapping key-sets", func(t *testing.T) {
-		// Proposal key: 1
-		// Authorizer key-set: [1, 2]
-		signers := flow.NewTransaction().
-			SetProposalKey(AddressA, 1, 42).
-			AddAuthorizer(AddressA, 1, 2).
-			SetPayer(AddressB, 1).
-			Signers()
-
-		require.Len(t, signers, 2)
-
-		assert.Equal(t, AddressA, signers[0].Address)
-		assert.Equal(t, RolesProposerAuthorizer, signers[0].Roles)
-		assert.Equal(t, []int{1, 2}, signers[0].KeyIDs)
-
-		assert.Equal(t, AddressB, signers[1].Address)
-		assert.Equal(t, RolesPayer, signers[1].Roles)
-		assert.Equal(t, []int{1}, signers[1].KeyIDs)
-	})
-
-	t.Run("Disjoint key-sets", func(t *testing.T) {
-		// Proposal key: 1
-		// Authorizer key-set: [2]
-		signers := flow.NewTransaction().
-			SetProposalKey(AddressA, 1, 42).
-			AddAuthorizer(AddressA, 2).
-			SetPayer(AddressB, 1).
-			Signers()
-
-		require.Len(t, signers, 3)
-
-		assert.Equal(t, AddressA, signers[0].Address)
-		assert.Equal(t, RolesProposer, signers[0].Roles)
-		assert.Equal(t, []int{1}, signers[0].KeyIDs)
-
-		assert.Equal(t, AddressA, signers[1].Address)
-		assert.Equal(t, RolesAuthorizer, signers[1].Roles)
-		assert.Equal(t, []int{2}, signers[1].KeyIDs)
-
-		assert.Equal(t, AddressB, signers[2].Address)
-		assert.Equal(t, RolesPayer, signers[2].Roles)
-		assert.Equal(t, []int{1}, signers[2].KeyIDs)
+		assert.Equal(t, 0, tx.EnvelopeSignatures[1].SignerIndex)
+		assert.Equal(t, address, tx.EnvelopeSignatures[1].Address)
+		assert.Equal(t, keyIDB, tx.EnvelopeSignatures[1].KeyID)
+		assert.Equal(t, sigB, tx.EnvelopeSignatures[1].Signature)
 	})
 }

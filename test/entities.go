@@ -19,7 +19,7 @@ type Identifiers struct {
 }
 
 func IdentifierGenerator() *Identifiers {
-	return &Identifiers{0}
+	return &Identifiers{1}
 }
 
 func (g *Identifiers) New() flow.Identifier {
@@ -42,7 +42,7 @@ type Addresses struct {
 }
 
 func AddressGenerator() *Addresses {
-	return &Addresses{0}
+	return &Addresses{1}
 }
 
 func (g *Addresses) New() flow.Address {
@@ -58,7 +58,7 @@ type AccountKeys struct {
 
 func AccountKeyGenerator() *AccountKeys {
 	return &AccountKeys{
-		count: 0,
+		count: 1,
 		ids:   IdentifierGenerator(),
 	}
 }
@@ -118,23 +118,34 @@ type Transactions struct {
 }
 
 func TransactionGenerator() *Transactions {
-	return &Transactions{0}
+	return &Transactions{1}
 }
 
 func (g *Transactions) New() *flow.Transaction {
 	tx := g.NewUnsigned()
 
-	signers := tx.Signers()
+	// sign payload with proposal key
+	err := tx.SignPayload(
+		tx.ProposalKey.Address,
+		tx.ProposalKey.KeyID,
+		sdkcrypto.MockSigner([]byte{uint8(tx.ProposalKey.KeyID)}),
+	)
+	if err != nil {
+		panic(err)
+	}
 
-	for _, signer := range signers {
-		for _, keyID := range signer.KeyIDs {
-			_ = tx.Sign(
-				signer.SignatureKind(),
-				signer.Address,
-				keyID,
-				sdkcrypto.MockSigner([]byte{uint8(keyID)}),
-			)
+	// sign payload as each authorizer
+	for _, addr := range tx.Authorizers {
+		err = tx.SignPayload(addr, 0, sdkcrypto.MockSigner(addr.Bytes()))
+		if err != nil {
+			panic(err)
 		}
+	}
+
+	// sign envelope as payer
+	err = tx.SignEnvelope(tx.Payer, 0, sdkcrypto.MockSigner(tx.Payer.Bytes()))
+	if err != nil {
+		panic(err)
 	}
 
 	return tx
@@ -152,8 +163,8 @@ func (g *Transactions) NewUnsigned() *flow.Transaction {
 		SetReferenceBlockID(blockID).
 		SetGasLimit(42).
 		SetProposalKey(accountA.Address, accountA.Keys[0].ID, accountA.Keys[0].SequenceNumber).
-		AddAuthorizer(accountA.Address, accountA.Keys[0].ID, accountA.Keys[1].ID).
-		SetPayer(accountB.Address, accountB.Keys[0].ID)
+		AddAuthorizer(accountA.Address).
+		SetPayer(accountB.Address)
 }
 
 type TransactionResults struct {
@@ -187,7 +198,7 @@ type Events struct {
 
 func EventGenerator() *Events {
 	return &Events{
-		count: 0,
+		count: 1,
 		ids:   IdentifierGenerator(),
 	}
 }
@@ -218,10 +229,11 @@ func (g *Events) New() flow.Event {
 		}).WithType(testEventType)
 
 	event := flow.Event{
-		Type:          typeID,
-		TransactionID: g.ids.New(),
-		Index:         uint(g.count),
-		Value:         testEvent,
+		Type:             typeID,
+		TransactionID:    g.ids.New(),
+		TransactionIndex: g.count,
+		EventIndex:       g.count,
+		Value:            testEvent,
 	}
 
 	g.count++

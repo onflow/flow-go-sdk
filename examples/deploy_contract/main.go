@@ -40,9 +40,9 @@ func DeployContractDemo() {
 	createAccountTx := flow.NewTransaction().
 		SetScript(createAccountScript).
 		SetProposalKey(rootAcctAddr, rootAcctKey.ID, rootAcctKey.SequenceNumber).
-		SetPayer(rootAcctAddr, rootAcctKey.ID)
+		SetPayer(rootAcctAddr)
 
-	err = createAccountTx.SignContainer(
+	err = createAccountTx.SignEnvelope(
 		rootAcctAddr,
 		rootAcctKey.ID,
 		rootPrivateKey.Signer(),
@@ -76,9 +76,9 @@ func DeployContractDemo() {
 	deployContractTx := flow.NewTransaction().
 		SetScript(deployScript).
 		SetProposalKey(myAddress, myAcctKey.ID, myAcctKey.SequenceNumber).
-		SetPayer(myAddress, myAcctKey.ID)
+		SetPayer(myAddress)
 
-	err = deployContractTx.SignContainer(
+	err = deployContractTx.SignEnvelope(
 		myAddress,
 		myAcctKey.ID,
 		myPrivateKey.Signer(),
@@ -111,10 +111,10 @@ func DeployContractDemo() {
 	createMinterTx := flow.NewTransaction().
 		SetScript(createMinterScript).
 		SetProposalKey(myAddress, myAcctKey.ID, myAcctKey.SequenceNumber).
-		SetPayer(myAddress, myAcctKey.ID).
-		AddAuthorizer(myAddress, myAcctKey.ID)
+		SetPayer(myAddress).
+		AddAuthorizer(myAddress)
 
-	err = createMinterTx.SignContainer(
+	err = createMinterTx.SignEnvelope(
 		myAddress,
 		myAcctKey.ID,
 		myPrivateKey.Signer(),
@@ -136,10 +136,10 @@ func DeployContractDemo() {
 	mintTx := flow.NewTransaction().
 		SetScript(mintScript).
 		SetProposalKey(myAddress, myAcctKey.ID, myAcctKey.SequenceNumber).
-		SetPayer(myAddress, myAcctKey.ID).
-		AddAuthorizer(myAddress, myAcctKey.ID)
+		SetPayer(myAddress).
+		AddAuthorizer(myAddress)
 
-	err = mintTx.SignContainer(
+	err = mintTx.SignEnvelope(
 		myAddress,
 		myAcctKey.ID,
 		myPrivateKey.Signer(),

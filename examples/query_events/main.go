@@ -49,10 +49,10 @@ func QueryEventsDemo() {
 
 	runScriptTx := flow.NewTransaction().
 		SetScript([]byte(script)).
-		SetPayer(accountAddr, accountKey.ID).
+		SetPayer(accountAddr).
 		SetProposalKey(accountAddr, accountKey.ID, accountKey.SequenceNumber)
 
-	err = runScriptTx.SignContainer(
+	err = runScriptTx.SignEnvelope(
 		accountAddr,
 		accountKey.ID,
 		accountPrivateKey.Signer(),
@@ -66,7 +66,7 @@ func QueryEventsDemo() {
 
 	// 1
 	// Query for account creation events by type
-	events, err := flowClient.GetEventsForHeightRange(ctx, client.EventRangeQuery{
+	results, err := flowClient.GetEventsForHeightRange(ctx, client.EventRangeQuery{
 		Type:        "flow.AccountCreated",
 		StartHeight: 0,
 		EndHeight:   100,
@@ -74,16 +74,18 @@ func QueryEventsDemo() {
 	examples.Handle(err)
 
 	fmt.Println("\nQuery for AccountCreated event:")
-	for i, event := range events {
-		fmt.Printf("Found event #%d\n", i+1)
-		fmt.Printf("Transaction ID: %x\n", event.TransactionID)
-		fmt.Printf("Event ID: %x\n", event.ID())
-		fmt.Println(event.String())
+	for _, block := range results {
+		for i, event := range block.Events {
+			fmt.Printf("Found event #%d in block #%d\n", i+1, block.Height)
+			fmt.Printf("Transaction ID: %x\n", event.TransactionID)
+			fmt.Printf("Event ID: %x\n", event.ID())
+			fmt.Println(event.String())
+		}
 	}
 
 	// 2
 	// Query for our custom event by type
-	events, err = flowClient.GetEventsForHeightRange(ctx, client.EventRangeQuery{
+	results, err = flowClient.GetEventsForHeightRange(ctx, client.EventRangeQuery{
 		Type:        fmt.Sprintf("A.%s.EventDemo.Add", contractAddr.Hex()),
 		StartHeight: 0,
 		EndHeight:   100,
@@ -91,11 +93,13 @@ func QueryEventsDemo() {
 	examples.Handle(err)
 
 	fmt.Println("\nQuery for Add event:")
-	for i, event := range events {
-		fmt.Printf("Found event #%d\n", i+1)
-		fmt.Printf("Transaction ID: %x\n", event.TransactionID)
-		fmt.Printf("Event ID: %x\n", event.ID())
-		fmt.Println(event.String())
+	for _, block := range results {
+		for i, event := range block.Events {
+			fmt.Printf("Found event #%d in block #%d\n", i+1, block.Height)
+			fmt.Printf("Transaction ID: %x\n", event.TransactionID)
+			fmt.Printf("Event ID: %x\n", event.ID())
+			fmt.Println(event.String())
+		}
 	}
 
 	// 3
