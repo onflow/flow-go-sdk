@@ -113,6 +113,43 @@ func (g *Accounts) New() *flow.Account {
 	}
 }
 
+type Blocks struct {
+	count int
+	ids   *Identifiers
+}
+
+func BlockGenerator() *Blocks {
+	return &Blocks{
+		count: 1,
+		ids:   IdentifierGenerator(),
+	}
+}
+
+func (g *Blocks) New() *flow.Block {
+	header := flow.BlockHeader{
+		ID:       g.ids.New(),
+		ParentID: g.ids.New(),
+		Height:   uint64(g.count),
+	}
+
+	guarantees := []*flow.CollectionGuarantee{
+		{CollectionID: g.ids.New()},
+		{CollectionID: g.ids.New()},
+		{CollectionID: g.ids.New()},
+	}
+
+	payload := flow.BlockPayload{
+		Guarantees: guarantees,
+	}
+
+	g.count++
+
+	return &flow.Block{
+		BlockHeader:  header,
+		BlockPayload: payload,
+	}
+}
+
 type Collections struct {
 	ids *Identifiers
 }
