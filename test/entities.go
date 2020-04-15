@@ -102,14 +102,33 @@ func AccountGenerator() *Accounts {
 }
 
 func (g *Accounts) New() *flow.Account {
-	keyA := g.accountKeys.New()
-	keyB := g.accountKeys.New()
-
 	return &flow.Account{
 		Address: g.addresses.New(),
 		Balance: 10,
-		Keys:    []flow.AccountKey{keyA, keyB},
-		Code:    nil,
+		Keys: []flow.AccountKey{
+			g.accountKeys.New(),
+			g.accountKeys.New(),
+		},
+		Code: nil,
+	}
+}
+
+type Collections struct {
+	ids *Identifiers
+}
+
+func CollectionGenerator() *Collections {
+	return &Collections{
+		ids: IdentifierGenerator(),
+	}
+}
+
+func (g *Collections) New() *flow.Collection {
+	return &flow.Collection{
+		TransactionIDs: []flow.Identifier{
+			g.ids.New(),
+			g.ids.New(),
+		},
 	}
 }
 
