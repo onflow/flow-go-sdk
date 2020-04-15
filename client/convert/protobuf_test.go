@@ -10,6 +10,17 @@ import (
 	"github.com/dapperlabs/flow-go-sdk/test"
 )
 
+func TestConvert_Collection(t *testing.T) {
+	colA := test.CollectionGenerator().New()
+
+	msg := convert.CollectionToMessage(*colA)
+
+	colB, err := convert.MessageToCollection(msg)
+
+	assert.NoError(t, err)
+	assert.Equal(t, *colA, colB)
+}
+
 func TestConvert_Transaction(t *testing.T) {
 	txA := test.TransactionGenerator().New()
 

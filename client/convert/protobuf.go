@@ -31,6 +31,34 @@ func BlockHeaderToMessage(b flow.BlockHeader) *entities.BlockHeader {
 	}
 }
 
+func MessageToCollection(m *entities.Collection) (flow.Collection, error) {
+	if m == nil {
+		return flow.Collection{}, ErrEmptyMessage
+	}
+
+	transactionIDMessages := m.GetTransactionIds()
+
+	transactionIDs := make([]flow.Identifier, len(transactionIDMessages))
+	for i, transactionIDMsg := range transactionIDMessages {
+		transactionIDs[i] = flow.HashToID(transactionIDMsg)
+	}
+
+	return flow.Collection{
+		TransactionIDs: transactionIDs,
+	}, nil
+}
+
+func CollectionToMessage(c flow.Collection) *entities.Collection {
+	transactionIDMessages := make([][]byte, len(c.TransactionIDs))
+	for i, transactionID := range c.TransactionIDs {
+		transactionIDMessages[i] = transactionID.Bytes()
+	}
+
+	return &entities.Collection{
+		TransactionIds: transactionIDMessages,
+	}
+}
+
 func MessageToTransaction(m *entities.Transaction) (flow.Transaction, error) {
 	if m == nil {
 		return flow.Transaction{}, ErrEmptyMessage
