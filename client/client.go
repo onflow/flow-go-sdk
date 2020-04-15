@@ -93,9 +93,25 @@ func (c *Client) GetBlockByHeight(ctx context.Context) error {
 	panic("not implemented")
 }
 
-// GetCollectionByID gets a collection by ID.
-func (c *Client) GetCollectionByID(ctx context.Context) error {
-	panic("not implemented")
+// GetCollection gets a collection by ID.
+func (c *Client) GetCollection(ctx context.Context, colID flow.Identifier) (*flow.Collection, error) {
+	req := &access.GetCollectionByIDRequest{
+		Id: colID.Bytes(),
+	}
+
+	res, err := c.rpcClient.GetCollectionByID(ctx, req)
+	if err != nil {
+		// TODO: improve errors
+		return nil, fmt.Errorf("client: %w", err)
+	}
+
+	result, err := convert.MessageToCollection(res.GetCollection())
+	if err != nil {
+		// TODO: improve errors
+		return nil, fmt.Errorf("client: %w", err)
+	}
+
+	return &result, nil
 }
 
 // SendTransaction submits a transaction to the network.

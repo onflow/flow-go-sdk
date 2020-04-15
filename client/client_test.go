@@ -59,6 +59,53 @@ func TestClient_SendTransaction(t *testing.T) {
 	})
 }
 
+func TestClient_GetCollection(t *testing.T) {
+	cols := test.CollectionGenerator()
+	ids := test.IdentifierGenerator()
+
+	t.Run("Success", func(t *testing.T) {
+		rpc := &mocks.RPCClient{}
+
+		ctx := context.Background()
+
+		colID := ids.New()
+		expectedCol := cols.New()
+		response := &access.CollectionResponse{
+			Collection: convert.CollectionToMessage(*expectedCol),
+		}
+
+		rpc.On("GetCollectionByID", ctx, mock.Anything).Return(response, nil)
+
+		c := client.NewFromRPCClient(rpc)
+
+		col, err := c.GetCollection(ctx, colID)
+		assert.NoError(t, err)
+
+		assert.Equal(t, expectedCol, col)
+
+		rpc.AssertExpectations(t)
+	})
+
+	t.Run("Error", func(t *testing.T) {
+		rpc := &mocks.RPCClient{}
+
+		ctx := context.Background()
+
+		colID := ids.New()
+
+		rpc.On("GetCollectionByID", ctx, mock.Anything).
+			Return(nil, errors.New("rpc error"))
+
+		c := client.NewFromRPCClient(rpc)
+
+		result, err := c.GetCollection(ctx, colID)
+		assert.Error(t, err)
+		assert.Nil(t, result)
+
+		rpc.AssertExpectations(t)
+	})
+}
+
 func TestClient_GetTransactionResult(t *testing.T) {
 	results := test.TransactionResultGenerator()
 	ids := test.IdentifierGenerator()
