@@ -10,6 +10,17 @@ import (
 	"github.com/dapperlabs/flow-go-sdk/test"
 )
 
+func TestConvert_Block(t *testing.T) {
+	blockA := test.BlockGenerator().New()
+
+	msg := convert.BlockToMessage(*blockA)
+
+	blockB, err := convert.MessageToBlock(msg)
+
+	assert.NoError(t, err)
+	assert.Equal(t, *blockA, blockB)
+}
+
 func TestConvert_Collection(t *testing.T) {
 	colA := test.CollectionGenerator().New()
 
