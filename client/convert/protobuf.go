@@ -15,20 +15,91 @@ import (
 
 var ErrEmptyMessage = errors.New("protobuf message is empty")
 
-func MessageToBlockHeader(m *entities.BlockHeader) flow.BlockHeader {
-	return flow.BlockHeader{
+func MessageToBlock(m *entities.Block) (flow.Block, error) {
+	header := flow.BlockHeader{
 		ID:       flow.HashToID(m.GetId()),
 		ParentID: flow.HashToID(m.GetParentId()),
 		Height:   m.GetHeight(),
 	}
+
+	guarantees, err := MessagesToCollectionGuarantees(m.GetCollectionGuarantees())
+	if err != nil {
+		return flow.Block{}, err
+	}
+
+	payload := flow.BlockPayload{
+		Guarantees: guarantees,
+	}
+
+	return flow.Block{
+		BlockHeader:  header,
+		BlockPayload: payload,
+	}, nil
+}
+
+func BlockToMessage(b flow.Block) *entities.Block {
+	return &entities.Block{
+		Id:                   b.ID.Bytes(),
+		ParentId:             b.ParentID.Bytes(),
+		Height:               b.Height,
+		CollectionGuarantees: CollectionGuaranteesToMessages(b.Guarantees),
+	}
+}
+
+func MessageToBlockHeader(m *entities.BlockHeader) (flow.BlockHeader, error) {
+	if m == nil {
+		return flow.BlockHeader{}, ErrEmptyMessage
+	}
+
+	return flow.BlockHeader{
+		ID:       flow.HashToID(m.GetId()),
+		ParentID: flow.HashToID(m.GetParentId()),
+		Height:   m.GetHeight(),
+	}, nil
 }
 
 func BlockHeaderToMessage(b flow.BlockHeader) *entities.BlockHeader {
 	return &entities.BlockHeader{
-		Id:       b.ID[:],
-		ParentId: b.ParentID[:],
+		Id:       b.ID.Bytes(),
+		ParentId: b.ParentID.Bytes(),
 		Height:   b.Height,
 	}
+}
+
+func MessageToCollectionGuarantee(m *entities.CollectionGuarantee) (flow.CollectionGuarantee, error) {
+	if m == nil {
+		return flow.CollectionGuarantee{}, ErrEmptyMessage
+	}
+
+	return flow.CollectionGuarantee{
+		CollectionID: flow.HashToID(m.CollectionId),
+	}, nil
+}
+
+func MessagesToCollectionGuarantees(l []*entities.CollectionGuarantee) ([]*flow.CollectionGuarantee, error) {
+	results := make([]*flow.CollectionGuarantee, len(l))
+	for i, item := range l {
+		temp, err := MessageToCollectionGuarantee(item)
+		if err != nil {
+			return nil, err
+		}
+		results[i] = &temp
+	}
+	return results, nil
+}
+
+func CollectionGuaranteeToMessage(g flow.CollectionGuarantee) *entities.CollectionGuarantee {
+	return &entities.CollectionGuarantee{
+		CollectionId: g.CollectionID.Bytes(),
+	}
+}
+
+func CollectionGuaranteesToMessages(l []*flow.CollectionGuarantee) []*entities.CollectionGuarantee {
+	results := make([]*entities.CollectionGuarantee, len(l))
+	for i, item := range l {
+		results[i] = CollectionGuaranteeToMessage(*item)
+	}
+	return results
 }
 
 func MessageToCollection(m *entities.Collection) (flow.Collection, error) {
