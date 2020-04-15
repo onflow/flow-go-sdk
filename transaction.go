@@ -225,7 +225,7 @@ func (t *Transaction) payloadCanonicalForm() interface{} {
 	}
 }
 
-// EnvelopeMessage returns the signable message for transaction envelope.
+// EnvelopeMessage returns the signable message for the transaction envelope.
 //
 // This message is only signed by the payer account.
 func (t *Transaction) EnvelopeMessage() []byte {
