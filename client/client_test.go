@@ -338,11 +338,11 @@ func TestClient_SendTransaction(t *testing.T) {
 
 		tx := transactions.New()
 
-		res := &access.SendTransactionResponse{
+		response := &access.SendTransactionResponse{
 			Id: tx.ID().Bytes(),
 		}
 
-		rpc.On("SendTransaction", ctx, mock.Anything).Return(res, nil)
+		rpc.On("SendTransaction", ctx, mock.Anything).Return(response, nil)
 
 		c := client.NewFromRPCClient(rpc)
 
