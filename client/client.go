@@ -272,7 +272,7 @@ func (c *Client) GetAccount(ctx context.Context, address flow.Address) (*flow.Ac
 	return &account, nil
 }
 
-// ExecuteScriptAtLatestBlock executes a read-only Cadance script against the latest sealed execution state.
+// ExecuteScriptAtLatestBlock executes a read-only Cadence script against the latest sealed execution state.
 func (c *Client) ExecuteScriptAtLatestBlock(ctx context.Context, script []byte) (cadence.Value, error) {
 	res, err := c.rpcClient.ExecuteScriptAtLatestBlock(ctx, &access.ExecuteScriptAtLatestBlockRequest{Script: script})
 	if err != nil {
@@ -306,7 +306,8 @@ type EventRangeQuery struct {
 	EndHeight uint64
 }
 
-type EventRangeResult struct {
+// BlockEvents are the events that occurred in a specific block.
+type BlockEvents struct {
 	BlockID flow.Identifier
 	Height  uint64
 	Events  []flow.Event
@@ -314,7 +315,7 @@ type EventRangeResult struct {
 
 // GetEventsForHeightRange retrieves events for all sealed blocks between the start and end block
 // heights (inclusive) with the given type.
-func (c *Client) GetEventsForHeightRange(ctx context.Context, query EventRangeQuery) ([]EventRangeResult, error) {
+func (c *Client) GetEventsForHeightRange(ctx context.Context, query EventRangeQuery) ([]BlockEvents, error) {
 	req := &access.GetEventsForHeightRangeRequest{
 		Type:        query.Type,
 		StartHeight: query.StartHeight,
@@ -327,9 +328,33 @@ func (c *Client) GetEventsForHeightRange(ctx context.Context, query EventRangeQu
 		return nil, fmt.Errorf("client: %w", err)
 	}
 
+	return getEventsResult(res)
+}
+
+// GetEventsForBlockIDs retrieves events with the given type from the specified block IDs.
+func (c *Client) GetEventsForBlockIDs(
+	ctx context.Context,
+	eventType string,
+	blockIDs []flow.Identifier,
+) ([]BlockEvents, error) {
+	req := &access.GetEventsForBlockIDsRequest{
+		Type:     eventType,
+		BlockIds: convert.IDsToMessages(blockIDs),
+	}
+
+	res, err := c.rpcClient.GetEventsForBlockIDs(ctx, req)
+	if err != nil {
+		// TODO: improve errors
+		return nil, fmt.Errorf("client: %w", err)
+	}
+
+	return getEventsResult(res)
+}
+
+func getEventsResult(res *access.EventsResponse) ([]BlockEvents, error) {
 	resultMessages := res.GetResults()
 
-	results := make([]EventRangeResult, len(resultMessages))
+	results := make([]BlockEvents, len(resultMessages))
 	for i, result := range resultMessages {
 		eventMessages := result.GetEvents()
 
@@ -345,7 +370,7 @@ func (c *Client) GetEventsForHeightRange(ctx context.Context, query EventRangeQu
 			events[i] = evt
 		}
 
-		results[i] = EventRangeResult{
+		results[i] = BlockEvents{
 			BlockID: flow.HashToID(result.GetBlockId()),
 			Height:  result.GetBlockHeight(),
 			Events:  events,
@@ -353,9 +378,4 @@ func (c *Client) GetEventsForHeightRange(ctx context.Context, query EventRangeQu
 	}
 
 	return results, nil
-}
-
-// GetEventsForBlockIDs retrieves events for all the specified block IDs that have the given type
-func (c *Client) GetEventsForBlockIDs(ctx context.Context, blockIDs [][]byte) ([]flow.Event, error) {
-	panic("not implemented")
 }

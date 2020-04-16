@@ -15,6 +15,14 @@ import (
 
 var ErrEmptyMessage = errors.New("protobuf message is empty")
 
+func IDsToMessages(l []flow.Identifier) [][]byte {
+	results := make([][]byte, len(l))
+	for i, item := range l {
+		results[i] = item.Bytes()
+	}
+	return results
+}
+
 func MessageToBlock(m *entities.Block) (flow.Block, error) {
 	header := flow.BlockHeader{
 		ID:       flow.HashToID(m.GetId()),
