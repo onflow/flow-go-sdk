@@ -213,8 +213,24 @@ func (c *Client) SendTransaction(ctx context.Context, transaction flow.Transacti
 }
 
 // GetTransaction gets a transaction by ID.
-func (c *Client) GetTransaction(ctx context.Context, id flow.Identifier) (*flow.Transaction, error) {
-	panic("not implemented")
+func (c *Client) GetTransaction(ctx context.Context, txID flow.Identifier) (*flow.Transaction, error) {
+	req := &access.GetTransactionRequest{
+		Id: txID.Bytes(),
+	}
+
+	res, err := c.rpcClient.GetTransaction(ctx, req)
+	if err != nil {
+		// TODO: improve errors
+		return nil, fmt.Errorf("client: %w", err)
+	}
+
+	result, err := convert.MessageToTransaction(res.GetTransaction())
+	if err != nil {
+		// TODO: improve errors
+		return nil, fmt.Errorf("client: %w", err)
+	}
+
+	return &result, nil
 }
 
 // GetTransactionResult gets the result of a transaction.

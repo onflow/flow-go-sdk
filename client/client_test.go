@@ -338,11 +338,11 @@ func TestClient_SendTransaction(t *testing.T) {
 
 		tx := transactions.New()
 
-		response := &access.SendTransactionResponse{
+		res := &access.SendTransactionResponse{
 			Id: tx.ID().Bytes(),
 		}
 
-		rpc.On("SendTransaction", ctx, mock.Anything).Return(response, nil)
+		rpc.On("SendTransaction", ctx, mock.Anything).Return(res, nil)
 
 		c := client.NewFromRPCClient(rpc)
 
@@ -367,6 +367,53 @@ func TestClient_SendTransaction(t *testing.T) {
 
 		err := c.SendTransaction(ctx, *tx)
 		assert.Error(t, err)
+
+		rpc.AssertExpectations(t)
+	})
+}
+
+func TestClient_GetTransaction(t *testing.T) {
+	txs := test.TransactionGenerator()
+	ids := test.IdentifierGenerator()
+
+	t.Run("Success", func(t *testing.T) {
+		rpc := &mocks.RPCClient{}
+
+		ctx := context.Background()
+
+		txID := ids.New()
+		expectedTx := txs.New()
+		response := &access.TransactionResponse{
+			Transaction: convert.TransactionToMessage(*expectedTx),
+		}
+
+		rpc.On("GetTransaction", ctx, mock.Anything).Return(response, nil)
+
+		c := client.NewFromRPCClient(rpc)
+
+		tx, err := c.GetTransaction(ctx, txID)
+		assert.NoError(t, err)
+
+		assert.Equal(t, expectedTx, tx)
+
+		rpc.AssertExpectations(t)
+	})
+
+	t.Run("Error", func(t *testing.T) {
+		rpc := &mocks.RPCClient{}
+
+		ctx := context.Background()
+
+		txID := ids.New()
+
+		rpc.On("GetTransaction", ctx, mock.Anything).
+			Return(nil, errors.New("rpc error"))
+
+		c := client.NewFromRPCClient(rpc)
+
+		result, err := c.GetTransaction(ctx, txID)
+		assert.Error(t, err)
+		assert.Nil(t, result)
 
 		rpc.AssertExpectations(t)
 	})
