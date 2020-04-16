@@ -6,9 +6,11 @@ import (
 	"testing"
 
 	"github.com/dapperlabs/flow/protobuf/go/flow/access"
+	"github.com/dapperlabs/flow/protobuf/go/flow/entities"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
+	"github.com/dapperlabs/flow-go-sdk"
 	"github.com/dapperlabs/flow-go-sdk/client"
 	"github.com/dapperlabs/flow-go-sdk/client/convert"
 	"github.com/dapperlabs/flow-go-sdk/client/mocks"
@@ -459,6 +461,223 @@ func TestClient_GetTransactionResult(t *testing.T) {
 		result, err := c.GetTransactionResult(ctx, txID)
 		assert.Error(t, err)
 		assert.Nil(t, result)
+
+		rpc.AssertExpectations(t)
+	})
+}
+
+func TestClient_GetEventsForHeightRange(t *testing.T) {
+	ids := test.IdentifierGenerator()
+	events := test.EventGenerator()
+
+	t.Run("Empty result", func(t *testing.T) {
+		rpc := &mocks.RPCClient{}
+
+		ctx := context.Background()
+
+		response := &access.EventsResponse{
+			Results: []*access.EventsResponse_Result{},
+		}
+
+		rpc.On("GetEventsForHeightRange", ctx, mock.Anything).Return(response, nil)
+
+		c := client.NewFromRPCClient(rpc)
+
+		blocks, err := c.GetEventsForHeightRange(ctx, client.EventRangeQuery{
+			Type:        "foo",
+			StartHeight: 1,
+			EndHeight:   10,
+		})
+		assert.NoError(t, err)
+
+		assert.Empty(t, blocks)
+
+		rpc.AssertExpectations(t)
+	})
+
+	t.Run("Non-empty result", func(t *testing.T) {
+		rpc := &mocks.RPCClient{}
+
+		ctx := context.Background()
+
+		eventA, eventB, eventC, eventD := events.New(), events.New(), events.New(), events.New()
+
+		eventAMsg, _ := convert.EventToMessage(eventA)
+		eventBMsg, _ := convert.EventToMessage(eventB)
+		eventCMsg, _ := convert.EventToMessage(eventC)
+		eventDMsg, _ := convert.EventToMessage(eventD)
+
+		response := &access.EventsResponse{
+			Results: []*access.EventsResponse_Result{
+				{
+					BlockId:     ids.New().Bytes(),
+					BlockHeight: 1,
+					Events: []*entities.Event{
+						eventAMsg,
+						eventBMsg,
+					},
+				},
+				{
+					BlockId:     ids.New().Bytes(),
+					BlockHeight: 2,
+					Events: []*entities.Event{
+						eventCMsg,
+						eventDMsg,
+					},
+				},
+			},
+		}
+
+		rpc.On("GetEventsForHeightRange", ctx, mock.Anything).Return(response, nil)
+
+		c := client.NewFromRPCClient(rpc)
+
+		blocks, err := c.GetEventsForHeightRange(ctx, client.EventRangeQuery{
+			Type:        "foo",
+			StartHeight: 1,
+			EndHeight:   10,
+		})
+		assert.NoError(t, err)
+
+		assert.Len(t, blocks, len(response.Results))
+
+		assert.Equal(t, response.Results[0].BlockId, blocks[0].BlockID.Bytes())
+		assert.Equal(t, response.Results[0].BlockHeight, blocks[0].Height)
+
+		assert.Equal(t, response.Results[1].BlockId, blocks[1].BlockID.Bytes())
+		assert.Equal(t, response.Results[1].BlockHeight, blocks[1].Height)
+
+		assert.Equal(t, eventA, blocks[0].Events[0])
+		assert.Equal(t, eventB, blocks[0].Events[1])
+		assert.Equal(t, eventC, blocks[1].Events[0])
+		assert.Equal(t, eventD, blocks[1].Events[1])
+
+		rpc.AssertExpectations(t)
+	})
+
+	t.Run("Error", func(t *testing.T) {
+		rpc := &mocks.RPCClient{}
+
+		ctx := context.Background()
+
+		rpc.On("GetEventsForHeightRange", ctx, mock.Anything).
+			Return(nil, errors.New("rpc error"))
+
+		c := client.NewFromRPCClient(rpc)
+
+		blocks, err := c.GetEventsForHeightRange(ctx, client.EventRangeQuery{
+			Type:        "foo",
+			StartHeight: 1,
+			EndHeight:   10,
+		})
+
+		assert.Error(t, err)
+		assert.Empty(t, blocks)
+
+		rpc.AssertExpectations(t)
+	})
+}
+
+func TestClient_GetEventsForBlockIDs(t *testing.T) {
+	ids := test.IdentifierGenerator()
+	events := test.EventGenerator()
+
+	t.Run("Empty result", func(t *testing.T) {
+		rpc := &mocks.RPCClient{}
+
+		ctx := context.Background()
+
+		blockIDs := []flow.Identifier{ids.New(), ids.New()}
+
+		response := &access.EventsResponse{
+			Results: []*access.EventsResponse_Result{},
+		}
+
+		rpc.On("GetEventsForBlockIDs", ctx, mock.Anything).Return(response, nil)
+
+		c := client.NewFromRPCClient(rpc)
+
+		blocks, err := c.GetEventsForBlockIDs(ctx, "foo", blockIDs)
+		assert.NoError(t, err)
+
+		assert.Empty(t, blocks)
+
+		rpc.AssertExpectations(t)
+	})
+
+	t.Run("Non-empty result", func(t *testing.T) {
+		rpc := &mocks.RPCClient{}
+
+		ctx := context.Background()
+
+		blockIDA, blockIDB := ids.New(), ids.New()
+		eventA, eventB, eventC, eventD := events.New(), events.New(), events.New(), events.New()
+
+		eventAMsg, _ := convert.EventToMessage(eventA)
+		eventBMsg, _ := convert.EventToMessage(eventB)
+		eventCMsg, _ := convert.EventToMessage(eventC)
+		eventDMsg, _ := convert.EventToMessage(eventD)
+
+		response := &access.EventsResponse{
+			Results: []*access.EventsResponse_Result{
+				{
+					BlockId:     blockIDA.Bytes(),
+					BlockHeight: 1,
+					Events: []*entities.Event{
+						eventAMsg,
+						eventBMsg,
+					},
+				},
+				{
+					BlockId:     blockIDB.Bytes(),
+					BlockHeight: 2,
+					Events: []*entities.Event{
+						eventCMsg,
+						eventDMsg,
+					},
+				},
+			},
+		}
+
+		rpc.On("GetEventsForBlockIDs", ctx, mock.Anything).Return(response, nil)
+
+		c := client.NewFromRPCClient(rpc)
+
+		blocks, err := c.GetEventsForBlockIDs(ctx, "foo", []flow.Identifier{blockIDA, blockIDB})
+		assert.NoError(t, err)
+
+		assert.Len(t, blocks, len(response.Results))
+
+		assert.Equal(t, response.Results[0].BlockId, blocks[0].BlockID.Bytes())
+		assert.Equal(t, response.Results[0].BlockHeight, blocks[0].Height)
+
+		assert.Equal(t, response.Results[1].BlockId, blocks[1].BlockID.Bytes())
+		assert.Equal(t, response.Results[1].BlockHeight, blocks[1].Height)
+
+		assert.Equal(t, eventA, blocks[0].Events[0])
+		assert.Equal(t, eventB, blocks[0].Events[1])
+		assert.Equal(t, eventC, blocks[1].Events[0])
+		assert.Equal(t, eventD, blocks[1].Events[1])
+
+		rpc.AssertExpectations(t)
+	})
+
+	t.Run("Error", func(t *testing.T) {
+		rpc := &mocks.RPCClient{}
+
+		ctx := context.Background()
+
+		blockIDA, blockIDB := ids.New(), ids.New()
+
+		rpc.On("GetEventsForBlockIDs", ctx, mock.Anything).
+			Return(nil, errors.New("rpc error"))
+
+		c := client.NewFromRPCClient(rpc)
+
+		blocks, err := c.GetEventsForBlockIDs(ctx, "foo", []flow.Identifier{blockIDA, blockIDB})
+
+		assert.Error(t, err)
+		assert.Empty(t, blocks)
 
 		rpc.AssertExpectations(t)
 	})
