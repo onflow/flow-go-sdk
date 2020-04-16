@@ -64,33 +64,116 @@ func (c *Client) Ping(ctx context.Context) error {
 }
 
 // GetLatestBlockHeader gets the latest sealed or unsealed block header.
-func (c *Client) GetLatestBlockHeader(ctx context.Context) error {
-	panic("not implemented")
+func (c *Client) GetLatestBlockHeader(
+	ctx context.Context,
+	isSealed bool,
+) (*flow.BlockHeader, error) {
+	req := &access.GetLatestBlockHeaderRequest{
+		IsSealed: isSealed,
+	}
+
+	res, err := c.rpcClient.GetLatestBlockHeader(ctx, req)
+	if err != nil {
+		// TODO: improve errors
+		return nil, fmt.Errorf("client: %w", err)
+	}
+
+	return getBlockHeaderResult(res)
 }
 
 // GetBlockHeaderByID gets a block header by ID.
-func (c *Client) GetBlockHeaderByID(ctx context.Context) error {
-	panic("not implemented")
+func (c *Client) GetBlockHeaderByID(ctx context.Context, blockID flow.Identifier) (*flow.BlockHeader, error) {
+	req := &access.GetBlockHeaderByIDRequest{
+		Id: blockID.Bytes(),
+	}
+
+	res, err := c.rpcClient.GetBlockHeaderByID(ctx, req)
+	if err != nil {
+		// TODO: improve errors
+		return nil, fmt.Errorf("client: %w", err)
+	}
+
+	return getBlockHeaderResult(res)
 }
 
 // GetBlockHeaderByHeight gets a block header by height.
-func (c *Client) GetBlockHeaderByHeight(ctx context.Context) error {
-	panic("not implemented")
+func (c *Client) GetBlockHeaderByHeight(ctx context.Context, height uint64) (*flow.BlockHeader, error) {
+	req := &access.GetBlockHeaderByHeightRequest{
+		Height: height,
+	}
+
+	res, err := c.rpcClient.GetBlockHeaderByHeight(ctx, req)
+	if err != nil {
+		// TODO: improve errors
+		return nil, fmt.Errorf("client: %w", err)
+	}
+
+	return getBlockHeaderResult(res)
+}
+
+func getBlockHeaderResult(res *access.BlockHeaderResponse) (*flow.BlockHeader, error) {
+	result, err := convert.MessageToBlockHeader(res.GetBlock())
+	if err != nil {
+		// TODO: improve errors
+		return nil, fmt.Errorf("client: %w", err)
+	}
+
+	return &result, nil
 }
 
 // GetLatestBlock gets the full payload of the latest sealed or unsealed block.
-func (c *Client) GetLatestBlock(ctx context.Context) error {
-	panic("not implemented")
+func (c *Client) GetLatestBlock(ctx context.Context, isSealed bool) (*flow.Block, error) {
+	req := &access.GetLatestBlockRequest{
+		IsSealed: isSealed,
+	}
+
+	res, err := c.rpcClient.GetLatestBlock(ctx, req)
+	if err != nil {
+		// TODO: improve errors
+		return nil, fmt.Errorf("client: %w", err)
+	}
+
+	return getBlockResult(res)
 }
 
 // GetBlockByID gets a full block by ID.
-func (c *Client) GetBlockByID(ctx context.Context) error {
-	panic("not implemented")
+func (c *Client) GetBlockByID(ctx context.Context, blockID flow.Identifier) (*flow.Block, error) {
+	req := &access.GetBlockByIDRequest{
+		Id: blockID.Bytes(),
+	}
+
+	res, err := c.rpcClient.GetBlockByID(ctx, req)
+	if err != nil {
+		// TODO: improve errors
+		return nil, fmt.Errorf("client: %w", err)
+	}
+
+	return getBlockResult(res)
 }
 
 // GetBlockByHeight gets a full block by height.
-func (c *Client) GetBlockByHeight(ctx context.Context) error {
-	panic("not implemented")
+func (c *Client) GetBlockByHeight(ctx context.Context, height uint64) (*flow.Block, error) {
+	req := &access.GetBlockByHeightRequest{
+		Height: height,
+	}
+
+	res, err := c.rpcClient.GetBlockByHeight(ctx, req)
+	if err != nil {
+		// TODO: improve errors
+		return nil, fmt.Errorf("client: %w", err)
+	}
+
+	return getBlockResult(res)
+}
+
+func getBlockResult(res *access.BlockResponse) (*flow.Block, error) {
+	result, err := convert.MessageToBlock(res.GetBlock())
+	if err != nil {
+		// TODO: improve errors
+		return nil, fmt.Errorf("client: %w", err)
+	}
+
+	return &result, nil
 }
 
 // GetCollection gets a collection by ID.

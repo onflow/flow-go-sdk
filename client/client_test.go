@@ -15,27 +15,27 @@ import (
 	"github.com/dapperlabs/flow-go-sdk/test"
 )
 
-func TestClient_SendTransaction(t *testing.T) {
-	transactions := test.TransactionGenerator()
+func TestClient_GetLatestBlockHeader(t *testing.T) {
+	blocks := test.BlockGenerator()
 
 	t.Run("Success", func(t *testing.T) {
 		rpc := &mocks.RPCClient{}
 
 		ctx := context.Background()
 
-		tx := transactions.New()
-
-		response := &access.SendTransactionResponse{
-			Id: tx.ID().Bytes(),
+		expectedHeader := blocks.New().BlockHeader
+		response := &access.BlockHeaderResponse{
+			Block: convert.BlockHeaderToMessage(expectedHeader),
 		}
 
-		rpc.On("SendTransaction", ctx, mock.Anything).Return(response, nil)
+		rpc.On("GetLatestBlockHeader", ctx, mock.Anything).Return(response, nil)
 
 		c := client.NewFromRPCClient(rpc)
 
-		err := c.SendTransaction(ctx, *tx)
-
+		header, err := c.GetLatestBlockHeader(ctx, true)
 		assert.NoError(t, err)
+
+		assert.Equal(t, expectedHeader, *header)
 
 		rpc.AssertExpectations(t)
 	})
@@ -45,15 +45,237 @@ func TestClient_SendTransaction(t *testing.T) {
 
 		ctx := context.Background()
 
-		tx := transactions.New()
-
-		rpc.On("SendTransaction", ctx, mock.Anything).
+		rpc.On("GetLatestBlockHeader", ctx, mock.Anything).
 			Return(nil, errors.New("rpc error"))
 
 		c := client.NewFromRPCClient(rpc)
 
-		err := c.SendTransaction(ctx, *tx)
+		result, err := c.GetLatestBlockHeader(ctx, true)
 		assert.Error(t, err)
+		assert.Nil(t, result)
+
+		rpc.AssertExpectations(t)
+	})
+}
+
+func TestClient_GetBlockHeaderByID(t *testing.T) {
+	blocks := test.BlockGenerator()
+	ids := test.IdentifierGenerator()
+
+	t.Run("Success", func(t *testing.T) {
+		rpc := &mocks.RPCClient{}
+
+		ctx := context.Background()
+
+		blockID := ids.New()
+		expectedHeader := blocks.New().BlockHeader
+		response := &access.BlockHeaderResponse{
+			Block: convert.BlockHeaderToMessage(expectedHeader),
+		}
+
+		rpc.On("GetBlockHeaderByID", ctx, mock.Anything).Return(response, nil)
+
+		c := client.NewFromRPCClient(rpc)
+
+		header, err := c.GetBlockHeaderByID(ctx, blockID)
+		assert.NoError(t, err)
+
+		assert.Equal(t, expectedHeader, *header)
+
+		rpc.AssertExpectations(t)
+	})
+
+	t.Run("Error", func(t *testing.T) {
+		rpc := &mocks.RPCClient{}
+
+		ctx := context.Background()
+
+		blockID := ids.New()
+
+		rpc.On("GetBlockHeaderByID", ctx, mock.Anything).
+			Return(nil, errors.New("rpc error"))
+
+		c := client.NewFromRPCClient(rpc)
+
+		result, err := c.GetBlockHeaderByID(ctx, blockID)
+		assert.Error(t, err)
+		assert.Nil(t, result)
+
+		rpc.AssertExpectations(t)
+	})
+}
+
+func TestClient_GetBlockHeaderByHeight(t *testing.T) {
+	blocks := test.BlockGenerator()
+
+	t.Run("Success", func(t *testing.T) {
+		rpc := &mocks.RPCClient{}
+
+		ctx := context.Background()
+
+		expectedHeader := blocks.New().BlockHeader
+		response := &access.BlockHeaderResponse{
+			Block: convert.BlockHeaderToMessage(expectedHeader),
+		}
+
+		rpc.On("GetBlockHeaderByHeight", ctx, mock.Anything).Return(response, nil)
+
+		c := client.NewFromRPCClient(rpc)
+
+		header, err := c.GetBlockHeaderByHeight(ctx, 42)
+		assert.NoError(t, err)
+
+		assert.Equal(t, expectedHeader, *header)
+
+		rpc.AssertExpectations(t)
+	})
+
+	t.Run("Error", func(t *testing.T) {
+		rpc := &mocks.RPCClient{}
+
+		ctx := context.Background()
+
+		rpc.On("GetBlockHeaderByHeight", ctx, mock.Anything).
+			Return(nil, errors.New("rpc error"))
+
+		c := client.NewFromRPCClient(rpc)
+
+		result, err := c.GetBlockHeaderByHeight(ctx, 42)
+		assert.Error(t, err)
+		assert.Nil(t, result)
+
+		rpc.AssertExpectations(t)
+	})
+}
+
+func TestClient_GetLatestBlock(t *testing.T) {
+	blocks := test.BlockGenerator()
+
+	t.Run("Success", func(t *testing.T) {
+		rpc := &mocks.RPCClient{}
+
+		ctx := context.Background()
+
+		expectedBlock := blocks.New()
+		response := &access.BlockResponse{
+			Block: convert.BlockToMessage(*expectedBlock),
+		}
+
+		rpc.On("GetLatestBlock", ctx, mock.Anything).Return(response, nil)
+
+		c := client.NewFromRPCClient(rpc)
+
+		block, err := c.GetLatestBlock(ctx, true)
+		assert.NoError(t, err)
+
+		assert.Equal(t, expectedBlock, block)
+
+		rpc.AssertExpectations(t)
+	})
+
+	t.Run("Error", func(t *testing.T) {
+		rpc := &mocks.RPCClient{}
+
+		ctx := context.Background()
+
+		rpc.On("GetLatestBlock", ctx, mock.Anything).
+			Return(nil, errors.New("rpc error"))
+
+		c := client.NewFromRPCClient(rpc)
+
+		result, err := c.GetLatestBlock(ctx, true)
+		assert.Error(t, err)
+		assert.Nil(t, result)
+
+		rpc.AssertExpectations(t)
+	})
+}
+
+func TestClient_GetBlockByID(t *testing.T) {
+	blocks := test.BlockGenerator()
+	ids := test.IdentifierGenerator()
+
+	t.Run("Success", func(t *testing.T) {
+		rpc := &mocks.RPCClient{}
+
+		ctx := context.Background()
+
+		blockID := ids.New()
+		expectedBlock := blocks.New()
+		response := &access.BlockResponse{
+			Block: convert.BlockToMessage(*expectedBlock),
+		}
+
+		rpc.On("GetBlockByID", ctx, mock.Anything).Return(response, nil)
+
+		c := client.NewFromRPCClient(rpc)
+
+		block, err := c.GetBlockByID(ctx, blockID)
+		assert.NoError(t, err)
+
+		assert.Equal(t, expectedBlock, block)
+
+		rpc.AssertExpectations(t)
+	})
+
+	t.Run("Error", func(t *testing.T) {
+		rpc := &mocks.RPCClient{}
+
+		ctx := context.Background()
+
+		blockID := ids.New()
+
+		rpc.On("GetBlockByID", ctx, mock.Anything).
+			Return(nil, errors.New("rpc error"))
+
+		c := client.NewFromRPCClient(rpc)
+
+		result, err := c.GetBlockByID(ctx, blockID)
+		assert.Error(t, err)
+		assert.Nil(t, result)
+
+		rpc.AssertExpectations(t)
+	})
+}
+
+func TestClient_GetBlockByHeight(t *testing.T) {
+	blocks := test.BlockGenerator()
+
+	t.Run("Success", func(t *testing.T) {
+		rpc := &mocks.RPCClient{}
+
+		ctx := context.Background()
+
+		expectedBlock := blocks.New()
+		response := &access.BlockResponse{
+			Block: convert.BlockToMessage(*expectedBlock),
+		}
+
+		rpc.On("GetBlockByHeight", ctx, mock.Anything).Return(response, nil)
+
+		c := client.NewFromRPCClient(rpc)
+
+		block, err := c.GetBlockByHeight(ctx, 42)
+		assert.NoError(t, err)
+
+		assert.Equal(t, expectedBlock, block)
+
+		rpc.AssertExpectations(t)
+	})
+
+	t.Run("Error", func(t *testing.T) {
+		rpc := &mocks.RPCClient{}
+
+		ctx := context.Background()
+
+		rpc.On("GetBlockByHeight", ctx, mock.Anything).
+			Return(nil, errors.New("rpc error"))
+
+		c := client.NewFromRPCClient(rpc)
+
+		result, err := c.GetBlockByHeight(ctx, 42)
+		assert.Error(t, err)
+		assert.Nil(t, result)
 
 		rpc.AssertExpectations(t)
 	})
@@ -101,6 +323,50 @@ func TestClient_GetCollection(t *testing.T) {
 		result, err := c.GetCollection(ctx, colID)
 		assert.Error(t, err)
 		assert.Nil(t, result)
+
+		rpc.AssertExpectations(t)
+	})
+}
+
+func TestClient_SendTransaction(t *testing.T) {
+	transactions := test.TransactionGenerator()
+
+	t.Run("Success", func(t *testing.T) {
+		rpc := &mocks.RPCClient{}
+
+		ctx := context.Background()
+
+		tx := transactions.New()
+
+		response := &access.SendTransactionResponse{
+			Id: tx.ID().Bytes(),
+		}
+
+		rpc.On("SendTransaction", ctx, mock.Anything).Return(response, nil)
+
+		c := client.NewFromRPCClient(rpc)
+
+		err := c.SendTransaction(ctx, *tx)
+
+		assert.NoError(t, err)
+
+		rpc.AssertExpectations(t)
+	})
+
+	t.Run("Error", func(t *testing.T) {
+		rpc := &mocks.RPCClient{}
+
+		ctx := context.Background()
+
+		tx := transactions.New()
+
+		rpc.On("SendTransaction", ctx, mock.Anything).
+			Return(nil, errors.New("rpc error"))
+
+		c := client.NewFromRPCClient(rpc)
+
+		err := c.SendTransaction(ctx, *tx)
+		assert.Error(t, err)
 
 		rpc.AssertExpectations(t)
 	})
