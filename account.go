@@ -3,7 +3,7 @@ package flow
 import (
 	"github.com/dapperlabs/flow-go/crypto"
 
-	sdkcrypto "github.com/dapperlabs/flow-go-sdk/crypto"
+	sdkcrypto "github.com/onflow/flow-go-sdk/crypto"
 )
 
 // Account represents an account on the Flow network.

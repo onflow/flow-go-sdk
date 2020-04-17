@@ -7,10 +7,10 @@ import (
 	"github.com/dapperlabs/cadence"
 	jsoncdc "github.com/dapperlabs/cadence/encoding/json"
 	"github.com/dapperlabs/flow-go/crypto"
-	"github.com/dapperlabs/flow/protobuf/go/flow/access"
-	"github.com/dapperlabs/flow/protobuf/go/flow/entities"
+	"github.com/onflow/flow/protobuf/go/flow/access"
+	"github.com/onflow/flow/protobuf/go/flow/entities"
 
-	"github.com/dapperlabs/flow-go-sdk"
+	"github.com/onflow/flow-go-sdk"
 )
 
 var ErrEmptyMessage = errors.New("protobuf message is empty")

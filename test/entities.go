@@ -7,9 +7,9 @@ import (
 	"github.com/dapperlabs/cadence"
 	"github.com/dapperlabs/flow-go/crypto"
 
-	"github.com/dapperlabs/flow-go-sdk"
-	sdkcrypto "github.com/dapperlabs/flow-go-sdk/crypto"
-	"github.com/dapperlabs/flow-go-sdk/keys"
+	"github.com/onflow/flow-go-sdk"
+	sdkcrypto "github.com/onflow/flow-go-sdk/crypto"
+	"github.com/onflow/flow-go-sdk/keys"
 )
 
 var ScriptHelloWorld = []byte(`transaction { execute { log("Hello, World!") } }`)

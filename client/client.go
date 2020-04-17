@@ -10,10 +10,10 @@ import (
 
 	"github.com/dapperlabs/cadence"
 	encoding "github.com/dapperlabs/cadence/encoding/json"
-	"github.com/dapperlabs/flow/protobuf/go/flow/access"
+	"github.com/onflow/flow/protobuf/go/flow/access"
 
-	"github.com/dapperlabs/flow-go-sdk"
-	"github.com/dapperlabs/flow-go-sdk/client/convert"
+	"github.com/onflow/flow-go-sdk"
+	"github.com/onflow/flow-go-sdk/client/convert"
 )
 
 // An RPCClient is an RPC client for the Flow Access API.

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/dapperlabs/flow-go-sdk"
-	"github.com/dapperlabs/flow-go-sdk/keys"
+	"github.com/onflow/flow-go-sdk"
+	"github.com/onflow/flow-go-sdk/keys"
 )
 
 // CreateAccount generates a script that creates a new account.

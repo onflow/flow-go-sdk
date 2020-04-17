@@ -5,7 +5,7 @@ import (
 
 	"github.com/dapperlabs/flow-go/model/hash"
 
-	"github.com/dapperlabs/flow-go-sdk/crypto"
+	"github.com/onflow/flow-go-sdk/crypto"
 )
 
 // A Transaction is a full transaction object containing a payload and signatures.

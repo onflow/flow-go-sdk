@@ -6,8 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/dapperlabs/flow-go-sdk/client/convert"
-	"github.com/dapperlabs/flow-go-sdk/test"
+	"github.com/onflow/flow-go-sdk/client/convert"
+	"github.com/onflow/flow-go-sdk/test"
 )
 
 func TestConvert_Block(t *testing.T) {

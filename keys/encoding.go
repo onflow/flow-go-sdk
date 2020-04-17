@@ -6,7 +6,7 @@ import (
 
 	"github.com/dapperlabs/flow-go/crypto"
 
-	"github.com/dapperlabs/flow-go-sdk"
+	"github.com/onflow/flow-go-sdk"
 )
 
 // EncodePrivateKey encodes a private key as bytes.
