@@ -6,7 +6,7 @@ import (
 
 	"github.com/dapperlabs/flow-go/crypto"
 
-	"github.com/dapperlabs/flow-go-sdk"
+	"github.com/onflow/flow-go-sdk"
 )
 
 // KeyType is a key format supported by Flow.

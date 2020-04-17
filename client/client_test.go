@@ -5,16 +5,16 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/dapperlabs/flow/protobuf/go/flow/access"
-	"github.com/dapperlabs/flow/protobuf/go/flow/entities"
+	"github.com/onflow/flow/protobuf/go/flow/access"
+	"github.com/onflow/flow/protobuf/go/flow/entities"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/dapperlabs/flow-go-sdk"
-	"github.com/dapperlabs/flow-go-sdk/client"
-	"github.com/dapperlabs/flow-go-sdk/client/convert"
-	"github.com/dapperlabs/flow-go-sdk/client/mocks"
-	"github.com/dapperlabs/flow-go-sdk/test"
+	"github.com/onflow/flow-go-sdk"
+	"github.com/onflow/flow-go-sdk/client"
+	"github.com/onflow/flow-go-sdk/client/convert"
+	"github.com/onflow/flow-go-sdk/client/mocks"
+	"github.com/onflow/flow-go-sdk/test"
 )
 
 func TestClient_GetLatestBlockHeader(t *testing.T) {
