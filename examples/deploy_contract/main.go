@@ -213,9 +213,10 @@ func GenerateGetNFTIDScript(nftCodeAddr, userAddr flow.Address) []byte {
 
 		pub fun main(): Int {
 			let acct = getAccount(0x%s)
-			let nft = acct.published[&GreatToken.GreatNFT] ?? panic("missing nft")
+			let nft = acct.getCapability(from: /public/GreatNFT)!.borrow<&GreatToken.GreatNFT>()!
 			return nft.id()
 		}
+  
   
 	`
 
