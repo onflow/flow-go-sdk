@@ -8,8 +8,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/dapperlabs/cadence"
-	encoding "github.com/dapperlabs/cadence/encoding/json"
+	"github.com/onflow/cadence"
+	encoding "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/flow/protobuf/go/flow/access"
 
 	"github.com/onflow/flow-go-sdk"

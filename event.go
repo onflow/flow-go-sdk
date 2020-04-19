@@ -3,7 +3,7 @@ package flow
 import (
 	"fmt"
 
-	"github.com/dapperlabs/cadence"
+	"github.com/onflow/cadence"
 	"github.com/dapperlabs/flow-go/model/hash"
 )
 

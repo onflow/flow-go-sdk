@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/dapperlabs/cadence"
+	"github.com/onflow/cadence"
 	"github.com/dapperlabs/flow-go/crypto"
 
 	"github.com/onflow/flow-go-sdk"
