@@ -22,7 +22,7 @@ func CreateAccountDemo() {
 	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
 	examples.Handle(err)
 
-	rootAcctAddr, rootAcctKey, rootPrivateKey := examples.RootAccount(flowClient)
+	rootAcctAddr, rootAcctKey, rootSigner := examples.RootAccount(flowClient)
 
 	myPrivateKey := examples.RandomPrivateKey()
 	myAcctKey := flow.AccountKey{
@@ -45,11 +45,7 @@ func CreateAccountDemo() {
 
 	// Sign the transaction with the root account, which already exists
 	// All new accounts must be created by an existing account
-	err = createAccountTx.SignEnvelope(
-		rootAcctAddr,
-		rootAcctKey.ID,
-		crypto.NewNaiveSigner(rootPrivateKey, rootAcctKey.HashAlgo),
-	)
+	err = createAccountTx.SignEnvelope(rootAcctAddr, rootAcctKey.ID, rootSigner)
 	examples.Handle(err)
 
 	// Send the transaction to the network

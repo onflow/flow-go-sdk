@@ -8,7 +8,6 @@ import (
 
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/client"
-	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/examples"
 )
 
@@ -18,7 +17,7 @@ func main() {
 
 func QueryEventsDemo() {
 	ctx := context.Background()
-	accountAddr, accountKey, accountPrivateKey := examples.CreateAccount()
+	acctAddr, acctKey, acctSigner := examples.CreateAccount()
 
 	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
 	examples.Handle(err)
@@ -50,14 +49,10 @@ func QueryEventsDemo() {
 
 	runScriptTx := flow.NewTransaction().
 		SetScript([]byte(script)).
-		SetPayer(accountAddr).
-		SetProposalKey(accountAddr, accountKey.ID, accountKey.SequenceNumber)
+		SetPayer(acctAddr).
+		SetProposalKey(acctAddr, acctKey.ID, acctKey.SequenceNumber)
 
-	err = runScriptTx.SignEnvelope(
-		accountAddr,
-		accountKey.ID,
-		crypto.NewNaiveSigner(accountPrivateKey, accountKey.HashAlgo),
-	)
+	err = runScriptTx.SignEnvelope(acctAddr, acctKey.ID, acctSigner)
 	examples.Handle(err)
 
 	err = flowClient.SendTransaction(ctx, *runScriptTx)

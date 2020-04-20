@@ -27,9 +27,10 @@ func DeployContractDemo() {
 	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
 	examples.Handle(err)
 
-	rootAcctAddr, rootAcctKey, rootPrivateKey := examples.RootAccount(flowClient)
+	rootAcctAddr, rootAcctKey, rootSigner := examples.RootAccount(flowClient)
 
 	myPrivateKey := examples.RandomPrivateKey()
+	mySigner := crypto.NewNaiveSigner(myPrivateKey, crypto.SHA3_256)
 	myAcctKey := flow.AccountKey{
 		PublicKey: myPrivateKey.PublicKey(),
 		SigAlgo:   myPrivateKey.Algorithm(),
@@ -46,11 +47,7 @@ func DeployContractDemo() {
 		SetProposalKey(rootAcctAddr, rootAcctKey.ID, rootAcctKey.SequenceNumber).
 		SetPayer(rootAcctAddr)
 
-	err = createAccountTx.SignEnvelope(
-		rootAcctAddr,
-		rootAcctKey.ID,
-		crypto.NewNaiveSigner(rootPrivateKey, rootAcctKey.HashAlgo),
-	)
+	err = createAccountTx.SignEnvelope(rootAcctAddr, rootAcctKey.ID, rootSigner)
 	examples.Handle(err)
 
 	err = flowClient.SendTransaction(ctx, *createAccountTx)
@@ -118,11 +115,7 @@ func DeployContractDemo() {
 		SetPayer(myAddress).
 		AddAuthorizer(myAddress)
 
-	err = createMinterTx.SignEnvelope(
-		myAddress,
-		myAcctKey.ID,
-		crypto.NewNaiveSigner(myPrivateKey, myAcctKey.HashAlgo),
-	)
+	err = createMinterTx.SignEnvelope(myAddress, myAcctKey.ID, mySigner)
 	examples.Handle(err)
 
 	err = flowClient.SendTransaction(ctx, *createMinterTx)
@@ -143,11 +136,7 @@ func DeployContractDemo() {
 		SetPayer(myAddress).
 		AddAuthorizer(myAddress)
 
-	err = mintTx.SignEnvelope(
-		myAddress,
-		myAcctKey.ID,
-		crypto.NewNaiveSigner(myPrivateKey, myAcctKey.HashAlgo),
-	)
+	err = mintTx.SignEnvelope(myAddress, myAcctKey.ID, mySigner)
 	examples.Handle(err)
 
 	err = flowClient.SendTransaction(ctx, *mintTx)
@@ -220,8 +209,6 @@ func GenerateGetNFTIDScript(nftCodeAddr, userAddr flow.Address) []byte {
 			let nft = acct.getCapability(/public/GreatNFT)!.borrow<&GreatToken.GreatNFT>()!
 			return nft.id()
 		}
-  
-  
 	`
 
 	return []byte(fmt.Sprintf(template, nftCodeAddr, userAddr))

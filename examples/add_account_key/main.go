@@ -19,7 +19,7 @@ func main() {
 
 func AddAccountKeyDemo() {
 	ctx := context.Background()
-	accountAddr, accountKey, accountPrivateKey := examples.CreateAccount() // Creates a new account and returns the address+key
+	acctAddr, acctKey, acctSigner := examples.CreateAccount() // Creates a new account and returns the address+key
 
 	// Create the new key to add to your account
 	myPrivateKey := examples.RandomPrivateKey()
@@ -41,17 +41,13 @@ func AddAccountKeyDemo() {
 	// The transaction is signed by our account key so it has permission to add keys.
 	addKeyTx := flow.NewTransaction().
 		SetScript(addKeyScript).
-		SetProposalKey(accountAddr, accountKey.ID, accountKey.SequenceNumber).
-		SetPayer(accountAddr).
+		SetProposalKey(acctAddr, acctKey.ID, acctKey.SequenceNumber).
+		SetPayer(acctAddr).
 		// This defines which accounts are accessed by this transaction
-		AddAuthorizer(accountAddr)
+		AddAuthorizer(acctAddr)
 
 	// Sign the transaction with the new account.
-	err = addKeyTx.SignEnvelope(
-		accountAddr,
-		accountKey.ID,
-		crypto.NewNaiveSigner(accountPrivateKey, accountKey.HashAlgo),
-	)
+	err = addKeyTx.SignEnvelope(acctAddr, acctKey.ID, acctSigner)
 	examples.Handle(err)
 
 	// Send the transaction to the network.
