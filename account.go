@@ -66,17 +66,3 @@ type accountPublicKeyWrapper struct {
 	HashAlgo         uint
 	Weight           uint
 }
-
-type AccountPrivateKey struct {
-	PrivateKey crypto.PrivateKey
-	SigAlgo    crypto.SignatureAlgorithm
-	HashAlgo   crypto.HashAlgorithm
-}
-
-func (pk AccountPrivateKey) PublicKey() crypto.PublicKey {
-	return pk.PrivateKey.PublicKey()
-}
-
-func (pk AccountPrivateKey) Signer() crypto.NaiveSigner {
-	return crypto.NewNaiveSigner(pk.PrivateKey, pk.HashAlgo)
-}
