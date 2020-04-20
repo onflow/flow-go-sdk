@@ -2,6 +2,7 @@ package crypto
 
 import (
 	"encoding/hex"
+	"fmt"
 
 	"github.com/onflow/flow-go-sdk/crypto/internal/crypto"
 	"github.com/onflow/flow-go-sdk/crypto/internal/crypto/hash"
@@ -125,9 +126,11 @@ type NaiveSigner struct {
 }
 
 func NewNaiveSigner(privateKey PrivateKey, hashAlgo HashAlgorithm) NaiveSigner {
+	hasher, _ := NewHasher(hashAlgo)
+
 	return NaiveSigner{
 		PrivateKey: privateKey,
-		Hasher:     NewHasher(hashAlgo),
+		Hasher:     hasher,
 	}
 }
 
@@ -194,18 +197,18 @@ func DecodePublicKeyHex(sigAlgo SignatureAlgorithm, s string) (PublicKey, error)
 
 type Hasher = hash.Hasher
 
-func NewHasher(algo HashAlgorithm) Hasher {
+func NewHasher(algo HashAlgorithm) (Hasher, error) {
 	switch algo {
 	case SHA2_256:
-		return NewSHA2_256()
+		return NewSHA2_256(), nil
 	case SHA2_384:
-		return NewSHA2_384()
+		return NewSHA2_384(), nil
 	case SHA3_256:
-		return NewSHA3_256()
+		return NewSHA3_256(), nil
 	case SHA3_384:
-		return NewSHA3_384()
+		return NewSHA3_384(), nil
 	default:
-		panic("invalid hash algorithm")
+		return nil, fmt.Errorf("invalid hash algorithm %s", algo)
 	}
 }
 
