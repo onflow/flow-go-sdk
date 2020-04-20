@@ -1,6 +1,10 @@
 package flow
 
-import "encoding/hex"
+import (
+	"encoding/hex"
+
+	"github.com/onflow/flow-go-sdk/crypto"
+)
 
 // Identifier represents a 32-byte unique identifier for an entity.
 type Identifier [32]byte
@@ -23,4 +27,11 @@ func HashToID(hash []byte) Identifier {
 	var id Identifier
 	copy(id[:], hash)
 	return id
+}
+
+// DefaultHasher is the default hasher used by Flow.
+var DefaultHasher crypto.Hasher
+
+func init() {
+	DefaultHasher = crypto.NewSHA3_256()
 }

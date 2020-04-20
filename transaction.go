@@ -3,7 +3,7 @@ package flow
 import (
 	"sort"
 
-	"github.com/dapperlabs/flow-go/model/hash"
+	"github.com/ethereum/go-ethereum/rlp"
 
 	"github.com/onflow/flow-go-sdk/crypto"
 )
@@ -27,7 +27,7 @@ func NewTransaction() *Transaction {
 
 // ID returns the canonical SHA3-256 hash of this transaction.
 func (t *Transaction) ID() Identifier {
-	return HashToID(hash.DefaultHasher.ComputeHash(t.Encode()))
+	return HashToID(DefaultHasher.ComputeHash(t.Encode()))
 }
 
 // SetScript sets the Cadence script for this transaction.
@@ -195,7 +195,11 @@ func (t *Transaction) createSignature(address Address, keyID int, sig []byte) Tr
 
 func (t *Transaction) PayloadMessage() []byte {
 	temp := t.payloadCanonicalForm()
-	return DefaultEncoder.MustEncode(&temp)
+	b, err := rlp.EncodeToBytes(&temp)
+	if err != nil {
+		panic(err)
+	}
+	return b
 }
 
 func (t *Transaction) payloadCanonicalForm() interface{} {
@@ -230,7 +234,11 @@ func (t *Transaction) payloadCanonicalForm() interface{} {
 // This message is only signed by the payer account.
 func (t *Transaction) EnvelopeMessage() []byte {
 	temp := t.envelopeCanonicalForm()
-	return DefaultEncoder.MustEncode(&temp)
+	b, err := rlp.EncodeToBytes(&temp)
+	if err != nil {
+		panic(err)
+	}
+	return b
 }
 
 func (t *Transaction) envelopeCanonicalForm() interface{} {
@@ -255,7 +263,11 @@ func (t *Transaction) Encode() []byte {
 		signaturesList(t.EnvelopeSignatures).canonicalForm(),
 	}
 
-	return DefaultEncoder.MustEncode(&temp)
+	b, err := rlp.EncodeToBytes(&temp)
+	if err != nil {
+		panic(err)
+	}
+	return b
 }
 
 // A ProposalKey is the key that specifies the proposal key and sequence number for a transaction.

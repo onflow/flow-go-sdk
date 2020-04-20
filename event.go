@@ -3,8 +3,8 @@ package flow
 import (
 	"fmt"
 
+	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/onflow/cadence"
-	"github.com/dapperlabs/flow-go/model/hash"
 )
 
 // List of built-in account event types.
@@ -33,7 +33,7 @@ func (e Event) String() string {
 
 // ID returns a canonical identifier that is guaranteed to be unique.
 func (e Event) ID() string {
-	return hash.DefaultHasher.ComputeHash(e.Encode()).Hex()
+	return DefaultHasher.ComputeHash(e.Encode()).Hex()
 }
 
 // Encode returns the canonical encoding of the event, containing only the
@@ -46,7 +46,12 @@ func (e Event) Encode() []byte {
 		TransactionID: e.TransactionID[:],
 		EventIndex:    uint(e.EventIndex),
 	}
-	return DefaultEncoder.MustEncode(&temp)
+
+	b, err := rlp.EncodeToBytes(&temp)
+	if err != nil {
+		panic(err)
+	}
+	return b
 }
 
 type AccountCreatedEvent Event

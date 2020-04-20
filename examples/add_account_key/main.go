@@ -8,8 +8,8 @@ import (
 
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/client"
+	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/examples"
-	"github.com/onflow/flow-go-sdk/keys"
 	"github.com/onflow/flow-go-sdk/templates"
 )
 
@@ -21,19 +21,20 @@ func AddAccountKeyDemo() {
 	ctx := context.Background()
 	accountAddr, accountKey, accountPrivateKey := examples.CreateAccount() // Creates a new account and returns the address+key
 
-	newPrivateKey := examples.RandomPrivateKey() // Create the new key to add to your account
-	newAccountKey := flow.AccountKey{
-		PublicKey: newPrivateKey.PublicKey(),
-		SignAlgo:  keys.ECDSA_P256_SHA3_256.SigningAlgorithm(),
-		HashAlgo:  keys.ECDSA_P256_SHA3_256.HashingAlgorithm(),
-		Weight:    keys.PublicKeyWeightThreshold,
+	// Create the new key to add to your account
+	myPrivateKey := examples.RandomPrivateKey()
+	myAcctKey := flow.AccountKey{
+		PublicKey: myPrivateKey.PublicKey(),
+		SignAlgo:  myPrivateKey.Algorithm(),
+		HashAlgo:  crypto.SHA3_256,
+		Weight:    flow.AccountKeyWeightThreshold,
 	}
 
 	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
 	examples.Handle(err)
 
 	// Create a Cadence script that will add another key to our account.
-	addKeyScript, err := templates.AddAccountKey(newAccountKey)
+	addKeyScript, err := templates.AddAccountKey(myAcctKey)
 	examples.Handle(err)
 
 	// Create a transaction to execute the script.
@@ -49,7 +50,7 @@ func AddAccountKeyDemo() {
 	err = addKeyTx.SignEnvelope(
 		accountAddr,
 		accountKey.ID,
-		accountPrivateKey.Signer(),
+		crypto.NewNaiveSigner(accountPrivateKey, accountKey.HashAlgo),
 	)
 	examples.Handle(err)
 

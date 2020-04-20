@@ -8,6 +8,7 @@ import (
 
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/client"
+	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/examples"
 )
 
@@ -55,7 +56,7 @@ func QueryEventsDemo() {
 	err = runScriptTx.SignEnvelope(
 		accountAddr,
 		accountKey.ID,
-		accountPrivateKey.Signer(),
+		crypto.NewNaiveSigner(accountPrivateKey, accountKey.HashAlgo),
 	)
 	examples.Handle(err)
 

@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/onflow/flow-go-sdk"
-	"github.com/onflow/flow-go-sdk/keys"
+	"github.com/onflow/flow-go-sdk/crypto"
 )
 
 // CreateAccount generates a script that creates a new account.
@@ -14,7 +14,7 @@ func CreateAccount(accountKeys []flow.AccountKey, code []byte) ([]byte, error) {
 	publicKeys := make([][]byte, len(accountKeys))
 
 	for i, accountKey := range accountKeys {
-		accountKeyBytes, err := keys.EncodePublicKey(accountKey)
+		accountKeyBytes, err := crypto.EncodeWrappedPublicKey(accountKey.PublicKey, accountKey.SignAlgo, accountKey.HashAlgo, accountKey.Weight)
 		if err != nil {
 			return nil, err
 		}
@@ -55,7 +55,7 @@ func UpdateAccountCode(code []byte) []byte {
 
 // AddAccountKey generates a script that adds a key to an account.
 func AddAccountKey(accountKey flow.AccountKey) ([]byte, error) {
-	accountKeyBytes, err := keys.EncodePublicKey(accountKey)
+	accountKeyBytes, err := crypto.EncodeWrappedPublicKey(accountKey.PublicKey, accountKey.SignAlgo, accountKey.HashAlgo, accountKey.Weight)
 	if err != nil {
 		return nil, err
 	}
