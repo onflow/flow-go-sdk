@@ -1,6 +1,8 @@
 package flow
 
 import (
+	"github.com/pkg/errors"
+
 	"github.com/onflow/flow-go-sdk/crypto"
 )
 
@@ -11,7 +13,7 @@ type Account struct {
 	Address Address
 	Balance uint64
 	Code    []byte
-	Keys    []AccountKey
+	Keys    []*AccountKey
 }
 
 const AccountKeyWeightThreshold int = 1000
@@ -26,6 +28,36 @@ type AccountKey struct {
 	SequenceNumber uint64
 }
 
+func NewAccountKey() *AccountKey {
+	return &AccountKey{}
+}
+
+func (a *AccountKey) FromPrivateKey(pk crypto.PrivateKey) *AccountKey {
+	a.PublicKey = pk.PublicKey()
+	a.SigAlgo = pk.Algorithm()
+	return a
+}
+
+func (a *AccountKey) SetPublicKey(pubKey crypto.PublicKey) *AccountKey {
+	a.PublicKey = pubKey
+	return a
+}
+
+func (a *AccountKey) SetSigAlgo(sigAlgo crypto.SignatureAlgorithm) *AccountKey {
+	a.SigAlgo = sigAlgo
+	return a
+}
+
+func (a *AccountKey) SetHashAlgo(hashAlgo crypto.HashAlgorithm) *AccountKey {
+	a.HashAlgo = hashAlgo
+	return a
+}
+
+func (a *AccountKey) SetWeight(weight int) *AccountKey {
+	a.Weight = weight
+	return a
+}
+
 func (a AccountKey) Encode() []byte {
 	temp := accountPublicKeyWrapper{
 		EncodedPublicKey: a.PublicKey.Encode(),
@@ -34,6 +66,17 @@ func (a AccountKey) Encode() []byte {
 		Weight:           uint(a.Weight),
 	}
 	return mustRLPEncode(&temp)
+}
+
+func (a AccountKey) Validate() error {
+	if !crypto.CompatibleAlgorithms(a.SigAlgo, a.HashAlgo) {
+		return errors.Errorf(
+			"signing algorithm (%s) is incompatible with hashing algorithm (%s)",
+			a.SigAlgo,
+			a.HashAlgo,
+		)
+	}
+	return nil
 }
 
 func DecodeAccountKey(b []byte) (AccountKey, error) {

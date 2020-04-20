@@ -25,15 +25,13 @@ func CreateAccountDemo() {
 	rootAcctAddr, rootAcctKey, rootSigner := examples.RootAccount(flowClient)
 
 	myPrivateKey := examples.RandomPrivateKey()
-	myAcctKey := flow.AccountKey{
-		PublicKey: myPrivateKey.PublicKey(),
-		SigAlgo:   myPrivateKey.Algorithm(),
-		HashAlgo:  crypto.SHA3_256,
-		Weight:    flow.AccountKeyWeightThreshold,
-	}
+	myAcctKey := flow.NewAccountKey().
+		FromPrivateKey(myPrivateKey).
+		SetHashAlgo(crypto.SHA3_256).
+		SetWeight(flow.AccountKeyWeightThreshold)
 
 	// Create a Cadence script which will create an account with one key with weight 1 and
-	createAccountScript, err := templates.CreateAccount([]flow.AccountKey{myAcctKey}, nil)
+	createAccountScript, err := templates.CreateAccount([]*flow.AccountKey{myAcctKey}, nil)
 	examples.Handle(err)
 
 	// Create a transaction that will execute the script. The transaction is signed

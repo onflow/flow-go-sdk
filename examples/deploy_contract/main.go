@@ -30,16 +30,14 @@ func DeployContractDemo() {
 	rootAcctAddr, rootAcctKey, rootSigner := examples.RootAccount(flowClient)
 
 	myPrivateKey := examples.RandomPrivateKey()
+	myAcctKey := flow.NewAccountKey().
+		FromPrivateKey(myPrivateKey).
+		SetHashAlgo(crypto.SHA3_256).
+		SetWeight(flow.AccountKeyWeightThreshold)
 	mySigner := crypto.NewNaiveSigner(myPrivateKey, crypto.SHA3_256)
-	myAcctKey := flow.AccountKey{
-		PublicKey: myPrivateKey.PublicKey(),
-		SigAlgo:   myPrivateKey.Algorithm(),
-		HashAlgo:  crypto.SHA3_256,
-		Weight:    flow.AccountKeyWeightThreshold,
-	}
 
 	// Generate an account creation script
-	createAccountScript, err := templates.CreateAccount([]flow.AccountKey{myAcctKey}, nil)
+	createAccountScript, err := templates.CreateAccount([]*flow.AccountKey{myAcctKey}, nil)
 	examples.Handle(err)
 
 	createAccountTx := flow.NewTransaction().

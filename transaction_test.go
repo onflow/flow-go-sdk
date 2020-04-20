@@ -15,26 +15,26 @@ import (
 func ExampleTransaction() {
 	// Mock user accounts
 
-	adrianLaptopKey := flow.AccountKey{
+	adrianLaptopKey := &flow.AccountKey{
 		ID:             3,
 		SequenceNumber: 42,
 	}
 
-	adrianPhoneKey := flow.AccountKey{ID: 2}
+	adrianPhoneKey := &flow.AccountKey{ID: 2}
 
 	adrian := flow.Account{
 		Address: flow.HexToAddress("01"),
-		Keys: []flow.AccountKey{
+		Keys: []*flow.AccountKey{
 			adrianLaptopKey,
 			adrianPhoneKey,
 		},
 	}
 
-	blaineHardwareKey := flow.AccountKey{ID: 7}
+	blaineHardwareKey := &flow.AccountKey{ID: 7}
 
 	blaine := flow.Account{
 		Address: flow.HexToAddress("02"),
-		Keys: []flow.AccountKey{
+		Keys: []*flow.AccountKey{
 			blaineHardwareKey,
 		},
 	}
