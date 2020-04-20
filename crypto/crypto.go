@@ -108,6 +108,10 @@ type PublicKey struct {
 	PublicKey crypto.PublicKey
 }
 
+func (pk PublicKey) Verify(sig, message []byte, hasher Hasher) (bool, error) {
+	return pk.PublicKey.Verify(sig, message, hasher)
+}
+
 func (pk PublicKey) Algorithm() SignatureAlgorithm {
 	return SignatureAlgorithm(pk.PublicKey.Algorithm())
 }
