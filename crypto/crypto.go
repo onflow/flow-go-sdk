@@ -1,6 +1,8 @@
 package crypto
 
 import (
+	"encoding/hex"
+
 	"github.com/onflow/flow-go-sdk/crypto/internal/crypto"
 	"github.com/onflow/flow-go-sdk/crypto/internal/crypto/hash"
 )
@@ -161,6 +163,15 @@ func DecodePrivateKey(sigAlgo SignatureAlgorithm, b []byte) (PrivateKey, error) 
 	}, nil
 }
 
+func DecodePrivateKeyHex(sigAlgo SignatureAlgorithm, s string) (PrivateKey, error) {
+	b, err := hex.DecodeString(s)
+	if err != nil {
+		return PrivateKey{}, err
+	}
+
+	return DecodePrivateKey(sigAlgo, b)
+}
+
 func DecodePublicKey(sigAlgo SignatureAlgorithm, b []byte) (PublicKey, error) {
 	pubKey, err := crypto.DecodePublicKey(crypto.SigningAlgorithm(sigAlgo), b)
 	if err != nil {
@@ -170,6 +181,15 @@ func DecodePublicKey(sigAlgo SignatureAlgorithm, b []byte) (PublicKey, error) {
 	return PublicKey{
 		PublicKey: pubKey,
 	}, nil
+}
+
+func DecodePublicKeyHex(sigAlgo SignatureAlgorithm, s string) (PublicKey, error) {
+	b, err := hex.DecodeString(s)
+	if err != nil {
+		return PublicKey{}, err
+	}
+
+	return DecodePublicKey(sigAlgo, b)
 }
 
 type Hasher = hash.Hasher
