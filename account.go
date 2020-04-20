@@ -4,7 +4,7 @@ import (
 	"github.com/onflow/flow-go-sdk/crypto"
 )
 
-// Account represents an account on the Flow network.
+// An Account is an account on the Flow network.
 //
 // An account can be an externally owned account or a contract account with code.
 type Account struct {
@@ -20,29 +20,61 @@ const AccountKeyWeightThreshold int = 1000
 type AccountKey struct {
 	ID             int
 	PublicKey      crypto.PublicKey
-	SignAlgo       crypto.SignatureAlgorithm
+	SigAlgo        crypto.SignatureAlgorithm
 	HashAlgo       crypto.HashAlgorithm
 	Weight         int
 	SequenceNumber uint64
 }
 
+func (a AccountKey) Encode() []byte {
+	temp := accountPublicKeyWrapper{
+		EncodedPublicKey: a.PublicKey.Encode(),
+		SigAlgo:          uint(a.SigAlgo),
+		HashAlgo:         uint(a.HashAlgo),
+		Weight:           uint(a.Weight),
+	}
+	return mustRLPEncode(&temp)
+}
+
+func DecodeAccountKey(b []byte) (AccountKey, error) {
+	var temp accountPublicKeyWrapper
+
+	err := rlpDecode(b, &temp)
+	if err != nil {
+		return AccountKey{}, nil
+	}
+
+	sigAlgo := crypto.SignatureAlgorithm(temp.SigAlgo)
+	hashAlgo := crypto.HashAlgorithm(temp.HashAlgo)
+
+	publicKey, err := crypto.DecodePublicKey(sigAlgo, temp.EncodedPublicKey)
+	if err != nil {
+		return AccountKey{}, nil
+	}
+
+	return AccountKey{
+		PublicKey: publicKey,
+		SigAlgo:   sigAlgo,
+		HashAlgo:  hashAlgo,
+		Weight:    int(temp.Weight),
+	}, nil
+}
+
+type accountPublicKeyWrapper struct {
+	EncodedPublicKey []byte
+	SigAlgo          uint
+	HashAlgo         uint
+	Weight           uint
+}
+
 type AccountPrivateKey struct {
 	PrivateKey crypto.PrivateKey
-	SignAlgo   crypto.SignatureAlgorithm
+	SigAlgo    crypto.SignatureAlgorithm
 	HashAlgo   crypto.HashAlgorithm
 }
 
 func (pk AccountPrivateKey) PublicKey() crypto.PublicKey {
 	return pk.PrivateKey.PublicKey()
-}
-
-func (pk AccountPrivateKey) ToAccountKey() AccountKey {
-	return AccountKey{
-		PublicKey: pk.PublicKey(),
-		SignAlgo:  pk.SignAlgo,
-		HashAlgo:  pk.HashAlgo,
-		Weight:    0,
-	}
 }
 
 func (pk AccountPrivateKey) Signer() crypto.NaiveSigner {

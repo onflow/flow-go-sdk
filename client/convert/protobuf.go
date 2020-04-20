@@ -331,17 +331,17 @@ func MessageToAccountKey(m *entities.AccountKey) (flow.AccountKey, error) {
 		return flow.AccountKey{}, ErrEmptyMessage
 	}
 
-	signAlgo := crypto.SignatureAlgorithm(m.GetSignAlgo())
+	sigAlgo := crypto.SignatureAlgorithm(m.GetSignAlgo())
 	hashAlgo := crypto.HashAlgorithm(m.GetHashAlgo())
 
-	publicKey, err := crypto.DecodePublicKey(signAlgo, m.GetPublicKey())
+	publicKey, err := crypto.DecodePublicKey(sigAlgo, m.GetPublicKey())
 	if err != nil {
 		return flow.AccountKey{}, err
 	}
 
 	return flow.AccountKey{
 		PublicKey:      publicKey,
-		SignAlgo:       signAlgo,
+		SigAlgo:        sigAlgo,
 		HashAlgo:       hashAlgo,
 		Weight:         int(m.GetWeight()),
 		SequenceNumber: uint64(m.GetSequenceNumber()),
@@ -353,7 +353,7 @@ func AccountKeyToMessage(a flow.AccountKey) (*entities.AccountKey, error) {
 
 	return &entities.AccountKey{
 		PublicKey:      publicKey,
-		SignAlgo:       uint32(a.SignAlgo),
+		SignAlgo:       uint32(a.SigAlgo),
 		HashAlgo:       uint32(a.HashAlgo),
 		Weight:         uint32(a.Weight),
 		SequenceNumber: uint32(a.SequenceNumber),

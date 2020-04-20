@@ -24,7 +24,7 @@ func init() {
 func TestCreateAccount(t *testing.T) {
 	accountKey := flow.AccountKey{
 		PublicKey: mockPublicKey,
-		SignAlgo:  mockPublicKey.Algorithm(),
+		SigAlgo:   mockPublicKey.Algorithm(),
 		HashAlgo:  crypto.SHA3_256,
 		Weight:    flow.AccountKeyWeightThreshold,
 	}
