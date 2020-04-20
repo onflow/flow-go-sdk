@@ -34,7 +34,7 @@ func DeployContractDemo() {
 		FromPrivateKey(myPrivateKey).
 		SetHashAlgo(crypto.SHA3_256).
 		SetWeight(flow.AccountKeyWeightThreshold)
-	mySigner := crypto.NewNaiveSigner(myPrivateKey, crypto.SHA3_256)
+	mySigner := crypto.NewNaiveSigner(myPrivateKey, myAcctKey.HashAlgo)
 
 	// Generate an account creation script
 	createAccountScript, err := templates.CreateAccount([]*flow.AccountKey{myAcctKey}, nil)
