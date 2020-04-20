@@ -79,12 +79,12 @@ func (a AccountKey) Validate() error {
 	return nil
 }
 
-func DecodeAccountKey(b []byte) (AccountKey, error) {
+func DecodeAccountKey(b []byte) (*AccountKey, error) {
 	var temp accountPublicKeyWrapper
 
 	err := rlpDecode(b, &temp)
 	if err != nil {
-		return AccountKey{}, nil
+		return nil, err
 	}
 
 	sigAlgo := crypto.SignatureAlgorithm(temp.SigAlgo)
@@ -92,10 +92,10 @@ func DecodeAccountKey(b []byte) (AccountKey, error) {
 
 	publicKey, err := crypto.DecodePublicKey(sigAlgo, temp.EncodedPublicKey)
 	if err != nil {
-		return AccountKey{}, nil
+		return nil, err
 	}
 
-	return AccountKey{
+	return &AccountKey{
 		PublicKey: publicKey,
 		SigAlgo:   sigAlgo,
 		HashAlgo:  hashAlgo,
