@@ -23,12 +23,10 @@ func AddAccountKeyDemo() {
 
 	// Create the new key to add to your account
 	myPrivateKey := examples.RandomPrivateKey()
-	myAcctKey := flow.AccountKey{
-		PublicKey: myPrivateKey.PublicKey(),
-		SigAlgo:   myPrivateKey.Algorithm(),
-		HashAlgo:  crypto.SHA3_256,
-		Weight:    flow.AccountKeyWeightThreshold,
-	}
+	myAcctKey := flow.NewAccountKey().
+		FromPrivateKey(myPrivateKey).
+		SetHashAlgo(crypto.SHA3_256).
+		SetWeight(flow.AccountKeyWeightThreshold)
 
 	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
 	examples.Handle(err)

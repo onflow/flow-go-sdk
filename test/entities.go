@@ -61,7 +61,12 @@ func AccountKeyGenerator() *AccountKeys {
 	}
 }
 
-func (g *AccountKeys) New() flow.AccountKey {
+func (g *AccountKeys) New() *flow.AccountKey {
+	accountKey, _ := g.NewWithSigner()
+	return accountKey
+}
+
+func (g *AccountKeys) NewWithSigner() (*flow.AccountKey, crypto.Signer) {
 	seed := make([]byte, crypto.MinSeedLengthECDSA_P256)
 	for i := range seed {
 		seed[i] = uint8(g.count)
@@ -84,7 +89,7 @@ func (g *AccountKeys) New() flow.AccountKey {
 
 	g.count++
 
-	return accountKey
+	return &accountKey, crypto.NewNaiveSigner(privateKey, accountKey.HashAlgo)
 }
 
 type Accounts struct {
@@ -103,7 +108,7 @@ func (g *Accounts) New() *flow.Account {
 	return &flow.Account{
 		Address: g.addresses.New(),
 		Balance: 10,
-		Keys: []flow.AccountKey{
+		Keys: []*flow.AccountKey{
 			g.accountKeys.New(),
 			g.accountKeys.New(),
 		},

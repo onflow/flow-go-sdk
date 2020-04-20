@@ -9,7 +9,7 @@ import (
 )
 
 // CreateAccount generates a script that creates a new account.
-func CreateAccount(accountKeys []flow.AccountKey, code []byte) ([]byte, error) {
+func CreateAccount(accountKeys []*flow.AccountKey, code []byte) ([]byte, error) {
 	publicKeys := make([][]byte, len(accountKeys))
 
 	for i, accountKey := range accountKeys {
@@ -48,7 +48,7 @@ func UpdateAccountCode(code []byte) []byte {
 }
 
 // AddAccountKey generates a script that adds a key to an account.
-func AddAccountKey(accountKey flow.AccountKey) ([]byte, error) {
+func AddAccountKey(accountKey *flow.AccountKey) ([]byte, error) {
 	accountKeyBytes := accountKey.Encode()
 
 	publicKeyStr := languageEncodeBytes(accountKeyBytes)

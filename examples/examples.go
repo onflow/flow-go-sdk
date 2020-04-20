@@ -46,7 +46,7 @@ func RandomPrivateKey() crypto.PrivateKey {
 	return privateKey
 }
 
-func RootAccount(flowClient *client.Client) (flow.Address, flow.AccountKey, crypto.Signer) {
+func RootAccount(flowClient *client.Client) (flow.Address, *flow.AccountKey, crypto.Signer) {
 	privateKeyHex := "f87db87930770201010420c2e6c8cb9e8c9b9a7afe1df8ae431e68317ff7a9f42f8982b7877a9da76b28a7a00a06082a8648ce3d030107a14403420004c2c482bf01344a085af036f9413dd17a0d98a5b6fb4915c3ad4c3cb574e03ea5e2d47608093a26081c165722621bf9d8ff4b880cac0e7c586af3d86c0818a4af0203"
 	privateKey, _, _ := crypto.MustDecodeWrappedPrivateKeyHex(privateKeyHex)
 
@@ -63,18 +63,16 @@ func RootAccount(flowClient *client.Client) (flow.Address, flow.AccountKey, cryp
 	return addr, accountKey, signer
 }
 
-func CreateAccount() (flow.Address, flow.AccountKey, crypto.Signer) {
+func CreateAccount() (flow.Address, *flow.AccountKey, crypto.Signer) {
 	privateKey := RandomPrivateKey()
 
-	accountKey := flow.AccountKey{
-		PublicKey: privateKey.PublicKey(),
-		SigAlgo:   crypto.ECDSA_P256,
-		HashAlgo:  crypto.SHA3_256,
-		Weight:    flow.AccountKeyWeightThreshold,
-	}
+	accountKey := flow.NewAccountKey().
+		FromPrivateKey(privateKey).
+		SetHashAlgo(crypto.SHA3_256).
+		SetWeight(flow.AccountKeyWeightThreshold)
 
 	addr := createAccount(
-		[]flow.AccountKey{accountKey},
+		[]*flow.AccountKey{accountKey},
 		nil,
 	)
 
@@ -87,7 +85,7 @@ func DeployContract(code []byte) flow.Address {
 	return createAccount(nil, code)
 }
 
-func createAccount(publicKeys []flow.AccountKey, code []byte) flow.Address {
+func createAccount(publicKeys []*flow.AccountKey, code []byte) flow.Address {
 	ctx := context.Background()
 	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
 	Handle(err)

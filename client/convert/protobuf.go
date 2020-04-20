@@ -290,7 +290,7 @@ func MessageToAccount(m *entities.Account) (flow.Account, error) {
 		return flow.Account{}, ErrEmptyMessage
 	}
 
-	accountKeys := make([]flow.AccountKey, len(m.Keys))
+	accountKeys := make([]*flow.AccountKey, len(m.Keys))
 	for i, key := range m.Keys {
 		accountKey, err := MessageToAccountKey(key)
 		if err != nil {
@@ -326,9 +326,9 @@ func AccountToMessage(a flow.Account) (*entities.Account, error) {
 	}, nil
 }
 
-func MessageToAccountKey(m *entities.AccountKey) (flow.AccountKey, error) {
+func MessageToAccountKey(m *entities.AccountKey) (*flow.AccountKey, error) {
 	if m == nil {
-		return flow.AccountKey{}, ErrEmptyMessage
+		return nil, ErrEmptyMessage
 	}
 
 	sigAlgo := crypto.SignatureAlgorithm(m.GetSignAlgo())
@@ -336,10 +336,10 @@ func MessageToAccountKey(m *entities.AccountKey) (flow.AccountKey, error) {
 
 	publicKey, err := crypto.DecodePublicKey(sigAlgo, m.GetPublicKey())
 	if err != nil {
-		return flow.AccountKey{}, err
+		return nil, err
 	}
 
-	return flow.AccountKey{
+	return &flow.AccountKey{
 		PublicKey:      publicKey,
 		SigAlgo:        sigAlgo,
 		HashAlgo:       hashAlgo,
@@ -348,7 +348,7 @@ func MessageToAccountKey(m *entities.AccountKey) (flow.AccountKey, error) {
 	}, nil
 }
 
-func AccountKeyToMessage(a flow.AccountKey) (*entities.AccountKey, error) {
+func AccountKeyToMessage(a *flow.AccountKey) (*entities.AccountKey, error) {
 	publicKey := a.PublicKey.Encode()
 
 	return &entities.AccountKey{
