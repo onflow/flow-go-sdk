@@ -226,6 +226,7 @@ func DecodePublicKeyHex(sigAlgo SignatureAlgorithm, s string) (PublicKey, error)
 }
 
 type Hasher = hash.Hasher
+type Hash = hash.Hash
 
 func NewHasher(algo HashAlgorithm) (Hasher, error) {
 	switch algo {
