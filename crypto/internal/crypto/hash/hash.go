@@ -2,7 +2,7 @@ package hash
 
 import (
 	"bytes"
-	"fmt"
+	"encoding/hex"
 	"io"
 )
 
@@ -41,7 +41,7 @@ func (h Hash) Equal(input Hash) bool {
 
 // Hex returns the hex string representation of the hash.
 func (h Hash) Hex() string {
-	return fmt.Sprintf("%#x", h)
+	return hex.EncodeToString(h)
 }
 
 // String returns the hex string representation of the hash.
