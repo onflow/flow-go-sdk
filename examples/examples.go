@@ -35,7 +35,7 @@ var GetNonce = func() func() uint64 {
 
 // RandomPrivateKey returns a randomly generated private key.
 func RandomPrivateKey() crypto.PrivateKey {
-	seed := make([]byte, 40)
+	seed := make([]byte, crypto.MinSeedLengthECDSA_P256)
 	rand.Read(seed)
 
 	privateKey, err := crypto.GeneratePrivateKey(crypto.ECDSA_P256, seed)
@@ -46,9 +46,10 @@ func RandomPrivateKey() crypto.PrivateKey {
 	return privateKey
 }
 
+const defaultRootKeySeed = "elephant ears space cowboy octopus rodeo potato cannon pineapple"
+
 func RootAccount(flowClient *client.Client) (flow.Address, *flow.AccountKey, crypto.Signer) {
-	privateKeyHex := "f87db87930770201010420c2e6c8cb9e8c9b9a7afe1df8ae431e68317ff7a9f42f8982b7877a9da76b28a7a00a06082a8648ce3d030107a14403420004c2c482bf01344a085af036f9413dd17a0d98a5b6fb4915c3ad4c3cb574e03ea5e2d47608093a26081c165722621bf9d8ff4b880cac0e7c586af3d86c0818a4af0203"
-	privateKey, _, _ := crypto.MustDecodeWrappedPrivateKeyHex(privateKeyHex)
+	privateKey, _ := crypto.GeneratePrivateKey(crypto.ECDSA_P256, []byte(defaultRootKeySeed))
 
 	// root account always has address 0x01
 	addr := flow.HexToAddress("01")
