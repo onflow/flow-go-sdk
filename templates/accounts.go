@@ -65,14 +65,14 @@ func AddAccountKey(accountKey *flow.AccountKey) ([]byte, error) {
 }
 
 // RemoveAccountKey generates a script that removes a key from an account.
-func RemoveAccountKey(index int) []byte {
+func RemoveAccountKey(id int) []byte {
 	script := fmt.Sprintf(`
         transaction {
           prepare(signer: AuthAccount) {
             signer.removePublicKey(%d)
           }
         }
-    `, index)
+    `, id)
 
 	return []byte(script)
 }
