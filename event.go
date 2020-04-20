@@ -3,7 +3,6 @@ package flow
 import (
 	"fmt"
 
-	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/onflow/cadence"
 )
 
@@ -46,12 +45,7 @@ func (e Event) Encode() []byte {
 		TransactionID: e.TransactionID[:],
 		EventIndex:    uint(e.EventIndex),
 	}
-
-	b, err := rlp.EncodeToBytes(&temp)
-	if err != nil {
-		panic(err)
-	}
-	return b
+	return mustRLPEncode(&temp)
 }
 
 type AccountCreatedEvent Event

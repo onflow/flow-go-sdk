@@ -59,7 +59,7 @@ func RootAccount(flowClient *client.Client) (flow.Address, flow.AccountKey, cryp
 	accountKey := flow.AccountKey{
 		PublicKey:      privateKey.PublicKey(),
 		ID:             0,
-		SignAlgo:       sigAlgo,
+		SigAlgo:        sigAlgo,
 		HashAlgo:       hashAlgo,
 		Weight:         flow.AccountKeyWeightThreshold,
 		SequenceNumber: acc.Keys[0].SequenceNumber,
@@ -73,7 +73,7 @@ func CreateAccount() (flow.Address, flow.AccountKey, crypto.PrivateKey) {
 
 	accountKey := flow.AccountKey{
 		PublicKey: privateKey.PublicKey(),
-		SignAlgo:  crypto.ECDSA_P256,
+		SigAlgo:   crypto.ECDSA_P256,
 		HashAlgo:  crypto.SHA3_256,
 		Weight:    flow.AccountKeyWeightThreshold,
 	}

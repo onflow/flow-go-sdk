@@ -1,7 +1,5 @@
 package flow
 
-import "github.com/ethereum/go-ethereum/rlp"
-
 // A Collection is a list of transactions bundled together for inclusion in a block.
 type Collection struct {
 	TransactionIDs []Identifier
@@ -24,12 +22,7 @@ func (c Collection) Encode() []byte {
 	}{
 		TransactionIDS: transactionIDs,
 	}
-
-	b, err := rlp.EncodeToBytes(&temp)
-	if err != nil {
-		panic(err)
-	}
-	return b
+	return mustRLPEncode(&temp)
 }
 
 // A CollectionGuarantee is an attestation signed by the nodes that have guaranteed a collection.

@@ -3,8 +3,6 @@ package flow
 import (
 	"sort"
 
-	"github.com/ethereum/go-ethereum/rlp"
-
 	"github.com/onflow/flow-go-sdk/crypto"
 )
 
@@ -195,11 +193,7 @@ func (t *Transaction) createSignature(address Address, keyID int, sig []byte) Tr
 
 func (t *Transaction) PayloadMessage() []byte {
 	temp := t.payloadCanonicalForm()
-	b, err := rlp.EncodeToBytes(&temp)
-	if err != nil {
-		panic(err)
-	}
-	return b
+	return mustRLPEncode(&temp)
 }
 
 func (t *Transaction) payloadCanonicalForm() interface{} {
@@ -234,11 +228,7 @@ func (t *Transaction) payloadCanonicalForm() interface{} {
 // This message is only signed by the payer account.
 func (t *Transaction) EnvelopeMessage() []byte {
 	temp := t.envelopeCanonicalForm()
-	b, err := rlp.EncodeToBytes(&temp)
-	if err != nil {
-		panic(err)
-	}
-	return b
+	return mustRLPEncode(&temp)
 }
 
 func (t *Transaction) envelopeCanonicalForm() interface{} {
@@ -262,12 +252,7 @@ func (t *Transaction) Encode() []byte {
 		signaturesList(t.PayloadSignatures).canonicalForm(),
 		signaturesList(t.EnvelopeSignatures).canonicalForm(),
 	}
-
-	b, err := rlp.EncodeToBytes(&temp)
-	if err != nil {
-		panic(err)
-	}
-	return b
+	return mustRLPEncode(&temp)
 }
 
 // A ProposalKey is the key that specifies the proposal key and sequence number for a transaction.

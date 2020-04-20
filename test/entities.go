@@ -76,7 +76,7 @@ func (g *AccountKeys) New() flow.AccountKey {
 	accountKey := flow.AccountKey{
 		ID:             g.count,
 		PublicKey:      privateKey.PublicKey(),
-		SignAlgo:       crypto.ECDSA_P256,
+		SigAlgo:        crypto.ECDSA_P256,
 		HashAlgo:       crypto.SHA3_256,
 		Weight:         flow.AccountKeyWeightThreshold,
 		SequenceNumber: 42,

@@ -27,7 +27,7 @@ func CreateAccountDemo() {
 	myPrivateKey := examples.RandomPrivateKey()
 	myAcctKey := flow.AccountKey{
 		PublicKey: myPrivateKey.PublicKey(),
-		SignAlgo:  myPrivateKey.Algorithm(),
+		SigAlgo:   myPrivateKey.Algorithm(),
 		HashAlgo:  crypto.SHA3_256,
 		Weight:    flow.AccountKeyWeightThreshold,
 	}

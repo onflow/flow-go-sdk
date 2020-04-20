@@ -66,47 +66,6 @@ func MustDecodeWrappedPrivateKeyHex(h string) (pk PrivateKey, sigAlgo SignatureA
 	return pk, sigAlgo, hashAlgo
 }
 
-// EncodeWrappedPublicKey encodes a public key as bytes.
-func EncodeWrappedPublicKey(pubKey PublicKey, sigAlgo SignatureAlgorithm, hashAlgo HashAlgorithm, weight int) ([]byte, error) {
-	publicKey := pubKey.Encode()
-
-	temp := accountPublicKeyWrapper{
-		EncodedPublicKey: publicKey,
-		SigAlgo:          uint(sigAlgo),
-		HashAlgo:         uint(hashAlgo),
-		Weight:           uint(weight),
-	}
-
-	return rlp.EncodeToBytes(&temp)
-}
-
-// DecodeWrappedPublicKey decodes a public key.
-func DecodeWrappedPublicKey(b []byte) (pubKey PublicKey, sigAlgo SignatureAlgorithm, hashAlgo HashAlgorithm, weight uint64, err error) {
-	var temp accountPublicKeyWrapper
-
-	err = rlp.DecodeBytes(b, &temp)
-	if err != nil {
-		return pubKey, sigAlgo, hashAlgo, weight, err
-	}
-
-	sigAlgo = SignatureAlgorithm(temp.SigAlgo)
-	hashAlgo = HashAlgorithm(temp.HashAlgo)
-
-	pubKey, err = DecodePublicKey(sigAlgo, temp.EncodedPublicKey)
-	if err != nil {
-		return pubKey, sigAlgo, hashAlgo, weight, err
-	}
-
-	return pubKey, sigAlgo, hashAlgo, weight, nil
-}
-
-type accountPublicKeyWrapper struct {
-	EncodedPublicKey []byte
-	SigAlgo          uint
-	HashAlgo         uint
-	Weight           uint
-}
-
 type accountPrivateKeyWrapper struct {
 	EncodedPrivateKey []byte
 	SigAlgo           uint
