@@ -77,7 +77,7 @@ func CreateAccount() (flow.Address, *flow.AccountKey, crypto.Signer) {
 		nil,
 	)
 
-	signer := crypto.NewNaiveSigner(privateKey, crypto.SHA3_256)
+	signer := crypto.NewNaiveSigner(privateKey, accountKey.HashAlgo)
 
 	return addr, accountKey, signer
 }
