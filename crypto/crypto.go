@@ -12,7 +12,6 @@ import (
 type SignatureAlgorithm int
 
 const (
-	// Supported signature algorithms
 	UnknownSignatureAlgorithm SignatureAlgorithm = iota
 	// BLS_BLS12381 is BLS on BLS 12-381 curve
 	BLS_BLS12381
@@ -22,16 +21,28 @@ const (
 	ECDSA_secp256k1
 )
 
-// String returns the string representation of this signing algorithm.
+// String returns the string representation of this signature algorithm.
 func (f SignatureAlgorithm) String() string {
 	return [...]string{"UNKNOWN", "BLS_BLS12381", "ECDSA_P256", "ECDSA_secp256k1"}[f]
 }
 
-// HashAlgorithm is an identifier for a hashing algorithm.
+func StringToSignatureAlgorithm(s string) SignatureAlgorithm {
+	switch s {
+	case BLS_BLS12381.String():
+		return BLS_BLS12381
+	case ECDSA_P256.String():
+		return ECDSA_P256
+	case ECDSA_secp256k1.String():
+		return ECDSA_secp256k1
+	default:
+		return UnknownSignatureAlgorithm
+	}
+}
+
+// HashAlgorithm is an identifier for a hash algorithm.
 type HashAlgorithm int
 
 const (
-	// Supported hash algorithms
 	UnknownHashAlgorithm HashAlgorithm = iota
 	SHA2_256
 	SHA2_384
@@ -39,9 +50,24 @@ const (
 	SHA3_384
 )
 
-// String returns the string representation of this hashing algorithm.
+// String returns the string representation of this hash algorithm.
 func (f HashAlgorithm) String() string {
 	return [...]string{"UNKNOWN", "SHA2_256", "SHA2_384", "SHA3_256", "SHA3_384"}[f]
+}
+
+func StringToHashAlgorithm(s string) HashAlgorithm {
+	switch s {
+	case SHA2_256.String():
+		return SHA2_256
+	case SHA2_384.String():
+		return SHA2_384
+	case SHA3_256.String():
+		return SHA3_256
+	case SHA3_384.String():
+		return SHA3_384
+	default:
+		return UnknownHashAlgorithm
+	}
 }
 
 const (
