@@ -1,8 +1,6 @@
 package flow
 
-import (
-	"github.com/dapperlabs/flow-go/model/hash"
-)
+import "github.com/ethereum/go-ethereum/rlp"
 
 // A Collection is a list of transactions bundled together for inclusion in a block.
 type Collection struct {
@@ -11,7 +9,7 @@ type Collection struct {
 
 // ID returns the canonical SHA3-256 hash of this collection.
 func (c Collection) ID() Identifier {
-	return HashToID(hash.DefaultHasher.ComputeHash(c.Encode()))
+	return HashToID(DefaultHasher.ComputeHash(c.Encode()))
 }
 
 // Encode returns the canonical encoding of this collection.
@@ -27,7 +25,11 @@ func (c Collection) Encode() []byte {
 		TransactionIDS: transactionIDs,
 	}
 
-	return DefaultEncoder.MustEncode(&temp)
+	b, err := rlp.EncodeToBytes(&temp)
+	if err != nil {
+		panic(err)
+	}
+	return b
 }
 
 // A CollectionGuarantee is an attestation signed by the nodes that have guaranteed a collection.

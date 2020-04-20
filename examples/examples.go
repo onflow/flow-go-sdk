@@ -11,7 +11,7 @@ import (
 
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/client"
-	"github.com/onflow/flow-go-sdk/keys"
+	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/templates"
 )
 
@@ -34,11 +34,11 @@ var GetNonce = func() func() uint64 {
 }()
 
 // RandomPrivateKey returns a randomly generated private key.
-func RandomPrivateKey() flow.AccountPrivateKey {
+func RandomPrivateKey() crypto.PrivateKey {
 	seed := make([]byte, 40)
 	rand.Read(seed)
 
-	privateKey, err := keys.GeneratePrivateKey(keys.ECDSA_P256_SHA3_256, seed)
+	privateKey, err := crypto.GeneratePrivateKey(crypto.ECDSA_P256, seed)
 	if err != nil {
 		panic(err)
 	}
@@ -46,9 +46,9 @@ func RandomPrivateKey() flow.AccountPrivateKey {
 	return privateKey
 }
 
-func RootAccount(flowClient *client.Client) (flow.Address, flow.AccountKey, flow.AccountPrivateKey) {
+func RootAccount(flowClient *client.Client) (flow.Address, flow.AccountKey, crypto.PrivateKey) {
 	privateKeyHex := "f87db87930770201010420c2e6c8cb9e8c9b9a7afe1df8ae431e68317ff7a9f42f8982b7877a9da76b28a7a00a06082a8648ce3d030107a14403420004c2c482bf01344a085af036f9413dd17a0d98a5b6fb4915c3ad4c3cb574e03ea5e2d47608093a26081c165722621bf9d8ff4b880cac0e7c586af3d86c0818a4af0203"
-	privateKey := keys.MustDecodePrivateKeyHex(privateKeyHex)
+	privateKey, sigAlgo, hashAlgo := crypto.MustDecodeWrappedPrivateKeyHex(privateKeyHex)
 
 	// root account always has address 0x01
 	addr := flow.HexToAddress("01")
@@ -59,25 +59,23 @@ func RootAccount(flowClient *client.Client) (flow.Address, flow.AccountKey, flow
 	accountKey := flow.AccountKey{
 		PublicKey:      privateKey.PublicKey(),
 		ID:             0,
-		SignAlgo:       keys.ECDSA_P256_SHA2_256.SigningAlgorithm(),
-		HashAlgo:       keys.ECDSA_P256_SHA3_256.HashingAlgorithm(),
-		Weight:         keys.PublicKeyWeightThreshold,
+		SignAlgo:       sigAlgo,
+		HashAlgo:       hashAlgo,
+		Weight:         flow.AccountKeyWeightThreshold,
 		SequenceNumber: acc.Keys[0].SequenceNumber,
 	}
 
 	return addr, accountKey, privateKey
 }
 
-func CreateAccount() (flow.Address, flow.AccountKey, flow.AccountPrivateKey) {
+func CreateAccount() (flow.Address, flow.AccountKey, crypto.PrivateKey) {
 	privateKey := RandomPrivateKey()
 
 	accountKey := flow.AccountKey{
-		PublicKey:      privateKey.PublicKey(),
-		ID:             0,
-		SignAlgo:       keys.ECDSA_P256_SHA3_256.SigningAlgorithm(),
-		HashAlgo:       keys.ECDSA_P256_SHA3_256.HashingAlgorithm(),
-		Weight:         keys.PublicKeyWeightThreshold,
-		SequenceNumber: 0,
+		PublicKey: privateKey.PublicKey(),
+		SignAlgo:  crypto.ECDSA_P256,
+		HashAlgo:  crypto.SHA3_256,
+		Weight:    flow.AccountKeyWeightThreshold,
 	}
 
 	addr := createAccount(
@@ -110,7 +108,7 @@ func createAccount(publicKeys []flow.AccountKey, code []byte) flow.Address {
 	err = createAccountTx.SignEnvelope(
 		rootAcctAddr,
 		rootAcctKey.ID,
-		rootPrivateKey.Signer(),
+		crypto.NewNaiveSigner(rootPrivateKey, rootAcctKey.HashAlgo),
 	)
 	Handle(err)
 

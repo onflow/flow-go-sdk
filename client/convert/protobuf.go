@@ -6,11 +6,11 @@ import (
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
-	"github.com/dapperlabs/flow-go/crypto"
 	"github.com/onflow/flow/protobuf/go/flow/access"
 	"github.com/onflow/flow/protobuf/go/flow/entities"
 
 	"github.com/onflow/flow-go-sdk"
+	"github.com/onflow/flow-go-sdk/crypto"
 )
 
 var ErrEmptyMessage = errors.New("protobuf message is empty")
@@ -331,8 +331,8 @@ func MessageToAccountKey(m *entities.AccountKey) (flow.AccountKey, error) {
 		return flow.AccountKey{}, ErrEmptyMessage
 	}
 
-	signAlgo := crypto.SigningAlgorithm(m.GetSignAlgo())
-	hashAlgo := crypto.HashingAlgorithm(m.GetHashAlgo())
+	signAlgo := crypto.SignatureAlgorithm(m.GetSignAlgo())
+	hashAlgo := crypto.HashAlgorithm(m.GetHashAlgo())
 
 	publicKey, err := crypto.DecodePublicKey(signAlgo, m.GetPublicKey())
 	if err != nil {
@@ -349,10 +349,7 @@ func MessageToAccountKey(m *entities.AccountKey) (flow.AccountKey, error) {
 }
 
 func AccountKeyToMessage(a flow.AccountKey) (*entities.AccountKey, error) {
-	publicKey, err := a.PublicKey.Encode()
-	if err != nil {
-		return nil, err
-	}
+	publicKey := a.PublicKey.Encode()
 
 	return &entities.AccountKey{
 		PublicKey:      publicKey,

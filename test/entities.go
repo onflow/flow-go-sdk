@@ -5,11 +5,9 @@ import (
 	"fmt"
 
 	"github.com/onflow/cadence"
-	"github.com/dapperlabs/flow-go/crypto"
 
 	"github.com/onflow/flow-go-sdk"
-	sdkcrypto "github.com/onflow/flow-go-sdk/crypto"
-	"github.com/onflow/flow-go-sdk/keys"
+	"github.com/onflow/flow-go-sdk/crypto"
 )
 
 var ScriptHelloWorld = []byte(`transaction { execute { log("Hello, World!") } }`)
@@ -64,7 +62,7 @@ func AccountKeyGenerator() *AccountKeys {
 }
 
 func (g *AccountKeys) New() flow.AccountKey {
-	seed := make([]byte, crypto.KeyGenSeedMinLenECDSA_P256)
+	seed := make([]byte, crypto.MinSeedLengthECDSA_P256)
 	for i := range seed {
 		seed[i] = uint8(g.count)
 	}
@@ -80,7 +78,7 @@ func (g *AccountKeys) New() flow.AccountKey {
 		PublicKey:      privateKey.PublicKey(),
 		SignAlgo:       crypto.ECDSA_P256,
 		HashAlgo:       crypto.SHA3_256,
-		Weight:         keys.PublicKeyWeightThreshold,
+		Weight:         flow.AccountKeyWeightThreshold,
 		SequenceNumber: 42,
 	}
 
@@ -184,7 +182,7 @@ func (g *Transactions) New() *flow.Transaction {
 	err := tx.SignPayload(
 		tx.ProposalKey.Address,
 		tx.ProposalKey.KeyID,
-		sdkcrypto.MockSigner([]byte{uint8(tx.ProposalKey.KeyID)}),
+		crypto.MockSigner([]byte{uint8(tx.ProposalKey.KeyID)}),
 	)
 	if err != nil {
 		panic(err)
@@ -192,14 +190,14 @@ func (g *Transactions) New() *flow.Transaction {
 
 	// sign payload as each authorizer
 	for _, addr := range tx.Authorizers {
-		err = tx.SignPayload(addr, 0, sdkcrypto.MockSigner(addr.Bytes()))
+		err = tx.SignPayload(addr, 0, crypto.MockSigner(addr.Bytes()))
 		if err != nil {
 			panic(err)
 		}
 	}
 
 	// sign envelope as payer
-	err = tx.SignEnvelope(tx.Payer, 0, sdkcrypto.MockSigner(tx.Payer.Bytes()))
+	err = tx.SignEnvelope(tx.Payer, 0, crypto.MockSigner(tx.Payer.Bytes()))
 	if err != nil {
 		panic(err)
 	}

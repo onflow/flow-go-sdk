@@ -10,8 +10,8 @@ import (
 
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/client"
+	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/examples"
-	"github.com/onflow/flow-go-sdk/keys"
 	"github.com/onflow/flow-go-sdk/templates"
 )
 
@@ -30,8 +30,12 @@ func DeployContractDemo() {
 	rootAcctAddr, rootAcctKey, rootPrivateKey := examples.RootAccount(flowClient)
 
 	myPrivateKey := examples.RandomPrivateKey()
-	myAcctKey := myPrivateKey.ToAccountKey()
-	myAcctKey.Weight = keys.PublicKeyWeightThreshold
+	myAcctKey := flow.AccountKey{
+		PublicKey: myPrivateKey.PublicKey(),
+		SignAlgo:  myPrivateKey.Algorithm(),
+		HashAlgo:  crypto.SHA3_256,
+		Weight:    flow.AccountKeyWeightThreshold,
+	}
 
 	// Generate an account creation script
 	createAccountScript, err := templates.CreateAccount([]flow.AccountKey{myAcctKey}, nil)
@@ -45,7 +49,7 @@ func DeployContractDemo() {
 	err = createAccountTx.SignEnvelope(
 		rootAcctAddr,
 		rootAcctKey.ID,
-		rootPrivateKey.Signer(),
+		crypto.NewNaiveSigner(rootPrivateKey, rootAcctKey.HashAlgo),
 	)
 	examples.Handle(err)
 
@@ -81,7 +85,7 @@ func DeployContractDemo() {
 	err = deployContractTx.SignEnvelope(
 		myAddress,
 		myAcctKey.ID,
-		myPrivateKey.Signer(),
+		crypto.NewNaiveSigner(myPrivateKey, myAcctKey.HashAlgo),
 	)
 	examples.Handle(err)
 
@@ -117,7 +121,7 @@ func DeployContractDemo() {
 	err = createMinterTx.SignEnvelope(
 		myAddress,
 		myAcctKey.ID,
-		myPrivateKey.Signer(),
+		crypto.NewNaiveSigner(myPrivateKey, myAcctKey.HashAlgo),
 	)
 	examples.Handle(err)
 
@@ -142,7 +146,7 @@ func DeployContractDemo() {
 	err = mintTx.SignEnvelope(
 		myAddress,
 		myAcctKey.ID,
-		myPrivateKey.Signer(),
+		crypto.NewNaiveSigner(myPrivateKey, myAcctKey.HashAlgo),
 	)
 	examples.Handle(err)
 

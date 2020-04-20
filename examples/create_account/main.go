@@ -8,8 +8,8 @@ import (
 
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/client"
+	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/examples"
-	"github.com/onflow/flow-go-sdk/keys"
 	"github.com/onflow/flow-go-sdk/templates"
 )
 
@@ -25,15 +25,15 @@ func CreateAccountDemo() {
 	rootAcctAddr, rootAcctKey, rootPrivateKey := examples.RootAccount(flowClient)
 
 	myPrivateKey := examples.RandomPrivateKey()
-	myPublicKey := flow.AccountKey{
+	myAcctKey := flow.AccountKey{
 		PublicKey: myPrivateKey.PublicKey(),
-		SignAlgo:  keys.ECDSA_P256_SHA3_256.SigningAlgorithm(),
-		HashAlgo:  keys.ECDSA_P256_SHA3_256.HashingAlgorithm(),
-		Weight:    keys.PublicKeyWeightThreshold,
+		SignAlgo:  myPrivateKey.Algorithm(),
+		HashAlgo:  crypto.SHA3_256,
+		Weight:    flow.AccountKeyWeightThreshold,
 	}
 
 	// Create a Cadence script which will create an account with one key with weight 1 and
-	createAccountScript, err := templates.CreateAccount([]flow.AccountKey{myPublicKey}, nil)
+	createAccountScript, err := templates.CreateAccount([]flow.AccountKey{myAcctKey}, nil)
 	examples.Handle(err)
 
 	// Create a transaction that will execute the script. The transaction is signed
@@ -48,7 +48,7 @@ func CreateAccountDemo() {
 	err = createAccountTx.SignEnvelope(
 		rootAcctAddr,
 		rootAcctKey.ID,
-		rootPrivateKey.Signer(),
+		crypto.NewNaiveSigner(rootPrivateKey, rootAcctKey.HashAlgo),
 	)
 	examples.Handle(err)
 
