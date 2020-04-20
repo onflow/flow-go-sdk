@@ -46,9 +46,9 @@ func RandomPrivateKey() crypto.PrivateKey {
 	return privateKey
 }
 
-func RootAccount(flowClient *client.Client) (flow.Address, flow.AccountKey, crypto.PrivateKey) {
+func RootAccount(flowClient *client.Client) (flow.Address, flow.AccountKey, crypto.Signer) {
 	privateKeyHex := "f87db87930770201010420c2e6c8cb9e8c9b9a7afe1df8ae431e68317ff7a9f42f8982b7877a9da76b28a7a00a06082a8648ce3d030107a14403420004c2c482bf01344a085af036f9413dd17a0d98a5b6fb4915c3ad4c3cb574e03ea5e2d47608093a26081c165722621bf9d8ff4b880cac0e7c586af3d86c0818a4af0203"
-	privateKey, sigAlgo, hashAlgo := crypto.MustDecodeWrappedPrivateKeyHex(privateKeyHex)
+	privateKey, _, _ := crypto.MustDecodeWrappedPrivateKeyHex(privateKeyHex)
 
 	// root account always has address 0x01
 	addr := flow.HexToAddress("01")
@@ -56,19 +56,14 @@ func RootAccount(flowClient *client.Client) (flow.Address, flow.AccountKey, cryp
 	acc, err := flowClient.GetAccount(context.Background(), addr)
 	Handle(err)
 
-	accountKey := flow.AccountKey{
-		PublicKey:      privateKey.PublicKey(),
-		ID:             0,
-		SigAlgo:        sigAlgo,
-		HashAlgo:       hashAlgo,
-		Weight:         flow.AccountKeyWeightThreshold,
-		SequenceNumber: acc.Keys[0].SequenceNumber,
-	}
+	accountKey := acc.Keys[0]
 
-	return addr, accountKey, privateKey
+	signer := crypto.NewNaiveSigner(privateKey, accountKey.HashAlgo)
+
+	return addr, accountKey, signer
 }
 
-func CreateAccount() (flow.Address, flow.AccountKey, crypto.PrivateKey) {
+func CreateAccount() (flow.Address, flow.AccountKey, crypto.Signer) {
 	privateKey := RandomPrivateKey()
 
 	accountKey := flow.AccountKey{
@@ -83,7 +78,9 @@ func CreateAccount() (flow.Address, flow.AccountKey, crypto.PrivateKey) {
 		nil,
 	)
 
-	return addr, accountKey, privateKey
+	signer := crypto.NewNaiveSigner(privateKey, crypto.SHA3_256)
+
+	return addr, accountKey, signer
 }
 
 func DeployContract(code []byte) flow.Address {
@@ -95,7 +92,7 @@ func createAccount(publicKeys []flow.AccountKey, code []byte) flow.Address {
 	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
 	Handle(err)
 
-	rootAcctAddr, rootAcctKey, rootPrivateKey := RootAccount(flowClient)
+	rootAcctAddr, rootAcctKey, rootSigner := RootAccount(flowClient)
 
 	createAccountScript, err := templates.CreateAccount(publicKeys, code)
 	Handle(err)
@@ -105,11 +102,7 @@ func createAccount(publicKeys []flow.AccountKey, code []byte) flow.Address {
 		SetProposalKey(rootAcctAddr, rootAcctKey.ID, rootAcctKey.SequenceNumber).
 		SetPayer(rootAcctAddr)
 
-	err = createAccountTx.SignEnvelope(
-		rootAcctAddr,
-		rootAcctKey.ID,
-		crypto.NewNaiveSigner(rootPrivateKey, rootAcctKey.HashAlgo),
-	)
+	err = createAccountTx.SignEnvelope(rootAcctAddr, rootAcctKey.ID, rootSigner)
 	Handle(err)
 
 	err = flowClient.SendTransaction(ctx, *createAccountTx)
