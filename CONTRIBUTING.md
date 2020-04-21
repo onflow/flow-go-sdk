@@ -81,9 +81,9 @@ Create an issue and provide the following information:
 Unsure where to begin contributing to the Flow Go SDK?
 You can start by looking through these `good-first-issue` and `help-wanted` issues:
 
-- [Good first issues][https://github.com/onflow/flow-go-sdk/labels/good%20first%20issue]:
+- [Good first issues](https://github.com/onflow/flow-go-sdk/labels/good%20first%20issue):
   issues which should only require a few lines of code, and a test or two.
-- [Help wanted issues][https://github.com/onflow/flow-go-sdk/labels/help%20wanted]:
+- [Help wanted issues](https://github.com/onflow/flow-go-sdk/labels/help%20wanted):
   issues which should be a bit more involved than `good-first-issue` issues.
 
 Both issue lists are sorted by total number of comments.
