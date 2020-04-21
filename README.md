@@ -1,4 +1,4 @@
-# Flow Go SDK
+# Flow Go SDK [![GoDoc](https://godoc.org/github.com/onflow/flow-go-sdk?status.svg)](https://godoc.org/github.com/onflow/flow-go-sdk)
 
 The Flow Go SDK provides a set of packages for Go developers to build applications that interact with the Flow network.
 
@@ -8,125 +8,99 @@ The Flow Go SDK provides a set of packages for Go developers to build applicatio
 
 Flow is a new blockchain for open worlds. Read more about it [here](https://www.onflow.org/).
 
-## What would you like to do today?
-
-**Create Accounts & Contracts**
-
-Start here to create a user agent (wallet) or a dapp, the tools you need to get started include:
-- [Protobuf Definitions](https://github.com/dapperlabs/flow-go-sdk/tree/master/protobuf)
-- [Emulator](https://github.com/dapperlabs/flow-go-sdk/tree/master/cmd/flow/emulator)
-- [Flow Developer Preview](https://www.notion.so/flowpreview/Flow-Developer-Preview-6d5d696c8d584398a2a025185945aa5b)
-
-**Submit Transactions**
-
-Then you're ready to move on to sending and submitting transactions using the [Observation API Client Library](https://github.com/dapperlabs/flow-go-sdk/blob/master/client/client.go).
-
-**Read State**
-
-Now it's time to see what you've done, run a script to check the outcome of your transactions:
-- [Executing a script](#executing-a-script)
-
-## Collaborating on this repo - bug reports
-
-Please submit any bug reports in this repo directly. You'll find an issue template when you create a new issue. Please fill out the indicated fields, including:
-
-* Problem/bug
-* Steps to reproduce
-* Acceptance criteria (if you have any)
-* Context - specifically, what is this blocking for you?
-
 ## Table of Contents
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 
-- [Generating keys](#generating-keys)
-- [Creating an account](#creating-an-account)
-- [Signing a transaction](#signing-a-transaction)
-  - [How signatures work in Flow](#how-signatures-work-in-flow)
-  - [Adding a signature to a transaction](#adding-a-signature-to-a-transaction)
-- [Submitting a transaction](#submitting-a-transaction)
-- [Querying transactions](#querying-transactions)
-- [Querying blocks](#querying-blocks)
-- [Executing a script](#executing-a-script)
-- [Querying events](#querying-events)
-  - [Event query format](#event-query-format)
-    - [Type](#type)
-    - [StartBlock, EndBlock](#startblock-endblock)
-  - [Event results](#event-results)
-- [Querying accounts](#querying-accounts)
+- [Getting Started](#getting-started)
+  - [Installing](#installing)
+  - [Generating Keys](#generating-keys)
+  - [Creating an Account](#creating-an-account)
+  - [Signing a Transaction](#signing-a-transaction)
+    - [How Signatures Work in Flow](#how-signatures-work-in-flow)
+  - [Sending a Transaction](#sending-a-transaction)
+  - [Querying Transaction Results](#querying-transaction-results)
+  - [Querying Blocks](#querying-blocks)
+  - [Executing a Script](#executing-a-script)
+  - [Querying Events](#querying-events)
+    - [Event Query Format](#event-query-format)
+    - [Event Results](#event-results)
+    - [Decoding an Event](#decoding-an-event)
+  - [Querying Accounts](#querying-accounts)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-## Generating keys
+## Getting Started
+
+### Installing
+
+To start using the SDK, install Go 1.13 or above and run go get:
+
+```sh
+go get github.com/onflow/flow-go-sdk
+```
+
+### Generating Keys
 
 The signature scheme supported in Flow accounts is ECDSA. It can be coupled with the hashing algorithms SHA2-256 or SHA3-256.
 
-Here's how you can generate an `ECDSA-P256` private key using `SHA3-256`:
+Here's how you can generate an `ECDSA-P256` private key:
 
 ```go
-import "github.com/dapperlabs/flow-go-sdk/keys"
+import "github.com/dapperlabs/flow-go-sdk/crypto"
 
 // deterministic seed phrase
 seed := []byte("elephant ears space cowboy octopus rodeo potato cannon pineapple")
 
-privateKey, err := keys.GeneratePrivateKey(keys.ECDSA_P256_SHA3_256, seed)
+privateKey, err := crypto.GeneratePrivateKey(crypto.ECDSA_P256, seed)
 ```
 
 The private key can then be encoded as bytes (i.e. for storage):
 
 ```go
-pkBytes, err := keys.EncodePrivateKey(privateKey)
+encPrivateKey := privateKey.Encode()
 ```
 
 A private key has an accompanying public key:
 
 ```go
-// keys.PublicKeyWeightThreshold is the weight required for a key to authorize an account
-publicKey := privateKey.PublicKey(keys.PublicKeyWeightThreshold)
+publicKey := privateKey.PublicKey()
 ``` 
 
-The example above uses an ECDSA key pair of the elliptic curve P-256. Flow also supports the curve secp256k1. Here's how you can generate an `ECDSA-SECp256k1` private key using `SHA2-256` :
+The example above uses an ECDSA key-pair of the elliptic curve P-256. Flow also supports the curve secp256k1. Here's how you can generate an `ECDSA-SECp256k1` private key:
   
-```
-privateKey, err := keys.GeneratePrivateKey(keys.ECDSA_SECp256k1_SHA2_256, seed)
+```go
+privateKey, err := crypto.GeneratePrivateKey(crypto.ECDSA_secp256k1, seed)
 ```
 
-## Creating an account
+### Creating an Account
 
 Once you have [generated a key-pair](#generating-keys), you can create a new account using its public key.
 
 ```go
 import (
     "github.com/dapperlabs/flow-go-sdk"
-    "github.com/dapperlabs/flow-go-sdk/keys"
+    "github.com/dapperlabs/flow-go-sdk/crypto"
     "github.com/dapperlabs/flow-go-sdk/templates"
 )
 
 // generate a new private key for the account
 seed := []byte("elephant ears space cowboy octopus rodeo potato cannon pineapple")
-privateKey, _ := keys.GeneratePrivateKey(keys.ECDSA_P256_SHA3_256, seed)
+privateKey, _ := crypto.GeneratePrivateKey(crypto.ECDSA_P256, seed)
 
 // get the public key from the private key
-publicKey := privateKey.PublicKey(keys.PublicKeyWeightThreshold)
+publicKey := privateKey.PublicKey()
+
+// construct an account key from the public key
+accountKey := flow.NewAccountKey().
+    SetPublicKey(publickKey).
+    SetHashAlgo(crypto.SHA3_256). // pair this key with the SHA3_256 hashing algorithm
+    SetWeight(flow.AccountKeyWeightThreshold) // give this key full signing weight
 
 // generate an account creation script
 // this creates an account with a single public key and no code
-script := templates.CreateAccount([]flow.AccountPublicKey{publicKey}, nil)
-
-payerAddress := flow.HexToAddress("01")
-payerPrivateKey := keys.MustDecodePrivateKeyHex("f87db8793077020101042075e2b5704089fabfe71cc2cc9702752c4084143f3c64b11c7ab96c85a2cb4c42a00a06082a8648ce3d030107a14403420004a848edd86e68664feb1be053fe358a2af578bebcfbc022c853a70bdc8fcb7bd50665325fcb98a3300d30f685603dffdb0e95a735580955ea68a8734d532031300203")
-
-tx := flow.Transaction{
-    Script:       script,
-    Nonce:        42,
-    ComputeLimit: 100,
-    PayerAccount: payerAddress,
-}
-
-sig, err := keys.SignTransaction(tx, payerPrivateKey)
-
-tx.AddSignature(payerAddress, sig)
+script := templates.CreateAccount([]flow.AccountPublicKey{accountKey}, nil)
 
 // connect to an emulator running locally
 c, err := client.New("localhost:3569")
@@ -134,77 +108,84 @@ if err != nil {
     panic("failed to connect to emulator")
 }
 
-err = c.SubmitTransaction(tx)
+payer, payerKey, payerSigner := examples.RootAccount(c)
+
+tx := flow.NewTransaction().
+    SetScript(script).
+    SetGasLimit(100).
+    SetProposalKey(payer, payerKey.ID, payerKey.SequenceNumber).
+    SetPayer(payerAddress)
+
+err := tx.SignEnvelope(payer, payerKey.ID, payerSigner)
 if err != nil {
-    panic("failed to submit transaction")
+    panic("failed to sign transaction")
 }
 
-tx = c.GetTransaction(tx.Hash())
+err = c.SendTransaction(*tx)
+if err != nil {
+    panic("failed to send transaction")
+}
 
-var address flow.Address
+result, err = c.GetTransactionResult(tx.ID())
+if err != nil {
+    panic("failed to get transaction result")
+}
+
+var myAddress flow.Address
 
 if tx.Status == flow.TransactionSealed {
-    for _, event := range tx.Receipt.Events {
-        if event.Type == flow.EventAccountCreated {
-	        accountCreatedEvent, _ := flow.DecodeAccountCreatedEvent(event)
-            address = accountCreatedEvent.Address()
-        }
+    for _, event := range result.Events {
+		if event.Type == flow.EventAccountCreated {
+			accountCreatedEvent := flow.AccountCreatedEvent(event)
+			myAddress = accountCreatedEvent.Address()
+		}
     }
 }
 ```
 
-## Signing a transaction
+### Signing a Transaction
 
-Below is a simple example of how to sign a transaction using an `AccountPrivateKey`:
+Below is a simple example of how to sign a transaction using a `crypto.PrivateKey`:
 
 ```go
 import (
     "github.com/dapperlabs/flow-go-sdk"
-    "github.com/dapperlabs/flow-go-sdk/keys"
+    "github.com/dapperlabs/flow-go-sdk/crypto"
 )
 
 var (
-  myAddress    flow.Address
-  myPrivateKey flow.AccountPrivateKey
+    myAddress    flow.Address
+    myAccountKey flow.AccountKey
+    myPrivateKey crypto.PrivateKey
 )
 
-tx := flow.Transaction{
-    Script:         script,
-    Nonce:          42,
-    ComputeLimit:   100,
-    PayerAccount:   myAddress,
-    ScriptAccounts: []flow.Address{myAddress},
-}
+tx := flow.NewTransaction().
+    SetScript(script).
+    SetGasLimit(100).
+    SetProposalKey(myAddress, myAccountKey.ID, myAccountKey.SequenceNumber).
+    SetPayer(myAddress)
+```
 
-sig, err := keys.SignTransaction(tx, myPrivateKey)
+Transaction signing is done using the `crypto.Signer` interface. The simplest (and least secure) implementation of 
+`crypto.Signer` is `crypto.InMemorySigner`:
+
+```go
+// construct a signer from your private key and configured hash algorithm
+mySigner := crypto.NewInMemorySigner(myPrivateKey, myAccountKey.HashAlgo)
+
+err := tx.SignEnvelope(myAddress, myAccountKey.ID, mySigner)
 if err != nil {
     panic("failed to sign transaction")
 }
 ```
 
-### How signatures work in Flow
+#### How Signatures Work in Flow
 
-You may have noticed the `PayerAccount` and `ScriptAccounts` fields in the example above. These fields are used to pre-declare the accounts that will be signing a transaction.
+TODO: link to signatures doc
 
-An account can sign a transaction in two ways:
+### Sending a Transaction
 
-- `PayerAccount` - The account that is paying for the gas and network fees of the transaction. A transaction can only have one payer account.
-- `ScriptAccounts` - The accounts that have authorized the transaction to update their state. A transaction can be authorized by many accounts.
-
-### Adding a signature to a transaction
-
-When you add a signature to a transaction, it must be associated with the account that it is signing for. The account must be one of the pre-declared accounts in `PayerAccount` or `ScriptAccounts`.
-
-```go
-// add the signature to the transaction
-tx.AddSignature(myAccountAddress, sig)
-```
-
-A transaction is valid if it contains a valid signature from each pre-declared account.
-
-## Submitting a transaction
-
-You can submit a transaction to the network using the Go Flow Client.
+You can submit a transaction to the network using the Access API Client.
 
 ```go
 import "github.com/dapperlabs/flow-go-sdk/client"
@@ -219,28 +200,45 @@ ctx := context.Background()
 
 err = c.SendTransaction(ctx, tx)
 if err != nil {
-    panic("failed to submit transaction")
+    panic("failed to send transaction")
 }
 ```
 
-## Querying transactions
+### Querying Transaction Results
 
-After you have submitted a transaction, you can query its status by hash:
+After you have submitted a transaction, you can query its status by ID:
 
 ```go
-txRes, err := c.GetTransaction(ctx, tx.Hash())
+result, err := c.GetTransactionResult(ctx, tx.ID())
 if err != nil {
-    panic("failed to fetch transaction")
+    panic("failed to fetch transaction result")
 }
 ```
 
-The returned transaction includes a `Status` field that will be one of the following values:
+The result includes a `Status` field that will be one of the following values:
+- `UNKNOWN` - The transaction has not yet been seen by the network.
 - `PENDING` - The transaction has not yet been included in a block.
+- `FINALIZED` - The transaction has been included in a block.
+- `EXECUTED` - The transaction has been executed but the result has not yet been sealed.
 - `SEALED` - The transaction has been executed and the result is sealed in a block.
 
-## Querying blocks
+```go
+if result.Status == flow.TransactionStatusSealed {
+  fmt.Println("Transaction is sealed!")
+}
+```
 
-You can use the `GetLatestBlock` method to fetch the latest sealed or unsealed block header:
+The result also contains an `Error` that holds the error information for a failed transaction. 
+
+```go
+if result.Error != nil {
+    fmt.Printf("Transaction failed with error: %v\n", result.Error)
+}
+```
+
+### Querying Blocks
+
+You can use the `GetLatestBlock` method to fetch the latest sealed or unsealed block:
 
 ```go
 // fetch the latest sealed block
@@ -258,17 +256,16 @@ if err != nil {
 }
 ```
 
-A block header contains the following fields:
+A block contains the following fields:
 
-- `Hash` - The hash of the block.
-- `PreviousBlockhash` - The hash of the previous block in the chain.
-- `Number` - The block number.
+- `ID` - The ID (hash) of the block.
+- `ParentBlockID` - The ID of the previous block in the chain.
+- `Height` - The height of the block in the chain.
+- `CollectionGuarantees` - The list of collections included in the block.
 
-_Note: the Observation API does not yet support querying of full block data._
+### Executing a Script
 
-## Executing a script
-
-You can use the `ExecuteScript` method to execute a read-only script against the latest sealed world state.
+You can use the `ExecuteScriptAtLatestBlock` method to execute a read-only script against the latest sealed execution state.
 
 This functionality can be used to read state from the blockchain.
 
@@ -283,10 +280,7 @@ fun main(): Int { return 1 }
 ```
 
 ```go
-import (
-    "github.com/onflow/cadence"
-    "github.com/onflow/cadence/encoding/xdr"
-)
+import "github.com/onflow/cadence"
 
 script := []byte("fun main(): Int { return 1 }")
 
@@ -295,62 +289,63 @@ if err != nil {
     panic("failed to execute script")
 }
 
-// the returned value is XDR-encoded, so it must be decoded to its original value
-myTokenID, err := xdr.Decode(language.IntType{}, result)
-if err != nil {
-    panic("failed to decode script result")
-}
-
-ID := myTokenID.(language.Int)
+ID := value.(cadence.Int)
 
 // convert to Go int type
 myID := ID.Int()
 ```
 
-## Querying events
+### Querying Events
 
-You can query events with the `GetEvents` function:
+You can query events with the `GetEventsForHeightRange` function:
 
 ```go
 import "github.com/dapperlabs/flow-go-sdk/client"
 
-events, err := c.GetEvents(ctx, client.EventQuery{
+blocks, err := c.GetEventsForHeightRange(ctx, client.EventRangeQuery{
     Type:       "flow.AccountCreated",
-    StartBlock: 10,
-    EndBlock:   15,
+    StartHeight: 10,
+    EndHeight:   15,
 })
 if err != nil {
     panic("failed to query events")
 }
 ```
 
-### Event query format
+#### Event Query Format
 
 An event query includes the following fields:
 
-#### Type
+**Type**
 
-The event type to filter by. Event types are namespaced by the transaction, account, or script in which they are declared.
+The event type to filter by. Event types are namespaced by the account and contract in which they are declared.
 
-For example, a `Transfer` event that was defined in code deployed at account `0x55555555555555555555` will have a type of `account.0x55555555555555555555.Transfer`.
+For example, a `Transfer` event that was defined in the `Token` contract deployed at account `0x55555555555555555555` will have a type of `A.0x55555555555555555555.Token.Transfer`.
 
-Read the [language documentation](./language.md#events) for more information on how to define and emit events in Cadence.
+Read the [language documentation](https://github.com/onflow/cadence/blob/master/docs/language.md#events) for more information on how to define and emit events in Cadence.
 
-####  StartBlock, EndBlock
+**StartHeight, EndHeight**
 
-The blocks to filter by. Events will be returned from blocks in `StartBlock` to `EndBlock`, inclusive.
+The blocks to filter by. Events will be returned from blocks in the range `StartHeight` to `EndHeight`, inclusive.
 
-### Event results
+#### Event Results
 
-The `GetEvents` function returns a list of `flow.Event` values in the order in which they were executed.
+The `GetEventsForHeightRange` function returns events grouped by block. Each block contains a list of events matching the query in order of execution.
 
-A `flow.Event` contains the following fields:
+```go
+for _, block := range blocks {
+    fmt.Printf("Events for block %s:\n", block.BlockID)
+    for _, event := range block.Events {
+        fmt.Printf(" - %s", event)
+    }
+}
+```
 
-- `ID: string` - The unique identifier for the event.
-- `Type: string` - The type of the event.
-- `Payload: []byte` - Event fields encoded as XDR bytes.
+#### Decoding an Event
 
-## Querying accounts
+TODO: example for event decoding
+
+### Querying Accounts
 
 You can query the state of an account with the `GetAccount` function:
 
@@ -370,4 +365,4 @@ A `flow.Account` contains the following fields:
 - `Address: flow.Address` - The account address.
 - `Balance: uint64` - The account balance.
 - `Code: []byte` - The code deployed at this account.
-- `Keys: []flow.AccountPublicKey` - A list of the public keys associated with this account.
+- `Keys: []flow.AccountKey` - A list of the public keys associated with this account.
