@@ -89,7 +89,7 @@ func (g *AccountKeys) NewWithSigner() (*flow.AccountKey, crypto.Signer) {
 
 	g.count++
 
-	return &accountKey, crypto.NewNaiveSigner(privateKey, accountKey.HashAlgo)
+	return &accountKey, crypto.NewInMemorySigner(privateKey, accountKey.HashAlgo)
 }
 
 type Accounts struct {

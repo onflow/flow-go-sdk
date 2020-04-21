@@ -150,22 +150,28 @@ type Signer interface {
 	Sign(message []byte) ([]byte, error)
 }
 
-type NaiveSigner struct {
+type InMemorySigner struct {
 	PrivateKey PrivateKey
 	Hasher     Hasher
 }
 
-func NewNaiveSigner(privateKey PrivateKey, hashAlgo HashAlgorithm) NaiveSigner {
+func NewInMemorySigner(privateKey PrivateKey, hashAlgo HashAlgorithm) InMemorySigner {
 	hasher, _ := NewHasher(hashAlgo)
 
-	return NaiveSigner{
+	return InMemorySigner{
 		PrivateKey: privateKey,
 		Hasher:     hasher,
 	}
 }
 
-func (s NaiveSigner) Sign(message []byte) ([]byte, error) {
+func (s InMemorySigner) Sign(message []byte) ([]byte, error) {
 	return s.PrivateKey.Sign(message, s.Hasher)
+}
+
+type NaiveSigner = InMemorySigner
+
+func NewNaiveSigner(privateKey PrivateKey, hashAlgo HashAlgorithm) NaiveSigner {
+	return NewInMemorySigner(privateKey, hashAlgo)
 }
 
 type MockSigner []byte
