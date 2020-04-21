@@ -73,8 +73,8 @@ func QueryEventsDemo() {
 	for _, block := range results {
 		for i, event := range block.Events {
 			fmt.Printf("Found event #%d in block #%d\n", i+1, block.Height)
-			fmt.Printf("Transaction ID: %x\n", event.TransactionID)
-			fmt.Printf("Event ID: %x\n", event.ID())
+			fmt.Printf("Transaction ID: %s\n", event.TransactionID)
+			fmt.Printf("Event ID: %s\n", event.ID())
 			fmt.Println(event.String())
 		}
 	}
@@ -92,8 +92,8 @@ func QueryEventsDemo() {
 	for _, block := range results {
 		for i, event := range block.Events {
 			fmt.Printf("Found event #%d in block #%d\n", i+1, block.Height)
-			fmt.Printf("Transaction ID: %x\n", event.TransactionID)
-			fmt.Printf("Event ID: %x\n", event.ID())
+			fmt.Printf("Transaction ID: %s\n", event.TransactionID)
+			fmt.Printf("Event ID: %s\n", event.ID())
 			fmt.Println(event.String())
 		}
 	}
@@ -106,8 +106,8 @@ func QueryEventsDemo() {
 	fmt.Println("\nQuery for tx by hash:")
 	for i, event := range result.Events {
 		fmt.Printf("Found event #%d\n", i+1)
-		fmt.Printf("Transaction ID: %x\n", event.TransactionID)
-		fmt.Printf("Event ID: %x\n", event.ID())
+		fmt.Printf("Transaction ID: %s\n", event.TransactionID)
+		fmt.Printf("Event ID: %s\n", event.ID())
 		fmt.Println(event.String())
 	}
 }

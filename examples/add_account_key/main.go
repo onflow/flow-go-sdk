@@ -55,5 +55,4 @@ func AddAccountKeyDemo() {
 	examples.WaitForSeal(ctx, flowClient, addKeyTx.ID())
 
 	fmt.Println("Public key added to account!")
-
 }
