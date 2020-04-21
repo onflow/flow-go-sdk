@@ -8,19 +8,23 @@ import (
 	"github.com/onflow/flow-go-sdk/crypto"
 )
 
-// Identifier represents a 32-byte unique identifier for an entity.
+// An Identifier is a 32-byte unique identifier for an entity.
 type Identifier [32]byte
 
+// ZeroID is the empty identifier.
 var ZeroID = Identifier{}
 
+// Bytes returns the bytes representation of this identifier.
 func (i Identifier) Bytes() []byte {
 	return i[:]
 }
 
+// Hex returns the hexadecimal string representation of this identifier.
 func (i Identifier) Hex() string {
 	return hex.EncodeToString(i[:])
 }
 
+// String returns the string representation of this identifier.
 func (i Identifier) String() string {
 	return i.Hex()
 }
