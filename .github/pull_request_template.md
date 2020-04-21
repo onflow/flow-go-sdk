@@ -12,6 +12,7 @@ For contributor use:
 
 - [ ] Targeted PR against `master` branch
 - [ ] Linked to Github issue with discussion and accepted design OR link to spec that describes this work.
+- [ ] Code follows the [standards mentioned here](/CONTRIBUTING.md#go-styleguide).
 - [ ] Updated relevant documentation 
 - [ ] Re-reviewed `Files changed` in the Github PR explorer
 - [ ] Added appropriate labels 
