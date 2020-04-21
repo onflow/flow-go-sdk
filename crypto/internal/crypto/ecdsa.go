@@ -19,8 +19,11 @@
 package crypto
 
 // Elliptic Curve Digital Signature Algorithm is implemented as
-// defined in FIPS 186-4, although The hash function implemented in this package is SHA3.
-// This is different from the ECDSA version implemented in some blockchains.
+// defined in FIPS 186-4 (the hash function implemented in this package are SHA2 and SHA3).
+
+// Most of the implementation is Go based and is not optimized for performance.
+
+// This implementation does not include any security against side-channel attacks.
 
 import (
 	goecdsa "crypto/ecdsa"
@@ -93,7 +96,7 @@ func (sk *PrKeyECDSA) signHash(h hash.Hash) (Signature, error) {
 }
 
 // Sign signs an array of bytes
-// It only reads the private key without modifiyong it while hashers sha2 and sha3 are
+// It only reads the private key without modifiying it while hashers sha2 and sha3 are
 // modified temporarily.
 // the resulting signature is the concatenation bytes(r)||bytes(s)
 // where r and s are padded to the curve order size
@@ -129,7 +132,7 @@ func (pk *PubKeyECDSA) Verify(sig Signature, data []byte, alg hash.Hasher) (bool
 var one = new(big.Int).SetInt64(1)
 
 // goecdsaGenerateKey generates a public and private key pair
-// for the crypto/ecdsa library using the input seed as input
+// for the crypto/ecdsa library using the input seed
 func goecdsaGenerateKey(c elliptic.Curve, seed []byte) *goecdsa.PrivateKey {
 	k := new(big.Int).SetBytes(seed)
 	n := new(big.Int).Sub(c.Params().N, one)
@@ -292,7 +295,7 @@ func (pk *PubKeyECDSA) rawEncode() []byte {
 
 // Encode returns a byte representation of a public key.
 // a simple uncompressed raw encoding X||Y is used for all curves
-// X and Y are the big endian byte encoding of the x and y coordinate of the public key
+// X and Y are the big endian byte encoding of the x and y coordinates of the public key
 func (pk *PubKeyECDSA) Encode() []byte {
 	return pk.rawEncode()
 }

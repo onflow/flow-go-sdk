@@ -130,29 +130,29 @@ func (k KeyType) HashAlgorithm() HashAlgorithm {
 
 // A PrivateKey is a cryptographic private key that can be used for in-memory signing.
 type PrivateKey struct {
-	private crypto.PrivateKey
+	privateKey crypto.PrivateKey
 }
 
 // Sign signs the given message with this private key and the provided hasher.
 //
 // This function returns an error if a signature cannot be generated.
-func (pk PrivateKey) Sign(message []byte, hasher Hasher) ([]byte, error) {
-	return pk.private.Sign(message, hasher)
+func (sk PrivateKey) Sign(message []byte, hasher Hasher) ([]byte, error) {
+	return sk.privateKey.Sign(message, hasher)
 }
 
 // Algorithm returns the signature algorithm for this private key.
-func (pk PrivateKey) Algorithm() SignatureAlgorithm {
-	return SignatureAlgorithm(pk.private.Algorithm())
+func (sk PrivateKey) Algorithm() SignatureAlgorithm {
+	return SignatureAlgorithm(sk.privateKey.Algorithm())
 }
 
 // PublicKey returns the public key for this private key.
-func (pk PrivateKey) PublicKey() PublicKey {
-	return PublicKey{publicKey: pk.private.PublicKey()}
+func (sk PrivateKey) PublicKey() PublicKey {
+	return PublicKey{publicKey: sk.privateKey.PublicKey()}
 }
 
 // Encode returns the raw byte encoding of this private key.
-func (pk PrivateKey) Encode() []byte {
-	return pk.private.Encode()
+func (sk PrivateKey) Encode() []byte {
+	return sk.privateKey.Encode()
 }
 
 // A PublicKey is a cryptographic public key that can be used to verify signatures.
@@ -221,7 +221,7 @@ func GeneratePrivateKey(sigAlgo SignatureAlgorithm, seed []byte) (PrivateKey, er
 	}
 
 	return PrivateKey{
-		private: privKey,
+		privateKey: privKey,
 	}, nil
 }
 
@@ -233,7 +233,7 @@ func DecodePrivateKey(sigAlgo SignatureAlgorithm, b []byte) (PrivateKey, error) 
 	}
 
 	return PrivateKey{
-		private: privKey,
+		privateKey: privKey,
 	}, nil
 }
 
