@@ -215,7 +215,10 @@ func NewNaiveSigner(privateKey PrivateKey, hashAlgo HashAlgorithm) NaiveSigner {
 
 // GeneratePrivateKey generates a private key with the specified signature algorithm from the given seed.
 func GeneratePrivateKey(sigAlgo SignatureAlgorithm, seed []byte) (PrivateKey, error) {
-	privKey, err := crypto.GeneratePrivateKey(crypto.SigningAlgorithm(sigAlgo), seed)
+	hasher := NewSHA3_384()
+	hashedSeed := hasher.ComputeHash(seed)
+
+	privKey, err := crypto.GeneratePrivateKey(crypto.SigningAlgorithm(sigAlgo), hashedSeed)
 	if err != nil {
 		return PrivateKey{}, err
 	}
