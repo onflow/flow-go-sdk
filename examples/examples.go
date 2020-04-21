@@ -24,15 +24,6 @@ func ReadFile(path string) []byte {
 	return contents
 }
 
-// GetNonce returns a nonce value that is guaranteed to be unique.
-var GetNonce = func() func() uint64 {
-	var nonce uint64
-	return func() uint64 {
-		nonce++
-		return nonce
-	}
-}()
-
 // RandomPrivateKey returns a randomly generated private key.
 func RandomPrivateKey() crypto.PrivateKey {
 	seed := make([]byte, crypto.MinSeedLengthECDSA_P256)
