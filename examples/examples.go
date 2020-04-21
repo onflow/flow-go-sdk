@@ -59,7 +59,7 @@ func RootAccount(flowClient *client.Client) (flow.Address, *flow.AccountKey, cry
 
 	accountKey := acc.Keys[0]
 
-	signer := crypto.NewNaiveSigner(privateKey, accountKey.HashAlgo)
+	signer := crypto.NewInMemorySigner(privateKey, accountKey.HashAlgo)
 
 	return addr, accountKey, signer
 }
@@ -77,7 +77,7 @@ func CreateAccount() (flow.Address, *flow.AccountKey, crypto.Signer) {
 		nil,
 	)
 
-	signer := crypto.NewNaiveSigner(privateKey, accountKey.HashAlgo)
+	signer := crypto.NewInMemorySigner(privateKey, accountKey.HashAlgo)
 
 	return addr, accountKey, signer
 }

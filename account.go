@@ -59,7 +59,7 @@ func (a *AccountKey) SetWeight(weight int) *AccountKey {
 }
 
 func (a AccountKey) Encode() []byte {
-	temp := accountPublicKeyWrapper{
+	temp := accountKeyWrapper{
 		EncodedPublicKey: a.PublicKey.Encode(),
 		SigAlgo:          uint(a.SigAlgo),
 		HashAlgo:         uint(a.HashAlgo),
@@ -80,7 +80,7 @@ func (a AccountKey) Validate() error {
 }
 
 func DecodeAccountKey(b []byte) (*AccountKey, error) {
-	var temp accountPublicKeyWrapper
+	var temp accountKeyWrapper
 
 	err := rlpDecode(b, &temp)
 	if err != nil {
@@ -103,7 +103,7 @@ func DecodeAccountKey(b []byte) (*AccountKey, error) {
 	}, nil
 }
 
-type accountPublicKeyWrapper struct {
+type accountKeyWrapper struct {
 	EncodedPublicKey []byte
 	SigAlgo          uint
 	HashAlgo         uint
