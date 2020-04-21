@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/onflow/flow-go-sdk"
-	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/test"
 )
 
@@ -53,17 +52,17 @@ func ExampleTransaction() {
 
 	// Signing
 
-	err := tx.SignPayload(adrian.Address, adrianLaptopKey.ID, crypto.MockSigner([]byte{1}))
+	err := tx.SignPayload(adrian.Address, adrianLaptopKey.ID, test.MockSigner([]byte{1}))
 	if err != nil {
 		panic(err)
 	}
 
-	err = tx.SignPayload(adrian.Address, adrianPhoneKey.ID, crypto.MockSigner([]byte{2}))
+	err = tx.SignPayload(adrian.Address, adrianPhoneKey.ID, test.MockSigner([]byte{2}))
 	if err != nil {
 		panic(err)
 	}
 
-	err = tx.SignEnvelope(blaine.Address, blaineHardwareKey.ID, crypto.MockSigner([]byte{3}))
+	err = tx.SignEnvelope(blaine.Address, blaineHardwareKey.ID, test.MockSigner([]byte{3}))
 	if err != nil {
 		panic(err)
 	}
