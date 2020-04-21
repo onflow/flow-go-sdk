@@ -17,7 +17,7 @@ type Event struct {
 	Type string
 	// TransactionID is the ID of the transaction this event was emitted from.
 	TransactionID Identifier
-	// TransactionIndex is the index of the transaction this event was emitted from within its containing block.
+	// TransactionIndex is the index of the transaction this event was emitted from, within its containing block.
 	TransactionIndex int
 	// EventIndex is the index of the event within the transaction it was emitted from.
 	EventIndex int
@@ -30,13 +30,12 @@ func (e Event) String() string {
 	return fmt.Sprintf("%s: %s", e.Type, e.ID())
 }
 
-// ID returns a canonical identifier that is guaranteed to be unique.
+// ID returns the canonical SHA3-256 hash of this event.
 func (e Event) ID() string {
 	return DefaultHasher.ComputeHash(e.Encode()).Hex()
 }
 
-// Encode returns the canonical encoding of the event, containing only the
-// fields necessary to uniquely identify it.
+// Encode returns the canonical RLP byte representation of this event.
 func (e Event) Encode() []byte {
 	temp := struct {
 		TransactionID []byte
@@ -48,8 +47,13 @@ func (e Event) Encode() []byte {
 	return mustRLPEncode(&temp)
 }
 
+// An AccountCreatedEvent is emitted when a transaction creates a new Flow account.
+//
+// This event contains the following fields:
+// - Address: Address
 type AccountCreatedEvent Event
 
+// Address returns the address of the newly-created account.
 func (evt AccountCreatedEvent) Address() Address {
 	return BytesToAddress(evt.Value.Fields[0].(cadence.Address).Bytes())
 }
