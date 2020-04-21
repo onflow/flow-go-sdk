@@ -62,10 +62,3 @@ func mustRLPEncode(v interface{}) []byte {
 	}
 	return b
 }
-
-func mustRLPDecode(b []byte, v interface{}) {
-	err := rlpDecode(b, v)
-	if err != nil {
-		panic(err)
-	}
-}
