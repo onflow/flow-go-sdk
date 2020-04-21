@@ -1,22 +1,15 @@
 ---
-name: Reporting a Problem/Bug
-about: Reporting a Problem/Bug
+name: Bug Report
+about: Reporting a problem or bug
 title: ''
-labels: bug, Feedback
-assignees: ''
+labels: bug
+assignees: psiemens
 
 ---
 
 ## Instructions 
 
 Please fill out the template below to the best of your ability and include a label indicating which tool/service you were working with when you encountered the problem. 
-
-- `S-Emulator` 
-- `S-Observation` 
-- `S-Language`
-- `Documentation` 
-- `S-Playground`
-- `S-Client`
 
 ### Problem
 
@@ -33,5 +26,3 @@ Please fill out the template below to the best of your ability and include a lab
 ### Context
 
 <what are you currently working on that this is blocking?>
-
-
