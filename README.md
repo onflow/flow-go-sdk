@@ -50,7 +50,7 @@ Here's how you can generate an `ECDSA-P256` private key:
 ```go
 import "github.com/dapperlabs/flow-go-sdk/crypto"
 
-// deterministic seed phrase
+// deterministic seed phrase (this is only an example, please use a secure random generator for the key seed)
 seed := []byte("elephant ears space cowboy octopus rodeo potato cannon pineapple")
 
 privateKey, err := crypto.GeneratePrivateKey(crypto.ECDSA_P256, seed)
@@ -85,7 +85,7 @@ import (
     "github.com/dapperlabs/flow-go-sdk/templates"
 )
 
-// generate a new private key for the account
+// generate a new private key for the account (this is only an example, please use a secure random generator for the key seed)
 seed := []byte("elephant ears space cowboy octopus rodeo potato cannon pineapple")
 privateKey, _ := crypto.GeneratePrivateKey(crypto.ECDSA_P256, seed)
 
