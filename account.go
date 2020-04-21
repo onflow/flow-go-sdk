@@ -7,8 +7,6 @@ import (
 )
 
 // An Account is an account on the Flow network.
-//
-// An account can be an externally owned account or a contract account with code.
 type Account struct {
 	Address Address
 	Balance uint64
@@ -16,6 +14,7 @@ type Account struct {
 	Keys    []*AccountKey
 }
 
+// AccountKeyWeightThreshold is the total key weight required to authorize access to an account.
 const AccountKeyWeightThreshold int = 1000
 
 // An AccountKey is a public key associated with an account.
@@ -28,36 +27,43 @@ type AccountKey struct {
 	SequenceNumber uint64
 }
 
+// NewAccountKey returns an empty account key.
 func NewAccountKey() *AccountKey {
 	return &AccountKey{}
 }
 
-func (a *AccountKey) FromPrivateKey(pk crypto.PrivateKey) *AccountKey {
-	a.PublicKey = pk.PublicKey()
-	a.SigAlgo = pk.Algorithm()
+// FromPrivateKey sets the public key and signature algorithm based on the provided private key.
+func (a *AccountKey) FromPrivateKey(privKey crypto.PrivateKey) *AccountKey {
+	a.PublicKey = privKey.PublicKey()
+	a.SigAlgo = privKey.Algorithm()
 	return a
 }
 
+// SetPublicKey sets the public key for this account key.
 func (a *AccountKey) SetPublicKey(pubKey crypto.PublicKey) *AccountKey {
 	a.PublicKey = pubKey
 	return a
 }
 
+// SetSigAlgo sets the signature algorithm for this account key.
 func (a *AccountKey) SetSigAlgo(sigAlgo crypto.SignatureAlgorithm) *AccountKey {
 	a.SigAlgo = sigAlgo
 	return a
 }
 
+// SetHashAlgo sets the hash algorithm for this account key.
 func (a *AccountKey) SetHashAlgo(hashAlgo crypto.HashAlgorithm) *AccountKey {
 	a.HashAlgo = hashAlgo
 	return a
 }
 
+// SetWeight sets the weight for this account key.
 func (a *AccountKey) SetWeight(weight int) *AccountKey {
 	a.Weight = weight
 	return a
 }
 
+// Encode returns the RLP byte representation of this account key.
 func (a AccountKey) Encode() []byte {
 	temp := accountKeyWrapper{
 		EncodedPublicKey: a.PublicKey.Encode(),
@@ -68,6 +74,11 @@ func (a AccountKey) Encode() []byte {
 	return mustRLPEncode(&temp)
 }
 
+// Validate returns an error if this account key is invalid.
+//
+// An account key can be invalid for the following reasons:
+// - It specifies an incompatible signature/hash algorithm pairing
+// - (TODO) It specifies a negative key weight
 func (a AccountKey) Validate() error {
 	if !crypto.CompatibleAlgorithms(a.SigAlgo, a.HashAlgo) {
 		return errors.Errorf(
@@ -79,6 +90,7 @@ func (a AccountKey) Validate() error {
 	return nil
 }
 
+// DecodeAccountKey decodes the RLP byte representation of an account key.
 func DecodeAccountKey(b []byte) (*AccountKey, error) {
 	var temp accountKeyWrapper
 
