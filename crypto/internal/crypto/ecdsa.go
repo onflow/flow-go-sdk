@@ -19,7 +19,7 @@
 package crypto
 
 // Elliptic Curve Digital Signature Algorithm is implemented as
-// defined in FIPS 186-4 (the hash function implemented in this package are SHA2 and SHA3).
+// defined in FIPS 186-4 (although the hash functions implemented in this package are SHA2 and SHA3).
 
 // Most of the implementation is Go based and is not optimized for performance.
 
