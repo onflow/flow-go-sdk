@@ -63,7 +63,7 @@ func (a *AccountKey) SetWeight(weight int) *AccountKey {
 	return a
 }
 
-// Encode returns the RLP byte representation of this account key.
+// Encode returns the canonical RLP byte representation of this account key.
 func (a AccountKey) Encode() []byte {
 	temp := accountKeyWrapper{
 		EncodedPublicKey: a.PublicKey.Encode(),
