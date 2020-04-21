@@ -1,14 +1,12 @@
 # Name of the cover profile
 COVER_PROFILE := cover.out
 # Disable go sum database lookup for private repos
-GOPRIVATE := github.com/dapperlabs/*
-# Ensure go bin path is in path (Especially for CI)
+GOPRIVATE := github.com/onflow/*
+# Ensure go bin path is in path (especially for CI)
 PATH := $(PATH):$(GOPATH)/bin
 
-BINARY ?= ./cmd/flow/flow
-
 .PHONY: install-tools
-install-tools: check-go-version
+install-tools:
 	cd ${GOPATH}; \
 	GO111MODULE=on go get github.com/vektra/mockery/cmd/mockery@v0.0.0-20181123154057-e78b021dcbb5; \
 	GO111MODULE=on go get github.com/axw/gocov/gocov; \
@@ -36,8 +34,3 @@ generate-mocks:
 
 .PHONY: ci
 ci: install-tools generate-mocks test coverage
-
-# Check if the go version is >1.13. flow-go-sdk only supports go versions > 1.13
-.PHONY: check-go-version
-check-go-version:
-	go version | grep '1.13\|1.14'
