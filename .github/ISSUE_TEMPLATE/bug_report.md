@@ -1,6 +1,6 @@
 ---
 name: Bug Report
-about: Reporting a problem or bug
+about: Report a problem or bug
 title: ''
 labels: bug
 assignees: psiemens
