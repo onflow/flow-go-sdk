@@ -179,9 +179,11 @@ if err != nil {
 }
 ```
 
+<!--
 #### How Signatures Work in Flow
 
 TODO: link to signatures doc
+-->
 
 ### Sending a Transaction
 
@@ -341,9 +343,11 @@ for _, block := range blocks {
 }
 ```
 
+<!--
 #### Decoding an Event
 
 TODO: example for event decoding
+-->
 
 ### Querying Accounts
 
