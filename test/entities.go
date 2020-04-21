@@ -142,7 +142,7 @@ func (g *Blocks) New() *flow.Block {
 	}
 
 	payload := flow.BlockPayload{
-		Guarantees: guarantees,
+		CollectionGuarantees: guarantees,
 	}
 
 	g.count++

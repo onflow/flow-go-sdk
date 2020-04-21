@@ -17,8 +17,8 @@ type BlockHeader struct {
 //
 // A payload contains the collection guarantees and seals for a block.
 type BlockPayload struct {
-	Guarantees []*CollectionGuarantee
-	Seals      []*BlockSeal
+	CollectionGuarantees []*CollectionGuarantee
+	Seals                []*BlockSeal
 }
 
 // TODO: define block seal struct

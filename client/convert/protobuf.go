@@ -36,7 +36,7 @@ func MessageToBlock(m *entities.Block) (flow.Block, error) {
 	}
 
 	payload := flow.BlockPayload{
-		Guarantees: guarantees,
+		CollectionGuarantees: guarantees,
 	}
 
 	return flow.Block{
@@ -50,7 +50,7 @@ func BlockToMessage(b flow.Block) *entities.Block {
 		Id:                   b.ID.Bytes(),
 		ParentId:             b.ParentID.Bytes(),
 		Height:               b.Height,
-		CollectionGuarantees: CollectionGuaranteesToMessages(b.Guarantees),
+		CollectionGuarantees: CollectionGuaranteesToMessages(b.CollectionGuarantees),
 	}
 }
 
