@@ -17,12 +17,13 @@ func init() {
 	gob.Register(Address{})
 }
 
-// Address represents the 20 byte address of an account.
+// An Address is a 20-byte identifier for a Flow account.
 type Address [AddressLength]byte
 
 var (
 	// ZeroAddress represents the "zero address" (account that no one owns).
 	ZeroAddress = Address{}
+	// RootAddress is the address of the Flow root account.
 	RootAddress = BytesToAddress(big.NewInt(1).Bytes())
 )
 
@@ -41,7 +42,7 @@ func HexToAddress(h string) Address {
 	return BytesToAddress(b)
 }
 
-// SetBytes sets the address to the value of b.
+// SetBytes sets this address to the value of b.
 //
 // If b is larger than len(a) it will panic.
 func (a *Address) SetBytes(b []byte) {
@@ -51,21 +52,20 @@ func (a *Address) SetBytes(b []byte) {
 	copy(a[AddressLength-len(b):], b)
 }
 
-// Bytes returns the byte representation of the address.
+// Bytes returns the byte representation of this address.
 func (a Address) Bytes() []byte { return a[:] }
 
-// Hex returns the hex string representation of the address.
+// Hex returns the hex string representation of this address.
 func (a Address) Hex() string {
 	return hex.EncodeToString(a.Bytes())
 }
 
-// String returns the string representation of the address.
+// String returns the string representation of this address.
 func (a Address) String() string {
 	return a.Hex()
 }
 
-// Short returns the string representation of the address with leading zeros
-// removed.
+// Short returns the string representation of this address with leading zeros removed.
 func (a Address) Short() string {
 	hex := a.String()
 	trimmed := strings.TrimLeft(hex, "0")
