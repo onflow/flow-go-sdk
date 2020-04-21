@@ -10,7 +10,7 @@ func (c Collection) ID() Identifier {
 	return HashToID(DefaultHasher.ComputeHash(c.Encode()))
 }
 
-// Encode returns the canonical encoding of this collection.
+// Encode returns the canonical RLP byte representation of this collection.
 func (c Collection) Encode() []byte {
 	transactionIDs := make([][]byte, len(c.TransactionIDs))
 	for i, id := range c.TransactionIDs {
@@ -18,9 +18,9 @@ func (c Collection) Encode() []byte {
 	}
 
 	temp := struct {
-		TransactionIDS [][]byte
+		TransactionIDs [][]byte
 	}{
-		TransactionIDS: transactionIDs,
+		TransactionIDs: transactionIDs,
 	}
 	return mustRLPEncode(&temp)
 }
