@@ -174,12 +174,6 @@ func NewNaiveSigner(privateKey PrivateKey, hashAlgo HashAlgorithm) NaiveSigner {
 	return NewInMemorySigner(privateKey, hashAlgo)
 }
 
-type MockSigner []byte
-
-func (s MockSigner) Sign(message []byte) ([]byte, error) {
-	return s, nil
-}
-
 func GeneratePrivateKey(sigAlgo SignatureAlgorithm, seed []byte) (PrivateKey, error) {
 	privKey, err := crypto.GeneratePrivateKey(crypto.SigningAlgorithm(sigAlgo), seed)
 	if err != nil {
