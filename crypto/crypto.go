@@ -111,39 +111,39 @@ func (k KeyType) HashAlgorithm() HashAlgorithm {
 }
 
 type PrivateKey struct {
-	PrivateKey crypto.PrivateKey
+	private crypto.PrivateKey
 }
 
 func (pk PrivateKey) Sign(message []byte, hasher Hasher) ([]byte, error) {
-	return pk.PrivateKey.Sign(message, hasher)
+	return pk.private.Sign(message, hasher)
 }
 
 func (pk PrivateKey) Algorithm() SignatureAlgorithm {
-	return SignatureAlgorithm(pk.PrivateKey.Algorithm())
+	return SignatureAlgorithm(pk.private.Algorithm())
 }
 
 func (pk PrivateKey) PublicKey() PublicKey {
-	return PublicKey{PublicKey: pk.PrivateKey.PublicKey()}
+	return PublicKey{publicKey: pk.private.PublicKey()}
 }
 
 func (pk PrivateKey) Encode() []byte {
-	return pk.PrivateKey.Encode()
+	return pk.private.Encode()
 }
 
 type PublicKey struct {
-	PublicKey crypto.PublicKey
+	publicKey crypto.PublicKey
 }
 
 func (pk PublicKey) Verify(sig, message []byte, hasher Hasher) (bool, error) {
-	return pk.PublicKey.Verify(sig, message, hasher)
+	return pk.publicKey.Verify(sig, message, hasher)
 }
 
 func (pk PublicKey) Algorithm() SignatureAlgorithm {
-	return SignatureAlgorithm(pk.PublicKey.Algorithm())
+	return SignatureAlgorithm(pk.publicKey.Algorithm())
 }
 
 func (pk PublicKey) Encode() []byte {
-	return pk.PublicKey.Encode()
+	return pk.publicKey.Encode()
 }
 
 type Signer interface {
@@ -181,7 +181,7 @@ func GeneratePrivateKey(sigAlgo SignatureAlgorithm, seed []byte) (PrivateKey, er
 	}
 
 	return PrivateKey{
-		PrivateKey: privKey,
+		private: privKey,
 	}, nil
 }
 
@@ -192,7 +192,7 @@ func DecodePrivateKey(sigAlgo SignatureAlgorithm, b []byte) (PrivateKey, error) 
 	}
 
 	return PrivateKey{
-		PrivateKey: privKey,
+		private: privKey,
 	}, nil
 }
 
@@ -212,7 +212,7 @@ func DecodePublicKey(sigAlgo SignatureAlgorithm, b []byte) (PublicKey, error) {
 	}
 
 	return PublicKey{
-		PublicKey: pubKey,
+		publicKey: pubKey,
 	}, nil
 }
 
