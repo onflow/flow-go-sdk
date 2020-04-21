@@ -2,11 +2,11 @@
 
 The Flow Go SDK provides a set of packages for Go developers to build applications that interact with the Flow network.
 
-*Note: This SDK is also fully compatible with the Flow Emulator and can be used for local development.*
+*Note: This SDK is also fully compatible with the [Flow Emulator](https://github.com/onflow/flow/blob/master/docs/emulator.md) and can be used for local development.*
 
 ## What is Flow?
 
-Flow is a new blockchain for open worlds. Read more about it [here](https://www.onflow.org/).
+Flow is a new blockchain for open worlds. Read more about it [here](https://github.com/onflow/flow).
 
 ## Table of Contents
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
@@ -18,7 +18,6 @@ Flow is a new blockchain for open worlds. Read more about it [here](https://www.
   - [Generating Keys](#generating-keys)
   - [Creating an Account](#creating-an-account)
   - [Signing a Transaction](#signing-a-transaction)
-    - [How Signatures Work in Flow](#how-signatures-work-in-flow)
   - [Sending a Transaction](#sending-a-transaction)
   - [Querying Transaction Results](#querying-transaction-results)
   - [Querying Blocks](#querying-blocks)
@@ -26,8 +25,8 @@ Flow is a new blockchain for open worlds. Read more about it [here](https://www.
   - [Querying Events](#querying-events)
     - [Event Query Format](#event-query-format)
     - [Event Results](#event-results)
-    - [Decoding an Event](#decoding-an-event)
   - [Querying Accounts](#querying-accounts)
+- [Examples](#examples)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -372,3 +371,7 @@ A `flow.Account` contains the following fields:
 - `Balance: uint64` - The account balance.
 - `Code: []byte` - The code deployed at this account.
 - `Keys: []flow.AccountKey` - A list of the public keys associated with this account.
+
+## Examples
+
+The [examples](/examples) directory contains code samples that use the SDK to interact with the [Flow Emulator](https://github.com/onflow/flow/blob/master/docs/emulator.md).
