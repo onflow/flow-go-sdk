@@ -12,7 +12,7 @@ For contributor use:
 
 - [ ] Targeted PR against `master` branch
 - [ ] Linked to Github issue with discussion and accepted design OR link to spec that describes this work.
-- [ ] Code follows the [standards mentioned here](/CONTRIBUTING.md#styleguides).
+- [ ] Code follows the [standards mentioned here](https://github.com/onflow/flow-go-sdk/blob/master/CONTRIBUTING.md#styleguides).
 - [ ] Updated relevant documentation 
 - [ ] Re-reviewed `Files changed` in the Github PR explorer
 - [ ] Added appropriate labels 
