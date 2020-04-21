@@ -30,15 +30,12 @@ ifeq ($(COVER), true)
 	gozip -c coverage.zip index.html
 endif
 
-.PHONY: generate
-generate: generate-mocks
-
 .PHONY: generate-mocks
 generate-mocks:
 	GO111MODULE=on mockery -name RPCClient -dir=client -case=underscore -output="./client/mocks" -outpkg="mocks"
 
 .PHONY: ci
-ci: install-tools generate test coverage
+ci: install-tools generate-mocks test coverage
 
 # Check if the go version is >1.13. flow-go-sdk only supports go versions > 1.13
 .PHONY: check-go-version
