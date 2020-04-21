@@ -1,5 +1,3 @@
-# Name of the cover profile
-COVER_PROFILE := cover.out
 # Disable go sum database lookup for private repos
 GOPRIVATE := github.com/onflow/*
 # Ensure go bin path is in path (especially for CI)
@@ -15,18 +13,7 @@ install-tools:
 
 .PHONY: test
 test:
-	GO111MODULE=on go test -coverprofile=$(COVER_PROFILE) $(if $(JSON_OUTPUT),-json,) ./...
-
-.PHONY: coverage
-coverage:
-ifeq ($(COVER), true)
-	# file has to be called index.html
-	gocov convert $(COVER_PROFILE) > cover.json
-	./cover-summary.sh
-	gocov-html cover.json > index.html
-	# coverage.zip will automatically be picked up by teamcity
-	gozip -c coverage.zip index.html
-endif
+	GO111MODULE=on go test -coverprofile=cover.out ./...
 
 .PHONY: generate-mocks
 generate-mocks:
