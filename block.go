@@ -15,7 +15,7 @@ type BlockHeader struct {
 
 // A BlockPayload is the full contents of a block.
 //
-// A payload contains the collection guarantees and seals contained within a block.
+// A payload contains the collection guarantees and seals for a block.
 type BlockPayload struct {
 	Guarantees []*CollectionGuarantee
 	Seals      []*BlockSeal
