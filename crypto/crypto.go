@@ -256,7 +256,6 @@ func GeneratePrivateKey(sigAlgo SignatureAlgorithm, seed []byte) (PrivateKey, er
 
 	hashedSeed := hasher.ComputeHash(seed)
 
-	// generate the key
 	privKey, err := crypto.GeneratePrivateKey(crypto.SigningAlgorithm(sigAlgo), hashedSeed)
 	if err != nil {
 		return PrivateKey{}, err
