@@ -29,10 +29,15 @@ func (i Identifier) String() string {
 	return i.Hex()
 }
 
-func HashToID(hash []byte) Identifier {
+// BytesToID constructs an identifier from a byte slice.
+func BytesToID(b []byte) Identifier {
 	var id Identifier
-	copy(id[:], hash)
+	copy(id[:], b)
 	return id
+}
+
+func HashToID(hash []byte) Identifier {
+	return BytesToID(hash)
 }
 
 // DefaultHasher is the default hasher used by Flow.
