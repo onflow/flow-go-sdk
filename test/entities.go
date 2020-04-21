@@ -187,7 +187,7 @@ func (g *Transactions) New() *flow.Transaction {
 	err := tx.SignPayload(
 		tx.ProposalKey.Address,
 		tx.ProposalKey.KeyID,
-		crypto.MockSigner([]byte{uint8(tx.ProposalKey.KeyID)}),
+		MockSigner([]byte{uint8(tx.ProposalKey.KeyID)}),
 	)
 	if err != nil {
 		panic(err)
@@ -195,14 +195,14 @@ func (g *Transactions) New() *flow.Transaction {
 
 	// sign payload as each authorizer
 	for _, addr := range tx.Authorizers {
-		err = tx.SignPayload(addr, 0, crypto.MockSigner(addr.Bytes()))
+		err = tx.SignPayload(addr, 0, MockSigner(addr.Bytes()))
 		if err != nil {
 			panic(err)
 		}
 	}
 
 	// sign envelope as payer
-	err = tx.SignEnvelope(tx.Payer, 0, crypto.MockSigner(tx.Payer.Bytes()))
+	err = tx.SignEnvelope(tx.Payer, 0, MockSigner(tx.Payer.Bytes()))
 	if err != nil {
 		panic(err)
 	}
