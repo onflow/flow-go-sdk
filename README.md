@@ -47,7 +47,7 @@ The signature scheme supported in Flow accounts is ECDSA. It can be coupled with
 Here's how you can generate an `ECDSA-P256` private key:
 
 ```go
-import "github.com/dapperlabs/flow-go-sdk/crypto"
+import "github.com/onflow/flow-go-sdk/crypto"
 
 // deterministic seed phrase (this is only an example, please use a secure random generator for the key seed)
 seed := []byte("elephant ears space cowboy octopus rodeo potato cannon pineapple")
@@ -65,10 +65,10 @@ A private key has an accompanying public key:
 
 ```go
 publicKey := privateKey.PublicKey()
-``` 
+```
 
 The example above uses an ECDSA key-pair of the elliptic curve P-256. Flow also supports the curve secp256k1. Here's how you can generate an `ECDSA-SECp256k1` private key:
-  
+
 ```go
 privateKey, err := crypto.GeneratePrivateKey(crypto.ECDSA_secp256k1, seed)
 ```
@@ -79,9 +79,9 @@ Once you have [generated a key-pair](#generating-keys), you can create a new acc
 
 ```go
 import (
-    "github.com/dapperlabs/flow-go-sdk"
-    "github.com/dapperlabs/flow-go-sdk/crypto"
-    "github.com/dapperlabs/flow-go-sdk/templates"
+    "github.com/onflow/flow-go-sdk"
+    "github.com/onflow/flow-go-sdk/crypto"
+    "github.com/onflow/flow-go-sdk/templates"
 )
 
 // generate a new private key for the account (this is only an example, please use a secure random generator for the key seed)
@@ -148,8 +148,8 @@ Below is a simple example of how to sign a transaction using a `crypto.PrivateKe
 
 ```go
 import (
-    "github.com/dapperlabs/flow-go-sdk"
-    "github.com/dapperlabs/flow-go-sdk/crypto"
+    "github.com/onflow/flow-go-sdk"
+    "github.com/onflow/flow-go-sdk/crypto"
 )
 
 var (
@@ -165,7 +165,7 @@ tx := flow.NewTransaction().
     SetPayer(myAddress)
 ```
 
-Transaction signing is done using the `crypto.Signer` interface. The simplest (and least secure) implementation of 
+Transaction signing is done using the `crypto.Signer` interface. The simplest (and least secure) implementation of
 `crypto.Signer` is `crypto.InMemorySigner`.
 
 Signatures can be generated more securely using hardware keys stored in a device such as an [HSM](https://en.wikipedia.org/wiki/Hardware_security_module). The `crypto.Signer` interface is intended to be flexible enough to support a variety of signer implementations and is not limited to in-memory implementations.
@@ -191,7 +191,7 @@ TODO: link to signatures doc
 You can submit a transaction to the network using the Access API Client.
 
 ```go
-import "github.com/dapperlabs/flow-go-sdk/client"
+import "github.com/onflow/flow-go-sdk/client"
 
 // connect to an emulator running locally
 c, err := client.New("localhost:3569")
@@ -231,7 +231,7 @@ if result.Status == flow.TransactionStatusSealed {
 }
 ```
 
-The result also contains an `Error` that holds the error information for a failed transaction. 
+The result also contains an `Error` that holds the error information for a failed transaction.
 
 ```go
 if result.Error != nil {
@@ -303,7 +303,7 @@ myID := ID.Int()
 You can query events with the `GetEventsForHeightRange` function:
 
 ```go
-import "github.com/dapperlabs/flow-go-sdk/client"
+import "github.com/onflow/flow-go-sdk/client"
 
 blocks, err := c.GetEventsForHeightRange(ctx, client.EventRangeQuery{
     Type:       "flow.AccountCreated",
@@ -355,7 +355,7 @@ TODO: example for event decoding
 You can query the state of an account with the `GetAccount` function:
 
 ```go
-import "github.com/dapperlabs/flow-go-sdk"
+import "github.com/onflow/flow-go-sdk"
 
 address := flow.HexToAddress("01")
 
