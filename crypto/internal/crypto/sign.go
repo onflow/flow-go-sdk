@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-// Package crypto ...
 package crypto
 
 import (
@@ -35,8 +34,8 @@ type signer interface {
 	decodePublicKey([]byte) (PublicKey, error)
 }
 
-// newNonRelicSigner initializes a signer that does not depend on the Relic library.
-func newNonRelicSigner(algo SigningAlgorithm) (signer, error) {
+// newSigner initializes a new signer from the given signing algorithm.
+func newSigner(algo SigningAlgorithm) (signer, error) {
 	switch algo {
 	case ECDSAP256:
 		return newECDSAP256(), nil
