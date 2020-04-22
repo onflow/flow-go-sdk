@@ -65,10 +65,10 @@ A private key has an accompanying public key:
 
 ```go
 publicKey := privateKey.PublicKey()
-``` 
+```
 
 The example above uses an ECDSA key-pair of the elliptic curve P-256. Flow also supports the curve secp256k1. Here's how you can generate an `ECDSA-SECp256k1` private key:
-  
+
 ```go
 privateKey, err := crypto.GeneratePrivateKey(crypto.ECDSA_secp256k1, seed)
 ```
@@ -165,7 +165,7 @@ tx := flow.NewTransaction().
     SetPayer(myAddress)
 ```
 
-Transaction signing is done using the `crypto.Signer` interface. The simplest (and least secure) implementation of 
+Transaction signing is done using the `crypto.Signer` interface. The simplest (and least secure) implementation of
 `crypto.Signer` is `crypto.InMemorySigner`.
 
 Signatures can be generated more securely using hardware keys stored in a device such as an [HSM](https://en.wikipedia.org/wiki/Hardware_security_module). The `crypto.Signer` interface is intended to be flexible enough to support a variety of signer implementations and is not limited to in-memory implementations.
@@ -231,7 +231,7 @@ if result.Status == flow.TransactionStatusSealed {
 }
 ```
 
-The result also contains an `Error` that holds the error information for a failed transaction. 
+The result also contains an `Error` that holds the error information for a failed transaction.
 
 ```go
 if result.Error != nil {
