@@ -85,6 +85,8 @@ import (
 )
 
 // generate a new private key for the account (this is only an example, please use a secure random generator for the key seed)
+ctx := context.Background()
+// generate a new private key for the account (this is only an example, please use a secure random generator for the key seed)
 seed := []byte("elephant ears space cowboy octopus rodeo potato cannon pineapple")
 privateKey, _ := crypto.GeneratePrivateKey(crypto.ECDSA_P256, seed)
 
@@ -93,13 +95,13 @@ publicKey := privateKey.PublicKey()
 
 // construct an account key from the public key
 accountKey := flow.NewAccountKey().
-    SetPublicKey(publickKey).
-    SetHashAlgo(crypto.SHA3_256). // pair this key with the SHA3_256 hashing algorithm
+    SetPublicKey(publicKey).
+    SetHashAlgo(crypto.SHA3_256).             // pair this key with the SHA3_256 hashing algorithm
     SetWeight(flow.AccountKeyWeightThreshold) // give this key full signing weight
 
 // generate an account creation script
 // this creates an account with a single public key and no code
-script := templates.CreateAccount([]flow.AccountPublicKey{accountKey}, nil)
+script, _ := templates.CreateAccount([]*flow.AccountKey{accountKey}, nil)
 
 // connect to an emulator running locally
 c, err := client.New("localhost:3569")
@@ -113,32 +115,32 @@ tx := flow.NewTransaction().
     SetScript(script).
     SetGasLimit(100).
     SetProposalKey(payer, payerKey.ID, payerKey.SequenceNumber).
-    SetPayer(payerAddress)
+    SetPayer(payer)
 
-err := tx.SignEnvelope(payer, payerKey.ID, payerSigner)
+err = tx.SignEnvelope(payer, payerKey.ID, payerSigner)
 if err != nil {
     panic("failed to sign transaction")
 }
 
-err = c.SendTransaction(*tx)
+err = c.SendTransaction(ctx, *tx)
 if err != nil {
     panic("failed to send transaction")
 }
 
-result, err = c.GetTransactionResult(tx.ID())
+result, err := c.GetTransactionResult(ctx, tx.ID())
 if err != nil {
     panic("failed to get transaction result")
 }
 
 var myAddress flow.Address
 
-if tx.Status == flow.TransactionSealed {
+if result.Status == flow.TransactionStatusSealed {
     for _, event := range result.Events {
-		if event.Type == flow.EventAccountCreated {
-			accountCreatedEvent := flow.AccountCreatedEvent(event)
-			myAddress = accountCreatedEvent.Address()
-		}
-    }
+        if event.Type == flow.EventAccountCreated {
+            accountCreatedEvent := flow.AccountCreatedEvent(event)
+            myAddress = accountCreatedEvent.Address()
+            }
+	}
 }
 ```
 
