@@ -72,3 +72,15 @@ func TestConvert_Event(t *testing.T) {
 
 	assert.Equal(t, eventA, eventB)
 }
+
+func TestConvert_AccountKey(t *testing.T) {
+	keyA := test.AccountKeyGenerator().New()
+
+	msg, err := convert.AccountKeyToMessage(keyA)
+	require.NoError(t, err)
+
+	keyB, err := convert.MessageToAccountKey(msg)
+	require.NoError(t, err)
+
+	assert.Equal(t, keyA, keyB)
+}
