@@ -88,6 +88,7 @@ func (a AccountKey) Encode() []byte {
 		SigAlgo:          uint(a.SigAlgo),
 		HashAlgo:         uint(a.HashAlgo),
 		Weight:           uint(a.Weight),
+		SeqNumber:        a.SequenceNumber,
 	}
 	return mustRLPEncode(&temp)
 }
@@ -126,10 +127,11 @@ func DecodeAccountKey(b []byte) (*AccountKey, error) {
 	}
 
 	return &AccountKey{
-		PublicKey: publicKey,
-		SigAlgo:   sigAlgo,
-		HashAlgo:  hashAlgo,
-		Weight:    int(temp.Weight),
+		PublicKey:      publicKey,
+		SigAlgo:        sigAlgo,
+		HashAlgo:       hashAlgo,
+		Weight:         int(temp.Weight),
+		SequenceNumber: temp.SeqNumber,
 	}, nil
 }
 
@@ -138,4 +140,5 @@ type accountKeyWrapper struct {
 	SigAlgo          uint
 	HashAlgo         uint
 	Weight           uint
+	SeqNumber        uint64
 }
