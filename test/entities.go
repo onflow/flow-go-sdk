@@ -30,86 +30,6 @@ import (
 
 var ScriptHelloWorld = []byte(`transaction { execute { log("Hello, World!") } }`)
 
-type Identifiers struct {
-	count int
-}
-
-func IdentifierGenerator() *Identifiers {
-	return &Identifiers{1}
-}
-
-func (g *Identifiers) New() flow.Identifier {
-	id := newIdentifier(g.count + 1)
-	g.count++
-	return id
-}
-
-func newIdentifier(count int) flow.Identifier {
-	var id flow.Identifier
-	for i := range id {
-		id[i] = uint8(count)
-	}
-
-	return id
-}
-
-type Addresses struct {
-	count int
-}
-
-func AddressGenerator() *Addresses {
-	return &Addresses{1}
-}
-
-func (g *Addresses) New() flow.Address {
-	addr := flow.BytesToAddress([]byte{uint8(g.count)})
-	g.count++
-	return addr
-}
-
-type AccountKeys struct {
-	count int
-	ids   *Identifiers
-}
-
-func AccountKeyGenerator() *AccountKeys {
-	return &AccountKeys{
-		count: 1,
-		ids:   IdentifierGenerator(),
-	}
-}
-
-func (g *AccountKeys) New() *flow.AccountKey {
-	accountKey, _ := g.NewWithSigner()
-	return accountKey
-}
-
-func (g *AccountKeys) NewWithSigner() (*flow.AccountKey, crypto.Signer) {
-	seed := make([]byte, crypto.MinSeedLengthECDSA_P256)
-	for i := range seed {
-		seed[i] = uint8(g.count)
-	}
-
-	privateKey, err := crypto.GeneratePrivateKey(crypto.ECDSA_P256, seed)
-
-	if err != nil {
-		panic(err)
-	}
-
-	accountKey := flow.AccountKey{
-		ID:             g.count,
-		PublicKey:      privateKey.PublicKey(),
-		SigAlgo:        crypto.ECDSA_P256,
-		HashAlgo:       crypto.SHA3_256,
-		Weight:         flow.AccountKeyWeightThreshold,
-		SequenceNumber: 42,
-	}
-
-	g.count++
-
-	return &accountKey, crypto.NewInMemorySigner(privateKey, accountKey.HashAlgo)
-}
-
 type Accounts struct {
 	addresses   *Addresses
 	accountKeys *AccountKeys
@@ -134,40 +54,111 @@ func (g *Accounts) New() *flow.Account {
 	}
 }
 
-type Blocks struct {
+type AccountKeys struct {
 	count int
 	ids   *Identifiers
 }
 
-func BlockGenerator() *Blocks {
-	return &Blocks{
+func AccountKeyGenerator() *AccountKeys {
+	return &AccountKeys{
 		count: 1,
 		ids:   IdentifierGenerator(),
 	}
 }
 
-func (g *Blocks) New() *flow.Block {
-	header := flow.BlockHeader{
-		ID:       g.ids.New(),
-		ParentID: g.ids.New(),
-		Height:   uint64(g.count),
+func (g *AccountKeys) New() *flow.AccountKey {
+	accountKey, _ := g.NewWithSigner()
+	return accountKey
+}
+
+func (g *AccountKeys) NewWithSigner() (*flow.AccountKey, crypto.Signer) {
+	defer func() { g.count++ }()
+
+	seed := make([]byte, crypto.MinSeedLengthECDSA_P256)
+	for i := range seed {
+		seed[i] = uint8(g.count)
 	}
 
+	privateKey, err := crypto.GeneratePrivateKey(crypto.ECDSA_P256, seed)
+
+	if err != nil {
+		panic(err)
+	}
+
+	accountKey := flow.AccountKey{
+		ID:             g.count,
+		PublicKey:      privateKey.PublicKey(),
+		SigAlgo:        crypto.ECDSA_P256,
+		HashAlgo:       crypto.SHA3_256,
+		Weight:         flow.AccountKeyWeightThreshold,
+		SequenceNumber: 42,
+	}
+
+	return &accountKey, crypto.NewInMemorySigner(privateKey, accountKey.HashAlgo)
+}
+
+type Addresses struct {
+	count int
+}
+
+func AddressGenerator() *Addresses {
+	return &Addresses{1}
+}
+
+func (g *Addresses) New() flow.Address {
+	defer func() { g.count++ }()
+	return flow.BytesToAddress([]byte{uint8(g.count)})
+}
+
+type Blocks struct {
+	headers    *BlockHeaders
+	guarantees *CollectionGuarantees
+}
+
+func BlockGenerator() *Blocks {
+	return &Blocks{
+		headers:    BlockHeaderGenerator(),
+		guarantees: CollectionGuaranteeGenerator(),
+	}
+}
+
+func (g *Blocks) New() *flow.Block {
+	header := g.headers.New()
+
 	guarantees := []*flow.CollectionGuarantee{
-		{CollectionID: g.ids.New()},
-		{CollectionID: g.ids.New()},
-		{CollectionID: g.ids.New()},
+		g.guarantees.New(),
+		g.guarantees.New(),
+		g.guarantees.New(),
 	}
 
 	payload := flow.BlockPayload{
 		CollectionGuarantees: guarantees,
 	}
 
-	g.count++
-
 	return &flow.Block{
 		BlockHeader:  header,
 		BlockPayload: payload,
+	}
+}
+
+type BlockHeaders struct {
+	count int
+	ids   *Identifiers
+}
+
+func BlockHeaderGenerator() *BlockHeaders {
+	return &BlockHeaders{
+		count: 1,
+		ids:   IdentifierGenerator(),
+	}
+}
+
+func (g *BlockHeaders) New() flow.BlockHeader {
+	defer func() { g.count++ }()
+	return flow.BlockHeader{
+		ID:       g.ids.New(),
+		ParentID: g.ids.New(),
+		Height:   uint64(g.count),
 	}
 }
 
@@ -188,6 +179,94 @@ func (g *Collections) New() *flow.Collection {
 			g.ids.New(),
 		},
 	}
+}
+
+type CollectionGuarantees struct {
+	ids *Identifiers
+}
+
+func CollectionGuaranteeGenerator() *CollectionGuarantees {
+	return &CollectionGuarantees{
+		ids: IdentifierGenerator(),
+	}
+}
+
+func (g *CollectionGuarantees) New() *flow.CollectionGuarantee {
+	return &flow.CollectionGuarantee{
+		CollectionID: g.ids.New(),
+	}
+}
+
+type Events struct {
+	count int
+	ids   *Identifiers
+}
+
+func EventGenerator() *Events {
+	return &Events{
+		count: 1,
+		ids:   IdentifierGenerator(),
+	}
+}
+
+func (g *Events) New() flow.Event {
+	defer func() { g.count++ }()
+
+	identifier := fmt.Sprintf("FooEvent%d", g.count)
+	typeID := "test." + identifier
+
+	testEventType := cadence.EventType{
+		TypeID:     typeID,
+		Identifier: identifier,
+		Fields: []cadence.Field{
+			{
+				Identifier: "a",
+				Type:       cadence.IntType{},
+			},
+			{
+				Identifier: "b",
+				Type:       cadence.StringType{},
+			},
+		},
+	}
+
+	testEvent := cadence.NewEvent(
+		[]cadence.Value{
+			cadence.NewInt(g.count),
+			cadence.NewString("foo"),
+		}).WithType(testEventType)
+
+	event := flow.Event{
+		Type:             typeID,
+		TransactionID:    g.ids.New(),
+		TransactionIndex: g.count,
+		EventIndex:       g.count,
+		Value:            testEvent,
+	}
+
+	return event
+}
+
+type Identifiers struct {
+	count int
+}
+
+func IdentifierGenerator() *Identifiers {
+	return &Identifiers{1}
+}
+
+func (g *Identifiers) New() flow.Identifier {
+	defer func() { g.count++ }()
+	return newIdentifier(g.count + 1)
+}
+
+func newIdentifier(count int) flow.Identifier {
+	var id flow.Identifier
+	for i := range id {
+		id[i] = uint8(count)
+	}
+
+	return id
 }
 
 type Transactions struct {
@@ -266,54 +345,4 @@ func (g *TransactionResults) New() flow.TransactionResult {
 			eventB,
 		},
 	}
-}
-
-type Events struct {
-	count int
-	ids   *Identifiers
-}
-
-func EventGenerator() *Events {
-	return &Events{
-		count: 1,
-		ids:   IdentifierGenerator(),
-	}
-}
-
-func (g *Events) New() flow.Event {
-	identifier := fmt.Sprintf("FooEvent%d", g.count)
-	typeID := "test." + identifier
-
-	testEventType := cadence.EventType{
-		TypeID:     typeID,
-		Identifier: identifier,
-		Fields: []cadence.Field{
-			{
-				Identifier: "a",
-				Type:       cadence.IntType{},
-			},
-			{
-				Identifier: "b",
-				Type:       cadence.StringType{},
-			},
-		},
-	}
-
-	testEvent := cadence.NewEvent(
-		[]cadence.Value{
-			cadence.NewInt(g.count),
-			cadence.NewString("foo"),
-		}).WithType(testEventType)
-
-	event := flow.Event{
-		Type:             typeID,
-		TransactionID:    g.ids.New(),
-		TransactionIndex: g.count,
-		EventIndex:       g.count,
-		Value:            testEvent,
-	}
-
-	g.count++
-
-	return event
 }
