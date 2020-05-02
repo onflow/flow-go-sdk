@@ -22,13 +22,9 @@ import (
 	"context"
 	"fmt"
 
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-
 	"github.com/onflow/cadence"
-	encoding "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/flow/protobuf/go/flow/access"
+	"google.golang.org/grpc"
 
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/client/convert"
@@ -130,13 +126,13 @@ func (c *Client) GetBlockHeaderByHeight(ctx context.Context, height uint64) (*fl
 }
 
 func getBlockHeaderResult(res *access.BlockHeaderResponse) (*flow.BlockHeader, error) {
-	result, err := convert.MessageToBlockHeader(res.GetBlock())
+	header, err := convert.MessageToBlockHeader(res.GetBlock())
 	if err != nil {
 		// TODO: improve errors
 		return nil, fmt.Errorf("client: %w", err)
 	}
 
-	return &result, nil
+	return &header, nil
 }
 
 // GetLatestBlock gets the full payload of the latest sealed or unsealed block.
@@ -185,13 +181,13 @@ func (c *Client) GetBlockByHeight(ctx context.Context, height uint64) (*flow.Blo
 }
 
 func getBlockResult(res *access.BlockResponse) (*flow.Block, error) {
-	result, err := convert.MessageToBlock(res.GetBlock())
+	block, err := convert.MessageToBlock(res.GetBlock())
 	if err != nil {
 		// TODO: improve errors
 		return nil, fmt.Errorf("client: %w", err)
 	}
 
-	return &result, nil
+	return &block, nil
 }
 
 // GetCollection gets a collection by ID.
@@ -274,17 +270,20 @@ func (c *Client) GetTransactionResult(ctx context.Context, txID flow.Identifier)
 
 // GetAccount gets an account by address.
 func (c *Client) GetAccount(ctx context.Context, address flow.Address) (*flow.Account, error) {
-	res, err := c.rpcClient.GetAccount(
-		ctx,
-		&access.GetAccountRequest{Address: address.Bytes()},
-	)
+	req := &access.GetAccountRequest{
+		Address: address.Bytes(),
+	}
+
+	res, err := c.rpcClient.GetAccount(ctx, req)
 	if err != nil {
-		return nil, err
+		// TODO: improve errors
+		return nil, fmt.Errorf("client: %w", err)
 	}
 
 	account, err := convert.MessageToAccount(res.GetAccount())
 	if err != nil {
-		return nil, err
+		// TODO: improve errors
+		return nil, fmt.Errorf("client: %w", err)
 	}
 
 	return &account, nil
@@ -292,26 +291,69 @@ func (c *Client) GetAccount(ctx context.Context, address flow.Address) (*flow.Ac
 
 // ExecuteScriptAtLatestBlock executes a read-only Cadence script against the latest sealed execution state.
 func (c *Client) ExecuteScriptAtLatestBlock(ctx context.Context, script []byte) (cadence.Value, error) {
-	res, err := c.rpcClient.ExecuteScriptAtLatestBlock(ctx, &access.ExecuteScriptAtLatestBlockRequest{Script: script})
-	if err != nil {
-		return nil, err
+	req := &access.ExecuteScriptAtLatestBlockRequest{
+		Script: script,
 	}
 
-	value, err := encoding.Decode(res.GetValue())
+	res, err := c.rpcClient.ExecuteScriptAtLatestBlock(ctx, req)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		// TODO: improve errors
+		return nil, fmt.Errorf("client: %w", err)
 	}
+
+	return executeScriptResult(res)
+}
+
+// ExecuteScriptAtBlockID executes a ready-only Cadence script against the execution state
+// at the block with the given ID.
+func (c *Client) ExecuteScriptAtBlockID(
+	ctx context.Context,
+	blockID flow.Identifier,
+	script []byte,
+) (cadence.Value, error) {
+	req := &access.ExecuteScriptAtBlockIDRequest{
+		BlockId: blockID.Bytes(),
+		Script:  script,
+	}
+
+	res, err := c.rpcClient.ExecuteScriptAtBlockID(ctx, req)
+	if err != nil {
+		// TODO: improve errors
+		return nil, fmt.Errorf("client: %w", err)
+	}
+
+	return executeScriptResult(res)
+}
+
+// ExecuteScriptAtBlockHeight executes a ready-only Cadence script against the execution state
+// at the given block height.
+func (c *Client) ExecuteScriptAtBlockHeight(
+	ctx context.Context,
+	height uint64,
+	script []byte,
+) (cadence.Value, error) {
+	req := &access.ExecuteScriptAtBlockHeightRequest{
+		BlockHeight: height,
+		Script:      script,
+	}
+
+	res, err := c.rpcClient.ExecuteScriptAtBlockHeight(ctx, req)
+	if err != nil {
+		// TODO: improve errors
+		return nil, fmt.Errorf("client: %w", err)
+	}
+
+	return executeScriptResult(res)
+}
+
+func executeScriptResult(res *access.ExecuteScriptResponse) (cadence.Value, error) {
+	value, err := convert.MessageToCadenceValue(res.GetValue())
+	if err != nil {
+		// TODO: improve errors
+		return nil, fmt.Errorf("client: %w", err)
+	}
+
 	return value, nil
-}
-
-// ExecuteScriptAtBlockID executes a ready-only Cadence script against the execution state at the block with the given ID.
-func (c *Client) ExecuteScriptAtBlockID(ctx context.Context) error {
-	panic("not implemented")
-}
-
-// ExecuteScriptAtBlockHeight executes a ready-only Cadence script against the execution state at the given block height.
-func (c *Client) ExecuteScriptAtBlockHeight(ctx context.Context) error {
-	panic("not implemented")
 }
 
 // EventRangeQuery defines a query for Flow events.

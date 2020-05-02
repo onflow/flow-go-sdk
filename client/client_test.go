@@ -422,6 +422,94 @@ func TestClient_ExecuteScriptAtLatestBlock(t *testing.T) {
 	}))
 }
 
+func TestClient_ExecuteScriptAtBlockID(t *testing.T) {
+	ids := test.IdentifierGenerator()
+
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
+		expectedValue := cadence.NewInt(42)
+		encodedValue, err := jsoncdc.Encode(expectedValue)
+		require.NoError(t, err)
+
+		response := &access.ExecuteScriptResponse{
+			Value: encodedValue,
+		}
+
+		rpc.On("ExecuteScriptAtBlockID", ctx, mock.Anything).Return(response, nil)
+
+		value, err := c.ExecuteScriptAtBlockID(ctx, ids.New(), []byte("foo"))
+		require.NoError(t, err)
+
+		assert.Equal(t, expectedValue, value)
+	}))
+
+	t.Run(
+		"Invalid JSON-CDC",
+		clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
+			response := &access.ExecuteScriptResponse{
+				Value: []byte("invalid JSON-CDC bytes"),
+			}
+
+			rpc.On("ExecuteScriptAtBlockID", ctx, mock.Anything).Return(response, nil)
+
+			value, err := c.ExecuteScriptAtBlockID(ctx, ids.New(), []byte("foo"))
+			assert.Error(t, err)
+			assert.Nil(t, value)
+		}),
+	)
+
+	t.Run("Error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
+		rpc.On("ExecuteScriptAtBlockID", ctx, mock.Anything).
+			Return(nil, mockRPCError)
+
+		value, err := c.ExecuteScriptAtBlockID(ctx, ids.New(), []byte("foo"))
+		assert.Error(t, err)
+		assert.Nil(t, value)
+	}))
+}
+
+func TestClient_ExecuteScriptAtBlockHeight(t *testing.T) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
+		expectedValue := cadence.NewInt(42)
+		encodedValue, err := jsoncdc.Encode(expectedValue)
+		require.NoError(t, err)
+
+		response := &access.ExecuteScriptResponse{
+			Value: encodedValue,
+		}
+
+		rpc.On("ExecuteScriptAtBlockHeight", ctx, mock.Anything).Return(response, nil)
+
+		value, err := c.ExecuteScriptAtBlockHeight(ctx, 42, []byte("foo"))
+		require.NoError(t, err)
+
+		assert.Equal(t, expectedValue, value)
+	}))
+
+	t.Run(
+		"Invalid JSON-CDC",
+		clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
+			response := &access.ExecuteScriptResponse{
+				Value: []byte("invalid JSON-CDC bytes"),
+			}
+
+			rpc.On("ExecuteScriptAtBlockHeight", ctx, mock.Anything).Return(response, nil)
+
+			value, err := c.ExecuteScriptAtBlockHeight(ctx, 42, []byte("foo"))
+			assert.Error(t, err)
+			assert.Nil(t, value)
+		}),
+	)
+
+	t.Run("Error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
+		rpc.On("ExecuteScriptAtBlockHeight", ctx, mock.Anything).
+			Return(nil, mockRPCError)
+
+		value, err := c.ExecuteScriptAtBlockHeight(ctx, 42, []byte("foo"))
+		assert.Error(t, err)
+		assert.Nil(t, value)
+	}))
+}
+
 func TestClient_GetEventsForHeightRange(t *testing.T) {
 	ids := test.IdentifierGenerator()
 	events := test.EventGenerator()
