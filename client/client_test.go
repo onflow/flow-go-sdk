@@ -347,6 +347,36 @@ func TestClient_GetTransactionResult(t *testing.T) {
 	}))
 }
 
+func TestClient_GetAccount(t *testing.T) {
+	accounts := test.AccountGenerator()
+	addresses := test.AddressGenerator()
+
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
+		expectedAccount := accounts.New()
+		response := &access.GetAccountResponse{
+			Account: convert.AccountToMessage(*expectedAccount),
+		}
+
+		rpc.On("GetAccount", ctx, mock.Anything).Return(response, nil)
+
+		account, err := c.GetAccount(ctx, expectedAccount.Address)
+		require.NoError(t, err)
+
+		assert.Equal(t, expectedAccount, account)
+	}))
+
+	t.Run("Error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
+		address := addresses.New()
+
+		rpc.On("GetAccount", ctx, mock.Anything).
+			Return(nil, mockRPCError)
+
+		account, err := c.GetAccount(ctx, address)
+		assert.Error(t, err)
+		assert.Nil(t, account)
+	}))
+}
+
 func TestClient_GetEventsForHeightRange(t *testing.T) {
 	ids := test.IdentifierGenerator()
 	events := test.EventGenerator()
