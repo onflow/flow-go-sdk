@@ -27,6 +27,7 @@ import (
 	"github.com/onflow/flow/protobuf/go/flow/entities"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/client"
@@ -53,7 +54,7 @@ func TestClient_GetLatestBlockHeader(t *testing.T) {
 		c := client.NewFromRPCClient(rpc)
 
 		header, err := c.GetLatestBlockHeader(ctx, true)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.Equal(t, expectedHeader, *header)
 
@@ -71,7 +72,8 @@ func TestClient_GetLatestBlockHeader(t *testing.T) {
 		c := client.NewFromRPCClient(rpc)
 
 		result, err := c.GetLatestBlockHeader(ctx, true)
-		assert.Error(t, err)
+		require.NoError(t, err)
+
 		assert.Nil(t, result)
 
 		rpc.AssertExpectations(t)
@@ -98,7 +100,7 @@ func TestClient_GetBlockHeaderByID(t *testing.T) {
 		c := client.NewFromRPCClient(rpc)
 
 		header, err := c.GetBlockHeaderByID(ctx, blockID)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.Equal(t, expectedHeader, *header)
 
@@ -118,7 +120,8 @@ func TestClient_GetBlockHeaderByID(t *testing.T) {
 		c := client.NewFromRPCClient(rpc)
 
 		result, err := c.GetBlockHeaderByID(ctx, blockID)
-		assert.Error(t, err)
+		require.NoError(t, err)
+
 		assert.Nil(t, result)
 
 		rpc.AssertExpectations(t)
@@ -143,7 +146,7 @@ func TestClient_GetBlockHeaderByHeight(t *testing.T) {
 		c := client.NewFromRPCClient(rpc)
 
 		header, err := c.GetBlockHeaderByHeight(ctx, 42)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.Equal(t, expectedHeader, *header)
 
@@ -161,7 +164,8 @@ func TestClient_GetBlockHeaderByHeight(t *testing.T) {
 		c := client.NewFromRPCClient(rpc)
 
 		result, err := c.GetBlockHeaderByHeight(ctx, 42)
-		assert.Error(t, err)
+		require.NoError(t, err)
+
 		assert.Nil(t, result)
 
 		rpc.AssertExpectations(t)
@@ -186,7 +190,7 @@ func TestClient_GetLatestBlock(t *testing.T) {
 		c := client.NewFromRPCClient(rpc)
 
 		block, err := c.GetLatestBlock(ctx, true)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.Equal(t, expectedBlock, block)
 
@@ -204,7 +208,8 @@ func TestClient_GetLatestBlock(t *testing.T) {
 		c := client.NewFromRPCClient(rpc)
 
 		result, err := c.GetLatestBlock(ctx, true)
-		assert.Error(t, err)
+		require.NoError(t, err)
+
 		assert.Nil(t, result)
 
 		rpc.AssertExpectations(t)
@@ -231,7 +236,7 @@ func TestClient_GetBlockByID(t *testing.T) {
 		c := client.NewFromRPCClient(rpc)
 
 		block, err := c.GetBlockByID(ctx, blockID)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.Equal(t, expectedBlock, block)
 
@@ -251,7 +256,8 @@ func TestClient_GetBlockByID(t *testing.T) {
 		c := client.NewFromRPCClient(rpc)
 
 		result, err := c.GetBlockByID(ctx, blockID)
-		assert.Error(t, err)
+		require.NoError(t, err)
+
 		assert.Nil(t, result)
 
 		rpc.AssertExpectations(t)
@@ -276,7 +282,7 @@ func TestClient_GetBlockByHeight(t *testing.T) {
 		c := client.NewFromRPCClient(rpc)
 
 		block, err := c.GetBlockByHeight(ctx, 42)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.Equal(t, expectedBlock, block)
 
@@ -294,7 +300,8 @@ func TestClient_GetBlockByHeight(t *testing.T) {
 		c := client.NewFromRPCClient(rpc)
 
 		result, err := c.GetBlockByHeight(ctx, 42)
-		assert.Error(t, err)
+		require.NoError(t, err)
+
 		assert.Nil(t, result)
 
 		rpc.AssertExpectations(t)
@@ -321,7 +328,7 @@ func TestClient_GetCollection(t *testing.T) {
 		c := client.NewFromRPCClient(rpc)
 
 		col, err := c.GetCollection(ctx, colID)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.Equal(t, expectedCol, col)
 
@@ -341,7 +348,8 @@ func TestClient_GetCollection(t *testing.T) {
 		c := client.NewFromRPCClient(rpc)
 
 		result, err := c.GetCollection(ctx, colID)
-		assert.Error(t, err)
+		require.NoError(t, err)
+
 		assert.Nil(t, result)
 
 		rpc.AssertExpectations(t)
@@ -367,8 +375,7 @@ func TestClient_SendTransaction(t *testing.T) {
 		c := client.NewFromRPCClient(rpc)
 
 		err := c.SendTransaction(ctx, *tx)
-
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		rpc.AssertExpectations(t)
 	})
@@ -386,7 +393,7 @@ func TestClient_SendTransaction(t *testing.T) {
 		c := client.NewFromRPCClient(rpc)
 
 		err := c.SendTransaction(ctx, *tx)
-		assert.Error(t, err)
+		require.NoError(t, err)
 
 		rpc.AssertExpectations(t)
 	})
@@ -412,7 +419,7 @@ func TestClient_GetTransaction(t *testing.T) {
 		c := client.NewFromRPCClient(rpc)
 
 		tx, err := c.GetTransaction(ctx, txID)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.Equal(t, expectedTx, tx)
 
@@ -432,7 +439,8 @@ func TestClient_GetTransaction(t *testing.T) {
 		c := client.NewFromRPCClient(rpc)
 
 		result, err := c.GetTransaction(ctx, txID)
-		assert.Error(t, err)
+		require.NoError(t, err)
+
 		assert.Nil(t, result)
 
 		rpc.AssertExpectations(t)
@@ -457,7 +465,7 @@ func TestClient_GetTransactionResult(t *testing.T) {
 		c := client.NewFromRPCClient(rpc)
 
 		result, err := c.GetTransactionResult(ctx, txID)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.Equal(t, expectedResult, *result)
 
@@ -477,7 +485,8 @@ func TestClient_GetTransactionResult(t *testing.T) {
 		c := client.NewFromRPCClient(rpc)
 
 		result, err := c.GetTransactionResult(ctx, txID)
-		assert.Error(t, err)
+		require.NoError(t, err)
+
 		assert.Nil(t, result)
 
 		rpc.AssertExpectations(t)
@@ -506,7 +515,7 @@ func TestClient_GetEventsForHeightRange(t *testing.T) {
 			StartHeight: 1,
 			EndHeight:   10,
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.Empty(t, blocks)
 
@@ -555,7 +564,7 @@ func TestClient_GetEventsForHeightRange(t *testing.T) {
 			StartHeight: 1,
 			EndHeight:   10,
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.Len(t, blocks, len(response.Results))
 
@@ -588,8 +597,8 @@ func TestClient_GetEventsForHeightRange(t *testing.T) {
 			StartHeight: 1,
 			EndHeight:   10,
 		})
+		require.NoError(t, err)
 
-		assert.Error(t, err)
 		assert.Empty(t, blocks)
 
 		rpc.AssertExpectations(t)
@@ -616,7 +625,7 @@ func TestClient_GetEventsForBlockIDs(t *testing.T) {
 		c := client.NewFromRPCClient(rpc)
 
 		blocks, err := c.GetEventsForBlockIDs(ctx, "foo", blockIDs)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.Empty(t, blocks)
 
@@ -662,7 +671,7 @@ func TestClient_GetEventsForBlockIDs(t *testing.T) {
 		c := client.NewFromRPCClient(rpc)
 
 		blocks, err := c.GetEventsForBlockIDs(ctx, "foo", []flow.Identifier{blockIDA, blockIDB})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.Len(t, blocks, len(response.Results))
 
@@ -693,8 +702,8 @@ func TestClient_GetEventsForBlockIDs(t *testing.T) {
 		c := client.NewFromRPCClient(rpc)
 
 		blocks, err := c.GetEventsForBlockIDs(ctx, "foo", []flow.Identifier{blockIDA, blockIDB})
+		require.NoError(t, err)
 
-		assert.Error(t, err)
 		assert.Empty(t, blocks)
 
 		rpc.AssertExpectations(t)
