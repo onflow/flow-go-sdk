@@ -399,7 +399,7 @@ func (c *Client) GetEventsForBlockIDs(
 ) ([]BlockEvents, error) {
 	req := &access.GetEventsForBlockIDsRequest{
 		Type:     eventType,
-		BlockIds: convert.IDsToMessages(blockIDs),
+		BlockIds: convert.IdentifiersToMessages(blockIDs),
 	}
 
 	res, err := c.rpcClient.GetEventsForBlockIDs(ctx, req)
