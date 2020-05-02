@@ -1,5 +1,3 @@
-# Disable go sum database lookup for private repos
-GOPRIVATE := github.com/onflow/*
 # Ensure go bin path is in path (especially for CI)
 PATH := $(PATH):$(GOPATH)/bin
 
