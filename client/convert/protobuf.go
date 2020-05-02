@@ -326,14 +326,10 @@ func MessageToAccount(m *entities.Account) (flow.Account, error) {
 	}, nil
 }
 
-func AccountToMessage(a flow.Account) (*entities.Account, error) {
+func AccountToMessage(a flow.Account) *entities.Account {
 	accountKeys := make([]*entities.AccountKey, len(a.Keys))
 	for i, key := range a.Keys {
-		accountKeyMsg, err := AccountKeyToMessage(key)
-		if err != nil {
-			return nil, err
-		}
-		accountKeys[i] = accountKeyMsg
+		accountKeys[i] = AccountKeyToMessage(key)
 	}
 
 	return &entities.Account{
@@ -341,7 +337,7 @@ func AccountToMessage(a flow.Account) (*entities.Account, error) {
 		Balance: a.Balance,
 		Code:    a.Code,
 		Keys:    accountKeys,
-	}, nil
+	}
 }
 
 func MessageToAccountKey(m *entities.AccountKey) (*flow.AccountKey, error) {
@@ -367,17 +363,15 @@ func MessageToAccountKey(m *entities.AccountKey) (*flow.AccountKey, error) {
 	}, nil
 }
 
-func AccountKeyToMessage(a *flow.AccountKey) (*entities.AccountKey, error) {
-	publicKey := a.PublicKey.Encode()
-
+func AccountKeyToMessage(a *flow.AccountKey) *entities.AccountKey {
 	return &entities.AccountKey{
 		Index:          uint32(a.ID),
-		PublicKey:      publicKey,
+		PublicKey:      a.PublicKey.Encode(),
 		SignAlgo:       uint32(a.SigAlgo),
 		HashAlgo:       uint32(a.HashAlgo),
 		Weight:         uint32(a.Weight),
 		SequenceNumber: uint32(a.SequenceNumber),
-	}, nil
+	}
 }
 
 func MessageToEvent(m *entities.Event) (flow.Event, error) {
