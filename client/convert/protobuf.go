@@ -375,9 +375,9 @@ func AccountKeyToMessage(a *flow.AccountKey) *entities.AccountKey {
 }
 
 func MessageToEvent(m *entities.Event) (flow.Event, error) {
-	value, err := jsoncdc.Decode(m.GetPayload())
+	value, err := MessageToCadenceValue(m.GetPayload())
 	if err != nil {
-		return flow.Event{}, nil
+		return flow.Event{}, err
 	}
 
 	eventValue, isEvent := value.(cadence.Event)
@@ -395,9 +395,9 @@ func MessageToEvent(m *entities.Event) (flow.Event, error) {
 }
 
 func EventToMessage(e flow.Event) (*entities.Event, error) {
-	payload, err := jsoncdc.Encode(e.Value)
+	payload, err := CadenceValueToMessage(e.Value)
 	if err != nil {
-		return nil, fmt.Errorf("convert: %w", err)
+		return nil, err
 	}
 
 	return &entities.Event{
@@ -407,4 +407,22 @@ func EventToMessage(e flow.Event) (*entities.Event, error) {
 		EventIndex:       uint32(e.EventIndex),
 		Payload:          payload,
 	}, nil
+}
+
+func CadenceValueToMessage(value cadence.Value) ([]byte, error) {
+	b, err := jsoncdc.Encode(value)
+	if err != nil {
+		return nil, fmt.Errorf("convert: %w", err)
+	}
+
+	return b, nil
+}
+
+func MessageToCadenceValue(m []byte) (cadence.Value, error) {
+	v, err := jsoncdc.Decode(m)
+	if err != nil {
+		return nil, fmt.Errorf("convert: %w", err)
+	}
+
+	return v, nil
 }
