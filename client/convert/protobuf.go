@@ -52,8 +52,8 @@ func MessageToAccount(m *entities.Account) (flow.Account, error) {
 		return flow.Account{}, ErrEmptyMessage
 	}
 
-	accountKeys := make([]*flow.AccountKey, len(m.Keys))
-	for i, key := range m.Keys {
+	accountKeys := make([]*flow.AccountKey, len(m.GetKeys()))
+	for i, key := range m.GetKeys() {
 		accountKey, err := MessageToAccountKey(key)
 		if err != nil {
 			return flow.Account{}, err
@@ -63,9 +63,9 @@ func MessageToAccount(m *entities.Account) (flow.Account, error) {
 	}
 
 	return flow.Account{
-		Address: flow.BytesToAddress(m.Address),
-		Balance: m.Balance,
-		Code:    m.Code,
+		Address: flow.BytesToAddress(m.GetAddress()),
+		Balance: m.GetBalance(),
+		Code:    m.GetCode(),
 		Keys:    accountKeys,
 	}, nil
 }
