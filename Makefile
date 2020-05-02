@@ -13,6 +13,10 @@ install-tools:
 test:
 	GO111MODULE=on go test -coverprofile=cover.out ./...
 
+.PHONY: coverage
+coverage: test
+	go tool cover -html=cover.out
+
 .PHONY: generate-mocks
 generate-mocks:
 	GO111MODULE=on mockery -name RPCClient -dir=client -case=underscore -output="./client/mocks" -outpkg="mocks"
