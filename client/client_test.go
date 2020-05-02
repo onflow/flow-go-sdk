@@ -36,6 +36,8 @@ import (
 	"github.com/onflow/flow-go-sdk/test"
 )
 
+var mockRPCError = errors.New("rpc error")
+
 func TestClient_Ping(t *testing.T) {
 	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
 		response := &access.PingResponse{}
@@ -48,7 +50,7 @@ func TestClient_Ping(t *testing.T) {
 
 	t.Run("Error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
 		rpc.On("Ping", ctx, mock.Anything).
-			Return(nil, errors.New("rpc error"))
+			Return(nil, mockRPCError)
 
 		err := c.Ping(ctx)
 		assert.Error(t, err)
@@ -75,7 +77,7 @@ func TestClient_GetLatestBlockHeader(t *testing.T) {
 
 	t.Run("Error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
 		rpc.On("GetLatestBlockHeader", ctx, mock.Anything).
-			Return(nil, errors.New("rpc error"))
+			Return(nil, mockRPCError)
 
 		result, err := c.GetLatestBlockHeader(ctx, true)
 		assert.Error(t, err)
@@ -106,7 +108,7 @@ func TestClient_GetBlockHeaderByID(t *testing.T) {
 		blockID := ids.New()
 
 		rpc.On("GetBlockHeaderByID", ctx, mock.Anything).
-			Return(nil, errors.New("rpc error"))
+			Return(nil, mockRPCError)
 
 		result, err := c.GetBlockHeaderByID(ctx, blockID)
 		assert.Error(t, err)
@@ -133,7 +135,7 @@ func TestClient_GetBlockHeaderByHeight(t *testing.T) {
 
 	t.Run("Error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
 		rpc.On("GetBlockHeaderByHeight", ctx, mock.Anything).
-			Return(nil, errors.New("rpc error"))
+			Return(nil, mockRPCError)
 
 		result, err := c.GetBlockHeaderByHeight(ctx, 42)
 		assert.Error(t, err)
@@ -160,7 +162,7 @@ func TestClient_GetLatestBlock(t *testing.T) {
 
 	t.Run("Error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
 		rpc.On("GetLatestBlock", ctx, mock.Anything).
-			Return(nil, errors.New("rpc error"))
+			Return(nil, mockRPCError)
 
 		result, err := c.GetLatestBlock(ctx, true)
 		assert.Error(t, err)
@@ -191,7 +193,7 @@ func TestClient_GetBlockByID(t *testing.T) {
 		blockID := ids.New()
 
 		rpc.On("GetBlockByID", ctx, mock.Anything).
-			Return(nil, errors.New("rpc error"))
+			Return(nil, mockRPCError)
 
 		result, err := c.GetBlockByID(ctx, blockID)
 		assert.Error(t, err)
@@ -218,7 +220,7 @@ func TestClient_GetBlockByHeight(t *testing.T) {
 
 	t.Run("Error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
 		rpc.On("GetBlockByHeight", ctx, mock.Anything).
-			Return(nil, errors.New("rpc error"))
+			Return(nil, mockRPCError)
 
 		result, err := c.GetBlockByHeight(ctx, 42)
 		assert.Error(t, err)
@@ -249,7 +251,7 @@ func TestClient_GetCollection(t *testing.T) {
 		colID := ids.New()
 
 		rpc.On("GetCollectionByID", ctx, mock.Anything).
-			Return(nil, errors.New("rpc error"))
+			Return(nil, mockRPCError)
 
 		result, err := c.GetCollection(ctx, colID)
 		assert.Error(t, err)
@@ -277,7 +279,7 @@ func TestClient_SendTransaction(t *testing.T) {
 		tx := transactions.New()
 
 		rpc.On("SendTransaction", ctx, mock.Anything).
-			Return(nil, errors.New("rpc error"))
+			Return(nil, mockRPCError)
 
 		err := c.SendTransaction(ctx, *tx)
 		assert.Error(t, err)
@@ -307,7 +309,7 @@ func TestClient_GetTransaction(t *testing.T) {
 		txID := ids.New()
 
 		rpc.On("GetTransaction", ctx, mock.Anything).
-			Return(nil, errors.New("rpc error"))
+			Return(nil, mockRPCError)
 
 		result, err := c.GetTransaction(ctx, txID)
 		assert.Error(t, err)
@@ -337,7 +339,7 @@ func TestClient_GetTransactionResult(t *testing.T) {
 		txID := ids.New()
 
 		rpc.On("GetTransactionResult", ctx, mock.Anything).
-			Return(nil, errors.New("rpc error"))
+			Return(nil, mockRPCError)
 
 		result, err := c.GetTransactionResult(ctx, txID)
 		assert.Error(t, err)
@@ -426,7 +428,7 @@ func TestClient_GetEventsForHeightRange(t *testing.T) {
 
 	t.Run("Error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
 		rpc.On("GetEventsForHeightRange", ctx, mock.Anything).
-			Return(nil, errors.New("rpc error"))
+			Return(nil, mockRPCError)
 
 		blocks, err := c.GetEventsForHeightRange(ctx, client.EventRangeQuery{
 			Type:        "foo",
@@ -509,8 +511,6 @@ func TestClient_GetEventsForBlockIDs(t *testing.T) {
 			assert.Equal(t, eventB, blocks[0].Events[1])
 			assert.Equal(t, eventC, blocks[1].Events[0])
 			assert.Equal(t, eventD, blocks[1].Events[1])
-
-			rpc.AssertExpectations(t)
 		}),
 	)
 
@@ -518,7 +518,7 @@ func TestClient_GetEventsForBlockIDs(t *testing.T) {
 		blockIDA, blockIDB := ids.New(), ids.New()
 
 		rpc.On("GetEventsForBlockIDs", ctx, mock.Anything).
-			Return(nil, errors.New("rpc error"))
+			Return(nil, mockRPCError)
 
 		blocks, err := c.GetEventsForBlockIDs(ctx, "foo", []flow.Identifier{blockIDA, blockIDB})
 		assert.Error(t, err)
