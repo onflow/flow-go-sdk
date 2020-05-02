@@ -36,6 +36,25 @@ import (
 	"github.com/onflow/flow-go-sdk/test"
 )
 
+func TestClient_Ping(t *testing.T) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
+		response := &access.PingResponse{}
+
+		rpc.On("Ping", ctx, mock.Anything).Return(response, nil)
+
+		err := c.Ping(ctx)
+		assert.NoError(t, err)
+	}))
+
+	t.Run("Error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
+		rpc.On("Ping", ctx, mock.Anything).
+			Return(nil, errors.New("rpc error"))
+
+		err := c.Ping(ctx)
+		assert.Error(t, err)
+	}))
+}
+
 func TestClient_GetLatestBlockHeader(t *testing.T) {
 	blocks := test.BlockGenerator()
 
