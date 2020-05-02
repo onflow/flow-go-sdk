@@ -21,6 +21,7 @@ package convert_test
 import (
 	"testing"
 
+	"github.com/onflow/cadence"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -82,4 +83,26 @@ func TestConvert_AccountKey(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, keyA, keyB)
+}
+
+func TestConvert_CadenceValue(t *testing.T) {
+	t.Run("Valid value", func(t *testing.T) {
+		valueA := cadence.NewInt(42)
+
+		msg, err := convert.CadenceValueToMessage(valueA)
+		require.NoError(t, err)
+
+		valueB, err := convert.MessageToCadenceValue(msg)
+		require.NoError(t, err)
+
+		assert.Equal(t, valueA, valueB)
+	})
+
+	t.Run("Invalid message", func(t *testing.T) {
+		msg := []byte("invalid JSON-CDC bytes")
+
+		value, err := convert.MessageToCadenceValue(msg)
+		assert.Error(t, err)
+		assert.Nil(t, value)
+	})
 }
