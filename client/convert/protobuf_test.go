@@ -34,8 +34,8 @@ func TestConvert_Block(t *testing.T) {
 	msg := convert.BlockToMessage(*blockA)
 
 	blockB, err := convert.MessageToBlock(msg)
+	require.NoError(t, err)
 
-	assert.NoError(t, err)
 	assert.Equal(t, *blockA, blockB)
 }
 
@@ -45,8 +45,8 @@ func TestConvert_Collection(t *testing.T) {
 	msg := convert.CollectionToMessage(*colA)
 
 	colB, err := convert.MessageToCollection(msg)
+	require.NoError(t, err)
 
-	assert.NoError(t, err)
 	assert.Equal(t, *colA, colB)
 }
 
@@ -56,8 +56,8 @@ func TestConvert_Transaction(t *testing.T) {
 	msg := convert.TransactionToMessage(*txA)
 
 	txB, err := convert.MessageToTransaction(msg)
+	require.NoError(t, err)
 
-	assert.NoError(t, err)
 	assert.Equal(t, txA.ID(), txB.ID())
 }
 
@@ -76,8 +76,7 @@ func TestConvert_Event(t *testing.T) {
 func TestConvert_AccountKey(t *testing.T) {
 	keyA := test.AccountKeyGenerator().New()
 
-	msg, err := convert.AccountKeyToMessage(keyA)
-	require.NoError(t, err)
+	msg := convert.AccountKeyToMessage(keyA)
 
 	keyB, err := convert.MessageToAccountKey(msg)
 	require.NoError(t, err)
