@@ -23,6 +23,8 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/onflow/cadence"
+	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/flow/protobuf/go/flow/access"
 	"github.com/onflow/flow/protobuf/go/flow/entities"
 	"github.com/stretchr/testify/assert"
@@ -374,6 +376,49 @@ func TestClient_GetAccount(t *testing.T) {
 		account, err := c.GetAccount(ctx, address)
 		assert.Error(t, err)
 		assert.Nil(t, account)
+	}))
+}
+
+func TestClient_ExecuteScriptAtLatestBlock(t *testing.T) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
+		expectedValue := cadence.NewInt(42)
+		encodedValue, err := jsoncdc.Encode(expectedValue)
+		require.NoError(t, err)
+
+		response := &access.ExecuteScriptResponse{
+			Value: encodedValue,
+		}
+
+		rpc.On("ExecuteScriptAtLatestBlock", ctx, mock.Anything).Return(response, nil)
+
+		value, err := c.ExecuteScriptAtLatestBlock(ctx, []byte("foo"))
+		require.NoError(t, err)
+
+		assert.Equal(t, expectedValue, value)
+	}))
+
+	t.Run(
+		"Invalid JSON-CDC",
+		clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
+			response := &access.ExecuteScriptResponse{
+				Value: []byte("invalid JSON-CDC bytes"),
+			}
+
+			rpc.On("ExecuteScriptAtLatestBlock", ctx, mock.Anything).Return(response, nil)
+
+			value, err := c.ExecuteScriptAtLatestBlock(ctx, []byte("foo"))
+			assert.Error(t, err)
+			assert.Nil(t, value)
+		}),
+	)
+
+	t.Run("Error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
+		rpc.On("ExecuteScriptAtLatestBlock", ctx, mock.Anything).
+			Return(nil, mockRPCError)
+
+		value, err := c.ExecuteScriptAtLatestBlock(ctx, []byte("foo"))
+		assert.Error(t, err)
+		assert.Nil(t, value)
 	}))
 }
 
