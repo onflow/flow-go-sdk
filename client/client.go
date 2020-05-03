@@ -16,6 +16,14 @@
  * limitations under the License.
  */
 
+// Package client provides a Go client for the Flow Access gRPC API.
+//
+// The Access API provides a set of methods that can be used to submit transactions
+// and read state from Flow. This client is compatible with the Access API implemented by the
+// Access Node role, as well as the mock Access API exposed by the Flow Emulator.
+//
+// The full Access API specification is here: https://github.com/onflow/flow/blob/master/docs/access-api-spec.md
+
 package client
 
 import (
