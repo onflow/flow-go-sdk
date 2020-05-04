@@ -208,7 +208,9 @@ if err != nil {
 Flow introduces new concepts that allow for more flexibility when creating and signing transactions. 
 Before trying the examples below, we recommend that you read through the [transaction signature documentation](https://github.com/onflow/flow/blob/master/docs/accounts-and-keys.md#signing-a-transaction).
 
-##### Single party, single signature
+---
+
+##### [Single party, single signature](https://github.com/onflow/flow/blob/master/docs/accounts-and-keys.md#single-party-single-signature)
 
 - Proposer, payer and authorizer are the same account (`0x01`).
 - Only the envelope must be signed.
@@ -241,7 +243,9 @@ tx := flow.NewTransaction().
 err := tx.SignEnvelope(account1.Address, key1.ID, key1Signer)
 ```
 
-##### Single party, multiple signatures
+---
+
+##### [Single party, multiple signatures](https://github.com/onflow/flow/blob/master/docs/accounts-and-keys.md#single-party-multiple-signatures)
 
 - Proposer, payer and authorizer are the same account (`0x01`).
 - Only the envelope must be signed.
@@ -280,7 +284,9 @@ err := tx.SignEnvelope(account1.Address, key1.ID, key1Signer)
 err := tx.SignEnvelope(account1.Address, key2.ID, key2Signer)
 ```
 
-##### Multiple parties
+---
+
+##### [Multiple parties](https://github.com/onflow/flow/blob/master/docs/accounts-and-keys.md#multiple-parties)
 
 - Proposer and authorizer are the same account (`0x01`).
 - Payer is a separate account (`0x02`).
@@ -323,7 +329,9 @@ err := tx.SignPayload(account1.Address, key1.ID, key1Signer)
 err := tx.SignEnvelope(account2.Address, key3.ID, key3Signer)
 ```
 
-##### Multiple parties, multiple signatures
+---
+
+##### [Multiple parties, multiple signatures](https://github.com/onflow/flow/blob/master/docs/accounts-and-keys.md#multiple-parties-multiple-signatures)
 
 - Proposer and authorizer are the same account (`0x01`).
 - Payer is a separate account (`0x02`).
