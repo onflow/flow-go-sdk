@@ -81,7 +81,7 @@ Here's how to generate an ECDSA private key on the secp256k1 curve:
 privateKey, err := crypto.GeneratePrivateKey(crypto.ECDSA_secp256k1, seed)
 ```
 
-Here's a full list of the signature and hash algorithms supported on Flow: [Flow Signature & Hash Algorithms](https://github.com/onflow/flow/blob/master/docs/accounts-and-keys.md#supported-signature--hash-algorithms)
+Here's a full list of the supported signature and hash algorithms: [Flow Signature & Hash Algorithms](https://github.com/onflow/flow/blob/master/docs/accounts-and-keys.md#supported-signature--hash-algorithms)
 
 ### Creating an Account
 
