@@ -179,7 +179,7 @@ var (
 )
 
 tx := flow.NewTransaction().
-    SetScript("transaction { execute { log(\"Hello, World!\") } }").
+    SetScript([]byte("transaction { execute { log(\"Hello, World!\") } }")).
     SetGasLimit(100).
     SetProposalKey(myAddress, myAccountKey.ID, myAccountKey.SequenceNumber).
     SetPayer(myAddress)
@@ -229,17 +229,17 @@ key1 := account1.Keys[0]
 key1Signer := getSignerForKey1()
 
 tx := flow.NewTransaction().
-    SetScript(`
+    SetScript([]byte(`
         transaction { 
             prepare(signer: AuthAccount) { log(signer.address) }
         }
-    `).
+    `)).
     SetGasLimit(100).
     SetProposalKey(account1.Address, key1.ID, key1.SequenceNumber).
     SetPayer(account1.Address).
     AddAuthorizer(account1.Address)
 
-// account 0x01 signs the envelope with key 1
+// account 1 signs the envelope with key 1
 err := tx.SignEnvelope(account1.Address, key1.ID, key1Signer)
 ```
 
@@ -269,21 +269,21 @@ key1Signer := getSignerForKey1()
 key2Signer := getSignerForKey2()
 
 tx := flow.NewTransaction().
-    SetScript(`
+    SetScript([]byte(`
         transaction { 
             prepare(signer: AuthAccount) { log(signer.address) }
         }
-    `).
+    `)).
     SetGasLimit(100).
     SetProposalKey(account1.Address, key1.ID, key1.SequenceNumber).
     SetPayer(account1.Address).
     AddAuthorizer(account1.Address)
 
-// account 0x01 signs the envelope with key 1
+// account 1 signs the envelope with key 1
 err := tx.SignEnvelope(account1.Address, key1.ID, key1Signer)
 
-// account 0x01 signs the envelope with key 2
-err := tx.SignEnvelope(account1.Address, key2.ID, key2Signer)
+// account 1 signs the envelope with key 2
+err = tx.SignEnvelope(account1.Address, key2.ID, key2Signer)
 ```
 
 [Full Runnable Example](/examples#single-party-multiple-signatures)
@@ -315,22 +315,22 @@ key1Signer := getSignerForKey1()
 key3Signer := getSignerForKey3()
 
 tx := flow.NewTransaction().
-    SetScript(`
+    SetScript([]byte(`
         transaction { 
             prepare(signer: AuthAccount) { log(signer.address) }
         }
-    `).
+    `)).
     SetGasLimit(100).
     SetProposalKey(account1.Address, key1.ID, key1.SequenceNumber).
     SetPayer(account2.Address).
     AddAuthorizer(account1.Address)
 
-// account 0x01 signs the payload with key 1
+// account 1 signs the payload with key 1
 err := tx.SignPayload(account1.Address, key1.ID, key1Signer)
 
-// account 0x02 signs the envelope with key 3
+// account 2 signs the envelope with key 3
 // note: payer always signs last
-err := tx.SignEnvelope(account2.Address, key3.ID, key3Signer)
+err = tx.SignEnvelope(account2.Address, key3.ID, key3Signer)
 ```
 
 [Full Runnable Example](/examples#multiple-parties)
@@ -369,29 +369,29 @@ key3Signer := getSignerForKey3()
 key4Signer := getSignerForKey4()
 
 tx := flow.NewTransaction().
-    SetScript(`
+    SetScript([]byte(`
         transaction { 
             prepare(signer: AuthAccount) { log(signer.address) }
         }
-    `).
+    `)).
     SetGasLimit(100).
     SetProposalKey(account1.Address, key1.ID, key1.SequenceNumber).
     SetPayer(account2.Address).
     AddAuthorizer(account1.Address)
 
-// account 0x01 signs the payload with key 1
+// account 1 signs the payload with key 1
 err := tx.SignPayload(account1.Address, key1.ID, key1Signer)
 
-// account 0x01 signs the payload with key 2
-err := tx.SignPayload(account1.Address, key2.ID, key2Signer)
+// account 1 signs the payload with key 2
+err = tx.SignPayload(account1.Address, key2.ID, key2Signer)
 
-// account 0x02 signs the envelope with key 3
+// account 2 signs the envelope with key 3
 // note: payer always signs last
-err := tx.SignEnvelope(account2.Address, key3.ID, key3Signer)
+err = tx.SignEnvelope(account2.Address, key3.ID, key3Signer)
 
-// account 0x02 signs the envelope with key 4
+// account 2 signs the envelope with key 4
 // note: payer always signs last
-err := tx.SignEnvelope(account2.Address, key4.ID, key4Signer)
+err = tx.SignEnvelope(account2.Address, key4.ID, key4Signer)
 ```
 
 [Full Runnable Example](/examples#multiple-parties-multiple-signatures)
