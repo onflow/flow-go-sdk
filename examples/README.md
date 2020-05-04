@@ -16,31 +16,77 @@ Start the emulator by running the following command _in this directory_:
 
 ```sh
 flow emulator start -v
-
-# The -v flag enables verbose log output, which is useful for testing
 ```
+
+> The -v flag enables verbose log output, which is useful for testing
 
 ## Running the examples
 
-In separate process, run any of the example programs below. 
+In a separate process, run any of the example programs below.
 Watch the emulator logs to see transaction output.
 
-```shell script
-# Create a new account
-GO111MODULE=on go run ./create_account/main.go
+### Create Account
+
+Create a new account on Flow.
+
+```sh
+go run ./create_account/main.go
 ```
 
-```shell script
-# Add a key to an existing account
-GO111MODULE=on go run ./add_account_key/main.go
+### Add Account Key
+
+Add a key to an existing account.
+
+```sh
+go run ./add_account_key/main.go
 ```
 
-```shell script
-# Deploy a contract
-GO111MODULE=on go run ./deploy_contract/main.go
+### Deploy Contract
+
+Deploy a Cadence smart contract.
+
+```sh
+go run ./deploy_contract/main.go
 ```
 
-```shell script
-# Query events
-GO111MODULE=on go run ./query_events/main.go
+### Query Events
+
+Query events emitted by transactions.
+
+```sh
+go run ./query_events/main.go
+```
+
+### Transaction Signing
+
+#### Single Party, Single Signature
+
+Sign a transaction with a single account.
+
+```sh
+go run ./transaction_signing/single_party/main.go
+```
+
+#### Single Party, Multiple Signatures
+
+Sign a transaction with a single account using multiple signatures.
+
+```sh
+go run ./transaction_signing/single_party_multisig/main.go
+```
+
+#### Multiple Parties
+
+Sign a transaction with multiple accounts.
+
+```sh
+go run ./transaction_signing/multi_party/main.go
+```
+
+#### Multiple Parties, Multiple Signatures
+
+Sign a transaction with multiple accounts using multiple signatures.
+
+```sh
+go run ./transaction_signing/multi_party_multisig/main.go
 ```

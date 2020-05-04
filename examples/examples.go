@@ -25,8 +25,6 @@ import (
 	"io/ioutil"
 	"time"
 
-	"google.golang.org/grpc"
-
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/client"
 	"github.com/onflow/flow-go-sdk/crypto"
@@ -40,19 +38,6 @@ func ReadFile(path string) []byte {
 		panic(err)
 	}
 	return contents
-}
-
-// RandomPrivateKey returns a randomly generated private key.
-func RandomPrivateKey() crypto.PrivateKey {
-	seed := make([]byte, crypto.MinSeedLengthECDSA_P256)
-	rand.Read(seed)
-
-	privateKey, err := crypto.GeneratePrivateKey(crypto.ECDSA_P256, seed)
-	if err != nil {
-		panic(err)
-	}
-
-	return privateKey
 }
 
 const defaultRootKeySeed = "elephant ears space cowboy octopus rodeo potato cannon pineapple"
@@ -73,7 +58,20 @@ func RootAccount(flowClient *client.Client) (flow.Address, *flow.AccountKey, cry
 	return addr, accountKey, signer
 }
 
-func CreateAccount() (flow.Address, *flow.AccountKey, crypto.Signer) {
+// RandomPrivateKey returns a randomly generated ECDSA P-256 private key.
+func RandomPrivateKey() crypto.PrivateKey {
+	seed := make([]byte, crypto.MinSeedLengthECDSA_P256)
+	rand.Read(seed)
+
+	privateKey, err := crypto.GeneratePrivateKey(crypto.ECDSA_P256, seed)
+	if err != nil {
+		panic(err)
+	}
+
+	return privateKey
+}
+
+func RandomAccount(flowClient *client.Client) (flow.Address, *flow.AccountKey, crypto.Signer) {
 	privateKey := RandomPrivateKey()
 
 	accountKey := flow.NewAccountKey().
@@ -81,24 +79,24 @@ func CreateAccount() (flow.Address, *flow.AccountKey, crypto.Signer) {
 		SetHashAlgo(crypto.SHA3_256).
 		SetWeight(flow.AccountKeyWeightThreshold)
 
-	addr := createAccount(
+	account := CreateAccount(
+		flowClient,
 		[]*flow.AccountKey{accountKey},
 		nil,
 	)
 
 	signer := crypto.NewInMemorySigner(privateKey, accountKey.HashAlgo)
 
-	return addr, accountKey, signer
+	return account.Address, account.Keys[0], signer
 }
 
-func DeployContract(code []byte) flow.Address {
-	return createAccount(nil, code)
+func DeployContract(flowClient *client.Client, code []byte) flow.Address {
+	account := CreateAccount(flowClient, nil, code)
+	return account.Address
 }
 
-func createAccount(publicKeys []*flow.AccountKey, code []byte) flow.Address {
+func CreateAccount(flowClient *client.Client, publicKeys []*flow.AccountKey, code []byte) *flow.Account {
 	ctx := context.Background()
-	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
-	Handle(err)
 
 	rootAcctAddr, rootAcctKey, rootSigner := RootAccount(flowClient)
 
@@ -122,7 +120,12 @@ func createAccount(publicKeys []*flow.AccountKey, code []byte) flow.Address {
 	accountCreatedEvent := flow.AccountCreatedEvent(result.Events[0])
 	Handle(err)
 
-	return accountCreatedEvent.Address()
+	addr := accountCreatedEvent.Address()
+
+	account, err := flowClient.GetAccount(ctx, addr)
+	Handle(err)
+
+	return account
 }
 
 func Handle(err error) {

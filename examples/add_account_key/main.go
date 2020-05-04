@@ -37,7 +37,8 @@ func main() {
 
 func AddAccountKeyDemo() {
 	ctx := context.Background()
-	acctAddr, acctKey, acctSigner := examples.CreateAccount() // Creates a new account and returns the address+key
+
+	acctAddr, acctKey, acctSigner := examples.RandomAccount()
 
 	// Create the new key to add to your account
 	myPrivateKey := examples.RandomPrivateKey()
