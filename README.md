@@ -44,12 +44,13 @@ go get github.com/onflow/flow-go-sdk
 
 The signature scheme supported in Flow accounts is ECDSA. It can be coupled with the hashing algorithms SHA2-256 or SHA3-256.
 
-Here's how you can generate an `ECDSA-P256` private key:
+Here's how to generate an ECDSA P-256 private key:
 
 ```go
 import "github.com/onflow/flow-go-sdk/crypto"
 
-// deterministic seed phrase (this is only an example, please use a secure random generator for the key seed)
+// deterministic seed phrase
+// note: this is only an example, please use a secure random generator for the key seed
 seed := []byte("elephant ears space cowboy octopus rodeo potato cannon pineapple")
 
 privateKey, err := crypto.GeneratePrivateKey(crypto.ECDSA_P256, seed)
@@ -84,13 +85,14 @@ import (
     "github.com/onflow/flow-go-sdk/templates"
 )
 
-// generate a new private key for the account (this is only an example, please use a secure random generator for the key seed)
 ctx := context.Background()
-// generate a new private key for the account (this is only an example, please use a secure random generator for the key seed)
+
+// generate a new private key for the account
+// note: this is only an example, please use a secure random generator for the key seed
 seed := []byte("elephant ears space cowboy octopus rodeo potato cannon pineapple")
 privateKey, _ := crypto.GeneratePrivateKey(crypto.ECDSA_P256, seed)
 
-// get the public key from the private key
+// get the public key
 publicKey := privateKey.PublicKey()
 
 // construct an account key from the public key
@@ -139,7 +141,7 @@ if result.Status == flow.TransactionStatusSealed {
         if event.Type == flow.EventAccountCreated {
             accountCreatedEvent := flow.AccountCreatedEvent(event)
             myAddress = accountCreatedEvent.Address()
-            }
+        }
 	}
 }
 ```
@@ -182,15 +184,29 @@ if err != nil {
 }
 ```
 
-<!--
 #### How Signatures Work in Flow
 
-TODO: link to signatures doc
--->
+Flow introduces new concepts that allow for more flexibility when creating and signing transactions. Before trying the examples below, we recommend that you read through the [transaction signature documentation](https://github.com/onflow/flow/blob/master/docs/accounts-and-keys.md#signing-a-transaction).
+
+##### Single party, single signature
+
+TODO: add example
+
+##### Single party, multiple signatures
+
+TODO: add example
+
+##### Multiple parties
+
+TODO: add example
+
+##### Multiple parties, multiple signatures
+
+TODO: add example
 
 ### Sending a Transaction
 
-You can submit a transaction to the network using the Access API Client.
+You can submit a transaction to the network using the Access API client.
 
 ```go
 import "github.com/onflow/flow-go-sdk/client"
