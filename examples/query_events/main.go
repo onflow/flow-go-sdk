@@ -35,10 +35,11 @@ func main() {
 
 func QueryEventsDemo() {
 	ctx := context.Background()
-	acctAddr, acctKey, acctSigner := examples.CreateAccount()
 
 	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
 	examples.Handle(err)
+
+	acctAddr, acctKey, acctSigner := examples.RandomAccount(flowClient)
 
 	// Deploy a contract with an event defined
 	contract := `
@@ -52,7 +53,7 @@ func QueryEventsDemo() {
 		}
 	`
 
-	contractAddr := examples.DeployContract([]byte(contract))
+	contractAddr := examples.DeployContract(flowClient, []byte(contract))
 
 	// Send a tx that emits the event in the deployed contract
 	script := fmt.Sprintf(`

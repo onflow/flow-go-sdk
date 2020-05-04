@@ -38,7 +38,10 @@ func main() {
 func AddAccountKeyDemo() {
 	ctx := context.Background()
 
-	acctAddr, acctKey, acctSigner := examples.RandomAccount()
+	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
+	examples.Handle(err)
+
+	acctAddr, acctKey, acctSigner := examples.RandomAccount(flowClient)
 
 	// Create the new key to add to your account
 	myPrivateKey := examples.RandomPrivateKey()
@@ -46,9 +49,6 @@ func AddAccountKeyDemo() {
 		FromPrivateKey(myPrivateKey).
 		SetHashAlgo(crypto.SHA3_256).
 		SetWeight(flow.AccountKeyWeightThreshold)
-
-	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
-	examples.Handle(err)
 
 	// Create a Cadence script that will add another key to our account.
 	addKeyScript, err := templates.AddAccountKey(myAcctKey)
