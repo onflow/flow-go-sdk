@@ -35,7 +35,7 @@ func init() {
 	gob.Register(Address{})
 }
 
-// An Address is a 20-byte identifier for a Flow account.
+// An Address is a 64-bit identifier for a Flow account.
 type Address [AddressLength]byte
 
 var (
