@@ -44,6 +44,18 @@ func (f SignatureAlgorithm) String() string {
 	return [...]string{"UNKNOWN", "BLS_BLS12381", "ECDSA_P256", "ECDSA_secp256k1"}[f]
 }
 
+// MinSeedLength returns the minimum seed length that can safely be used to generate private keys with this algorithm.
+func (f SignatureAlgorithm) MinSeedLength() int {
+	switch f {
+	case ECDSA_P256:
+		return crypto.KeyGenSeedMinLenECDSAP256
+	case ECDSA_secp256k1:
+		return crypto.KeyGenSeedMinLenECDSASecp256k1
+	}
+
+	return 0
+}
+
 // StringToSignatureAlgorithm converts a string to a SignatureAlgorithm.
 func StringToSignatureAlgorithm(s string) SignatureAlgorithm {
 	switch s {
@@ -223,12 +235,11 @@ func keyGenerationKMACTag(sigAlgo SignatureAlgorithm) []byte {
 
 // GeneratePrivateKey generates a private key with the specified signature algorithm from the given seed.
 func GeneratePrivateKey(sigAlgo SignatureAlgorithm, seed []byte) (PrivateKey, error) {
-	// check the seed has minimum entropy
-	if len(seed) < MinSeedLength {
+	if len(seed) < sigAlgo.MinSeedLength() {
 		return PrivateKey{}, fmt.Errorf(
 			"crypto: insufficient seed length %d, must be at least %d bytes for %s",
 			len(seed),
-			MinSeedLength,
+			sigAlgo.MinSeedLength(),
 			sigAlgo,
 		)
 	}
