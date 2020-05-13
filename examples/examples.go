@@ -61,7 +61,10 @@ func RootAccount(flowClient *client.Client) (flow.Address, *flow.AccountKey, cry
 // RandomPrivateKey returns a randomly generated ECDSA P-256 private key.
 func RandomPrivateKey() crypto.PrivateKey {
 	seed := make([]byte, crypto.MinSeedLength)
-	rand.Read(seed)
+	_, err := rand.Read(seed)
+	if err != nil {
+		panic(err)
+	}
 
 	privateKey, err := crypto.GeneratePrivateKey(crypto.ECDSA_P256, seed)
 	if err != nil {
