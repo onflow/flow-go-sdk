@@ -20,6 +20,7 @@ package crypto
 
 import (
 	"encoding/hex"
+	"fmt"
 
 	"github.com/onflow/flow-go-sdk/crypto/internal/crypto"
 )
@@ -40,6 +41,18 @@ const (
 // String returns the string representation of this signature algorithm.
 func (f SignatureAlgorithm) String() string {
 	return [...]string{"UNKNOWN", "BLS_BLS12381", "ECDSA_P256", "ECDSA_secp256k1"}[f]
+}
+
+// MinSeedLength returns the minimum seed length that can safely be used to generate private keys with this algorithm.
+func (f SignatureAlgorithm) MinSeedLength() int {
+	switch f {
+	case ECDSA_P256:
+		return crypto.KeyGenSeedMinLenECDSAP256
+	case ECDSA_secp256k1:
+		return crypto.KeyGenSeedMinLenECDSASecp256k1
+	}
+
+	return 0
 }
 
 // StringToSignatureAlgorithm converts a string to a SignatureAlgorithm.
@@ -87,11 +100,6 @@ func StringToHashAlgorithm(s string) HashAlgorithm {
 		return UnknownHashAlgorithm
 	}
 }
-
-const (
-	MinSeedLengthECDSA_P256      = crypto.KeyGenSeedMinLenECDSAP256
-	MinSeedLengthECDSA_secp256k1 = crypto.KeyGenSeedMinLenECDSASecp256k1
-)
 
 // KeyType is a key format supported by Flow.
 type KeyType int
@@ -215,6 +223,15 @@ func NewNaiveSigner(privateKey PrivateKey, hashAlgo HashAlgorithm) NaiveSigner {
 
 // GeneratePrivateKey generates a private key with the specified signature algorithm from the given seed.
 func GeneratePrivateKey(sigAlgo SignatureAlgorithm, seed []byte) (PrivateKey, error) {
+	if len(seed) < sigAlgo.MinSeedLength() {
+		return PrivateKey{}, fmt.Errorf(
+			"crypto: insufficient seed length %d, must be at least %d bytes for %s",
+			len(seed),
+			sigAlgo.MinSeedLength(),
+			sigAlgo,
+		)
+	}
+
 	hasher := NewSHA3_384()
 	hashedSeed := hasher.ComputeHash(seed)
 

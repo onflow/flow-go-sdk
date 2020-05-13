@@ -74,7 +74,7 @@ func (g *AccountKeys) New() *flow.AccountKey {
 func (g *AccountKeys) NewWithSigner() (*flow.AccountKey, crypto.Signer) {
 	defer func() { g.count++ }()
 
-	seed := make([]byte, crypto.MinSeedLengthECDSA_P256)
+	seed := make([]byte, crypto.ECDSA_P256.MinSeedLength())
 	for i := range seed {
 		seed[i] = uint8(g.count)
 	}
