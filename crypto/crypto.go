@@ -217,7 +217,9 @@ func NewNaiveSigner(privateKey PrivateKey, hashAlgo HashAlgorithm) NaiveSigner {
 // should be expanded before being passed to the key generation process.
 const MinSeedLength = crypto.MinSeedLen
 
-const keyGenerationKMACTag = "ECDSA Key Generation"
+func keyGenerationKMACTag(sigAlgo SignatureAlgorithm) []byte {
+	return []byte(fmt.Sprintf("%s Key Generation", sigAlgo))
+}
 
 // GeneratePrivateKey generates a private key with the specified signature algorithm from the given seed.
 func GeneratePrivateKey(sigAlgo SignatureAlgorithm, seed []byte) (PrivateKey, error) {
@@ -245,7 +247,7 @@ func GeneratePrivateKey(sigAlgo SignatureAlgorithm, seed []byte) (PrivateKey, er
 		)
 	}
 
-	generationTag := []byte(keyGenerationKMACTag)
+	generationTag := keyGenerationKMACTag(sigAlgo)
 	customizer := []byte("")
 	hasher, err := hash.NewKMAC_128(generationTag, customizer, seedLen)
 	if err != nil {
