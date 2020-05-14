@@ -275,19 +275,3 @@ func DecodePublicKeyHex(sigAlgo SignatureAlgorithm, s string) (PublicKey, error)
 
 	return DecodePublicKey(sigAlgo, b)
 }
-
-// CompatibleAlgorithms returns true if the signature and hash algorithms are compatible.
-func CompatibleAlgorithms(sigAlgo SignatureAlgorithm, hashAlgo HashAlgorithm) bool {
-	switch sigAlgo {
-	case ECDSA_P256:
-		fallthrough
-	case ECDSA_secp256k1:
-		switch hashAlgo {
-		case SHA2_256:
-			fallthrough
-		case SHA3_256:
-			return true
-		}
-	}
-	return false
-}

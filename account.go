@@ -98,14 +98,30 @@ func (a AccountKey) Encode() []byte {
 // - It specifies an incompatible signature/hash algorithm pairing
 // - (TODO) It specifies a negative key weight
 func (a AccountKey) Validate() error {
-	if !crypto.CompatibleAlgorithms(a.SigAlgo, a.HashAlgo) {
+	if !compatibleAlgorithms(a.SigAlgo, a.HashAlgo) {
 		return errors.Errorf(
-			"signing algorithm (%s) is incompatible with hashing algorithm (%s)",
+			"signature algorithm (%s) is not permitted for use with hash algorithm (%s)",
 			a.SigAlgo,
 			a.HashAlgo,
 		)
 	}
 	return nil
+}
+
+// compatibleAlgorithms returns true if the signature and hash algorithms are compatible.
+func compatibleAlgorithms(sigAlgo crypto.SignatureAlgorithm, hashAlgo crypto.HashAlgorithm) bool {
+	switch sigAlgo {
+	case crypto.ECDSA_P256:
+		fallthrough
+	case crypto.ECDSA_secp256k1:
+		switch hashAlgo {
+		case crypto.SHA2_256:
+			fallthrough
+		case crypto.SHA3_256:
+			return true
+		}
+	}
+	return false
 }
 
 // DecodeAccountKey decodes the RLP byte representation of an account key.
