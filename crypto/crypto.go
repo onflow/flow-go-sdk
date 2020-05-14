@@ -240,7 +240,7 @@ func GeneratePrivateKey(sigAlgo SignatureAlgorithm, seed []byte) (PrivateKey, er
 		seedLen = crypto.KeyGenSeedMinLenECDSASecp256k1
 	default:
 		return PrivateKey{}, fmt.Errorf(
-			"crypto: key generation not supported for non-ECDSA algorithm %s",
+			"crypto: Go SDK does not support key generation for %s algorithm",
 			sigAlgo,
 		)
 	}
