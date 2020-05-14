@@ -42,56 +42,55 @@ func TestGeneratePrivateKey(t *testing.T) {
 	})
 
 	for _, validAlgo := range []crypto.SignatureAlgorithm{crypto.ECDSA_P256, crypto.ECDSA_secp256k1} {
+		t.Run("Nil seed", func(t *testing.T) {
+			sk, err := crypto.GeneratePrivateKey(validAlgo, nil)
+			assert.Error(t, err)
+			assert.Equal(t, crypto.PrivateKey{}, sk)
+		})
 
-	t.Run("Nil seed", func(t *testing.T) {
-		sk, err := crypto.GeneratePrivateKey(validAlgo, nil)
-		assert.Error(t, err)
-		assert.Equal(t, crypto.PrivateKey{}, sk)
-	})
+		t.Run("Empty seed", func(t *testing.T) {
+			sk, err := crypto.GeneratePrivateKey(validAlgo, emptySeed)
+			assert.Error(t, err)
+			assert.Equal(t, crypto.PrivateKey{}, sk)
+		})
 
-	t.Run("Empty seed", func(t *testing.T) {
-		sk, err := crypto.GeneratePrivateKey(validAlgo, emptySeed)
-		assert.Error(t, err)
-		assert.Equal(t, crypto.PrivateKey{}, sk)
-	})
+		t.Run("Seed length too short", func(t *testing.T) {
+			sk, err := crypto.GeneratePrivateKey(validAlgo, shortSeed)
+			assert.Error(t, err)
+			assert.Equal(t, crypto.PrivateKey{}, sk)
+		})
 
-	t.Run("Seed length too short", func(t *testing.T) {
-		sk, err := crypto.GeneratePrivateKey(validAlgo, shortSeed)
-		assert.Error(t, err)
-		assert.Equal(t, crypto.PrivateKey{}, sk)
-	})
-
-	t.Run("Seed length exactly equal", func(t *testing.T) {
-		sk, err := crypto.GeneratePrivateKey(validAlgo, equalSeed)
-		require.NoError(t, err)
-		assert.NotEqual(t, crypto.PrivateKey{}, sk)
-		assert.Equal(t, validAlgo, sk.Algorithm())
-	})
-
-	t.Run("Valid signature algorithm", func(t *testing.T) {
-		sk, err := crypto.GeneratePrivateKey(validAlgo, longSeed)
-		require.NoError(t, err)
-		assert.NotEqual(t, crypto.PrivateKey{}, sk)
-		assert.Equal(t, validAlgo, sk.Algorithm())
-	})
-
-	t.Run("Deterministic generation", func(t *testing.T) {
-		trials := 50
-
-		var skA crypto.PrivateKey
-		var err error
-
-		skA, err = crypto.GeneratePrivateKey(validAlgo, longSeed)
-		require.NoError(t, err)
-
-		for i := 0; i < trials; i++ {
-			skB, err := crypto.GeneratePrivateKey(validAlgo, longSeed)
+		t.Run("Seed length exactly equal", func(t *testing.T) {
+			sk, err := crypto.GeneratePrivateKey(validAlgo, equalSeed)
 			require.NoError(t, err)
-			assert.Equal(t, skA, skB) // key should be same each time
-			skA = skB
-		}
-	})
-}
+			assert.NotEqual(t, crypto.PrivateKey{}, sk)
+			assert.Equal(t, validAlgo, sk.Algorithm())
+		})
+
+		t.Run("Valid signature algorithm", func(t *testing.T) {
+			sk, err := crypto.GeneratePrivateKey(validAlgo, longSeed)
+			require.NoError(t, err)
+			assert.NotEqual(t, crypto.PrivateKey{}, sk)
+			assert.Equal(t, validAlgo, sk.Algorithm())
+		})
+
+		t.Run("Deterministic generation", func(t *testing.T) {
+			trials := 50
+
+			var skA crypto.PrivateKey
+			var err error
+
+			skA, err = crypto.GeneratePrivateKey(validAlgo, longSeed)
+			require.NoError(t, err)
+
+			for i := 0; i < trials; i++ {
+				skB, err := crypto.GeneratePrivateKey(validAlgo, longSeed)
+				require.NoError(t, err)
+				assert.Equal(t, skA, skB) // key should be same each time
+				skA = skB
+			}
+		})
+	}
 }
 
 func makeSeed(l int) []byte {
