@@ -90,41 +90,6 @@ func StringToHashAlgorithm(s string) HashAlgorithm {
 	}
 }
 
-// KeyType is a key format supported by Flow.
-type KeyType int
-
-const (
-	UnknownKeyType KeyType = iota
-	ECDSA_P256_SHA2_256
-	ECDSA_P256_SHA3_256
-	ECDSA_secp256k1_SHA2_256
-	ECDSA_secp256k1_SHA3_256
-)
-
-// SignatureAlgorithm returns the signature algorithm for this key type.
-func (k KeyType) SignatureAlgorithm() SignatureAlgorithm {
-	switch k {
-	case ECDSA_P256_SHA2_256, ECDSA_P256_SHA3_256:
-		return ECDSA_P256
-	case ECDSA_secp256k1_SHA2_256, ECDSA_secp256k1_SHA3_256:
-		return ECDSA_secp256k1
-	default:
-		return UnknownSignatureAlgorithm
-	}
-}
-
-// HashAlgorithm returns the hash algorithm for this key type.
-func (k KeyType) HashAlgorithm() HashAlgorithm {
-	switch k {
-	case ECDSA_P256_SHA2_256, ECDSA_secp256k1_SHA2_256:
-		return SHA2_256
-	case ECDSA_P256_SHA3_256, ECDSA_secp256k1_SHA3_256:
-		return SHA3_256
-	default:
-		return UnknownHashAlgorithm
-	}
-}
-
 // A PrivateKey is a cryptographic private key that can be used for in-memory signing.
 type PrivateKey struct {
 	privateKey crypto.PrivateKey
