@@ -44,11 +44,6 @@ func (f SignatureAlgorithm) String() string {
 	return [...]string{"UNKNOWN", "BLS_BLS12381", "ECDSA_P256", "ECDSA_secp256k1"}[f]
 }
 
-// MinSeedLength is a generic minimum seed length to guarantee a minimum entropy.
-// It is used when the seed source is not necessary a CSPRG and the seed
-// should be expanded before being passed to the key generation process.
-const MinSeedLength = crypto.MinSeedLen
-
 // StringToSignatureAlgorithm converts a string to a SignatureAlgorithm.
 func StringToSignatureAlgorithm(s string) SignatureAlgorithm {
 	switch s {
@@ -215,6 +210,15 @@ func NewNaiveSigner(privateKey PrivateKey, hashAlgo HashAlgorithm) NaiveSigner {
 	return NewInMemorySigner(privateKey, hashAlgo)
 }
 
+// MinSeedLength is the generic minimum seed length required to guarantee sufficient
+// entropy when generating keys.
+//
+// This minimum is used when the seed source is not necessarily a CSPRG and the seed
+// should be expanded before being passed to the key generation process.
+const MinSeedLength = crypto.MinSeedLen
+
+const keyGenerationKMACTag = "ECDSA Key Generation"
+
 // GeneratePrivateKey generates a private key with the specified signature algorithm from the given seed.
 func GeneratePrivateKey(sigAlgo SignatureAlgorithm, seed []byte) (PrivateKey, error) {
 	// check the seed has minimum entropy
@@ -234,15 +238,20 @@ func GeneratePrivateKey(sigAlgo SignatureAlgorithm, seed []byte) (PrivateKey, er
 		seedLen = crypto.KeyGenSeedMinLenECDSAP256
 	case ECDSA_secp256k1:
 		seedLen = crypto.KeyGenSeedMinLenECDSASecp256k1
-        default:
-                 return PrivateKey{}, fmt.Errorf("crypto: invalid signature algorithm %s", sigAlgo)
+	default:
+		return PrivateKey{}, fmt.Errorf(
+			"crypto: key generation not supported for non-ECDSA algorithm %s",
+			sigAlgo,
+		)
 	}
-	generationTag := []byte("ECDSA Key Generation")
+
+	generationTag := []byte(keyGenerationKMACTag)
 	customizer := []byte("")
 	hasher, err := hash.NewKMAC_128(generationTag, customizer, seedLen)
 	if err != nil {
 		return PrivateKey{}, err
-	} 
+	}
+
 	hashedSeed := hasher.ComputeHash(seed)
 
 	// generate the key
