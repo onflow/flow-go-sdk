@@ -28,15 +28,18 @@ import (
 )
 
 func TestGeneratePrivateKey(t *testing.T) {
-	ecdsaAlgos := []crypto.SignatureAlgorithm{
+	// key algorithms currently supported by the SDK
+	supportedAlgos := []crypto.SignatureAlgorithm{
 		crypto.ECDSA_P256,
 		crypto.ECDSA_secp256k1,
 	}
 
-	nonECDSAAlgos := []crypto.SignatureAlgorithm{
+	// key algorithms not currently supported by the SDK
+	unsupportedAlgos := []crypto.SignatureAlgorithm{
 		crypto.BLS_BLS12381,
 	}
 
+	// key algorithm that does not represent any valid algorithm
 	invalidAlgo := crypto.SignatureAlgorithm(-42)
 
 	emptySeed := makeSeed(0)
@@ -44,7 +47,7 @@ func TestGeneratePrivateKey(t *testing.T) {
 	equalSeed := makeSeed(crypto.MinSeedLength)
 	longSeed := makeSeed(crypto.MinSeedLength * 2)
 
-	for _, sigAlgo := range ecdsaAlgos {
+	for _, sigAlgo := range supportedAlgos {
 
 		t.Run(sigAlgo.String(), func(t *testing.T) {
 
@@ -99,9 +102,9 @@ func TestGeneratePrivateKey(t *testing.T) {
 		})
 	}
 
-	t.Run("Non-ECDSA algorithms", func(t *testing.T) {
+	t.Run("Unsupported algorithms", func(t *testing.T) {
 
-		for _, sigAlgo := range nonECDSAAlgos {
+		for _, sigAlgo := range unsupportedAlgos {
 
 			t.Run(sigAlgo.String(), func(t *testing.T) {
 				sk, err := crypto.GeneratePrivateKey(sigAlgo, longSeed)
