@@ -248,6 +248,7 @@ func GeneratePrivateKey(sigAlgo SignatureAlgorithm, seed []byte) (PrivateKey, er
 	}
 
 	generationTag := keyGenerationKMACTag(sigAlgo)
+
 	customizer := []byte("")
 	hasher, err := hash.NewKMAC_128(generationTag, customizer, seedLen)
 	if err != nil {
