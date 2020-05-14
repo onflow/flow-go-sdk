@@ -28,13 +28,20 @@ import (
 )
 
 func TestGeneratePrivateKey(t *testing.T) {
-	validAlgo := crypto.ECDSA_P256
 	invalidAlgo := crypto.SignatureAlgorithm(-42)
 
 	emptySeed := makeSeed(0)
-	shortSeed := makeSeed(validAlgo.MinSeedLength() / 2)
-	equalSeed := makeSeed(validAlgo.MinSeedLength())
-	longSeed := makeSeed(validAlgo.MinSeedLength() * 2)
+	shortSeed := makeSeed(crypto.MinSeedLength / 2)
+	equalSeed := makeSeed(crypto.MinSeedLength)
+	longSeed := makeSeed(crypto.MinSeedLength * 2)
+
+	t.Run("Invalid signature algorithm", func(t *testing.T) {
+		sk, err := crypto.GeneratePrivateKey(invalidAlgo, longSeed)
+		assert.Error(t, err)
+		assert.Equal(t, crypto.PrivateKey{}, sk)
+	})
+
+	for _, validAlgo := range []crypto.SignatureAlgorithm{crypto.ECDSA_P256, crypto.ECDSA_secp256k1} {
 
 	t.Run("Nil seed", func(t *testing.T) {
 		sk, err := crypto.GeneratePrivateKey(validAlgo, nil)
@@ -56,26 +63,20 @@ func TestGeneratePrivateKey(t *testing.T) {
 
 	t.Run("Seed length exactly equal", func(t *testing.T) {
 		sk, err := crypto.GeneratePrivateKey(validAlgo, equalSeed)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.NotEqual(t, crypto.PrivateKey{}, sk)
 		assert.Equal(t, validAlgo, sk.Algorithm())
 	})
 
-	t.Run("Invalid signature algorithm", func(t *testing.T) {
-		sk, err := crypto.GeneratePrivateKey(invalidAlgo, longSeed)
-		assert.Error(t, err)
-		assert.Equal(t, crypto.PrivateKey{}, sk)
-	})
-
 	t.Run("Valid signature algorithm", func(t *testing.T) {
 		sk, err := crypto.GeneratePrivateKey(validAlgo, longSeed)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.NotEqual(t, crypto.PrivateKey{}, sk)
 		assert.Equal(t, validAlgo, sk.Algorithm())
 	})
 
 	t.Run("Deterministic generation", func(t *testing.T) {
-		trials := 100
+		trials := 50
 
 		var skA crypto.PrivateKey
 		var err error
@@ -90,6 +91,7 @@ func TestGeneratePrivateKey(t *testing.T) {
 			skA = skB
 		}
 	})
+}
 }
 
 func makeSeed(l int) []byte {

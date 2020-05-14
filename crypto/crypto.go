@@ -23,6 +23,7 @@ import (
 	"fmt"
 
 	"github.com/onflow/flow-go-sdk/crypto/internal/crypto"
+	"github.com/onflow/flow-go-sdk/crypto/internal/crypto/hash"
 )
 
 // SignatureAlgorithm is an identifier for a signature algorithm (and parameters if applicable).
@@ -43,8 +44,13 @@ func (f SignatureAlgorithm) String() string {
 	return [...]string{"UNKNOWN", "BLS_BLS12381", "ECDSA_P256", "ECDSA_secp256k1"}[f]
 }
 
-// MinSeedLength returns the minimum seed length that can safely be used to generate private keys with this algorithm.
-func (f SignatureAlgorithm) MinSeedLength() int {
+// MinSeedLength is a generic minimum seed length to guarantee a minimum entropy.
+// It is used when the seed source is not necessary a CSPRG and the seed
+// should be expanded before being passed to the key generation process.
+const MinSeedLength = crypto.MinSeedLen
+
+// minSeedLength returns the minimum seed length that can safely be used to generate private keys with this algorithm.
+func (f SignatureAlgorithm) minSeedLength() int {
 	switch f {
 	case ECDSA_P256:
 		return crypto.KeyGenSeedMinLenECDSAP256
@@ -52,7 +58,8 @@ func (f SignatureAlgorithm) MinSeedLength() int {
 		return crypto.KeyGenSeedMinLenECDSASecp256k1
 	}
 
-	return 0
+	// return a high seed length
+	return 1<<31 - 1
 }
 
 // StringToSignatureAlgorithm converts a string to a SignatureAlgorithm.
@@ -223,18 +230,26 @@ func NewNaiveSigner(privateKey PrivateKey, hashAlgo HashAlgorithm) NaiveSigner {
 
 // GeneratePrivateKey generates a private key with the specified signature algorithm from the given seed.
 func GeneratePrivateKey(sigAlgo SignatureAlgorithm, seed []byte) (PrivateKey, error) {
-	if len(seed) < sigAlgo.MinSeedLength() {
+	// check the seed has minimum entropy
+	if len(seed) < MinSeedLength {
 		return PrivateKey{}, fmt.Errorf(
 			"crypto: insufficient seed length %d, must be at least %d bytes for %s",
 			len(seed),
-			sigAlgo.MinSeedLength(),
+			MinSeedLength,
 			sigAlgo,
 		)
 	}
 
-	hasher := NewSHA3_384()
+	// expand the seed and uniformize its entropy
+	generationTag := []byte("ECDSA Key Generation")
+	customizer := []byte("")
+	hasher, err := hash.NewKMAC_128(generationTag, customizer, sigAlgo.minSeedLength())
+	if err != nil {
+		return PrivateKey{}, err
+	} 
 	hashedSeed := hasher.ComputeHash(seed)
 
+	// generate the key
 	privKey, err := crypto.GeneratePrivateKey(crypto.SigningAlgorithm(sigAlgo), hashedSeed)
 	if err != nil {
 		return PrivateKey{}, err
