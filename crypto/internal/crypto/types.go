@@ -43,6 +43,11 @@ const (
 	// minimum targeted bits of security
 	securityBits = 128
 
+	// MinSeedLen is a generic minimum seed length to guarantee a minimum entropy.
+	// It is used when the seed source is not necessary a CSPRG and the seed
+	// should be expanded before being passed to the generation process (key generation or other).
+	MinSeedLen = 2 * (securityBits / 8)
+
 	// ECDSA
 
 	// NIST P256
