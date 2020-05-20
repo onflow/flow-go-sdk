@@ -330,6 +330,7 @@ func TransactionToMessage(t flow.Transaction) *entities.Transaction {
 
 	return &entities.Transaction{
 		Script:             t.Script,
+		Arguments:          nil, // TODO: implement transaction arguments
 		ReferenceBlockId:   t.ReferenceBlockID.Bytes(),
 		GasLimit:           t.GasLimit,
 		ProposalKey:        proposalKeyMessage,
