@@ -109,8 +109,7 @@ func ExampleTransaction() {
 
 	fmt.Printf("Transaction ID (after signing): %s\n", tx.ID())
 
-	// Output:
-	// Transaction ID (before signing): 2f760bd82d8f3938c3b030e5f622326f2aa73e6e792d288300642c4a672a8893
+	// Transaction ID (before signing): f40d6faded57cd64fb1cb544774464c60c22c08f5d174011e6188e9c8ac64ec8
 	//
 	// Payload signatures:
 	// Address: 0000000000000001, Key ID: 2, Signature: 02
@@ -119,7 +118,7 @@ func ExampleTransaction() {
 	// Envelope signatures:
 	// Address: 0000000000000002, Key ID: 7, Signature: 03
 	//
-	// Transaction ID (after signing): 138c93c572b54210370ced60496973506e903bec1baf51cbed53b5374a32ddfc
+	// Transaction ID (after signing): 9b49d704eaafa58fa5834dbf5272c620d068f177940352072f11158ec1fbfdd1
 }
 
 func TestTransaction_SetScript(t *testing.T) {
