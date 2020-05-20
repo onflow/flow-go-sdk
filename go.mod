@@ -8,8 +8,8 @@ require (
 	github.com/google/go-cmp v0.4.0 // indirect
 	github.com/lithammer/dedent v1.1.0
 	github.com/magiconair/properties v1.8.1
-	github.com/onflow/cadence v0.2.0
-	github.com/onflow/flow/protobuf/go/flow v0.1.3
+	github.com/onflow/cadence v0.2.2-0.20200519193421-35ba64705ea5
+	github.com/onflow/flow/protobuf/go/flow v0.1.4
 	github.com/pkg/errors v0.8.1
 	github.com/segmentio/fasthash v1.0.2 // indirect
 	github.com/stretchr/objx v0.1.1 // indirect

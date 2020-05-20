@@ -222,6 +222,7 @@ func (t *Transaction) payloadCanonicalForm() interface{} {
 
 	return struct {
 		Script                    []byte
+		Arguments                 [][]byte
 		ReferenceBlockID          []byte
 		GasLimit                  uint64
 		ProposalKeyAddress        []byte
@@ -230,14 +231,15 @@ func (t *Transaction) payloadCanonicalForm() interface{} {
 		Payer                     []byte
 		Authorizers               [][]byte
 	}{
-		t.Script,
-		t.ReferenceBlockID[:],
-		t.GasLimit,
-		t.ProposalKey.Address.Bytes(),
-		uint64(t.ProposalKey.KeyID),
-		t.ProposalKey.SequenceNumber,
-		t.Payer.Bytes(),
-		authorizers,
+		Script:                    t.Script,
+		Arguments:                 nil, // TODO: implement arguments
+		ReferenceBlockID:          t.ReferenceBlockID[:],
+		GasLimit:                  t.GasLimit,
+		ProposalKeyAddress:        t.ProposalKey.Address.Bytes(),
+		ProposalKeyID:             uint64(t.ProposalKey.KeyID),
+		ProposalKeySequenceNumber: t.ProposalKey.SequenceNumber,
+		Payer:                     t.Payer.Bytes(),
+		Authorizers:               authorizers,
 	}
 }
 
@@ -254,8 +256,8 @@ func (t *Transaction) envelopeCanonicalForm() interface{} {
 		Payload           interface{}
 		PayloadSignatures interface{}
 	}{
-		t.payloadCanonicalForm(),
-		signaturesList(t.PayloadSignatures).canonicalForm(),
+		Payload:           t.payloadCanonicalForm(),
+		PayloadSignatures: signaturesList(t.PayloadSignatures).canonicalForm(),
 	}
 }
 
@@ -266,10 +268,11 @@ func (t *Transaction) Encode() []byte {
 		PayloadSignatures  interface{}
 		EnvelopeSignatures interface{}
 	}{
-		t.payloadCanonicalForm(),
-		signaturesList(t.PayloadSignatures).canonicalForm(),
-		signaturesList(t.EnvelopeSignatures).canonicalForm(),
+		Payload:            t.payloadCanonicalForm(),
+		PayloadSignatures:  signaturesList(t.PayloadSignatures).canonicalForm(),
+		EnvelopeSignatures: signaturesList(t.EnvelopeSignatures).canonicalForm(),
 	}
+
 	return mustRLPEncode(&temp)
 }
 
