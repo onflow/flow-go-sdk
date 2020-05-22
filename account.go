@@ -60,6 +60,7 @@ func (a *AccountKey) FromPrivateKey(privKey crypto.PrivateKey) *AccountKey {
 // SetPublicKey sets the public key for this account key.
 func (a *AccountKey) SetPublicKey(pubKey crypto.PublicKey) *AccountKey {
 	a.PublicKey = pubKey
+	a.SigAlgo = pubKey.Algorithm()
 	return a
 }
 
