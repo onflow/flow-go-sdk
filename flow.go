@@ -54,6 +54,12 @@ func BytesToID(b []byte) Identifier {
 	return id
 }
 
+// HexToID constructs an identifier from a hexadecimal string.
+func HexToID(h string) Identifier {
+	b, _ := hex.DecodeString(h)
+	return BytesToID(b)
+}
+
 func HashToID(hash []byte) Identifier {
 	return BytesToID(hash)
 }
