@@ -42,13 +42,13 @@ func TestFlowAddressConstants(t *testing.T) {
 
 	for _, net := range networks {
 
-		// check the Zero and Root constants
+		// check the Zero and Service constants
 		expected := Uint64ToAddress(chainCustomizer(net))
 		assert.Equal(t, ZeroAddress(net), expected)
 		expected = Uint64ToAddress(generatorMatrixRows[0] ^ chainCustomizer(net))
 		assert.Equal(t, ServiceAddress(net), expected)
 
-		// check the transition from account zero to root
+		// check the transition from account zero to service
 		state := ZeroAddressState
 		address, err := state.AccountAddress(net)
 		require.NoError(t, err)

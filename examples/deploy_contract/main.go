@@ -45,7 +45,7 @@ func DeployContractDemo() {
 	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
 	examples.Handle(err)
 
-	rootAcctAddr, rootAcctKey, rootSigner := examples.RootAccount(flowClient)
+	serviceAcctAddr, serviceAcctKey, serviceSigner := examples.ServiceAccount(flowClient)
 
 	myPrivateKey := examples.RandomPrivateKey()
 	myAcctKey := flow.NewAccountKey().
@@ -60,10 +60,10 @@ func DeployContractDemo() {
 
 	createAccountTx := flow.NewTransaction().
 		SetScript(createAccountScript).
-		SetProposalKey(rootAcctAddr, rootAcctKey.ID, rootAcctKey.SequenceNumber).
-		SetPayer(rootAcctAddr)
+		SetProposalKey(serviceAcctAddr, serviceAcctKey.ID, serviceAcctKey.SequenceNumber).
+		SetPayer(serviceAcctAddr)
 
-	err = createAccountTx.SignEnvelope(rootAcctAddr, rootAcctKey.ID, rootSigner)
+	err = createAccountTx.SignEnvelope(serviceAcctAddr, serviceAcctKey.ID, serviceSigner)
 	examples.Handle(err)
 
 	err = flowClient.SendTransaction(ctx, *createAccountTx)
@@ -73,7 +73,7 @@ func DeployContractDemo() {
 	examples.Handle(accountCreationTxRes.Error)
 
 	// Successful Tx, increment sequence number
-	rootAcctKey.SequenceNumber++
+	serviceAcctKey.SequenceNumber++
 
 	var myAddress flow.Address
 

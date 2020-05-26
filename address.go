@@ -14,14 +14,16 @@ import (
 // Chain IDs are used used to prevent replay attacks and to support network-specific address generation.
 type ChainID string
 
-// Mainnet is the chain ID for the mainnet node chain.
-const Mainnet ChainID = "flow-mainnet"
+const (
+	// Mainnet is the chain ID for the mainnet node chain.
+	Mainnet ChainID = "flow-mainnet"
 
-// Testnet is the chain ID for the testnet node chain.
-const Testnet ChainID = "flow-testnet"
+	// Testnet is the chain ID for the testnet node chain.
+	Testnet ChainID = "flow-testnet"
 
-// Emulator is the chain ID for the emulated node chain.
-const Emulator ChainID = "flow-emulator"
+	// Emulator is the chain ID for the emulated node chain.
+	Emulator ChainID = "flow-emulator"
+)
 
 func (id ChainID) String() string {
 	return string(id)
@@ -138,15 +140,13 @@ const (
 	maxState = (1 << linearCodeK) - 1
 )
 
-// AccountAddress generates an account address given an addressing state.
+// AccountAddress generates an account address and increments 
+// the addressing state.
 //
 // The address is generated for a specific network (Flow mainnet, testnet..)
-// The second returned value is the new updated addressing state. The new
-// addressing state should replace the old state to keep generating account
-// addresses in a sequential way.
 // Each state is mapped to exactly one address. There are as many addresses
 // as states.
-// ZeroAddress(chain) corresponds to the state "0" while ServiceAddress() corresponds to the
+// ZeroAddress() corresponds to the state "0" while ServiceAddress() corresponds to the
 // state "1".
 func (state *AddressState) AccountAddress(chain ChainID) (Address, error) {
 	err := state.nextState()
@@ -157,7 +157,7 @@ func (state *AddressState) AccountAddress(chain ChainID) (Address, error) {
 	return address, nil
 }
 
-// returns the next state given an addressing state.
+// increment the addressing state.
 // The state values are incremented from 0 to 2^k-1
 func (state *AddressState) nextState() error {
 	if uint64(*state) > maxState {

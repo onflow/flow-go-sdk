@@ -310,7 +310,6 @@ func (g *Transactions) NewUnsigned() *flow.Transaction {
 	accountB := accounts.New()
 
 	return flow.NewTransaction().
-		SetChainID(accounts.chain).
 		SetScript(ScriptHelloWorld).
 		SetReferenceBlockID(blockID).
 		SetGasLimit(42).

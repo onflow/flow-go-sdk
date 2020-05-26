@@ -28,7 +28,6 @@ import (
 type Transaction struct {
 	Script             []byte
 	ReferenceBlockID   Identifier
-	chain			   ChainID	
 	GasLimit           uint64
 	ProposalKey        ProposalKey
 	Payer              Address
@@ -45,12 +44,6 @@ func NewTransaction() *Transaction {
 // ID returns the canonical SHA3-256 hash of this transaction.
 func (t *Transaction) ID() Identifier {
 	return HashToID(DefaultHasher.ComputeHash(t.Encode()))
-}
-
-// SetChainID sets the specific Flow instance 
-func (t *Transaction) SetChainID(chain ChainID) *Transaction {
-	t.chain = chain
-	return t
 }
 
 // SetScript sets the Cadence script for this transaction.
@@ -120,11 +113,13 @@ func (t *Transaction) signerList() []Address {
 		seen[address] = struct{}{}
 	}
 
-	if t.ProposalKey.Address != ZeroAddress(t.chain) {
+	emptyAddress := Address{}
+	
+	if t.ProposalKey.Address != emptyAddress {
 		addSigner(t.ProposalKey.Address)
 	}
 
-	if t.Payer != ZeroAddress(t.chain) {
+	if t.Payer != emptyAddress {
 		addSigner(t.Payer)
 	}
 

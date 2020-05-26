@@ -127,7 +127,7 @@ if err != nil {
     panic("failed to connect to emulator")
 }
 
-payer, payerKey, payerSigner := examples.RootAccount(c)
+payer, payerKey, payerSigner := examples.ServiceAccount(c)
 
 tx := flow.NewTransaction().
     SetScript(script).
