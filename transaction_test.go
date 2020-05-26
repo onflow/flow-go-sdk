@@ -30,8 +30,7 @@ import (
 )
 
 func ExampleTransaction() {
-	chain := flow.Mainnet
-	addresses := flow.NewAddressGenerator(chain)
+	addresses := flow.NewAddressGenerator(flow.Mainnet)
 
 	// Mock user accounts
 
@@ -175,8 +174,7 @@ func TestTransaction_SetPayer(t *testing.T) {
 }
 
 func TestTransaction_AddAuthorizer(t *testing.T) {
-	chain := flow.Mainnet
-	addresses := flow.NewAddressGenerator(chain)
+	addresses := flow.NewAddressGenerator(flow.Mainnet)
 
 	addressA, err := addresses.NextAddress()
 	require.NoError(t, err)
@@ -198,8 +196,7 @@ func TestTransaction_AddAuthorizer(t *testing.T) {
 }
 
 func TestTransaction_AddPayloadSignature(t *testing.T) {
-	chain := flow.Mainnet
-	var addresses = flow.NewAddressGenerator(chain)
+	addresses := flow.NewAddressGenerator(flow.Mainnet)
 
 	t.Run("Invalid signer", func(t *testing.T) {
 		tx := flow.NewTransaction()
@@ -309,8 +306,7 @@ func TestTransaction_AddPayloadSignature(t *testing.T) {
 }
 
 func TestTransaction_AddEnvelopeSignature(t *testing.T) {
-	chain := flow.Mainnet
-	addresses := flow.NewAddressGenerator(chain)
+	addresses := flow.NewAddressGenerator(flow.Mainnet)
 
 	t.Run("Invalid signer", func(t *testing.T) {
 		tx := flow.NewTransaction()
