@@ -9,47 +9,73 @@ import (
 	"strings"
 )
 
-// A ChainID is a unique identifier for a specific Flow network instance.
-//
-// Chain IDs are used used to prevent replay attacks and to support network-specific address generation.
-type ChainID string
-
-const (
-	// Mainnet is the chain ID for the mainnet node chain.
-	Mainnet ChainID = "flow-mainnet"
-
-	// Testnet is the chain ID for the testnet node chain.
-	Testnet ChainID = "flow-testnet"
-
-	// Emulator is the chain ID for the emulated node chain.
-	Emulator ChainID = "flow-emulator"
-)
-
-func (id ChainID) String() string {
-	return string(id)
-}
-
 // Address represents the 8 byte address of an account.
 type Address [AddressLength]byte
 
-// AddressState represents the internal state of the address generation mechanism
-type AddressState uint64
+type AddressGenerator struct {
+	chainID ChainID
+	state   addressState
+}
+
+// NewAddressGenerator creates a new address generator for the given chain ID.
+func NewAddressGenerator(chainID ChainID) *AddressGenerator {
+	return &AddressGenerator{
+		chainID: chainID,
+		state:   zeroAddressState,
+	}
+}
+
+func newAddressGeneratorAtState(chainID ChainID, state addressState) *AddressGenerator {
+	return &AddressGenerator{
+		chainID: chainID,
+		state:   state,
+	}
+}
+
+// NextAddress generates an account address and increments
+// the addressing state.
+//
+// The address is generated for a specific network (Flow mainnet, testnet, etc)
+// Each state is mapped to exactly one address. There are as many addresses
+// as states.
+//
+// zeroAddress() corresponds to the state "0" while ServiceAddress() corresponds to the
+// state "1".
+func (gen *AddressGenerator) NextAddress() (Address, error) {
+	err := gen.nextState()
+	if err != nil {
+		return zeroAddress(gen.chainID), err
+	}
+
+	return generateAddress(gen.chainID, gen.state), nil
+}
+
+// nextState increments the addressing state.
+//
+// The state values are incremented from 0 to 2^k-1
+func (gen *AddressGenerator) nextState() error {
+	if uint64(gen.state) > maxState {
+		return fmt.Errorf("the state value is not valid, it must be less or equal to %x", maxState)
+	}
+	gen.state += 1
+	return nil
+}
+
+// addressState represents the internal state of the address generation mechanism
+type addressState uint64
+
+// AddressLength is the size of an account address in bytes.
+// linearCodeN is the size of an account address in bits.
+const AddressLength = (linearCodeN + 7) >> 3
 
 const (
-	// AddressLength is the size of an account address in bytes.
-	// (n) is the size of an account address in bits.
-	AddressLength = (linearCodeN + 7) >> 3
-	// AddressStateLength is the size of an account address state in bytes.
-	// (k) is the size of an account address in bits.
-	AddressStateLength = (linearCodeK + 7) >> 3
-
 	// ZeroAddressState is the addressing state when Flow is bootstrapped
-	ZeroAddressState = AddressState(0)
+	zeroAddressState = addressState(0)
 	// ServiceAddressState is the initial addressing state for account creations
-	ServiceAddressState = AddressState(1)
+	serviceAddressState = addressState(1)
 )
 
-// chainCustomizer derives the constant used to generate addresses for 
+// chainCustomizer derives the constant used to generate addresses for
 // the given chain.
 func chainCustomizer(chain ChainID) uint64 {
 	switch chain {
@@ -64,14 +90,14 @@ func chainCustomizer(chain ChainID) uint64 {
 	}
 }
 
-// ZeroAddress represents the "zero address" (account that no one owns).
-func ZeroAddress(chain ChainID) Address {
-	return generateAddress(chain, ZeroAddressState)
+// zeroAddress represents the "zero address" (account that no one owns).
+func zeroAddress(chain ChainID) Address {
+	return generateAddress(chain, zeroAddressState)
 }
 
-// ServiceAddress represents the root (first) generated account address.
+// ServiceAddress is the first generated account address.
 func ServiceAddress(chain ChainID) Address {
-	return generateAddress(chain, ServiceAddressState)
+	return generateAddress(chain, serviceAddressState)
 }
 
 // HexToAddress converts a hex string to an Address.
@@ -140,43 +166,16 @@ const (
 	maxState = (1 << linearCodeK) - 1
 )
 
-// AccountAddress generates an account address and increments 
-// the addressing state.
-//
-// The address is generated for a specific network (Flow mainnet, testnet..)
-// Each state is mapped to exactly one address. There are as many addresses
-// as states.
-// ZeroAddress() corresponds to the state "0" while ServiceAddress() corresponds to the
-// state "1".
-func (state *AddressState) AccountAddress(chain ChainID) (Address, error) {
-	err := state.nextState()
-	if err != nil {
-		return ZeroAddress(chain), err
-	}
-	address := generateAddress(chain, *state)
-	return address, nil
-}
-
-// increment the addressing state.
-// The state values are incremented from 0 to 2^k-1
-func (state *AddressState) nextState() error {
-	if uint64(*state) > maxState {
-		return fmt.Errorf("the state value is not valid, it must be less or equal to %x", maxState)
-	}
-	*state += 1
-	return nil
-}
-
-// Uint64ToAddress returns an address with value v
+// uint64ToAddress returns an address with value v
 // The value v fits into the address as the address size is 8
-func Uint64ToAddress(v uint64) Address {
+func uint64ToAddress(v uint64) Address {
 	var b [AddressLength]byte
 	binary.BigEndian.PutUint64(b[:], v)
-	return Address(b)
+	return b
 }
 
 // uint64 converts an address into a uint64
-func (a *Address) Uint64() uint64 {
+func (a *Address) uint64() uint64 {
 	v := binary.BigEndian.Uint64(a[:])
 	return v
 }
@@ -185,7 +184,7 @@ func (a *Address) Uint64() uint64 {
 // (network) specifies the network to generate the address for (Flow Mainnet, testent..)
 // The function assumes the state is valid (<2^k) which means
 // a check on the state should be done before calling this function.
-func generateAddress(chain ChainID, state AddressState) Address {
+func generateAddress(chain ChainID, state addressState) Address {
 	index := uint64(state)
 
 	// Multiply the index GF(2) vector by the code generator matrix
@@ -199,7 +198,7 @@ func generateAddress(chain ChainID, state AddressState) Address {
 
 	// customize the code word for a specific network
 	address ^= chainCustomizer(chain)
-	return Uint64ToAddress(address)
+	return uint64ToAddress(address)
 }
 
 // IsValid returns true if a given address is a valid account address,
@@ -212,7 +211,7 @@ func generateAddress(chain ChainID, state AddressState) Address {
 // ZeroAddress fails the check. Although it has a valid format, no account
 // in Flow is assigned to ZeroAddress.
 func (a *Address) IsValid(chain ChainID) bool {
-	codeWord := a.Uint64()
+	codeWord := a.uint64()
 	codeWord ^= chainCustomizer(chain)
 
 	if codeWord == 0 {
@@ -232,8 +231,10 @@ func (a *Address) IsValid(chain ChainID) bool {
 
 // invalid code-words in the [64,45] code
 // these constants are used to generate non-Flow-Mainnet addresses
-const invalidCodeTestnet = uint64(0x6834ba37b3980209)
-const invalidCodeEmulator = uint64(0x1cb159857af02018)
+const (
+	invalidCodeTestnet  = uint64(0x6834ba37b3980209)
+	invalidCodeEmulator = uint64(0x1cb159857af02018)
+)
 
 // Rows of the generator matrix G of the [64,45]-code used for Flow addresses.
 // G is a (k x n) matrix with coefficients in GF(2), each row is converted into
