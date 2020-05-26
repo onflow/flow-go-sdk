@@ -39,8 +39,14 @@ func CreateAccount(accountKeys []*flow.AccountKey, code []byte) ([]byte, error) 
 	script := fmt.Sprintf(
 		`
             transaction {
-              execute {
-                AuthAccount(publicKeys: %s, code: "%s".decodeHex())
+              prepare(signer: AuthAccount) {
+                let acct = AuthAccount(payer: signer)
+
+                for key in %s {
+                    acct.addPublicKey(key)
+                }
+
+                acct.setCode("%s".decodeHex())
               }
             }
         `,
@@ -77,7 +83,7 @@ func AddAccountKey(accountKey *flow.AccountKey) ([]byte, error) {
             signer.addPublicKey(%s)
           }
         }
-   	`, publicKeyStr)
+    `, publicKeyStr)
 
 	return []byte(script), nil
 }

@@ -36,13 +36,7 @@ func TestCreateAccount(t *testing.T) {
 		script, err := templates.CreateAccount([]*flow.AccountKey{accountKey}, []byte{})
 		assert.NoError(t, err)
 
-		expectedScript := `
-          transaction {
-            execute {
-              AuthAccount(publicKeys: [[248,71,184,64,141,166,11,217,138,130,124,135,226,22,34,197,7,10,227,238,68,10,191,9,39,213,219,51,249,101,44,177,48,62,184,160,77,254,65,222,162,201,234,100,238,131,238,141,124,141,6,141,184,56,108,123,171,152,105,74,249,86,224,253,174,55,24,78,2,3,130,3,232]], code: "".decodeHex())
-            }
-          }
-        `
+		expectedScript := "\ntransaction {\n  prepare(signer: AuthAccount) {\n    let acct = AuthAccount(payer: signer)\n\n    for key in [[248,71,184,64,141,166,11,217,138,130,124,135,226,22,34,197,7,10,227,238,68,10,191,9,39,213,219,51,249,101,44,177,48,62,184,160,77,254,65,222,162,201,234,100,238,131,238,141,124,141,6,141,184,56,108,123,171,152,105,74,249,86,224,253,174,55,24,78,2,3,130,3,232]] {\n        acct.addPublicKey(key)\n    }\n\n    acct.setCode(\"\".decodeHex())\n  }\n}\n"
 
 		assert.Equal(t,
 			dedent.Dedent(expectedScript),
@@ -54,13 +48,7 @@ func TestCreateAccount(t *testing.T) {
 		script, err := templates.CreateAccount([]*flow.AccountKey{accountKey}, []byte("pub fun main() {}"))
 		assert.Nil(t, err)
 
-		expectedScript := `
-          transaction {
-            execute {
-              AuthAccount(publicKeys: [[248,71,184,64,141,166,11,217,138,130,124,135,226,22,34,197,7,10,227,238,68,10,191,9,39,213,219,51,249,101,44,177,48,62,184,160,77,254,65,222,162,201,234,100,238,131,238,141,124,141,6,141,184,56,108,123,171,152,105,74,249,86,224,253,174,55,24,78,2,3,130,3,232]], code: "7075622066756e206d61696e2829207b7d".decodeHex())
-            }
-          }
-        `
+		expectedScript := "\ntransaction {\n  prepare(signer: AuthAccount) {\n    let acct = AuthAccount(payer: signer)\n\n    for key in [[248,71,184,64,141,166,11,217,138,130,124,135,226,22,34,197,7,10,227,238,68,10,191,9,39,213,219,51,249,101,44,177,48,62,184,160,77,254,65,222,162,201,234,100,238,131,238,141,124,141,6,141,184,56,108,123,171,152,105,74,249,86,224,253,174,55,24,78,2,3,130,3,232]] {\n        acct.addPublicKey(key)\n    }\n\n    acct.setCode(\"7075622066756e206d61696e2829207b7d\".decodeHex())\n  }\n}\n"
 
 		assert.Equal(t,
 			dedent.Dedent(expectedScript),
