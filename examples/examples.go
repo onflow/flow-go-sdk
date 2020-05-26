@@ -46,7 +46,7 @@ func ServiceAccount(flowClient *client.Client) (flow.Address, *flow.AccountKey, 
 	privateKey, _ := crypto.GeneratePrivateKey(crypto.ECDSA_P256, []byte(defaultServiceKeySeed))
 
 	// Service address is the first generated account address
-	addr := flow.ServiceAddress(flow.Mainnet)
+	addr := flow.ServiceAddress(flow.Emulator)
 
 	acc, err := flowClient.GetAccount(context.Background(), addr)
 	Handle(err)
@@ -110,7 +110,8 @@ func CreateAccount(flowClient *client.Client, publicKeys []*flow.AccountKey, cod
 	createAccountTx := flow.NewTransaction().
 		SetScript(createAccountScript).
 		SetProposalKey(serviceAcctAddr, serviceAcctKey.ID, serviceAcctKey.SequenceNumber).
-		SetPayer(serviceAcctAddr)
+		SetPayer(serviceAcctAddr).
+		AddAuthorizer(serviceAcctAddr)
 
 	err = createAccountTx.SignEnvelope(serviceAcctAddr, serviceAcctKey.ID, serviceSigner)
 	Handle(err)

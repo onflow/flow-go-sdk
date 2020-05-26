@@ -61,7 +61,8 @@ func DeployContractDemo() {
 	createAccountTx := flow.NewTransaction().
 		SetScript(createAccountScript).
 		SetProposalKey(serviceAcctAddr, serviceAcctKey.ID, serviceAcctKey.SequenceNumber).
-		SetPayer(serviceAcctAddr)
+		SetPayer(serviceAcctAddr).
+		AddAuthorizer(serviceAcctAddr)
 
 	err = createAccountTx.SignEnvelope(serviceAcctAddr, serviceAcctKey.ID, serviceSigner)
 	examples.Handle(err)
@@ -93,7 +94,8 @@ func DeployContractDemo() {
 	deployContractTx := flow.NewTransaction().
 		SetScript(deployScript).
 		SetProposalKey(myAddress, myAcctKey.ID, myAcctKey.SequenceNumber).
-		SetPayer(myAddress)
+		SetPayer(myAddress).
+		AddAuthorizer(myAddress)
 
 	err = deployContractTx.SignEnvelope(
 		myAddress,
