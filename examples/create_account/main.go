@@ -57,7 +57,8 @@ func CreateAccountDemo() {
 	createAccountTx := flow.NewTransaction().
 		SetScript(createAccountScript).
 		SetProposalKey(serviceAcctAddr, serviceAcctKey.ID, serviceAcctKey.SequenceNumber).
-		SetPayer(serviceAcctAddr)
+		SetPayer(serviceAcctAddr).
+		AddAuthorizer(serviceAcctAddr)
 
 	// Sign the transaction with the service account, which already exists
 	// All new accounts must be created by an existing account
