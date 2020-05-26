@@ -31,20 +31,28 @@ import (
 var ScriptHelloWorld = []byte(`transaction { execute { log("Hello, World!") } }`)
 
 type Accounts struct {
-	addresses   *Addresses
+	chain       flow.ChainID
+	addresses   flow.AddressState
 	accountKeys *AccountKeys
 }
 
 func AccountGenerator() *Accounts {
 	return &Accounts{
-		addresses:   AddressGenerator(),
+		chain:		 flow.Mainnet,
+		addresses:   flow.ZeroAddressState,
 		accountKeys: AccountKeyGenerator(),
 	}
 }
 
 func (g *Accounts) New() *flow.Account {
+	var address flow.Address
+	var err error
+	address , err = g.addresses.AccountAddress(g.chain)
+	if err != nil {
+		return &flow.Account{}
+	}
 	return &flow.Account{
-		Address: g.addresses.New(),
+		Address: address,
 		Balance: 10,
 		Keys: []*flow.AccountKey{
 			g.accountKeys.New(),
@@ -95,19 +103,6 @@ func (g *AccountKeys) NewWithSigner() (*flow.AccountKey, crypto.Signer) {
 	}
 
 	return &accountKey, crypto.NewInMemorySigner(privateKey, accountKey.HashAlgo)
-}
-
-type Addresses struct {
-	count int
-}
-
-func AddressGenerator() *Addresses {
-	return &Addresses{1}
-}
-
-func (g *Addresses) New() flow.Address {
-	defer func() { g.count++ }()
-	return flow.BytesToAddress([]byte{uint8(g.count)})
 }
 
 type Blocks struct {
@@ -315,6 +310,7 @@ func (g *Transactions) NewUnsigned() *flow.Transaction {
 	accountB := accounts.New()
 
 	return flow.NewTransaction().
+		SetChainID(accounts.chain).
 		SetScript(ScriptHelloWorld).
 		SetReferenceBlockID(blockID).
 		SetGasLimit(42).
