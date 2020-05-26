@@ -1,7 +1,7 @@
 {
 	"accounts": {
-		"root": {
-			"address": "0000000000000000000000000000000000000001",
+		"service": {
+			"address": "e467b9dd11fa00df",
 			"privateKey": "bf9db4706c2fdb9011ee7e170ccac492f05427b96ab41d8bf2d8c58443704b76",
 			"sigAlgorithm": "ECDSA_P256",
 			"hashAlgorithm": "SHA3_256"

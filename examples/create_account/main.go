@@ -40,7 +40,7 @@ func CreateAccountDemo() {
 	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
 	examples.Handle(err)
 
-	rootAcctAddr, rootAcctKey, rootSigner := examples.RootAccount(flowClient)
+	serviceAcctAddr, serviceAcctKey, serviceSigner := examples.ServiceAccount(flowClient)
 
 	myPrivateKey := examples.RandomPrivateKey()
 	myAcctKey := flow.NewAccountKey().
@@ -53,15 +53,15 @@ func CreateAccountDemo() {
 	examples.Handle(err)
 
 	// Create a transaction that will execute the script. The transaction is signed
-	// by the root account.
+	// by the service account.
 	createAccountTx := flow.NewTransaction().
 		SetScript(createAccountScript).
-		SetProposalKey(rootAcctAddr, rootAcctKey.ID, rootAcctKey.SequenceNumber).
-		SetPayer(rootAcctAddr)
+		SetProposalKey(serviceAcctAddr, serviceAcctKey.ID, serviceAcctKey.SequenceNumber).
+		SetPayer(serviceAcctAddr)
 
-	// Sign the transaction with the root account, which already exists
+	// Sign the transaction with the service account, which already exists
 	// All new accounts must be created by an existing account
-	err = createAccountTx.SignEnvelope(rootAcctAddr, rootAcctKey.ID, rootSigner)
+	err = createAccountTx.SignEnvelope(serviceAcctAddr, serviceAcctKey.ID, serviceSigner)
 	examples.Handle(err)
 
 	// Send the transaction to the network

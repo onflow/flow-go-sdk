@@ -40,13 +40,13 @@ func ReadFile(path string) []byte {
 	return contents
 }
 
-const defaultRootKeySeed = "elephant ears space cowboy octopus rodeo potato cannon pineapple"
+const defaultServiceKeySeed = "elephant ears space cowboy octopus rodeo potato cannon pineapple"
 
-func RootAccount(flowClient *client.Client) (flow.Address, *flow.AccountKey, crypto.Signer) {
-	privateKey, _ := crypto.GeneratePrivateKey(crypto.ECDSA_P256, []byte(defaultRootKeySeed))
+func ServiceAccount(flowClient *client.Client) (flow.Address, *flow.AccountKey, crypto.Signer) {
+	privateKey, _ := crypto.GeneratePrivateKey(crypto.ECDSA_P256, []byte(defaultServiceKeySeed))
 
-	// root account always has address 0x01
-	addr := flow.HexToAddress("01")
+	// Service address is the first generated account address
+	addr := flow.ServiceAddress(flow.Mainnet)
 
 	acc, err := flowClient.GetAccount(context.Background(), addr)
 	Handle(err)
@@ -102,17 +102,17 @@ func DeployContract(flowClient *client.Client, code []byte) flow.Address {
 func CreateAccount(flowClient *client.Client, publicKeys []*flow.AccountKey, code []byte) *flow.Account {
 	ctx := context.Background()
 
-	rootAcctAddr, rootAcctKey, rootSigner := RootAccount(flowClient)
+	serviceAcctAddr, serviceAcctKey, serviceSigner := ServiceAccount(flowClient)
 
 	createAccountScript, err := templates.CreateAccount(publicKeys, code)
 	Handle(err)
 
 	createAccountTx := flow.NewTransaction().
 		SetScript(createAccountScript).
-		SetProposalKey(rootAcctAddr, rootAcctKey.ID, rootAcctKey.SequenceNumber).
-		SetPayer(rootAcctAddr)
+		SetProposalKey(serviceAcctAddr, serviceAcctKey.ID, serviceAcctKey.SequenceNumber).
+		SetPayer(serviceAcctAddr)
 
-	err = createAccountTx.SignEnvelope(rootAcctAddr, rootAcctKey.ID, rootSigner)
+	err = createAccountTx.SignEnvelope(serviceAcctAddr, serviceAcctKey.ID, serviceSigner)
 	Handle(err)
 
 	err = flowClient.SendTransaction(ctx, *createAccountTx)
