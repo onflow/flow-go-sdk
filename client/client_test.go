@@ -351,8 +351,7 @@ func TestClient_GetTransactionResult(t *testing.T) {
 
 func TestClient_GetAccount(t *testing.T) {
 	accounts := test.AccountGenerator()
-	chain := flow.Mainnet
-	var addresses = flow.ZeroAddressState
+	addresses := flow.NewAddressGenerator(flow.Mainnet)
 
 	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
 		expectedAccount := accounts.New()
@@ -369,7 +368,8 @@ func TestClient_GetAccount(t *testing.T) {
 	}))
 
 	t.Run("Error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
-		address, err := addresses.AccountAddress(chain)
+		address, err := addresses.NextAddress()
+		require.NoError(t, err)
 
 		rpc.On("GetAccount", ctx, mock.Anything).
 			Return(nil, mockRPCError)

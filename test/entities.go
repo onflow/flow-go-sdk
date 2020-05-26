@@ -31,15 +31,13 @@ import (
 var ScriptHelloWorld = []byte(`transaction { execute { log("Hello, World!") } }`)
 
 type Accounts struct {
-	chain       flow.ChainID
-	addresses   flow.AddressState
+	addresses   *flow.AddressGenerator
 	accountKeys *AccountKeys
 }
 
 func AccountGenerator() *Accounts {
 	return &Accounts{
-		chain:		 flow.Mainnet,
-		addresses:   flow.ZeroAddressState,
+		addresses:   flow.NewAddressGenerator(flow.Mainnet),
 		accountKeys: AccountKeyGenerator(),
 	}
 }
@@ -47,10 +45,12 @@ func AccountGenerator() *Accounts {
 func (g *Accounts) New() *flow.Account {
 	var address flow.Address
 	var err error
-	address , err = g.addresses.AccountAddress(g.chain)
+
+	address, err = g.addresses.NextAddress()
 	if err != nil {
 		return &flow.Account{}
 	}
+
 	return &flow.Account{
 		Address: address,
 		Balance: 10,
