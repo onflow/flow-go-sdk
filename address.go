@@ -82,7 +82,7 @@ func (gen *AddressGenerator) Next() *AddressGenerator {
 }
 
 // SetIndex fast-forwards or rewinds the addressing state to the given index.
-func (gen *AddressGenerator) SetIndex(i int) *AddressGenerator {
+func (gen *AddressGenerator) SetIndex(i uint) *AddressGenerator {
 	gen.state = addressState(i)
 	return gen
 }
