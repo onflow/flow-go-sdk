@@ -113,13 +113,11 @@ func (t *Transaction) signerList() []Address {
 		seen[address] = struct{}{}
 	}
 
-	emptyAddress := Address{}
-	
-	if t.ProposalKey.Address != emptyAddress {
+	if t.ProposalKey.Address != EmptyAddress {
 		addSigner(t.ProposalKey.Address)
 	}
 
-	if t.Payer != emptyAddress {
+	if t.Payer != EmptyAddress {
 		addSigner(t.Payer)
 	}
 

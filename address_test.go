@@ -46,7 +46,7 @@ func TestAddressJSON(t *testing.T) {
 	assert.Equal(t, addr, out.Address)
 }
 
-func TestFlowAddressConstants(t *testing.T) {
+func TestAddressConstants(t *testing.T) {
 	// check n and k fit in 8 and 6 bytes
 	assert.LessOrEqual(t, linearCodeN, 8*8)
 	assert.LessOrEqual(t, linearCodeK, 6*8)
@@ -59,8 +59,7 @@ func TestFlowAddressConstants(t *testing.T) {
 	}
 
 	for _, net := range networks {
-
-		// check the Zero and Service constants
+		// check the zero and service constants
 		expected := uint64ToAddress(chainCustomizer(net))
 		assert.Equal(t, zeroAddress(net), expected)
 		expected = uint64ToAddress(generatorMatrixRows[0] ^ chainCustomizer(net))
@@ -79,7 +78,7 @@ func TestFlowAddressConstants(t *testing.T) {
 		_, err = generator.NextAddress()
 		assert.Error(t, err)
 
-		// check ZeroAddress(net) is an invalid addresse
+		// check zeroAddress(net) is an invalid address
 		z := zeroAddress(net)
 		check := z.IsValid(net)
 		assert.False(t, check, "should be invalid")
@@ -93,7 +92,7 @@ func TestAddressGeneration(t *testing.T) {
 	rand.Seed(time.Now().UnixNano())
 
 	// loops in each test
-	const loop = 3
+	const iterations = 3
 
 	// Test addresses for all type of networks
 	networks := []ChainID{
@@ -104,70 +103,142 @@ func TestAddressGeneration(t *testing.T) {
 
 	for _, net := range networks {
 
-		// sanity check of AccountAddress function consistency
-		generator := NewAddressGenerator(net)
-		expectedState := zeroAddressState
-		for i := 0; i < loop; i++ {
-			address, err := generator.NextAddress()
-			require.NoError(t, err)
-			expectedState++
-			expectedAddress := generateAddress(net, expectedState)
-			assert.Equal(t, address, expectedAddress)
-		}
+		t.Run(net.String(), func(t *testing.T) {
 
-		// sanity check of addresses weights in Flow.
-		// All addresses hamming weights must be less than d.
-		// this is only a sanity check of the implementation and not an exhaustive proof
-		if net == Mainnet {
-			r := rand.Intn(maxState - loop)
-			generator := newAddressGeneratorAtState(net, addressState(r))
-			for i := 0; i < loop; i++ {
-				address, err := generator.NextAddress()
+			t.Run("NextAddress", func(t *testing.T) {
+				// sanity check of NextAddress function consistency
+				generator := NewAddressGenerator(net)
+				expectedState := zeroAddressState
+				for i := 0; i < iterations; i++ {
+					address, err := generator.NextAddress()
+					require.NoError(t, err)
+					expectedState++
+					expectedAddress := generateAddress(net, expectedState)
+					assert.Equal(t, address, expectedAddress)
+				}
+			})
+
+			t.Run("Address", func(t *testing.T) {
+				// sanity check of Address function consistency
+				generator := NewAddressGenerator(net)
+				expectedState := zeroAddressState
+				for i := 0; i < iterations; i++ {
+					address := generator.Address()
+					expectedAddress := generateAddress(net, expectedState)
+
+					assert.Equal(t, address, expectedAddress)
+
+					err := generator.Next()
+					require.NoError(t, err)
+					expectedState++
+				}
+			})
+
+			t.Run("SetIndex", func(t *testing.T) {
+				const indexA = 8
+				const indexB = 16
+
+				generatorA := NewAddressGenerator(net)
+				generatorB := NewAddressGenerator(net)
+
+				// fast-forward manually (to indexA)
+				for i := 0; i < indexA; i++ {
+					err := generatorA.Next()
+					require.NoError(t, err)
+				}
+
+				// fast-forward with SetIndex (to indexA)
+				generatorB.SetIndex(indexA)
+
+				addressA1 := generatorA.Address()
+				addressB1 := generatorB.Address()
+
+				assert.Equal(t, addressA1, addressB1)
+
+				// fast-forward manually (to indexB)
+				for i := indexA; i < indexB; i++ {
+					err := generatorA.Next()
+					require.NoError(t, err)
+				}
+
+				// fast-forward with SetIndex (to indexB)
+				generatorB.SetIndex(indexB)
+
+				addressA2 := generatorA.Address()
+				addressB2 := generatorB.Address()
+
+				assert.Equal(t, addressA2, addressB2)
+
+				// rewind with SetIndex (back to indexA)
+				generatorB.SetIndex(indexA)
+				addressB3 := generatorB.Address()
+
+				assert.Equal(t, addressA1, addressB3)
+			})
+
+			t.Run("Weights", func(t *testing.T) {
+				// sanity check of addresses weights in Flow.
+				// All addresses hamming weights must be less than d.
+				// this is only a sanity check of the implementation and not an exhaustive proof
+				if net == Mainnet {
+					r := rand.Intn(maxState - iterations)
+					generator := newAddressGeneratorAtState(net, addressState(r))
+					for i := 0; i < iterations; i++ {
+						address, err := generator.NextAddress()
+						require.NoError(t, err)
+						weight := bits.OnesCount64(address.uint64())
+						assert.LessOrEqual(t, linearCodeD, weight)
+					}
+				}
+			})
+
+			t.Run("Distances", func(t *testing.T) {
+				// sanity check of address distances.
+				// All distances between any two addresses must be less than d.
+				// this is only a sanity check of the implementation and not an exhaustive proof
+				r := rand.Intn(maxState - iterations - 1)
+				generator := newAddressGeneratorAtState(net, addressState(r))
+				refAddress, err := generator.NextAddress()
 				require.NoError(t, err)
-				weight := bits.OnesCount64(address.uint64())
-				assert.LessOrEqual(t, linearCodeD, weight)
-			}
-		}
+				for i := 0; i < iterations; i++ {
+					address, err := generator.NextAddress()
+					require.NoError(t, err)
+					distance := bits.OnesCount64(address.uint64() ^ refAddress.uint64())
+					assert.LessOrEqual(t, linearCodeD, distance)
+				}
+			})
 
-		// sanity check of address distances.
-		// All distances between any two addresses must be less than d.
-		// this is only a sanity check of the implementation and not an exhaustive proof
-		r := rand.Intn(maxState - loop - 1)
-		generator = newAddressGeneratorAtState(net, addressState(r))
-		refAddress, err := generator.NextAddress()
-		require.NoError(t, err)
-		for i := 0; i < loop; i++ {
-			address, err := generator.NextAddress()
-			require.NoError(t, err)
-			distance := bits.OnesCount64(address.uint64() ^ refAddress.uint64())
-			assert.LessOrEqual(t, linearCodeD, distance)
-		}
+			t.Run("Valid", func(t *testing.T) {
+				// sanity check of valid account addresses.
+				// All valid addresses must pass IsValid.
+				r := rand.Intn(maxState - iterations)
+				generator := newAddressGeneratorAtState(net, addressState(r))
+				for i := 0; i < iterations; i++ {
+					address, err := generator.NextAddress()
+					require.NoError(t, err)
+					check := address.IsValid(net)
+					assert.True(t, check, "account address format should be valid")
+				}
+			})
 
-		// sanity check of valid account addresses.
-		// All valid addresses must pass IsValid.
-		r = rand.Intn(maxState - loop)
-		generator = newAddressGeneratorAtState(net, addressState(r))
-		for i := 0; i < loop; i++ {
-			address, err := generator.NextAddress()
-			require.NoError(t, err)
-			check := address.IsValid(net)
-			assert.True(t, check, "account address format should be valid")
-		}
+			t.Run("Invalid", func(t *testing.T) {
+				// sanity check of invalid account addresses.
+				// All invalid addresses must fail IsValid.
+				invalidAddress := uint64ToAddress(invalidCodeWord)
+				check := invalidAddress.IsValid(net)
+				assert.False(t, check, "account address format should be invalid")
 
-		// sanity check of invalid account addresses.
-		// All invalid addresses must fail IsValid.
-		invalidAddress := uint64ToAddress(invalidCodeWord)
-		check := invalidAddress.IsValid(net)
-		assert.False(t, check, "account address format should be invalid")
-		r = rand.Intn(maxState - loop)
-		generator = newAddressGeneratorAtState(net, addressState(r))
-		for i := 0; i < loop; i++ {
-			address, err := generator.NextAddress()
-			require.NoError(t, err)
-			invalidAddress = uint64ToAddress(address.uint64() ^ invalidCodeWord)
-			check := invalidAddress.IsValid(net)
-			assert.False(t, check, "account address format should be invalid")
-		}
+				r := rand.Intn(maxState - iterations)
+				generator := newAddressGeneratorAtState(net, addressState(r))
+				for i := 0; i < iterations; i++ {
+					address, err := generator.NextAddress()
+					require.NoError(t, err)
+					invalidAddress = uint64ToAddress(address.uint64() ^ invalidCodeWord)
+					check := invalidAddress.IsValid(net)
+					assert.False(t, check, "account address format should be invalid")
+				}
+			})
+		})
 	}
 }
 
