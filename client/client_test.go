@@ -40,6 +40,18 @@ import (
 
 var mockRPCError = errors.New("rpc error")
 
+func clientTest(
+	f func(t *testing.T, ctx context.Context, rpc *MockRPCClient, client *client.Client),
+) func(t *testing.T) {
+	return func(t *testing.T) {
+		ctx := context.Background()
+		rpc := &MockRPCClient{}
+		c := client.NewFromRPCClient(rpc)
+		f(t, ctx, rpc, c)
+		rpc.AssertExpectations(t)
+	}
+}
+
 func TestClient_Ping(t *testing.T) {
 	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
 		response := &access.PingResponse{}
@@ -84,9 +96,9 @@ func TestClient_GetLatestBlockHeader(t *testing.T) {
 		rpc.On("GetLatestBlockHeader", ctx, mock.Anything).
 			Return(nil, mockRPCError)
 
-		result, err := c.GetLatestBlockHeader(ctx, true)
+		header, err := c.GetLatestBlockHeader(ctx, true)
 		assert.Error(t, err)
-		assert.Nil(t, result)
+		assert.Nil(t, header)
 	}))
 }
 
@@ -119,9 +131,9 @@ func TestClient_GetBlockHeaderByID(t *testing.T) {
 		rpc.On("GetBlockHeaderByID", ctx, mock.Anything).
 			Return(nil, mockRPCError)
 
-		result, err := c.GetBlockHeaderByID(ctx, blockID)
+		header, err := c.GetBlockHeaderByID(ctx, blockID)
 		assert.Error(t, err)
-		assert.Nil(t, result)
+		assert.Nil(t, header)
 	}))
 }
 
@@ -150,9 +162,9 @@ func TestClient_GetBlockHeaderByHeight(t *testing.T) {
 		rpc.On("GetBlockHeaderByHeight", ctx, mock.Anything).
 			Return(nil, mockRPCError)
 
-		result, err := c.GetBlockHeaderByHeight(ctx, 42)
+		header, err := c.GetBlockHeaderByHeight(ctx, 42)
 		assert.Error(t, err)
-		assert.Nil(t, result)
+		assert.Nil(t, header)
 	}))
 }
 
@@ -181,9 +193,9 @@ func TestClient_GetLatestBlock(t *testing.T) {
 		rpc.On("GetLatestBlock", ctx, mock.Anything).
 			Return(nil, mockRPCError)
 
-		result, err := c.GetLatestBlock(ctx, true)
+		block, err := c.GetLatestBlock(ctx, true)
 		assert.Error(t, err)
-		assert.Nil(t, result)
+		assert.Nil(t, block)
 	}))
 }
 
@@ -216,9 +228,9 @@ func TestClient_GetBlockByID(t *testing.T) {
 		rpc.On("GetBlockByID", ctx, mock.Anything).
 			Return(nil, mockRPCError)
 
-		result, err := c.GetBlockByID(ctx, blockID)
+		block, err := c.GetBlockByID(ctx, blockID)
 		assert.Error(t, err)
-		assert.Nil(t, result)
+		assert.Nil(t, block)
 	}))
 }
 
@@ -247,9 +259,9 @@ func TestClient_GetBlockByHeight(t *testing.T) {
 		rpc.On("GetBlockByHeight", ctx, mock.Anything).
 			Return(nil, mockRPCError)
 
-		result, err := c.GetBlockByHeight(ctx, 42)
+		block, err := c.GetBlockByHeight(ctx, 42)
 		assert.Error(t, err)
-		assert.Nil(t, result)
+		assert.Nil(t, block)
 	}))
 }
 
@@ -278,9 +290,9 @@ func TestClient_GetCollection(t *testing.T) {
 		rpc.On("GetCollectionByID", ctx, mock.Anything).
 			Return(nil, mockRPCError)
 
-		result, err := c.GetCollection(ctx, colID)
+		col, err := c.GetCollection(ctx, colID)
 		assert.Error(t, err)
-		assert.Nil(t, result)
+		assert.Nil(t, col)
 	}))
 }
 
@@ -336,9 +348,9 @@ func TestClient_GetTransaction(t *testing.T) {
 		rpc.On("GetTransaction", ctx, mock.Anything).
 			Return(nil, mockRPCError)
 
-		result, err := c.GetTransaction(ctx, txID)
+		tx, err := c.GetTransaction(ctx, txID)
 		assert.Error(t, err)
-		assert.Nil(t, result)
+		assert.Nil(t, tx)
 	}))
 }
 
@@ -711,16 +723,4 @@ func TestClient_GetEventsForBlockIDs(t *testing.T) {
 		assert.Error(t, err)
 		assert.Empty(t, blocks)
 	}))
-}
-
-func clientTest(
-	f func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, client *client.Client),
-) func(t *testing.T) {
-	return func(t *testing.T) {
-		ctx := context.Background()
-		rpc := &mocks.RPCClient{}
-		c := client.NewFromRPCClient(rpc)
-		f(t, ctx, rpc, c)
-		rpc.AssertExpectations(t)
-	}
 }
