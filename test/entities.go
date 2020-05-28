@@ -109,8 +109,7 @@ func AddressGenerator() *Addresses {
 }
 
 func (g *Addresses) New() flow.Address {
-	addr, _ := g.generator.NextAddress()
-	return addr
+	return g.generator.NextAddress()
 }
 
 type Blocks struct {

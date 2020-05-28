@@ -67,16 +67,13 @@ func TestAddressConstants(t *testing.T) {
 
 		// check the transition from account zero to service
 		generator := NewAddressGenerator(net)
-		address, err := generator.NextAddress()
-		require.NoError(t, err)
+		address := generator.NextAddress()
 		assert.Equal(t, address, ServiceAddress(net))
 
 		// check high state values: generation should fail for high value states
 		generator = newAddressGeneratorAtState(net, maxState)
-		_, err = generator.NextAddress()
-		assert.NoError(t, err)
-		_, err = generator.NextAddress()
-		assert.Error(t, err)
+		assert.NotPanics(t, func() { generator.NextAddress() })
+		assert.Panics(t, func() { generator.NextAddress() })
 
 		// check zeroAddress(net) is an invalid address
 		z := zeroAddress(net)
@@ -110,8 +107,7 @@ func TestAddressGeneration(t *testing.T) {
 				generator := NewAddressGenerator(net)
 				expectedState := zeroAddressState
 				for i := 0; i < iterations; i++ {
-					address, err := generator.NextAddress()
-					require.NoError(t, err)
+					address := generator.NextAddress()
 					expectedState++
 					expectedAddress := generateAddress(net, expectedState)
 					assert.Equal(t, address, expectedAddress)
@@ -128,8 +124,7 @@ func TestAddressGeneration(t *testing.T) {
 
 					assert.Equal(t, address, expectedAddress)
 
-					err := generator.Next()
-					require.NoError(t, err)
+					generator.Next()
 					expectedState++
 				}
 			})
@@ -143,8 +138,7 @@ func TestAddressGeneration(t *testing.T) {
 
 				// fast-forward manually (to indexA)
 				for i := 0; i < indexA; i++ {
-					err := generatorA.Next()
-					require.NoError(t, err)
+					generatorA.Next()
 				}
 
 				// fast-forward with SetIndex (to indexA)
@@ -157,8 +151,7 @@ func TestAddressGeneration(t *testing.T) {
 
 				// fast-forward manually (to indexB)
 				for i := indexA; i < indexB; i++ {
-					err := generatorA.Next()
-					require.NoError(t, err)
+					generatorA.Next()
 				}
 
 				// fast-forward with SetIndex (to indexB)
@@ -184,8 +177,7 @@ func TestAddressGeneration(t *testing.T) {
 					r := rand.Intn(maxState - iterations)
 					generator := newAddressGeneratorAtState(net, addressState(r))
 					for i := 0; i < iterations; i++ {
-						address, err := generator.NextAddress()
-						require.NoError(t, err)
+						address := generator.NextAddress()
 						weight := bits.OnesCount64(address.uint64())
 						assert.LessOrEqual(t, linearCodeD, weight)
 					}
@@ -198,11 +190,9 @@ func TestAddressGeneration(t *testing.T) {
 				// this is only a sanity check of the implementation and not an exhaustive proof
 				r := rand.Intn(maxState - iterations - 1)
 				generator := newAddressGeneratorAtState(net, addressState(r))
-				refAddress, err := generator.NextAddress()
-				require.NoError(t, err)
+				refAddress := generator.NextAddress()
 				for i := 0; i < iterations; i++ {
-					address, err := generator.NextAddress()
-					require.NoError(t, err)
+					address := generator.NextAddress()
 					distance := bits.OnesCount64(address.uint64() ^ refAddress.uint64())
 					assert.LessOrEqual(t, linearCodeD, distance)
 				}
@@ -214,8 +204,7 @@ func TestAddressGeneration(t *testing.T) {
 				r := rand.Intn(maxState - iterations)
 				generator := newAddressGeneratorAtState(net, addressState(r))
 				for i := 0; i < iterations; i++ {
-					address, err := generator.NextAddress()
-					require.NoError(t, err)
+					address := generator.NextAddress()
 					check := address.IsValid(net)
 					assert.True(t, check, "account address format should be valid")
 				}
@@ -231,8 +220,7 @@ func TestAddressGeneration(t *testing.T) {
 				r := rand.Intn(maxState - iterations)
 				generator := newAddressGeneratorAtState(net, addressState(r))
 				for i := 0; i < iterations; i++ {
-					address, err := generator.NextAddress()
-					require.NoError(t, err)
+					address := generator.NextAddress()
 					invalidAddress = uint64ToAddress(address.uint64() ^ invalidCodeWord)
 					check := invalidAddress.IsValid(net)
 					assert.False(t, check, "account address format should be invalid")
@@ -261,8 +249,7 @@ func TestAddressesIntersection(t *testing.T) {
 		r := rand.Intn(maxState - loop)
 		generator := newAddressGeneratorAtState(net, addressState(r))
 		for i := 0; i < loop; i++ {
-			address, err := generator.NextAddress()
-			require.NoError(t, err)
+			address := generator.NextAddress()
 			check := address.IsValid(Mainnet)
 			assert.False(t, check, "test account address format should be invalid in Flow")
 		}
@@ -271,8 +258,7 @@ func TestAddressesIntersection(t *testing.T) {
 		r = rand.Intn(maxState - loop)
 		generator = newAddressGeneratorAtState(Mainnet, addressState(r))
 		for i := 0; i < loop; i++ {
-			invalidAddress, err := generator.NextAddress()
-			require.NoError(t, err)
+			invalidAddress := generator.NextAddress()
 			check := invalidAddress.IsValid(net)
 			assert.False(t, check, "account address format should be invalid")
 		}
@@ -285,8 +271,7 @@ func TestAddressesIntersection(t *testing.T) {
 		r = rand.Intn(maxState - loop)
 		generator = newAddressGeneratorAtState(net, addressState(r))
 		for i := 0; i < loop; i++ {
-			address, err := generator.NextAddress()
-			require.NoError(t, err)
+			address := generator.NextAddress()
 			invalidAddress = uint64ToAddress(address.uint64() ^ invalidCodeWord)
 			// must fail test network check
 			check = invalidAddress.IsValid(net)

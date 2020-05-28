@@ -61,29 +61,30 @@ func (gen *AddressGenerator) Address() Address {
 }
 
 // NextAddress increments the addressing state and generates an account address.
-func (gen *AddressGenerator) NextAddress() (Address, error) {
-	err := gen.Next()
-	if err != nil {
-		return zeroAddress(gen.chainID), err
-	}
-
-	return generateAddress(gen.chainID, gen.state), nil
+func (gen *AddressGenerator) NextAddress() Address {
+	gen.Next()
+	return generateAddress(gen.chainID, gen.state)
 }
 
 // Next increments the addressing state.
 //
 // State values are incremented from 0 to 2^k-1.
-func (gen *AddressGenerator) Next() error {
+func (gen *AddressGenerator) Next() *AddressGenerator {
 	if uint64(gen.state) > maxState {
-		return fmt.Errorf("addressing state must be less than or equal to %d", maxState)
+		panic(
+			fmt.Sprintf("addressing state must be less than or equal to %d", maxState),
+		)
 	}
+
 	gen.state++
-	return nil
+
+	return gen
 }
 
 // SetIndex fast-forwards or rewinds the addressing state to the given index.
-func (gen *AddressGenerator) SetIndex(i int) {
+func (gen *AddressGenerator) SetIndex(i int) *AddressGenerator {
 	gen.state = addressState(i)
+	return gen
 }
 
 // addressState represents the internal state of the address generation mechanism
