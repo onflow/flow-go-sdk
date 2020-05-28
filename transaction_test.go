@@ -30,7 +30,7 @@ import (
 )
 
 func ExampleTransaction() {
-	addresses := flow.NewAddressGenerator(flow.Mainnet)
+	addresses := test.AddressGenerator()
 
 	// Mock user accounts
 
@@ -40,7 +40,7 @@ func ExampleTransaction() {
 	}
 
 	adrianPhoneKey := &flow.AccountKey{ID: 2}
-	addressA, _ := addresses.NextAddress()
+	addressA := addresses.New()
 
 	adrian := flow.Account{
 		Address: addressA,
@@ -51,7 +51,7 @@ func ExampleTransaction() {
 	}
 
 	blaineHardwareKey := &flow.AccountKey{ID: 7}
-	addressB, _ := addresses.NextAddress()
+	addressB := addresses.New()
 
 	blaine := flow.Account{
 		Address: addressB,
@@ -114,16 +114,16 @@ func ExampleTransaction() {
 	fmt.Printf("Transaction ID (after signing): %s\n", tx.ID())
 
 	// Output:
-	// Transaction ID (before signing): 6ba28e395014536e28a4b0a7c122dda7544ffee33015850ed48e8ecf975b46d7
+	// Transaction ID (before signing): 8c362dd8b7553d48284cecc94d2ab545d513b29f930555632390fff5ca9772ee
 	//
 	// Payload signatures:
-	// Address: e467b9dd11fa00df, Key ID: 2, Signature: 02
-	// Address: e467b9dd11fa00df, Key ID: 3, Signature: 01
+	// Address: f8d6e0586b0a20c7, Key ID: 2, Signature: 02
+	// Address: f8d6e0586b0a20c7, Key ID: 3, Signature: 01
 	//
 	// Envelope signatures:
-	// Address: f233dcee88fe0abe, Key ID: 7, Signature: 03
+	// Address: ee82856bf20e2aa6, Key ID: 7, Signature: 03
 	//
-	// Transaction ID (after signing): 6f2220ea52cafc2e637d56f1a7b22d697ad5ad4723cc8b04bb183d607b949c20
+	// Transaction ID (after signing): d1a2c58aebfce1050a32edf3568ec3b69cb8637ae090b5f7444ca6b2a8de8f8b
 }
 
 func TestTransaction_SetScript(t *testing.T) {
@@ -174,12 +174,10 @@ func TestTransaction_SetPayer(t *testing.T) {
 }
 
 func TestTransaction_AddAuthorizer(t *testing.T) {
-	addresses := flow.NewAddressGenerator(flow.Mainnet)
+	addresses := test.AddressGenerator()
 
-	addressA, err := addresses.NextAddress()
-	require.NoError(t, err)
-	addressB, err := addresses.NextAddress()
-	require.NoError(t, err)
+	addressA := addresses.New()
+	addressB := addresses.New()
 
 	tx := flow.NewTransaction().
 		AddAuthorizer(addressA)
@@ -196,13 +194,12 @@ func TestTransaction_AddAuthorizer(t *testing.T) {
 }
 
 func TestTransaction_AddPayloadSignature(t *testing.T) {
-	addresses := flow.NewAddressGenerator(flow.Mainnet)
+	addresses := test.AddressGenerator()
 
 	t.Run("Invalid signer", func(t *testing.T) {
 		tx := flow.NewTransaction()
 
-		address, err := addresses.NextAddress()
-		require.NoError(t, err)
+		address := addresses.New()
 
 		tx.AddPayloadSignature(address, 7, []byte{42})
 
@@ -213,10 +210,8 @@ func TestTransaction_AddPayloadSignature(t *testing.T) {
 	})
 
 	t.Run("Valid signers", func(t *testing.T) {
-		addressA, err := addresses.NextAddress()
-		require.NoError(t, err)
-		addressB, err := addresses.NextAddress()
-		require.NoError(t, err)
+		addressA := addresses.New()
+		addressB := addresses.New()
 
 		keyID := 7
 		sig := []byte{42}
@@ -243,10 +238,8 @@ func TestTransaction_AddPayloadSignature(t *testing.T) {
 	})
 
 	t.Run("Duplicate signers", func(t *testing.T) {
-		addressA, err := addresses.NextAddress()
-		require.NoError(t, err)
-		addressB, err := addresses.NextAddress()
-		require.NoError(t, err)
+		addressA := addresses.New()
+		addressB := addresses.New()
 
 		keyID := 7
 		sig := []byte{42}
@@ -274,8 +267,7 @@ func TestTransaction_AddPayloadSignature(t *testing.T) {
 	})
 
 	t.Run("Multiple signatures", func(t *testing.T) {
-		address, err := addresses.NextAddress()
-		require.NoError(t, err)
+		address := addresses.New()
 
 		keyIDA := 7
 		sigA := []byte{42}
@@ -306,13 +298,12 @@ func TestTransaction_AddPayloadSignature(t *testing.T) {
 }
 
 func TestTransaction_AddEnvelopeSignature(t *testing.T) {
-	addresses := flow.NewAddressGenerator(flow.Mainnet)
+	addresses := test.AddressGenerator()
 
 	t.Run("Invalid signer", func(t *testing.T) {
 		tx := flow.NewTransaction()
 
-		address, err := addresses.NextAddress()
-		require.NoError(t, err)
+		address := addresses.New()
 
 		tx.AddEnvelopeSignature(address, 7, []byte{42})
 
@@ -323,8 +314,7 @@ func TestTransaction_AddEnvelopeSignature(t *testing.T) {
 	})
 
 	t.Run("Valid signer", func(t *testing.T) {
-		address, err := addresses.NextAddress()
-		require.NoError(t, err)
+		address := addresses.New()
 
 		keyID := 7
 		sig := []byte{42}
@@ -343,8 +333,7 @@ func TestTransaction_AddEnvelopeSignature(t *testing.T) {
 	})
 
 	t.Run("Multiple signatures", func(t *testing.T) {
-		address, err := addresses.NextAddress()
-		require.NoError(t, err)
+		address := addresses.New()
 
 		keyIDA := 7
 		sigA := []byte{42}

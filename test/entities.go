@@ -32,28 +32,20 @@ import (
 var ScriptHelloWorld = []byte(`transaction { execute { log("Hello, World!") } }`)
 
 type Accounts struct {
-	addresses   *flow.AddressGenerator
+	addresses   *Addresses
 	accountKeys *AccountKeys
 }
 
 func AccountGenerator() *Accounts {
 	return &Accounts{
-		addresses:   flow.NewAddressGenerator(flow.Mainnet),
+		addresses:   AddressGenerator(),
 		accountKeys: AccountKeyGenerator(),
 	}
 }
 
 func (g *Accounts) New() *flow.Account {
-	var address flow.Address
-	var err error
-
-	address, err = g.addresses.NextAddress()
-	if err != nil {
-		return &flow.Account{}
-	}
-
 	return &flow.Account{
-		Address: address,
+		Address: g.addresses.New(),
 		Balance: 10,
 		Keys: []*flow.AccountKey{
 			g.accountKeys.New(),
@@ -104,6 +96,21 @@ func (g *AccountKeys) NewWithSigner() (*flow.AccountKey, crypto.Signer) {
 	}
 
 	return &accountKey, crypto.NewInMemorySigner(privateKey, accountKey.HashAlgo)
+}
+
+type Addresses struct {
+	generator *flow.AddressGenerator
+}
+
+func AddressGenerator() *Addresses {
+	return &Addresses{
+		generator: flow.NewAddressGenerator(flow.Emulator),
+	}
+}
+
+func (g *Addresses) New() flow.Address {
+	addr, _ := g.generator.NextAddress()
+	return addr
 }
 
 type Blocks struct {
