@@ -402,7 +402,7 @@ func baseTx() *flow.Transaction {
 		AddPayloadSignature(flow.HexToAddress("01"), 4, sig)
 }
 
-func TestTransaction_Messages(t *testing.T) {
+func TestTransaction_RLPMessages(t *testing.T) {
 	var tests = []struct {
 		name     string
 		tx       *flow.Transaction
