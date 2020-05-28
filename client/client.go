@@ -25,6 +25,8 @@
 // The full Access API specification is here: https://github.com/onflow/flow/blob/master/docs/access-api-spec.md
 package client
 
+//go:generate go run github.com/vektra/mockery/cmd/mockery -name RPCClient -filename=mock_client_test.go -structname=MockRPCClient -output=. -outpkg=client_test
+
 import (
 	"context"
 	"fmt"
