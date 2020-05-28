@@ -29,8 +29,8 @@ import (
 // An Identifier is a 32-byte unique identifier for an entity.
 type Identifier [32]byte
 
-// ZeroID is the empty identifier.
-var ZeroID = Identifier{}
+// EmptyID is the empty identifier.
+var EmptyID = Identifier{}
 
 // Bytes returns the bytes representation of this identifier.
 func (i Identifier) Bytes() []byte {
