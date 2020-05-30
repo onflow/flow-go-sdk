@@ -88,7 +88,7 @@ func (c *Client) Ping(ctx context.Context) error {
 func (c *Client) GetLatestBlockHeader(
 	ctx context.Context,
 	isSealed bool,
-) (*flow.BlockHeader, error) {
+) (*flow.Header, error) {
 	req := &access.GetLatestBlockHeaderRequest{
 		IsSealed: isSealed,
 	}
@@ -103,7 +103,7 @@ func (c *Client) GetLatestBlockHeader(
 }
 
 // GetBlockHeaderByID gets a block header by ID.
-func (c *Client) GetBlockHeaderByID(ctx context.Context, blockID flow.Identifier) (*flow.BlockHeader, error) {
+func (c *Client) GetBlockHeaderByID(ctx context.Context, blockID flow.Identifier) (*flow.Header, error) {
 	req := &access.GetBlockHeaderByIDRequest{
 		Id: blockID.Bytes(),
 	}
@@ -118,7 +118,7 @@ func (c *Client) GetBlockHeaderByID(ctx context.Context, blockID flow.Identifier
 }
 
 // GetBlockHeaderByHeight gets a block header by height.
-func (c *Client) GetBlockHeaderByHeight(ctx context.Context, height uint64) (*flow.BlockHeader, error) {
+func (c *Client) GetBlockHeaderByHeight(ctx context.Context, height uint64) (*flow.Header, error) {
 	req := &access.GetBlockHeaderByHeightRequest{
 		Height: height,
 	}
@@ -132,7 +132,7 @@ func (c *Client) GetBlockHeaderByHeight(ctx context.Context, height uint64) (*fl
 	return getBlockHeaderResult(res)
 }
 
-func getBlockHeaderResult(res *access.BlockHeaderResponse) (*flow.BlockHeader, error) {
+func getBlockHeaderResult(res *access.BlockHeaderResponse) (*flow.Header, error) {
 	header, err := convert.MessageToBlockHeader(res.GetBlock())
 	if err != nil {
 		// TODO: improve errors

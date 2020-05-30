@@ -18,23 +18,26 @@
 
 package flow
 
-// A Block is a set of state mutations applied to the Flow blockchain.
+import "time"
+
+// Block is a set of state mutations applied to the Flow blockchain.
 type Block struct {
-	BlockHeader
-	BlockPayload
+	Header  *Header
+	Payload *Payload
 }
 
-// A BlockHeader is a summary of a full block.
-type BlockHeader struct {
-	ID       Identifier
-	ParentID Identifier
-	Height   uint64
+// Header is a summary of a full block.
+type Header struct {
+	ID        Identifier
+	ParentID  Identifier
+	Height    uint64
+	Timestamp time.Time
 }
 
-// A BlockPayload is the full contents of a block.
+// Payload is the full contents of a block.
 //
 // A payload contains the collection guarantees and seals for a block.
-type BlockPayload struct {
+type Payload struct {
 	CollectionGuarantees []*CollectionGuarantee
 	Seals                []*BlockSeal
 }

@@ -63,10 +63,13 @@ func TestClient_GetLatestBlockHeader(t *testing.T) {
 	blocks := test.BlockGenerator()
 
 	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
-		expectedHeader := blocks.New().BlockHeader
+		expectedHeader := blocks.New().Header
+
+		b, err := convert.BlockHeaderToMessage(*expectedHeader)
+		require.NoError(t, err)
 
 		response := &access.BlockHeaderResponse{
-			Block: convert.BlockHeaderToMessage(expectedHeader),
+			Block: b,
 		}
 
 		rpc.On("GetLatestBlockHeader", ctx, mock.Anything).Return(response, nil)
@@ -74,7 +77,7 @@ func TestClient_GetLatestBlockHeader(t *testing.T) {
 		header, err := c.GetLatestBlockHeader(ctx, true)
 		require.NoError(t, err)
 
-		assert.Equal(t, expectedHeader, *header)
+		assert.Equal(t, expectedHeader, header)
 	}))
 
 	t.Run("Error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
@@ -93,9 +96,13 @@ func TestClient_GetBlockHeaderByID(t *testing.T) {
 
 	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
 		blockID := ids.New()
-		expectedHeader := blocks.New().BlockHeader
+		expectedHeader := blocks.New().Header
+
+		b, err := convert.BlockHeaderToMessage(*expectedHeader)
+		require.NoError(t, err)
+
 		response := &access.BlockHeaderResponse{
-			Block: convert.BlockHeaderToMessage(expectedHeader),
+			Block: b,
 		}
 
 		rpc.On("GetBlockHeaderByID", ctx, mock.Anything).Return(response, nil)
@@ -103,7 +110,7 @@ func TestClient_GetBlockHeaderByID(t *testing.T) {
 		header, err := c.GetBlockHeaderByID(ctx, blockID)
 		require.NoError(t, err)
 
-		assert.Equal(t, expectedHeader, *header)
+		assert.Equal(t, expectedHeader, header)
 	}))
 
 	t.Run("Error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
@@ -122,9 +129,13 @@ func TestClient_GetBlockHeaderByHeight(t *testing.T) {
 	blocks := test.BlockGenerator()
 
 	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
-		expectedHeader := blocks.New().BlockHeader
+		expectedHeader := blocks.New().Header
+
+		b, err := convert.BlockHeaderToMessage(*expectedHeader)
+		require.NoError(t, err)
+
 		response := &access.BlockHeaderResponse{
-			Block: convert.BlockHeaderToMessage(expectedHeader),
+			Block: b,
 		}
 
 		rpc.On("GetBlockHeaderByHeight", ctx, mock.Anything).Return(response, nil)
@@ -132,7 +143,7 @@ func TestClient_GetBlockHeaderByHeight(t *testing.T) {
 		header, err := c.GetBlockHeaderByHeight(ctx, 42)
 		require.NoError(t, err)
 
-		assert.Equal(t, expectedHeader, *header)
+		assert.Equal(t, expectedHeader, header)
 	}))
 
 	t.Run("Error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
@@ -150,8 +161,12 @@ func TestClient_GetLatestBlock(t *testing.T) {
 
 	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
 		expectedBlock := blocks.New()
+
+		b, err := convert.BlockToMessage(*expectedBlock)
+		require.NoError(t, err)
+
 		response := &access.BlockResponse{
-			Block: convert.BlockToMessage(*expectedBlock),
+			Block: b,
 		}
 
 		rpc.On("GetLatestBlock", ctx, mock.Anything).Return(response, nil)
@@ -179,8 +194,12 @@ func TestClient_GetBlockByID(t *testing.T) {
 	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
 		blockID := ids.New()
 		expectedBlock := blocks.New()
+
+		b, err := convert.BlockToMessage(*expectedBlock)
+		require.NoError(t, err)
+
 		response := &access.BlockResponse{
-			Block: convert.BlockToMessage(*expectedBlock),
+			Block: b,
 		}
 
 		rpc.On("GetBlockByID", ctx, mock.Anything).Return(response, nil)
@@ -208,8 +227,12 @@ func TestClient_GetBlockByHeight(t *testing.T) {
 
 	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
 		expectedBlock := blocks.New()
+
+		b, err := convert.BlockToMessage(*expectedBlock)
+		require.NoError(t, err)
+
 		response := &access.BlockResponse{
-			Block: convert.BlockToMessage(*expectedBlock),
+			Block: b,
 		}
 
 		rpc.On("GetBlockByHeight", ctx, mock.Anything).Return(response, nil)

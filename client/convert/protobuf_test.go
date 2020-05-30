@@ -55,7 +55,8 @@ func TestConvert_AccountKey(t *testing.T) {
 func TestConvert_Block(t *testing.T) {
 	blockA := test.BlockGenerator().New()
 
-	msg := convert.BlockToMessage(*blockA)
+	msg, err := convert.BlockToMessage(*blockA)
+	require.NoError(t, err)
 
 	blockB, err := convert.MessageToBlock(msg)
 	require.NoError(t, err)
@@ -66,7 +67,8 @@ func TestConvert_Block(t *testing.T) {
 func TestConvert_BlockHeader(t *testing.T) {
 	headerA := test.BlockHeaderGenerator().New()
 
-	msg := convert.BlockHeaderToMessage(headerA)
+	msg, err := convert.BlockHeaderToMessage(headerA)
+	require.NoError(t, err)
 
 	headerB, err := convert.MessageToBlockHeader(msg)
 	require.NoError(t, err)

@@ -5,10 +5,11 @@ go 1.13
 require (
 	github.com/antlr/antlr4 v0.0.0-20200503195918-621b933c7a7f // indirect
 	github.com/ethereum/go-ethereum v1.9.9
+	github.com/golang/protobuf v1.3.5
 	github.com/google/go-cmp v0.4.0 // indirect
 	github.com/lithammer/dedent v1.1.0
 	github.com/onflow/cadence v0.4.0-beta1
-	github.com/onflow/flow/protobuf/go/flow v0.1.4
+	github.com/onflow/flow/protobuf/go/flow v0.1.5-0.20200530065216-28dda29c97ef
 	github.com/pkg/errors v0.8.1
 	github.com/segmentio/fasthash v1.0.2 // indirect
 	github.com/stretchr/objx v0.1.1 // indirect
