@@ -21,6 +21,7 @@ package test
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/onflow/cadence"
 
@@ -126,34 +127,37 @@ func (g *Blocks) New() *flow.Block {
 		g.guarantees.New(),
 	}
 
-	payload := flow.BlockPayload{
+	payload := flow.Payload{
 		CollectionGuarantees: guarantees,
 	}
 
 	return &flow.Block{
-		BlockHeader:  header,
-		BlockPayload: payload,
+		Header:  &header,
+		Payload: &payload,
 	}
 }
 
 type BlockHeaders struct {
-	count int
-	ids   *Identifiers
+	count    int
+	ids      *Identifiers
+	lastTime time.Time
 }
 
 func BlockHeaderGenerator() *BlockHeaders {
 	return &BlockHeaders{
-		count: 1,
-		ids:   IdentifierGenerator(),
+		count:    1,
+		ids:      IdentifierGenerator(),
+		lastTime: time.Now().UTC(),
 	}
 }
 
-func (g *BlockHeaders) New() flow.BlockHeader {
+func (g *BlockHeaders) New() flow.Header {
 	defer func() { g.count++ }()
-	return flow.BlockHeader{
-		ID:       g.ids.New(),
-		ParentID: g.ids.New(),
-		Height:   uint64(g.count),
+	return flow.Header{
+		ID:        g.ids.New(),
+		ParentID:  g.ids.New(),
+		Height:    uint64(g.count),
+		Timestamp: g.lastTime.Add(1 * time.Second),
 	}
 }
 

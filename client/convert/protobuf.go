@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/golang/protobuf/ptypes"
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/flow/protobuf/go/flow/access"
@@ -104,20 +105,32 @@ func MessageToAccountKey(m *entities.AccountKey) (*flow.AccountKey, error) {
 	}, nil
 }
 
-func BlockToMessage(b flow.Block) *entities.Block {
-	return &entities.Block{
-		Id:                   b.ID.Bytes(),
-		ParentId:             b.ParentID.Bytes(),
-		Height:               b.Height,
-		CollectionGuarantees: CollectionGuaranteesToMessages(b.CollectionGuarantees),
+func BlockToMessage(b flow.Block) (*entities.Block, error) {
+	t, err := ptypes.TimestampProto(b.Header.Timestamp)
+	if err != nil {
+		return nil, err
 	}
+
+	return &entities.Block{
+		Id:                   b.Header.ID.Bytes(),
+		ParentId:             b.Header.ParentID.Bytes(),
+		Height:               b.Header.Height,
+		Timestamp:            t,
+		CollectionGuarantees: CollectionGuaranteesToMessages(b.Payload.CollectionGuarantees),
+	}, nil
 }
 
 func MessageToBlock(m *entities.Block) (flow.Block, error) {
-	header := flow.BlockHeader{
-		ID:       flow.HashToID(m.GetId()),
-		ParentID: flow.HashToID(m.GetParentId()),
-		Height:   m.GetHeight(),
+	t, err := ptypes.Timestamp(m.Timestamp)
+	if err != nil {
+		return flow.Block{}, err
+	}
+
+	header := &flow.Header{
+		ID:        flow.HashToID(m.GetId()),
+		ParentID:  flow.HashToID(m.GetParentId()),
+		Height:    m.GetHeight(),
+		Timestamp: t,
 	}
 
 	guarantees, err := MessagesToCollectionGuarantees(m.GetCollectionGuarantees())
@@ -125,33 +138,45 @@ func MessageToBlock(m *entities.Block) (flow.Block, error) {
 		return flow.Block{}, err
 	}
 
-	payload := flow.BlockPayload{
+	payload := &flow.Payload{
 		CollectionGuarantees: guarantees,
 	}
 
 	return flow.Block{
-		BlockHeader:  header,
-		BlockPayload: payload,
+		Header:  header,
+		Payload: payload,
 	}, nil
 }
 
-func BlockHeaderToMessage(b flow.BlockHeader) *entities.BlockHeader {
-	return &entities.BlockHeader{
-		Id:       b.ID.Bytes(),
-		ParentId: b.ParentID.Bytes(),
-		Height:   b.Height,
+func BlockHeaderToMessage(b flow.Header) (*entities.BlockHeader, error) {
+	t, err := ptypes.TimestampProto(b.Timestamp)
+	if err != nil {
+		return nil, err
 	}
+
+	return &entities.BlockHeader{
+		Id:        b.ID.Bytes(),
+		ParentId:  b.ParentID.Bytes(),
+		Height:    b.Height,
+		Timestamp: t,
+	}, nil
 }
 
-func MessageToBlockHeader(m *entities.BlockHeader) (flow.BlockHeader, error) {
+func MessageToBlockHeader(m *entities.BlockHeader) (flow.Header, error) {
 	if m == nil {
-		return flow.BlockHeader{}, ErrEmptyMessage
+		return flow.Header{}, ErrEmptyMessage
 	}
 
-	return flow.BlockHeader{
-		ID:       flow.HashToID(m.GetId()),
-		ParentID: flow.HashToID(m.GetParentId()),
-		Height:   m.GetHeight(),
+	t, err := ptypes.Timestamp(m.Timestamp)
+	if err != nil {
+		return flow.Header{}, err
+	}
+
+	return flow.Header{
+		ID:        flow.HashToID(m.GetId()),
+		ParentID:  flow.HashToID(m.GetParentId()),
+		Height:    m.GetHeight(),
+		Timestamp: t,
 	}, nil
 }
 
