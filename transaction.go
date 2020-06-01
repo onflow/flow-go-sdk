@@ -226,11 +226,6 @@ func (t *Transaction) PayloadMessage() []byte {
 }
 
 func (t *Transaction) payloadCanonicalForm() interface{} {
-	authorizers := make([][]byte, len(t.Authorizers))
-	for i, auth := range t.Authorizers {
-		authorizers[i] = auth.Bytes()
-	}
-
 	var err error
 
 	arguments := make([][]byte, len(t.Arguments))
@@ -241,6 +236,11 @@ func (t *Transaction) payloadCanonicalForm() interface{} {
 				fmt.Sprintf("failed to encode argument at index %d: %s", i, err.Error()),
 			)
 		}
+	}
+
+	authorizers := make([][]byte, len(t.Authorizers))
+	for i, auth := range t.Authorizers {
+		authorizers[i] = auth.Bytes()
 	}
 
 	return struct {
