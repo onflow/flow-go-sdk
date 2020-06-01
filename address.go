@@ -234,7 +234,7 @@ func generateAddress(chain ChainID, state addressState) Address {
 //
 // This is an off-chain check that only tells whether the address format is
 // valid. If the function returns true, this does not mean a Flow account with
-// this address has been generated. Such a test would require on on-chain check.
+// this address has been generated. Such a test would require an on-chain check.
 func (a *Address) IsValid(chain ChainID) bool {
 	codeWord := a.uint64()
 	codeWord ^= chainCustomizer(chain)
