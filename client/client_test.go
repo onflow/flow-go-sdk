@@ -329,8 +329,12 @@ func TestClient_GetTransaction(t *testing.T) {
 	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
 		txID := ids.New()
 		expectedTx := txs.New()
+
+		txMsg, err := convert.TransactionToMessage(*expectedTx)
+		require.NoError(t, err)
+
 		response := &access.TransactionResponse{
-			Transaction: convert.TransactionToMessage(*expectedTx),
+			Transaction: txMsg,
 		}
 
 		rpc.On("GetTransaction", ctx, mock.Anything).Return(response, nil)

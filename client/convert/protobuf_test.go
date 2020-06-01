@@ -174,14 +174,44 @@ func TestConvert_Identifiers(t *testing.T) {
 }
 
 func TestConvert_Transaction(t *testing.T) {
-	txA := test.TransactionGenerator().New()
+	t.Run("Without arguments", func(t *testing.T) {
+		txA := test.TransactionGenerator().New()
+		txA.Arguments = nil
 
-	msg := convert.TransactionToMessage(*txA)
+		msg, err := convert.TransactionToMessage(*txA)
+		require.NoError(t, err)
 
-	txB, err := convert.MessageToTransaction(msg)
-	require.NoError(t, err)
+		txB, err := convert.MessageToTransaction(msg)
+		require.NoError(t, err)
 
-	assert.Equal(t, txA.ID(), txB.ID())
+		assert.Equal(t, txA.ID(), txB.ID())
+	})
+
+	t.Run("With arguments", func(t *testing.T) {
+		txA := test.TransactionGenerator().New()
+
+		msg, err := convert.TransactionToMessage(*txA)
+		require.NoError(t, err)
+
+		txB, err := convert.MessageToTransaction(msg)
+		require.NoError(t, err)
+
+		assert.Equal(t, txA.ID(), txB.ID())
+	})
+
+	t.Run("With invalid arguments", func(t *testing.T) {
+		txA := test.TransactionGenerator().New()
+
+		msg, err := convert.TransactionToMessage(*txA)
+		require.NoError(t, err)
+
+		// invalid JSON-CDC
+		msg.Arguments = [][]byte{{1, 2, 3}}
+
+		txB, err := convert.MessageToTransaction(msg)
+		assert.Error(t, err)
+		assert.Equal(t, flow.Transaction{}, txB)
+	})
 }
 
 func TestConvert_TransactionResult(t *testing.T) {
