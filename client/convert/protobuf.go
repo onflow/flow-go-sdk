@@ -143,8 +143,8 @@ func MessageToBlock(m *entities.Block) (flow.Block, error) {
 	}
 
 	return flow.Block{
-		BlockHeader:  header,
-		BlockPayload: payload,
+		BlockHeader:  *header,
+		BlockPayload: *payload,
 	}, nil
 }
 

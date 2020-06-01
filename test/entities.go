@@ -132,8 +132,8 @@ func (g *Blocks) New() *flow.Block {
 	}
 
 	return &flow.Block{
-		BlockHeader:  &header,
-		BlockPayload: &payload,
+		BlockHeader:  header,
+		BlockPayload: payload,
 	}
 }
 

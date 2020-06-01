@@ -65,7 +65,7 @@ func TestClient_GetLatestBlockHeader(t *testing.T) {
 	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
 		expectedHeader := blocks.New().BlockHeader
 
-		b, err := convert.BlockHeaderToMessage(*expectedHeader)
+		b, err := convert.BlockHeaderToMessage(expectedHeader)
 		require.NoError(t, err)
 
 		response := &access.BlockHeaderResponse{
@@ -77,7 +77,7 @@ func TestClient_GetLatestBlockHeader(t *testing.T) {
 		header, err := c.GetLatestBlockHeader(ctx, true)
 		require.NoError(t, err)
 
-		assert.Equal(t, expectedHeader, header)
+		assert.Equal(t, expectedHeader, *header)
 	}))
 
 	t.Run("Error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
@@ -98,7 +98,7 @@ func TestClient_GetBlockHeaderByID(t *testing.T) {
 		blockID := ids.New()
 		expectedHeader := blocks.New().BlockHeader
 
-		b, err := convert.BlockHeaderToMessage(*expectedHeader)
+		b, err := convert.BlockHeaderToMessage(expectedHeader)
 		require.NoError(t, err)
 
 		response := &access.BlockHeaderResponse{
@@ -110,7 +110,7 @@ func TestClient_GetBlockHeaderByID(t *testing.T) {
 		header, err := c.GetBlockHeaderByID(ctx, blockID)
 		require.NoError(t, err)
 
-		assert.Equal(t, expectedHeader, header)
+		assert.Equal(t, expectedHeader, *header)
 	}))
 
 	t.Run("Error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
@@ -131,7 +131,7 @@ func TestClient_GetBlockHeaderByHeight(t *testing.T) {
 	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
 		expectedHeader := blocks.New().BlockHeader
 
-		b, err := convert.BlockHeaderToMessage(*expectedHeader)
+		b, err := convert.BlockHeaderToMessage(expectedHeader)
 		require.NoError(t, err)
 
 		response := &access.BlockHeaderResponse{
@@ -143,7 +143,7 @@ func TestClient_GetBlockHeaderByHeight(t *testing.T) {
 		header, err := c.GetBlockHeaderByHeight(ctx, 42)
 		require.NoError(t, err)
 
-		assert.Equal(t, expectedHeader, header)
+		assert.Equal(t, expectedHeader, *header)
 	}))
 
 	t.Run("Error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {

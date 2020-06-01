@@ -22,8 +22,8 @@ import "time"
 
 // Block is a set of state mutations applied to the Flow blockchain.
 type Block struct {
-	BlockHeader  *BlockHeader
-	BlockPayload *BlockPayload
+	BlockHeader
+	BlockPayload
 }
 
 // BlockHeader is a summary of a full block.
