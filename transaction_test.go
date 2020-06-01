@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/onflow/cadence"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -131,6 +132,32 @@ func TestTransaction_SetScript(t *testing.T) {
 		SetScript(test.ScriptHelloWorld)
 
 	assert.Equal(t, test.ScriptHelloWorld, tx.Script)
+}
+
+func TestTransaction_AddArgument(t *testing.T) {
+	t.Run("No arguments", func(t *testing.T) {
+		tx := flow.NewTransaction()
+		assert.Empty(t, tx.Arguments)
+	})
+
+	t.Run("Single argument", func(t *testing.T) {
+		arg := cadence.NewString("foo")
+		tx := flow.NewTransaction().
+			AddArgument(arg)
+
+		assert.Equal(t, []cadence.Value{arg}, tx.Arguments)
+	})
+
+	t.Run("Multiple arguments", func(t *testing.T) {
+		argA := cadence.NewString("foo")
+		argB := cadence.NewInt(42)
+
+		tx := flow.NewTransaction().
+			AddArgument(argA).
+			AddArgument(argB)
+
+		assert.Equal(t, []cadence.Value{argA, argB}, tx.Arguments)
+	})
 }
 
 func TestTransaction_SetReferenceBlockID(t *testing.T) {

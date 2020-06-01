@@ -21,12 +21,16 @@ package flow
 import (
 	"sort"
 
+	"github.com/onflow/cadence"
+	jsoncdc "github.com/onflow/cadence/encoding/json"
+
 	"github.com/onflow/flow-go-sdk/crypto"
 )
 
 // A Transaction is a full transaction object containing a payload and signatures.
 type Transaction struct {
 	Script             []byte
+	Arguments          []cadence.Value
 	ReferenceBlockID   Identifier
 	GasLimit           uint64
 	ProposalKey        ProposalKey
@@ -49,6 +53,12 @@ func (t *Transaction) ID() Identifier {
 // SetScript sets the Cadence script for this transaction.
 func (t *Transaction) SetScript(script []byte) *Transaction {
 	t.Script = script
+	return t
+}
+
+// AddArgument adds a Cadence argument to this transaction.
+func (t *Transaction) AddArgument(arg cadence.Value) *Transaction {
+	t.Arguments = append(t.Arguments, arg)
 	return t
 }
 
@@ -220,6 +230,11 @@ func (t *Transaction) payloadCanonicalForm() interface{} {
 		authorizers[i] = auth.Bytes()
 	}
 
+	arguments := make([][]byte, len(t.Arguments))
+	for i, arg := range t.Arguments {
+		arguments[i], _ = jsoncdc.Encode(arg)
+	}
+
 	return struct {
 		Script                    []byte
 		Arguments                 [][]byte
@@ -232,7 +247,7 @@ func (t *Transaction) payloadCanonicalForm() interface{} {
 		Authorizers               [][]byte
 	}{
 		Script:                    t.Script,
-		Arguments:                 nil, // TODO: implement arguments
+		Arguments:                 arguments,
 		ReferenceBlockID:          t.ReferenceBlockID[:],
 		GasLimit:                  t.GasLimit,
 		ProposalKeyAddress:        t.ProposalKey.Address.Bytes(),
