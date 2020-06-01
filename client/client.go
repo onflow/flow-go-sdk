@@ -221,12 +221,18 @@ func (c *Client) GetCollection(ctx context.Context, colID flow.Identifier) (*flo
 }
 
 // SendTransaction submits a transaction to the network.
-func (c *Client) SendTransaction(ctx context.Context, transaction flow.Transaction) error {
-	req := &access.SendTransactionRequest{
-		Transaction: convert.TransactionToMessage(transaction),
+func (c *Client) SendTransaction(ctx context.Context, tx flow.Transaction) error {
+	txMsg, err := convert.TransactionToMessage(tx)
+	if err != nil {
+		// TODO: improve errors
+		return fmt.Errorf("client: %w", err)
 	}
 
-	_, err := c.rpcClient.SendTransaction(ctx, req)
+	req := &access.SendTransactionRequest{
+		Transaction: txMsg,
+	}
+
+	_, err = c.rpcClient.SendTransaction(ctx, req)
 	if err != nil {
 		// TODO: improve errors
 		return fmt.Errorf("client: %w", err)
