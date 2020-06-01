@@ -108,7 +108,7 @@ func MessageToAccountKey(m *entities.AccountKey) (*flow.AccountKey, error) {
 func BlockToMessage(b flow.Block) (*entities.Block, error) {
 	t, err := ptypes.TimestampProto(b.BlockHeader.Timestamp)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("convert: failed to convert block timestamp to message: %w", err)
 	}
 
 	return &entities.Block{
@@ -151,7 +151,7 @@ func MessageToBlock(m *entities.Block) (flow.Block, error) {
 func BlockHeaderToMessage(b flow.BlockHeader) (*entities.BlockHeader, error) {
 	t, err := ptypes.TimestampProto(b.Timestamp)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("convert: failed to convert message to block timestamp: %w", err)
 	}
 
 	return &entities.BlockHeader{
