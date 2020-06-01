@@ -127,13 +127,13 @@ func (g *Blocks) New() *flow.Block {
 		g.guarantees.New(),
 	}
 
-	payload := flow.Payload{
+	payload := flow.BlockPayload{
 		CollectionGuarantees: guarantees,
 	}
 
 	return &flow.Block{
-		Header:  &header,
-		Payload: &payload,
+		BlockHeader:  &header,
+		BlockPayload: &payload,
 	}
 }
 
@@ -151,9 +151,9 @@ func BlockHeaderGenerator() *BlockHeaders {
 	}
 }
 
-func (g *BlockHeaders) New() flow.Header {
+func (g *BlockHeaders) New() flow.BlockHeader {
 	defer func() { g.count++ }()
-	return flow.Header{
+	return flow.BlockHeader{
 		ID:        g.ids.New(),
 		ParentID:  g.ids.New(),
 		Height:    uint64(g.count),

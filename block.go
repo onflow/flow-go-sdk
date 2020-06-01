@@ -22,22 +22,22 @@ import "time"
 
 // Block is a set of state mutations applied to the Flow blockchain.
 type Block struct {
-	Header  *Header
-	Payload *Payload
+	BlockHeader  *BlockHeader
+	BlockPayload *BlockPayload
 }
 
-// Header is a summary of a full block.
-type Header struct {
+// BlockHeader is a summary of a full block.
+type BlockHeader struct {
 	ID        Identifier
 	ParentID  Identifier
 	Height    uint64
 	Timestamp time.Time
 }
 
-// Payload is the full contents of a block.
+// BlockPayload is the full contents of a block.
 //
 // A payload contains the collection guarantees and seals for a block.
-type Payload struct {
+type BlockPayload struct {
 	CollectionGuarantees []*CollectionGuarantee
 	Seals                []*BlockSeal
 }

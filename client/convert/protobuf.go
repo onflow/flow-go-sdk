@@ -106,17 +106,17 @@ func MessageToAccountKey(m *entities.AccountKey) (*flow.AccountKey, error) {
 }
 
 func BlockToMessage(b flow.Block) (*entities.Block, error) {
-	t, err := ptypes.TimestampProto(b.Header.Timestamp)
+	t, err := ptypes.TimestampProto(b.BlockHeader.Timestamp)
 	if err != nil {
 		return nil, err
 	}
 
 	return &entities.Block{
-		Id:                   b.Header.ID.Bytes(),
-		ParentId:             b.Header.ParentID.Bytes(),
-		Height:               b.Header.Height,
+		Id:                   b.BlockHeader.ID.Bytes(),
+		ParentId:             b.BlockHeader.ParentID.Bytes(),
+		Height:               b.BlockHeader.Height,
 		Timestamp:            t,
-		CollectionGuarantees: CollectionGuaranteesToMessages(b.Payload.CollectionGuarantees),
+		CollectionGuarantees: CollectionGuaranteesToMessages(b.BlockPayload.CollectionGuarantees),
 	}, nil
 }
 
@@ -126,7 +126,7 @@ func MessageToBlock(m *entities.Block) (flow.Block, error) {
 		return flow.Block{}, err
 	}
 
-	header := &flow.Header{
+	header := &flow.BlockHeader{
 		ID:        flow.HashToID(m.GetId()),
 		ParentID:  flow.HashToID(m.GetParentId()),
 		Height:    m.GetHeight(),
@@ -138,17 +138,17 @@ func MessageToBlock(m *entities.Block) (flow.Block, error) {
 		return flow.Block{}, err
 	}
 
-	payload := &flow.Payload{
+	payload := &flow.BlockPayload{
 		CollectionGuarantees: guarantees,
 	}
 
 	return flow.Block{
-		Header:  header,
-		Payload: payload,
+		BlockHeader:  header,
+		BlockPayload: payload,
 	}, nil
 }
 
-func BlockHeaderToMessage(b flow.Header) (*entities.BlockHeader, error) {
+func BlockHeaderToMessage(b flow.BlockHeader) (*entities.BlockHeader, error) {
 	t, err := ptypes.TimestampProto(b.Timestamp)
 	if err != nil {
 		return nil, err
@@ -162,17 +162,17 @@ func BlockHeaderToMessage(b flow.Header) (*entities.BlockHeader, error) {
 	}, nil
 }
 
-func MessageToBlockHeader(m *entities.BlockHeader) (flow.Header, error) {
+func MessageToBlockHeader(m *entities.BlockHeader) (flow.BlockHeader, error) {
 	if m == nil {
-		return flow.Header{}, ErrEmptyMessage
+		return flow.BlockHeader{}, ErrEmptyMessage
 	}
 
 	t, err := ptypes.Timestamp(m.Timestamp)
 	if err != nil {
-		return flow.Header{}, err
+		return flow.BlockHeader{}, err
 	}
 
-	return flow.Header{
+	return flow.BlockHeader{
 		ID:        flow.HashToID(m.GetId()),
 		ParentID:  flow.HashToID(m.GetParentId()),
 		Height:    m.GetHeight(),
