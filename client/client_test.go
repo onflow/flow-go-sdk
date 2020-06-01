@@ -63,7 +63,7 @@ func TestClient_GetLatestBlockHeader(t *testing.T) {
 	blocks := test.BlockGenerator()
 
 	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
-		expectedHeader := blocks.New().Header
+		expectedHeader := blocks.New().BlockHeader
 
 		b, err := convert.BlockHeaderToMessage(*expectedHeader)
 		require.NoError(t, err)
@@ -96,7 +96,7 @@ func TestClient_GetBlockHeaderByID(t *testing.T) {
 
 	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
 		blockID := ids.New()
-		expectedHeader := blocks.New().Header
+		expectedHeader := blocks.New().BlockHeader
 
 		b, err := convert.BlockHeaderToMessage(*expectedHeader)
 		require.NoError(t, err)
@@ -129,7 +129,7 @@ func TestClient_GetBlockHeaderByHeight(t *testing.T) {
 	blocks := test.BlockGenerator()
 
 	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.RPCClient, c *client.Client) {
-		expectedHeader := blocks.New().Header
+		expectedHeader := blocks.New().BlockHeader
 
 		b, err := convert.BlockHeaderToMessage(*expectedHeader)
 		require.NoError(t, err)
