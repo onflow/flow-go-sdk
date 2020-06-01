@@ -94,7 +94,7 @@ type addressState uint64
 const AddressLength = (linearCodeN + 7) >> 3
 
 const (
-	// seroAddressState is the addressing state when Flow is bootstrapped
+	// zeroAddressState is the addressing state when Flow is bootstrapped
 	zeroAddressState = addressState(0)
 	// serviceAddressState is the initial addressing state for account creations
 	serviceAddressState = addressState(1)
