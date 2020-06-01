@@ -9,6 +9,7 @@ require (
 	github.com/google/go-cmp v0.4.0 // indirect
 	github.com/lithammer/dedent v1.1.0
 	github.com/onflow/cadence v0.4.0-beta1
+	github.com/onflow/flow v0.1.4-0.20200601215056-34a11def1d6b // indirect
 	github.com/onflow/flow/protobuf/go/flow v0.1.5-0.20200530065216-28dda29c97ef
 	github.com/pkg/errors v0.8.1
 	github.com/segmentio/fasthash v1.0.2 // indirect
