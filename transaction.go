@@ -19,6 +19,7 @@
 package flow
 
 import (
+	"fmt"
 	"sort"
 
 	"github.com/onflow/cadence"
@@ -230,9 +231,16 @@ func (t *Transaction) payloadCanonicalForm() interface{} {
 		authorizers[i] = auth.Bytes()
 	}
 
+	var err error
+
 	arguments := make([][]byte, len(t.Arguments))
 	for i, arg := range t.Arguments {
-		arguments[i], _ = jsoncdc.Encode(arg)
+		arguments[i], err = jsoncdc.Encode(arg)
+		if err != nil {
+			panic(
+				fmt.Sprintf("failed to encode argument at index %d: %s", i, err.Error()),
+			)
+		}
 	}
 
 	return struct {
