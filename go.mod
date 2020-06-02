@@ -10,13 +10,12 @@ require (
 	github.com/lithammer/dedent v1.1.0
 	github.com/onflow/cadence v0.4.0-beta1
 	github.com/onflow/flow v0.1.4-0.20200601215056-34a11def1d6b // indirect
-	github.com/onflow/flow/protobuf/go/flow v0.1.5-0.20200530065216-28dda29c97ef
+	github.com/onflow/flow/protobuf/go/flow v0.1.5-0.20200601215056-34a11def1d6b
 	github.com/pkg/errors v0.8.1
 	github.com/segmentio/fasthash v1.0.2 // indirect
-	github.com/stretchr/objx v0.1.1 // indirect
 	github.com/stretchr/testify v1.5.1
+	github.com/vektra/mockery v1.1.2 // indirect
 	golang.org/x/crypto v0.0.0-20200423211502-4bdfaf469ed5
-	golang.org/x/net v0.0.0-20200226121028-0de0cce0169b // indirect
 	google.golang.org/grpc v1.28.0
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/yaml.v2 v2.2.4 // indirect
