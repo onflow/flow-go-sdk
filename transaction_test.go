@@ -129,9 +129,9 @@ func ExampleTransaction() {
 
 func TestTransaction_SetScript(t *testing.T) {
 	tx := flow.NewTransaction().
-		SetScript(test.ScriptHelloWorld)
+		SetScript(test.GreetingScript)
 
-	assert.Equal(t, test.ScriptHelloWorld, tx.Script)
+	assert.Equal(t, test.GreetingScript, tx.Script)
 }
 
 func TestTransaction_AddArgument(t *testing.T) {

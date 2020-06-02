@@ -29,10 +29,6 @@ import (
 	"github.com/onflow/flow-go-sdk/crypto"
 )
 
-var ScriptHelloWorld = []byte(`transaction(msg: String) { execute { log(msg) } }`)
-
-const helloWorldMsg = "Hello, World!"
-
 type Accounts struct {
 	addresses   *Addresses
 	accountKeys *AccountKeys
@@ -277,11 +273,15 @@ func newIdentifier(count int) flow.Identifier {
 }
 
 type Transactions struct {
-	count int
+	count     int
+	greetings *Greetings
 }
 
 func TransactionGenerator() *Transactions {
-	return &Transactions{1}
+	return &Transactions{
+		count:     1,
+		greetings: GreetingGenerator(),
+	}
 }
 
 func (g *Transactions) New() *flow.Transaction {
@@ -324,8 +324,8 @@ func (g *Transactions) NewUnsigned() *flow.Transaction {
 	proposalKey := accountA.Keys[0]
 
 	return flow.NewTransaction().
-		SetScript(ScriptHelloWorld).
-		AddArgument(cadence.NewString(helloWorldMsg)).
+		SetScript(GreetingScript).
+		AddArgument(cadence.NewString(g.greetings.New())).
 		SetReferenceBlockID(blockID).
 		SetGasLimit(42).
 		SetProposalKey(accountA.Address, proposalKey.ID, proposalKey.SequenceNumber).
