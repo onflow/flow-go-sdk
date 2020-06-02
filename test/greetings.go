@@ -18,7 +18,18 @@
 
 package test
 
-var GreetingScript = []byte(`transaction(greeting: String) { execute { log(greeting + ", World!") } }`)
+import (
+	"math/rand"
+	"time"
+)
+
+var GreetingScript = []byte(`
+transaction(greeting: String) {
+  execute { 
+    log(greeting.concat(", World!")) 
+  }
+}
+`)
 
 const (
 	greetingMsgAF = "Hi"
@@ -124,6 +135,8 @@ func init() {
 		greetingMsgUK,
 		greetingMsgES,
 	}
+
+	rand.Seed(time.Now().Unix())
 }
 
 type Greetings struct {
@@ -137,4 +150,8 @@ func GreetingGenerator() *Greetings {
 func (g *Greetings) New() string {
 	defer func() { g.count++ }()
 	return greetings[g.count%len(greetings)]
+}
+
+func (g *Greetings) Random() string {
+	return greetings[rand.Intn(len(greetings))]
 }
