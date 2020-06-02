@@ -5,6 +5,7 @@ This package contains code samples that interact with the [Flow Emulator](https:
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
+
 - [Running the emulator with the Flow CLI](#running-the-emulator-with-the-flow-cli)
   - [Installation](#installation)
   - [Starting the server](#starting-the-server)
@@ -13,6 +14,7 @@ This package contains code samples that interact with the [Flow Emulator](https:
   - [Add Account Key](#add-account-key)
   - [Deploy Contract](#deploy-contract)
   - [Query Events](#query-events)
+  - [Transaction Arguments](#transaction-arguments)
   - [Transaction Signing](#transaction-signing)
     - [Single Party, Single Signature](#single-party-single-signature)
     - [Single Party, Multiple Signatures](#single-party-multiple-signatures)
@@ -74,6 +76,14 @@ Query events emitted by transactions.
 
 ```sh
 go run ./query_events/main.go
+```
+
+### Transaction Arguments
+
+Submit a transaction with Cadence arguments:
+
+```sh
+go run ./transaction_arguments/main.go
 ```
 
 ### Transaction Signing
