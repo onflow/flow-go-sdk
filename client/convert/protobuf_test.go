@@ -20,6 +20,7 @@ package convert_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/onflow/cadence"
 	"github.com/stretchr/testify/assert"
@@ -62,6 +63,20 @@ func TestConvert_Block(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, *blockA, blockB)
+
+	t.Run("Without timestamp", func(t *testing.T) {
+		blockA := test.BlockGenerator().New()
+
+		msg, err := convert.BlockToMessage(*blockA)
+		require.NoError(t, err)
+
+		msg.Timestamp = nil
+
+		blockB, err = convert.MessageToBlock(msg)
+		require.NoError(t, err)
+
+		assert.Equal(t, time.Time{}, blockB.Timestamp)
+	})
 }
 
 func TestConvert_BlockHeader(t *testing.T) {
@@ -74,6 +89,20 @@ func TestConvert_BlockHeader(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, headerA, headerB)
+
+	t.Run("Without timestamp", func(t *testing.T) {
+		headerA := test.BlockHeaderGenerator().New()
+
+		msg, err := convert.BlockHeaderToMessage(headerA)
+		require.NoError(t, err)
+
+		msg.Timestamp = nil
+
+		headerB, err = convert.MessageToBlockHeader(msg)
+		require.NoError(t, err)
+
+		assert.Equal(t, time.Time{}, headerB.Timestamp)
+	})
 }
 
 func TestConvert_CadenceValue(t *testing.T) {
