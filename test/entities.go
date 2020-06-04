@@ -142,26 +142,29 @@ func (g *Blocks) New() *flow.Block {
 }
 
 type BlockHeaders struct {
-	count    int
-	ids      *Identifiers
-	lastTime time.Time
+	count     int
+	ids       *Identifiers
+	startTime time.Time
 }
 
 func BlockHeaderGenerator() *BlockHeaders {
+	startTime, _ := time.Parse(time.RFC3339, "2020-06-04T15:43:21+00:00")
+
 	return &BlockHeaders{
-		count:    1,
-		ids:      IdentifierGenerator(),
-		lastTime: time.Now().UTC(),
+		count:     1,
+		ids:       IdentifierGenerator(),
+		startTime: startTime.UTC(),
 	}
 }
 
 func (g *BlockHeaders) New() flow.BlockHeader {
 	defer func() { g.count++ }()
+
 	return flow.BlockHeader{
 		ID:        g.ids.New(),
 		ParentID:  g.ids.New(),
 		Height:    uint64(g.count),
-		Timestamp: g.lastTime.Add(1 * time.Second),
+		Timestamp: g.startTime.Add(time.Hour * time.Duration(g.count)),
 	}
 }
 
