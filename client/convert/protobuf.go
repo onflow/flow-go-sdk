@@ -21,6 +21,7 @@ package convert
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/onflow/cadence"
@@ -121,16 +122,21 @@ func BlockToMessage(b flow.Block) (*entities.Block, error) {
 }
 
 func MessageToBlock(m *entities.Block) (flow.Block, error) {
-	t, err := ptypes.Timestamp(m.Timestamp)
-	if err != nil {
-		return flow.Block{}, err
+	var timestamp time.Time
+	var err error
+
+	if m.GetTimestamp() != nil {
+		timestamp, err = ptypes.Timestamp(m.GetTimestamp())
+		if err != nil {
+			return flow.Block{}, err
+		}
 	}
 
 	header := &flow.BlockHeader{
 		ID:        flow.HashToID(m.GetId()),
 		ParentID:  flow.HashToID(m.GetParentId()),
 		Height:    m.GetHeight(),
-		Timestamp: t,
+		Timestamp: timestamp,
 	}
 
 	guarantees, err := MessagesToCollectionGuarantees(m.GetCollectionGuarantees())
@@ -167,16 +173,21 @@ func MessageToBlockHeader(m *entities.BlockHeader) (flow.BlockHeader, error) {
 		return flow.BlockHeader{}, ErrEmptyMessage
 	}
 
-	t, err := ptypes.Timestamp(m.Timestamp)
-	if err != nil {
-		return flow.BlockHeader{}, err
+	var timestamp time.Time
+	var err error
+
+	if m.GetTimestamp() != nil {
+		timestamp, err = ptypes.Timestamp(m.GetTimestamp())
+		if err != nil {
+			return flow.BlockHeader{}, err
+		}
 	}
 
 	return flow.BlockHeader{
 		ID:        flow.HashToID(m.GetId()),
 		ParentID:  flow.HashToID(m.GetParentId()),
 		Height:    m.GetHeight(),
-		Timestamp: t,
+		Timestamp: timestamp,
 	}, nil
 }
 
