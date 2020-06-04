@@ -21,8 +21,10 @@ package examples
 import (
 	"context"
 	"crypto/rand"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"time"
 
 	"github.com/onflow/flow-go-sdk"
@@ -40,12 +42,39 @@ func ReadFile(path string) []byte {
 	return contents
 }
 
-const defaultServiceKeySeed = "elephant ears space cowboy octopus rodeo potato cannon pineapple"
+var servicePrivateKeyHex string
+
+type flowJSON struct {
+	Accounts struct {
+		Service struct {
+			PrivateKey string
+		}
+	}
+}
+
+func readServicePrivateKey() string {
+	f, err := os.Open("./flow.json")
+	Handle(err)
+
+	d := json.NewDecoder(f)
+
+	var conf flowJSON
+
+	err = d.Decode(&conf)
+	Handle(err)
+
+	return conf.Accounts.Service.PrivateKey
+}
+
+func init() {
+	servicePrivateKeyHex = readServicePrivateKey()
+}
 
 func ServiceAccount(flowClient *client.Client) (flow.Address, *flow.AccountKey, crypto.Signer) {
-	privateKey, _ := crypto.GeneratePrivateKey(crypto.ECDSA_P256, []byte(defaultServiceKeySeed))
 
-	// Service address is the first generated account address
+	privateKey, err := crypto.DecodePrivateKeyHex(crypto.ECDSA_P256, servicePrivateKeyHex)
+	Handle(err)
+
 	addr := flow.ServiceAddress(flow.Emulator)
 
 	acc, err := flowClient.GetAccount(context.Background(), addr)
