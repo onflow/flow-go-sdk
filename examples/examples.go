@@ -62,7 +62,15 @@ type config struct {
 
 func readConfig() config {
 	f, err := os.Open(configPath)
-	Handle(err)
+	if err != nil {
+		if os.IsNotExist(err) {
+			fmt.Println("Emulator examples must be run from the flow-go-sdk/examples directory. Please see flow-go-sdk/examples/README.md for more details.")
+		} else {
+			fmt.Printf("Failed to load config from %s: %s\n", configPath, err.Error())
+		}
+
+		os.Exit(1)
+	}
 
 	d := json.NewDecoder(f)
 
