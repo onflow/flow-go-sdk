@@ -168,7 +168,7 @@ func DeployContractDemo() {
 
 	fmt.Println("NFT minted!")
 
-	result, err := flowClient.ExecuteScriptAtLatestBlock(ctx, GenerateGetNFTIDScript(nftAddress, myAddress))
+	result, err := flowClient.ExecuteScriptAtLatestBlock(ctx, GenerateGetNFTIDScript(nftAddress, myAddress), nil)
 	examples.Handle(err)
 
 	myTokenID := result.(cadence.Int)

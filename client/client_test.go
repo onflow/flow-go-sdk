@@ -429,7 +429,7 @@ func TestClient_ExecuteScriptAtLatestBlock(t *testing.T) {
 
 		rpc.On("ExecuteScriptAtLatestBlock", ctx, mock.Anything).Return(response, nil)
 
-		value, err := c.ExecuteScriptAtLatestBlock(ctx, []byte("foo"))
+		value, err := c.ExecuteScriptAtLatestBlock(ctx, []byte("foo"), nil)
 		require.NoError(t, err)
 
 		assert.Equal(t, expectedValue, value)
@@ -444,7 +444,7 @@ func TestClient_ExecuteScriptAtLatestBlock(t *testing.T) {
 
 			rpc.On("ExecuteScriptAtLatestBlock", ctx, mock.Anything).Return(response, nil)
 
-			value, err := c.ExecuteScriptAtLatestBlock(ctx, []byte("foo"))
+			value, err := c.ExecuteScriptAtLatestBlock(ctx, []byte("foo"), nil)
 			assert.Error(t, err)
 			assert.Nil(t, value)
 		}),
@@ -454,7 +454,7 @@ func TestClient_ExecuteScriptAtLatestBlock(t *testing.T) {
 		rpc.On("ExecuteScriptAtLatestBlock", ctx, mock.Anything).
 			Return(nil, mockRPCError)
 
-		value, err := c.ExecuteScriptAtLatestBlock(ctx, []byte("foo"))
+		value, err := c.ExecuteScriptAtLatestBlock(ctx, []byte("foo"), nil)
 		assert.Error(t, err)
 		assert.Nil(t, value)
 	}))
@@ -474,7 +474,7 @@ func TestClient_ExecuteScriptAtBlockID(t *testing.T) {
 
 		rpc.On("ExecuteScriptAtBlockID", ctx, mock.Anything).Return(response, nil)
 
-		value, err := c.ExecuteScriptAtBlockID(ctx, ids.New(), []byte("foo"))
+		value, err := c.ExecuteScriptAtBlockID(ctx, ids.New(), []byte("foo"), nil)
 		require.NoError(t, err)
 
 		assert.Equal(t, expectedValue, value)
@@ -489,7 +489,7 @@ func TestClient_ExecuteScriptAtBlockID(t *testing.T) {
 
 			rpc.On("ExecuteScriptAtBlockID", ctx, mock.Anything).Return(response, nil)
 
-			value, err := c.ExecuteScriptAtBlockID(ctx, ids.New(), []byte("foo"))
+			value, err := c.ExecuteScriptAtBlockID(ctx, ids.New(), []byte("foo"), nil)
 			assert.Error(t, err)
 			assert.Nil(t, value)
 		}),
@@ -499,7 +499,7 @@ func TestClient_ExecuteScriptAtBlockID(t *testing.T) {
 		rpc.On("ExecuteScriptAtBlockID", ctx, mock.Anything).
 			Return(nil, mockRPCError)
 
-		value, err := c.ExecuteScriptAtBlockID(ctx, ids.New(), []byte("foo"))
+		value, err := c.ExecuteScriptAtBlockID(ctx, ids.New(), []byte("foo"), nil)
 		assert.Error(t, err)
 		assert.Nil(t, value)
 	}))
@@ -517,7 +517,7 @@ func TestClient_ExecuteScriptAtBlockHeight(t *testing.T) {
 
 		rpc.On("ExecuteScriptAtBlockHeight", ctx, mock.Anything).Return(response, nil)
 
-		value, err := c.ExecuteScriptAtBlockHeight(ctx, 42, []byte("foo"))
+		value, err := c.ExecuteScriptAtBlockHeight(ctx, 42, []byte("foo"), nil)
 		require.NoError(t, err)
 
 		assert.Equal(t, expectedValue, value)
@@ -532,7 +532,7 @@ func TestClient_ExecuteScriptAtBlockHeight(t *testing.T) {
 
 			rpc.On("ExecuteScriptAtBlockHeight", ctx, mock.Anything).Return(response, nil)
 
-			value, err := c.ExecuteScriptAtBlockHeight(ctx, 42, []byte("foo"))
+			value, err := c.ExecuteScriptAtBlockHeight(ctx, 42, []byte("foo"), nil)
 			assert.Error(t, err)
 			assert.Nil(t, value)
 		}),
@@ -542,7 +542,7 @@ func TestClient_ExecuteScriptAtBlockHeight(t *testing.T) {
 		rpc.On("ExecuteScriptAtBlockHeight", ctx, mock.Anything).
 			Return(nil, mockRPCError)
 
-		value, err := c.ExecuteScriptAtBlockHeight(ctx, 42, []byte("foo"))
+		value, err := c.ExecuteScriptAtBlockHeight(ctx, 42, []byte("foo"), nil)
 		assert.Error(t, err)
 		assert.Nil(t, value)
 	}))

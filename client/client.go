@@ -305,9 +305,13 @@ func (c *Client) GetAccount(ctx context.Context, address flow.Address) (*flow.Ac
 }
 
 // ExecuteScriptAtLatestBlock executes a read-only Cadence script against the latest sealed execution state.
-func (c *Client) ExecuteScriptAtLatestBlock(ctx context.Context, script []byte) (cadence.Value, error) {
+func (c *Client) ExecuteScriptAtLatestBlock(
+	ctx context.Context,
+	script []byte,
+	arguments [][]byte) (cadence.Value, error) {
 	req := &access.ExecuteScriptAtLatestBlockRequest{
-		Script: script,
+		Script:    script,
+		Arguments: arguments,
 	}
 
 	res, err := c.rpcClient.ExecuteScriptAtLatestBlock(ctx, req)
@@ -325,10 +329,12 @@ func (c *Client) ExecuteScriptAtBlockID(
 	ctx context.Context,
 	blockID flow.Identifier,
 	script []byte,
+	arguments [][]byte,
 ) (cadence.Value, error) {
 	req := &access.ExecuteScriptAtBlockIDRequest{
-		BlockId: blockID.Bytes(),
-		Script:  script,
+		BlockId:   blockID.Bytes(),
+		Script:    script,
+		Arguments: arguments,
 	}
 
 	res, err := c.rpcClient.ExecuteScriptAtBlockID(ctx, req)
@@ -346,10 +352,12 @@ func (c *Client) ExecuteScriptAtBlockHeight(
 	ctx context.Context,
 	height uint64,
 	script []byte,
+	arguments [][]byte,
 ) (cadence.Value, error) {
 	req := &access.ExecuteScriptAtBlockHeightRequest{
 		BlockHeight: height,
 		Script:      script,
+		Arguments:   arguments,
 	}
 
 	res, err := c.rpcClient.ExecuteScriptAtBlockHeight(ctx, req)
