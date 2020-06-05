@@ -42,37 +42,47 @@ func ReadFile(path string) []byte {
 	return contents
 }
 
-var servicePrivateKeyHex string
+const configPath = "./flow.json"
 
-type flowJSON struct {
+var (
+	servicePrivateKeyHex     string
+	servicePrivateKeySigAlgo crypto.SignatureAlgorithm
+)
+
+type config struct {
 	Accounts struct {
 		Service struct {
-			PrivateKey string
+			Address    string `json:"address"`
+			PrivateKey string `json:"privateKey"`
+			SigAlgo    string `json:"sigAlgorithm"`
+			HashAlgo   string `json:"hashAlgorithm"`
 		}
 	}
 }
 
-func readServicePrivateKey() string {
-	f, err := os.Open("./flow.json")
+func readConfig() config {
+	f, err := os.Open(configPath)
 	Handle(err)
 
 	d := json.NewDecoder(f)
 
-	var conf flowJSON
+	var conf config
 
 	err = d.Decode(&conf)
 	Handle(err)
 
-	return conf.Accounts.Service.PrivateKey
+	return conf
 }
 
 func init() {
-	servicePrivateKeyHex = readServicePrivateKey()
+	conf := readConfig()
+	servicePrivateKeyHex = conf.Accounts.Service.PrivateKey
+	servicePrivateKeySigAlgo = crypto.StringToSignatureAlgorithm(conf.Accounts.Service.SigAlgo)
 }
 
 func ServiceAccount(flowClient *client.Client) (flow.Address, *flow.AccountKey, crypto.Signer) {
 
-	privateKey, err := crypto.DecodePrivateKeyHex(crypto.ECDSA_P256, servicePrivateKeyHex)
+	privateKey, err := crypto.DecodePrivateKeyHex(servicePrivateKeySigAlgo, servicePrivateKeyHex)
 	Handle(err)
 
 	addr := flow.ServiceAddress(flow.Emulator)
