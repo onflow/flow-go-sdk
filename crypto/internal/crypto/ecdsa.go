@@ -35,6 +35,8 @@ import (
 	"sync"
 
 	"github.com/onflow/flow-go-sdk/crypto/internal/crypto/hash"
+
+	"github.com/btcsuite/btcd/btcec"
 )
 
 // ecdsaAlgo embeds SignAlgo
@@ -49,6 +51,7 @@ type ecdsaAlgo struct {
 var p256Instance *ecdsaAlgo
 var p256Once sync.Once
 
+// returns ECDSA algo on NIST P-256 curve
 func newECDSAP256() *ecdsaAlgo {
 	p256Once.Do(func() {
 		p256Instance = &(ecdsaAlgo{
@@ -63,10 +66,12 @@ func newECDSAP256() *ecdsaAlgo {
 var secp256k1Instance *ecdsaAlgo
 var secp256k1Once sync.Once
 
+// returns ECDSA algo on SECG secp256k1 curve.
+// https://www.secg.org/sec2-v2.pdf
 func newECDSASecp256k1() *ecdsaAlgo {
 	secp256k1Once.Do(func() {
 		secp256k1Instance = &(ecdsaAlgo{
-			curve: secp256k1(),
+			curve: btcec.S256(),
 			algo:  ECDSASecp256k1,
 		})
 	})
