@@ -200,6 +200,18 @@ func CadenceValueToMessage(value cadence.Value) ([]byte, error) {
 	return b, nil
 }
 
+func CadenceValuesToMessages(values []cadence.Value) ([][]byte, error) {
+	msgs := make([][]byte, len(values))
+	for i, val := range values {
+		msg, err := CadenceValueToMessage(val)
+		if err != nil {
+			return nil, err
+		}
+		msgs[i] = msg
+	}
+	return msgs, nil
+}
+
 func MessageToCadenceValue(m []byte) (cadence.Value, error) {
 	v, err := jsoncdc.Decode(m)
 	if err != nil {

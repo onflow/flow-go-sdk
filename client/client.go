@@ -308,10 +308,16 @@ func (c *Client) GetAccount(ctx context.Context, address flow.Address) (*flow.Ac
 func (c *Client) ExecuteScriptAtLatestBlock(
 	ctx context.Context,
 	script []byte,
-	arguments [][]byte) (cadence.Value, error) {
+	arguments []cadence.Value) (cadence.Value, error) {
+
+	args, err := convert.CadenceValuesToMessages(arguments)
+	if err != nil {
+		return nil, err
+	}
+
 	req := &access.ExecuteScriptAtLatestBlockRequest{
 		Script:    script,
-		Arguments: arguments,
+		Arguments: args,
 	}
 
 	res, err := c.rpcClient.ExecuteScriptAtLatestBlock(ctx, req)
@@ -329,12 +335,18 @@ func (c *Client) ExecuteScriptAtBlockID(
 	ctx context.Context,
 	blockID flow.Identifier,
 	script []byte,
-	arguments [][]byte,
+	arguments []cadence.Value,
 ) (cadence.Value, error) {
+
+	args, err := convert.CadenceValuesToMessages(arguments)
+	if err != nil {
+		return nil, err
+	}
+
 	req := &access.ExecuteScriptAtBlockIDRequest{
 		BlockId:   blockID.Bytes(),
 		Script:    script,
-		Arguments: arguments,
+		Arguments: args,
 	}
 
 	res, err := c.rpcClient.ExecuteScriptAtBlockID(ctx, req)
@@ -352,12 +364,18 @@ func (c *Client) ExecuteScriptAtBlockHeight(
 	ctx context.Context,
 	height uint64,
 	script []byte,
-	arguments [][]byte,
+	arguments []cadence.Value,
 ) (cadence.Value, error) {
+
+	args, err := convert.CadenceValuesToMessages(arguments)
+	if err != nil {
+		return nil, err
+	}
+
 	req := &access.ExecuteScriptAtBlockHeightRequest{
 		BlockHeight: height,
 		Script:      script,
-		Arguments:   arguments,
+		Arguments:   args,
 	}
 
 	res, err := c.rpcClient.ExecuteScriptAtBlockHeight(ctx, req)
