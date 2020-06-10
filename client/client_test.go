@@ -435,6 +435,30 @@ func TestClient_ExecuteScriptAtLatestBlock(t *testing.T) {
 		assert.Equal(t, expectedValue, value)
 	}))
 
+	t.Run("Arguments", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
+		expectedValue := cadence.NewInt(42)
+		encodedValue, err := jsoncdc.Encode(expectedValue)
+		require.NoError(t, err)
+
+		arg := cadence.String("test")
+		expectedArgs, err := jsoncdc.Encode(arg)
+
+		rpcReq := &access.ExecuteScriptAtLatestBlockRequest{
+			Script:    []byte("foo"),
+			Arguments: [][]byte{expectedArgs},
+		}
+
+		response := &access.ExecuteScriptResponse{
+			Value: encodedValue,
+		}
+
+		rpc.On("ExecuteScriptAtLatestBlock", ctx, rpcReq).Return(response, nil)
+		value, err := c.ExecuteScriptAtLatestBlock(ctx, []byte("foo"), []cadence.Value{arg})
+		require.NoError(t, err)
+
+		assert.Equal(t, expectedValue, value)
+	}))
+
 	t.Run(
 		"Invalid JSON-CDC",
 		clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
