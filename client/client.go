@@ -312,7 +312,7 @@ func (c *Client) ExecuteScriptAtLatestBlock(
 
 	args, err := convert.CadenceValuesToMessages(arguments)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("convert: %w", err)
 	}
 
 	req := &access.ExecuteScriptAtLatestBlockRequest{
