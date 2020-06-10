@@ -205,7 +205,7 @@ func CadenceValuesToMessages(values []cadence.Value) ([][]byte, error) {
 	for i, val := range values {
 		msg, err := CadenceValueToMessage(val)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("convert: %w", err)
 		}
 		msgs[i] = msg
 	}
