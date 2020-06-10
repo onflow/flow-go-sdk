@@ -175,13 +175,16 @@ func (pk PublicKey) Encode() []byte {
 	return pk.publicKey.Encode()
 }
 
-// A Signer is capable of signing cryptographic messages.
+// A Signer is capable of generating cryptographic signatures.
 type Signer interface {
 	// Sign signs the given message with this signer.
 	Sign(message []byte) ([]byte, error)
 }
 
 // An InMemorySigner is a signer that generates signatures using an in-memory private key.
+//
+// InMemorySigner implements simple signing that does not protect the private key against
+// any tampering or side channel attacks.
 type InMemorySigner struct {
 	PrivateKey PrivateKey
 	Hasher     Hasher
