@@ -22,6 +22,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/onflow/cadence"
 	"google.golang.org/grpc"
 
 	"github.com/onflow/flow-go-sdk"
@@ -31,6 +32,20 @@ import (
 
 func main() {
 	QueryEventsDemo()
+}
+
+type AddEvent flow.Event
+
+func (e AddEvent) X() int {
+	return e.Value.Fields[0].(cadence.Int).Int()
+}
+
+func (e AddEvent) Y() int {
+	return e.Value.Fields[1].(cadence.Int).Int()
+}
+
+func (e AddEvent) Sum() int {
+	return e.Value.Fields[2].(cadence.Int).Int()
 }
 
 func QueryEventsDemo() {
@@ -114,6 +129,12 @@ func QueryEventsDemo() {
 			fmt.Printf("Transaction ID: %s\n", event.TransactionID)
 			fmt.Printf("Event ID: %s\n", event.ID())
 			fmt.Println(event.String())
+
+			addEvent := AddEvent(event)
+
+			fmt.Printf("X: %d\n", addEvent.X())
+			fmt.Printf("Y: %d\n", addEvent.Y())
+			fmt.Printf("Sum: %d\n", addEvent.Sum())
 		}
 	}
 
