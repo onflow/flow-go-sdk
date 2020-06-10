@@ -188,7 +188,7 @@ tx := flow.NewTransaction().
 Transaction signing is done through the `crypto.Signer` interface. The simplest 
 (and least secure) implementation of `crypto.Signer` is `crypto.InMemorySigner`.
 
-Signatures can be generated more securely using hardware keys stored in a device such 
+Signatures can be generated more securely using keys stored in a hardware device such 
 as an [HSM](https://en.wikipedia.org/wiki/Hardware_security_module). The `crypto.Signer` 
 interface is intended to be flexible enough to support a variety of signer implementations 
 and is not limited to in-memory implementations.
