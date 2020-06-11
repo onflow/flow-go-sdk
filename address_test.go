@@ -29,21 +29,37 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type addressWrapper struct {
-	Address Address
-}
+func TestAddress_MarshalJSON(t *testing.T) {
+	var tests = []struct {
+		name         string
+		address      Address
+		expectedJSON string
+	}{
+		{
+			name:         "Non-empty address",
+			address:      HexToAddress("f8d6e0586b0a20c7"),
+			expectedJSON: `"f8d6e0586b0a20c7"`,
+		},
+		{
+			name:         "Empty address",
+			address:      EmptyAddress,
+			expectedJSON: `null`,
+		},
+	}
 
-func TestAddressJSON(t *testing.T) {
-	addr := ServiceAddress(Mainnet)
-	data, err := json.Marshal(addressWrapper{Address: addr})
-	require.Nil(t, err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			data, err := json.Marshal(&tt.address)
+			require.NoError(t, err)
 
-	t.Log(string(data))
+			assert.Equal(t, tt.expectedJSON, string(data))
 
-	var out addressWrapper
-	err = json.Unmarshal(data, &out)
-	require.Nil(t, err)
-	assert.Equal(t, addr, out.Address)
+			var address Address
+
+			err = json.Unmarshal(data, &address)
+			require.NoError(t, err)
+		})
+	}
 }
 
 func TestAddressConstants(t *testing.T) {

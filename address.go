@@ -21,8 +21,9 @@ package flow
 import (
 	"encoding/binary"
 	"encoding/hex"
+	"encoding/json"
+	"errors"
 	"fmt"
-	"strings"
 )
 
 // Address represents the 8 byte address of an account.
@@ -161,11 +162,32 @@ func (a Address) String() string {
 }
 
 func (a Address) MarshalJSON() ([]byte, error) {
+	if a == EmptyAddress {
+		return json.Marshal(nil)
+	}
+
 	return []byte(fmt.Sprintf("\"%s\"", a.Hex())), nil
 }
 
 func (a *Address) UnmarshalJSON(data []byte) error {
-	*a = HexToAddress(strings.Trim(string(data), "\""))
+	var msg interface{}
+
+	err := json.Unmarshal(data, &msg)
+	if err != nil {
+		return err
+	}
+
+	if msg == nil {
+		*a = EmptyAddress
+		return nil
+	}
+
+	stringMsg, ok := msg.(string)
+	if !ok {
+		return errors.New("expected address as hexadecimal string")
+	}
+
+	*a = HexToAddress(stringMsg)
 	return nil
 }
 
