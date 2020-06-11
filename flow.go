@@ -25,6 +25,8 @@ import (
 	"sync"
 
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/onflow/cadence"
+	jsoncdc "github.com/onflow/cadence/encoding/json"
 
 	"github.com/onflow/flow-go-sdk/crypto"
 )
@@ -130,4 +132,23 @@ func mustRLPEncode(v interface{}) []byte {
 		panic(err)
 	}
 	return b
+}
+
+// cadenceJSON is a wrapper that allows Cadence values to be serialized as JSON.
+type cadenceJSON struct {
+	cadence.Value
+}
+
+func (v cadenceJSON) MarshalJSON() ([]byte, error) {
+	return jsoncdc.Encode(v.Value)
+}
+
+func (v *cadenceJSON) UnmarshalJSON(data []byte) error {
+	val, err := jsoncdc.Decode(data)
+	if err != nil {
+		return err
+	}
+
+	(*v).Value = val
+	return nil
 }
