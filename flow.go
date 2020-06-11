@@ -20,6 +20,8 @@ package flow
 
 import (
 	"encoding/hex"
+	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/ethereum/go-ethereum/rlp"
@@ -46,6 +48,15 @@ func (i Identifier) Hex() string {
 // String returns the string representation of this identifier.
 func (i Identifier) String() string {
 	return i.Hex()
+}
+
+func (i Identifier) MarshalJSON() ([]byte, error) {
+	return []byte(fmt.Sprintf("\"%s\"", i.Hex())), nil
+}
+
+func (i *Identifier) UnmarshalJSON(data []byte) error {
+	*i = HexToID(strings.Trim(string(data), "\""))
+	return nil
 }
 
 // BytesToID constructs an identifier from a byte slice.
