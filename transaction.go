@@ -240,7 +240,7 @@ func (t *Transaction) AddEnvelopeSignature(address Address, keyID int, sig []byt
 
 type transactionJSON struct {
 	Script             []byte                 `json:"script"`
-	Arguments          []cadenceJSON          `json:"arguments"`
+	Arguments          [][]byte               `json:"arguments"`
 	ReferenceBlockID   Identifier             `json:"referenceBlockID"`
 	GasLimit           uint64                 `json:"gasLimit"`
 	ProposalKey        ProposalKey            `json:"proposalKey"`
@@ -251,18 +251,9 @@ type transactionJSON struct {
 }
 
 func (t *Transaction) MarshalJSON() ([]byte, error) {
-	var args []cadenceJSON
-
-	if t.Arguments != nil {
-		args = make([]cadenceJSON, len(t.Arguments))
-		for i, arg := range t.Arguments {
-			args[i] = cadenceJSON{arg}
-		}
-	}
-
 	temp := transactionJSON{
 		Script:             t.Script,
-		Arguments:          args,
+		Arguments:          t.Arguments,
 		ReferenceBlockID:   t.ReferenceBlockID,
 		GasLimit:           t.GasLimit,
 		ProposalKey:        t.ProposalKey,
@@ -283,17 +274,8 @@ func (t *Transaction) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	var args []cadence.Value
-
-	if temp.Arguments != nil {
-		args = make([]cadence.Value, len(temp.Arguments))
-		for i, arg := range temp.Arguments {
-			args[i] = arg.Value
-		}
-	}
-
 	t.Script = temp.Script
-	t.Arguments = args
+	t.Arguments = temp.Arguments
 	t.ReferenceBlockID = temp.ReferenceBlockID
 	t.GasLimit = temp.GasLimit
 	t.ProposalKey = temp.ProposalKey
