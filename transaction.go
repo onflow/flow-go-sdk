@@ -19,6 +19,7 @@
 package flow
 
 import (
+	"encoding/json"
 	"fmt"
 	"sort"
 
@@ -237,6 +238,87 @@ func (t *Transaction) AddEnvelopeSignature(address Address, keyID int, sig []byt
 	return t
 }
 
+type transactionJSON struct {
+	Script             []byte                 `json:"script"`
+	Arguments          []cadenceJSON          `json:"arguments"`
+	ReferenceBlockID   Identifier             `json:"referenceBlockID"`
+	GasLimit           uint64                 `json:"gasLimit"`
+	ProposalKey        ProposalKey            `json:"proposalKey"`
+	Payer              Address                `json:"payer"`
+	Authorizers        []Address              `json:"authorizers"`
+	PayloadSignatures  []TransactionSignature `json:"payloadSignatures"`
+	EnvelopeSignatures []TransactionSignature `json:"envelopeSignatures"`
+}
+
+func (t *Transaction) MarshalJSON() ([]byte, error) {
+	var args []cadenceJSON
+
+	if t.Arguments != nil {
+		args = make([]cadenceJSON, len(t.Arguments))
+		for i, arg := range t.Arguments {
+			args[i] = cadenceJSON{arg}
+		}
+	}
+
+	temp := transactionJSON{
+		Script:             t.Script,
+		Arguments:          args,
+		ReferenceBlockID:   t.ReferenceBlockID,
+		GasLimit:           t.GasLimit,
+		ProposalKey:        t.ProposalKey,
+		Payer:              t.Payer,
+		Authorizers:        t.Authorizers,
+		PayloadSignatures:  t.PayloadSignatures,
+		EnvelopeSignatures: t.EnvelopeSignatures,
+	}
+
+	return json.Marshal(&temp)
+}
+
+func (t *Transaction) UnmarshalJSON(data []byte) error {
+	var temp transactionJSON
+
+	err := json.Unmarshal(data, &temp)
+	if err != nil {
+		return err
+	}
+
+	var args []cadence.Value
+
+	if temp.Arguments != nil {
+		args = make([]cadence.Value, len(temp.Arguments))
+		for i, arg := range temp.Arguments {
+			args[i] = arg.Value
+		}
+	}
+
+	t.Script = temp.Script
+	t.Arguments = args
+	t.ReferenceBlockID = temp.ReferenceBlockID
+	t.GasLimit = temp.GasLimit
+	t.ProposalKey = temp.ProposalKey
+	t.Payer = temp.Payer
+	t.Authorizers = temp.Authorizers
+
+	if temp.PayloadSignatures != nil {
+		t.PayloadSignatures = make([]TransactionSignature, 0)
+	}
+
+	for _, sig := range temp.PayloadSignatures {
+		t.AddPayloadSignature(sig.Address, sig.KeyID, sig.Signature)
+	}
+
+	if temp.EnvelopeSignatures != nil {
+		t.EnvelopeSignatures = make([]TransactionSignature, 0)
+	}
+
+	for _, sig := range temp.EnvelopeSignatures {
+		t.AddEnvelopeSignature(sig.Address, sig.KeyID, sig.Signature)
+	}
+
+	return nil
+}
+
 func (t *Transaction) createSignature(address Address, keyID int, sig []byte) TransactionSignature {
 	signerIndex, signerExists := t.signerMap()[address]
 	if !signerExists {
@@ -325,12 +407,47 @@ type ProposalKey struct {
 	SequenceNumber uint64
 }
 
+type proposalKeyJSON struct {
+	Address        Address `json:"address"`
+	KeyID          int     `json:"keyID"`
+	SequenceNumber uint64  `json:"sequenceNumber"`
+}
+
+func (p ProposalKey) MarshalJSON() ([]byte, error) {
+	if p == (ProposalKey{}) {
+		return json.Marshal(nil)
+	}
+
+	temp := proposalKeyJSON{
+		Address:        p.Address,
+		KeyID:          p.KeyID,
+		SequenceNumber: p.SequenceNumber,
+	}
+
+	return json.Marshal(&temp)
+}
+
+func (p *ProposalKey) UnmarshalJSON(data []byte) error {
+	var temp proposalKeyJSON
+
+	err := json.Unmarshal(data, &temp)
+	if err != nil {
+		return err
+	}
+
+	p.Address = temp.Address
+	p.KeyID = temp.KeyID
+	p.SequenceNumber = temp.SequenceNumber
+
+	return nil
+}
+
 // A TransactionSignature is a signature associated with a specific account key.
 type TransactionSignature struct {
-	Address     Address
-	SignerIndex int
-	KeyID       int
-	Signature   []byte
+	Address     Address `json:"address"`
+	SignerIndex int     `json:"-"`
+	KeyID       int     `json:"keyID"`
+	Signature   []byte  `json:"signature"`
 }
 
 func (s TransactionSignature) canonicalForm() interface{} {

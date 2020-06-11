@@ -20,6 +20,7 @@ package flow_test
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -544,6 +545,109 @@ func TestTransaction_RLPMessages(t *testing.T) {
 
 			assert.Equal(t, tt.payload, payload)
 			assert.Equal(t, tt.envelope, envelope)
+		})
+	}
+}
+
+func TestTransaction_MarshalJSON(t *testing.T) {
+	var tests = []struct {
+		name string
+		tx   func(baseTx *flow.Transaction)
+	}{
+		{
+			name: "Complete",
+			tx:   func(baseTx *flow.Transaction) {},
+		},
+		{
+			name: "Non-empty arguments",
+			tx: func(baseTx *flow.Transaction) {
+				baseTx.AddArgument(cadence.NewInt(42))
+			},
+		},
+		{
+			name: "Empty arguments",
+			tx: func(baseTx *flow.Transaction) {
+				baseTx.Arguments = []cadence.Value{}
+			},
+		},
+		{
+			name: "Nil arguments",
+			tx: func(baseTx *flow.Transaction) {
+				baseTx.Arguments = nil
+			},
+		},
+		{
+			name: "Empty reference block ID",
+			tx: func(baseTx *flow.Transaction) {
+				baseTx.ReferenceBlockID = flow.EmptyID
+			},
+		},
+		{
+			name: "Empty proposal key",
+			tx: func(baseTx *flow.Transaction) {
+				baseTx.ProposalKey = flow.ProposalKey{}
+			},
+		},
+		{
+			name: "Empty payer",
+			tx: func(baseTx *flow.Transaction) {
+				baseTx.Payer = flow.EmptyAddress
+			},
+		},
+		{
+			name: "Empty authorizers",
+			tx: func(baseTx *flow.Transaction) {
+				baseTx.Authorizers = []flow.Address{}
+			},
+		},
+		{
+			name: "Nil authorizers",
+			tx: func(baseTx *flow.Transaction) {
+				baseTx.Authorizers = nil
+			},
+		},
+		{
+			name: "Empty payload signatures",
+			tx: func(baseTx *flow.Transaction) {
+				baseTx.PayloadSignatures = []flow.TransactionSignature{}
+			},
+		},
+		{
+			name: "Nil payload signatures",
+			tx: func(baseTx *flow.Transaction) {
+				baseTx.PayloadSignatures = nil
+			},
+		},
+		{
+			name: "Empty envelope signatures",
+			tx: func(baseTx *flow.Transaction) {
+				baseTx.EnvelopeSignatures = []flow.TransactionSignature{}
+			},
+		},
+		{
+			name: "Nil envelope signatures",
+			tx: func(baseTx *flow.Transaction) {
+				baseTx.EnvelopeSignatures = nil
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			txA := baseTx()
+			tt.tx(txA)
+
+			b, err := json.Marshal(txA)
+			require.NoError(t, err)
+
+			t.Log(string(b))
+
+			var txB flow.Transaction
+
+			err = json.Unmarshal(b, &txB)
+			require.NoError(t, err)
+
+			assert.Equal(t, *txA, txB)
 		})
 	}
 }
