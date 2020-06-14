@@ -20,6 +20,7 @@ package flow
 
 import (
 	"encoding/hex"
+	"sync"
 
 	"github.com/ethereum/go-ethereum/rlp"
 
@@ -60,6 +61,7 @@ func HexToID(h string) Identifier {
 	return BytesToID(b)
 }
 
+// HashToID constructs an identifier from a 32-byte hash.
 func HashToID(hash []byte) Identifier {
 	return BytesToID(hash)
 }
@@ -82,11 +84,25 @@ func (id ChainID) String() string {
 	return string(id)
 }
 
-// DefaultHasher is the default hasher used by Flow.
-var DefaultHasher crypto.Hasher
+// entityHasher is a thread-safe hasher used to hash Flow entities.
+type entityHasher struct {
+	mut    sync.Mutex
+	hasher crypto.Hasher
+}
+
+func (h *entityHasher) ComputeHash(b []byte) crypto.Hash {
+	h.mut.Lock()
+	defer h.mut.Unlock()
+	return h.hasher.ComputeHash(b)
+}
+
+// defaultEntityHasher is the default hasher used to compute Flow identifiers.
+var defaultEntityHasher *entityHasher
 
 func init() {
-	DefaultHasher = crypto.NewSHA3_256()
+	defaultEntityHasher = &entityHasher{
+		hasher: crypto.NewSHA3_256(),
+	}
 }
 
 func rlpEncode(v interface{}) ([]byte, error) {
