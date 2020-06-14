@@ -50,7 +50,7 @@ func (e Event) String() string {
 
 // ID returns the canonical SHA3-256 hash of this event.
 func (e Event) ID() string {
-	return DefaultHasher.ComputeHash(e.Encode()).Hex()
+	return defaultEntityHasher.ComputeHash(e.Encode()).Hex()
 }
 
 // Encode returns the canonical RLP byte representation of this event.

@@ -48,7 +48,7 @@ func NewTransaction() *Transaction {
 
 // ID returns the canonical SHA3-256 hash of this transaction.
 func (t *Transaction) ID() Identifier {
-	return HashToID(DefaultHasher.ComputeHash(t.Encode()))
+	return HashToID(defaultEntityHasher.ComputeHash(t.Encode()))
 }
 
 // SetScript sets the Cadence script for this transaction.
