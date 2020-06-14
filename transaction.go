@@ -366,6 +366,8 @@ const (
 	TransactionStatusExecuted
 	// TransactionStatusSealed is the status of a sealed transaction.
 	TransactionStatusSealed
+	// TransactionStatusExpired is the status of an expired transaction.
+	TransactionStatusExpired
 )
 
 // String returns the string representation of a transaction status.
