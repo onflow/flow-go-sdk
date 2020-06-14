@@ -25,7 +25,7 @@ type Collection struct {
 
 // ID returns the canonical SHA3-256 hash of this collection.
 func (c Collection) ID() Identifier {
-	return HashToID(DefaultHasher.ComputeHash(c.Encode()))
+	return HashToID(defaultEntityHasher.ComputeHash(c.Encode()))
 }
 
 // Encode returns the canonical RLP byte representation of this collection.
