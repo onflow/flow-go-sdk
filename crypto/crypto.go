@@ -90,39 +90,20 @@ func StringToHashAlgorithm(s string) HashAlgorithm {
 	}
 }
 
-// KeyType is a key format supported by Flow.
-type KeyType int
-
-const (
-	UnknownKeyType KeyType = iota
-	ECDSA_P256_SHA2_256
-	ECDSA_P256_SHA3_256
-	ECDSA_secp256k1_SHA2_256
-	ECDSA_secp256k1_SHA3_256
-)
-
-// SignatureAlgorithm returns the signature algorithm for this key type.
-func (k KeyType) SignatureAlgorithm() SignatureAlgorithm {
-	switch k {
-	case ECDSA_P256_SHA2_256, ECDSA_P256_SHA3_256:
-		return ECDSA_P256
-	case ECDSA_secp256k1_SHA2_256, ECDSA_secp256k1_SHA3_256:
-		return ECDSA_secp256k1
-	default:
-		return UnknownSignatureAlgorithm
+// CompatibleAlgorithms returns true if the signature and hash algorithms are compatible.
+func CompatibleAlgorithms(sigAlgo SignatureAlgorithm, hashAlgo HashAlgorithm) bool {
+	switch sigAlgo {
+	case ECDSA_P256:
+		fallthrough
+	case ECDSA_secp256k1:
+		switch hashAlgo {
+		case SHA2_256:
+			fallthrough
+		case SHA3_256:
+			return true
+		}
 	}
-}
-
-// HashAlgorithm returns the hash algorithm for this key type.
-func (k KeyType) HashAlgorithm() HashAlgorithm {
-	switch k {
-	case ECDSA_P256_SHA2_256, ECDSA_secp256k1_SHA2_256:
-		return SHA2_256
-	case ECDSA_P256_SHA3_256, ECDSA_secp256k1_SHA3_256:
-		return SHA3_256
-	default:
-		return UnknownHashAlgorithm
-	}
+	return false
 }
 
 // A PrivateKey is a cryptographic private key that can be used for in-memory signing.
@@ -312,20 +293,4 @@ func DecodePublicKeyHex(sigAlgo SignatureAlgorithm, s string) (PublicKey, error)
 	}
 
 	return DecodePublicKey(sigAlgo, b)
-}
-
-// CompatibleAlgorithms returns true if the signature and hash algorithms are compatible.
-func CompatibleAlgorithms(sigAlgo SignatureAlgorithm, hashAlgo HashAlgorithm) bool {
-	switch sigAlgo {
-	case ECDSA_P256:
-		fallthrough
-	case ECDSA_secp256k1:
-		switch hashAlgo {
-		case SHA2_256:
-			fallthrough
-		case SHA3_256:
-			return true
-		}
-	}
-	return false
 }
