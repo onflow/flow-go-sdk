@@ -25,8 +25,11 @@ import (
 	"fmt"
 )
 
+// addressLength is the size of an account address in bytes.
+const addressLength = (linearCodeN + 7) >> 3
+
 // Address represents the 8 byte address of an account.
-type Address [AddressLength]byte
+type Address [addressLength]byte
 
 // An AddressGenerator uses a deterministic algorithm to generate Flow addresses.
 type AddressGenerator struct {
@@ -90,9 +93,6 @@ func (gen *AddressGenerator) SetIndex(i uint) *AddressGenerator {
 // addressState represents the internal state of the address generation mechanism
 type addressState uint64
 
-// AddressLength is the size of an account address in bytes.
-const AddressLength = (linearCodeN + 7) >> 3
-
 const (
 	// zeroAddressState is the addressing state when Flow is bootstrapped
 	zeroAddressState = addressState(0)
@@ -140,10 +140,10 @@ func HexToAddress(h string) Address {
 // If b is smaller than 8, b will be appended by zeroes at the front.
 func BytesToAddress(b []byte) Address {
 	var a Address
-	if len(b) > AddressLength {
-		b = b[len(b)-AddressLength:]
+	if len(b) > addressLength {
+		b = b[len(b)-addressLength:]
 	}
-	copy(a[AddressLength-len(b):], b)
+	copy(a[addressLength-len(b):], b)
 	return a
 }
 
@@ -161,10 +161,6 @@ func (a Address) String() string {
 }
 
 func (a Address) MarshalJSON() ([]byte, error) {
-	if a == EmptyAddress {
-		return json.Marshal(nil)
-	}
-
 	return json.Marshal(a.Hex())
 }
 
@@ -186,8 +182,8 @@ func (a *Address) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("address must be a valid hexadecimal string: %w", err)
 	}
 
-	if len(b) != AddressLength {
-		return fmt.Errorf("address must be %d bytes", AddressLength)
+	if len(b) != addressLength {
+		return fmt.Errorf("address must be %d bytes", addressLength)
 	}
 
 	*a = BytesToAddress(b)
@@ -222,7 +218,7 @@ const (
 // uint64ToAddress returns an address with value v
 // The value v fits into the address as the address size is 8
 func uint64ToAddress(v uint64) Address {
-	var b [AddressLength]byte
+	var b [addressLength]byte
 	binary.BigEndian.PutUint64(b[:], v)
 	return b
 }
