@@ -20,8 +20,8 @@ package flow
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
-	"strings"
 	"sync"
 
 	"github.com/ethereum/go-ethereum/rlp"
@@ -29,8 +29,10 @@ import (
 	"github.com/onflow/flow-go-sdk/crypto"
 )
 
+const identifierLength = 32
+
 // An Identifier is a 32-byte unique identifier for an entity.
-type Identifier [32]byte
+type Identifier [identifierLength]byte
 
 // EmptyID is the empty identifier.
 var EmptyID = Identifier{}
@@ -51,11 +53,32 @@ func (i Identifier) String() string {
 }
 
 func (i Identifier) MarshalJSON() ([]byte, error) {
-	return []byte(fmt.Sprintf("\"%s\"", i.Hex())), nil
+	return json.Marshal(i.Hex())
 }
 
 func (i *Identifier) UnmarshalJSON(data []byte) error {
-	*i = HexToID(strings.Trim(string(data), "\""))
+	var msg string
+
+	err := json.Unmarshal(data, &msg)
+	if err != nil {
+		return err
+	}
+
+	if msg == "" {
+		*i = EmptyID
+		return nil
+	}
+
+	b, err := hex.DecodeString(msg)
+	if err != nil {
+		return fmt.Errorf("identifier must be a valid hexadecimal string: %w", err)
+	}
+
+	if len(b) != identifierLength {
+		return fmt.Errorf("identifier must be %d bytes", i)
+	}
+
+	*i = BytesToID(b)
 	return nil
 }
 
