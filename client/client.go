@@ -137,8 +137,7 @@ func (c *Client) GetBlockHeaderByHeight(ctx context.Context, height uint64) (*fl
 func getBlockHeaderResult(res *access.BlockHeaderResponse) (*flow.BlockHeader, error) {
 	header, err := convert.MessageToBlockHeader(res.GetBlock())
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newMessageToEntityError(entityBlockHeader, err)
 	}
 
 	return &header, nil
@@ -192,8 +191,7 @@ func (c *Client) GetBlockByHeight(ctx context.Context, height uint64) (*flow.Blo
 func getBlockResult(res *access.BlockResponse) (*flow.Block, error) {
 	block, err := convert.MessageToBlock(res.GetBlock())
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newMessageToEntityError(entityBlock, err)
 	}
 
 	return &block, nil
@@ -213,8 +211,7 @@ func (c *Client) GetCollection(ctx context.Context, colID flow.Identifier) (*flo
 
 	result, err := convert.MessageToCollection(res.GetCollection())
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newMessageToEntityError(entityCollection, err)
 	}
 
 	return &result, nil
@@ -224,8 +221,7 @@ func (c *Client) GetCollection(ctx context.Context, colID flow.Identifier) (*flo
 func (c *Client) SendTransaction(ctx context.Context, tx flow.Transaction) error {
 	txMsg, err := convert.TransactionToMessage(tx)
 	if err != nil {
-		// TODO: improve errors
-		return fmt.Errorf("client: %w", err)
+		return newEntityToMessageError(entityTransaction, err)
 	}
 
 	req := &access.SendTransactionRequest{
@@ -255,8 +251,7 @@ func (c *Client) GetTransaction(ctx context.Context, txID flow.Identifier) (*flo
 
 	result, err := convert.MessageToTransaction(res.GetTransaction())
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newMessageToEntityError(entityTransaction, err)
 	}
 
 	return &result, nil
@@ -276,8 +271,7 @@ func (c *Client) GetTransactionResult(ctx context.Context, txID flow.Identifier)
 
 	result, err := convert.MessageToTransactionResult(res)
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newMessageToEntityError(entityTransactionResult, err)
 	}
 
 	return &result, nil
@@ -297,8 +291,7 @@ func (c *Client) GetAccount(ctx context.Context, address flow.Address) (*flow.Ac
 
 	account, err := convert.MessageToAccount(res.GetAccount())
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newMessageToEntityError(entityAccount, err)
 	}
 
 	return &account, nil
@@ -312,7 +305,7 @@ func (c *Client) ExecuteScriptAtLatestBlock(
 
 	args, err := convert.CadenceValuesToMessages(arguments)
 	if err != nil {
-		return nil, fmt.Errorf("convert: %w", err)
+		return nil, newEntityToMessageError(entityCadenceValue, err)
 	}
 
 	req := &access.ExecuteScriptAtLatestBlockRequest{
@@ -340,7 +333,7 @@ func (c *Client) ExecuteScriptAtBlockID(
 
 	args, err := convert.CadenceValuesToMessages(arguments)
 	if err != nil {
-		return nil, err
+		return nil, newEntityToMessageError(entityCadenceValue, err)
 	}
 
 	req := &access.ExecuteScriptAtBlockIDRequest{
@@ -369,7 +362,7 @@ func (c *Client) ExecuteScriptAtBlockHeight(
 
 	args, err := convert.CadenceValuesToMessages(arguments)
 	if err != nil {
-		return nil, err
+		return nil, newEntityToMessageError(entityCadenceValue, err)
 	}
 
 	req := &access.ExecuteScriptAtBlockHeightRequest{
@@ -390,8 +383,7 @@ func (c *Client) ExecuteScriptAtBlockHeight(
 func executeScriptResult(res *access.ExecuteScriptResponse) (cadence.Value, error) {
 	value, err := convert.MessageToCadenceValue(res.GetValue())
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newMessageToEntityError(entityCadenceValue, err)
 	}
 
 	return value, nil
@@ -464,8 +456,7 @@ func getEventsResult(res *access.EventsResponse) ([]BlockEvents, error) {
 		for i, m := range eventMessages {
 			evt, err := convert.MessageToEvent(m)
 			if err != nil {
-				// TODO: improve errors
-				return nil, fmt.Errorf("client: %w", err)
+				return nil, newMessageToEntityError(entityEvent, err)
 			}
 
 			events[i] = evt
