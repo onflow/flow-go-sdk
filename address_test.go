@@ -58,6 +58,60 @@ func TestAddress_MarshalJSON(t *testing.T) {
 
 			err = json.Unmarshal(data, &address)
 			require.NoError(t, err)
+
+			assert.Equal(t, tt.address, address)
+		})
+	}
+}
+
+func TestAddress_UnmarshalJSON(t *testing.T) {
+	var tests = []struct {
+		name  string
+		json  string
+		check func(t *testing.T, address Address, err error)
+	}{
+		{
+			name: "Empty address",
+			json: `null`,
+			check: func(t *testing.T, address Address, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, EmptyAddress, address)
+			},
+		},
+		{
+			name: "Too short",
+			json: `"f8d6e0586b0a"`,
+			check: func(t *testing.T, address Address, err error) {
+				assert.Error(t, err)
+				assert.Equal(t, EmptyAddress, address)
+			},
+		},
+		{
+			name: "Too long",
+			json: `"f8d6e0586b0a20c7a9b5"`,
+			check: func(t *testing.T, address Address, err error) {
+				assert.Error(t, err)
+				assert.Equal(t, EmptyAddress, address)
+			},
+		},
+		{
+			name: "Invalid hex",
+			json: `"foobar"`,
+			check: func(t *testing.T, address Address, err error) {
+				assert.Error(t, err)
+				assert.Equal(t, EmptyAddress, address)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var address Address
+
+			data := []byte(tt.json)
+			err := json.Unmarshal(data, &address)
+
+			tt.check(t, address, err)
 		})
 	}
 }

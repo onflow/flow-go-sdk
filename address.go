@@ -22,7 +22,6 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 )
 
@@ -166,28 +165,32 @@ func (a Address) MarshalJSON() ([]byte, error) {
 		return json.Marshal(nil)
 	}
 
-	return []byte(fmt.Sprintf("\"%s\"", a.Hex())), nil
+	return json.Marshal(a.Hex())
 }
 
 func (a *Address) UnmarshalJSON(data []byte) error {
-	var msg interface{}
+	var msg string
 
 	err := json.Unmarshal(data, &msg)
 	if err != nil {
 		return err
 	}
 
-	if msg == nil {
+	if msg == "" {
 		*a = EmptyAddress
 		return nil
 	}
 
-	stringMsg, ok := msg.(string)
-	if !ok {
-		return errors.New("expected address as hexadecimal string")
+	b, err := hex.DecodeString(msg)
+	if err != nil {
+		return fmt.Errorf("address must be a valid hexadecimal string: %w", err)
 	}
 
-	*a = HexToAddress(stringMsg)
+	if len(b) != AddressLength {
+		return fmt.Errorf("address must be %d bytes", AddressLength)
+	}
+
+	*a = BytesToAddress(b)
 	return nil
 }
 
