@@ -43,7 +43,7 @@ func TestAddress_MarshalJSON(t *testing.T) {
 		{
 			name:         "Empty address",
 			address:      EmptyAddress,
-			expectedJSON: `null`,
+			expectedJSON: `"0000000000000000"`,
 		},
 	}
 
@@ -71,7 +71,31 @@ func TestAddress_UnmarshalJSON(t *testing.T) {
 		check func(t *testing.T, address Address, err error)
 	}{
 		{
+			name: "Non-empty address",
+			json: `"f8d6e0586b0a20c7"`,
+			check: func(t *testing.T, address Address, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, HexToAddress("f8d6e0586b0a20c7"), address)
+			},
+		},
+		{
 			name: "Empty address",
+			json: `""`,
+			check: func(t *testing.T, address Address, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, EmptyAddress, address)
+			},
+		},
+		{
+			name: "Zero address",
+			json: `"0000000000000000"`,
+			check: func(t *testing.T, address Address, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, EmptyAddress, address)
+			},
+		},
+		{
+			name: "Null address",
 			json: `null`,
 			check: func(t *testing.T, address Address, err error) {
 				assert.NoError(t, err)
