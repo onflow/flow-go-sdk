@@ -12,24 +12,30 @@ func errorMessage(format string, a ...interface{}) string {
 	return errorMessagePrefix + fmt.Sprintf(format, a...)
 }
 
+// An RPCError is an error returned by an RPC call to an Access API.
+//
+// An RPC error can be unwrapped to produce the original gRPC error.
 type RPCError struct {
-	GRPCError error
+	GRPCErr error
 }
 
 func newRPCError(gRPCErr error) RPCError {
-	return RPCError{GRPCError: gRPCErr}
+	return RPCError{GRPCErr: gRPCErr}
 }
 
 func (e RPCError) Error() string {
-	return errorMessage(e.GRPCError.Error())
+	return errorMessage(e.GRPCErr.Error())
 }
 
 func (e RPCError) Unwrap() error {
-	return e.GRPCError
+	return e.GRPCErr
 }
 
+// GRPCStatus returns the gRPC status for this error.
+//
+// This function satisfies the interface defined in the status.FromError function.
 func (e RPCError) GRPCStatus() *status.Status {
-	s, _ := status.FromError(e.GRPCError)
+	s, _ := status.FromError(e.GRPCErr)
 	return s
 }
 
@@ -44,6 +50,7 @@ const (
 	entityCadenceValue      = "cadence.Value"
 )
 
+// An EntityToMessageError indicates that an entity could not be converted to a protobuf message.
 type EntityToMessageError struct {
 	Entity string
 	Err    error
@@ -64,6 +71,7 @@ func (e EntityToMessageError) Unwrap() error {
 	return e.Err
 }
 
+// A MessageToEntityError indicates that a protobuf message could not be converted to an SDK entity.
 type MessageToEntityError struct {
 	Entity string
 	Err    error
