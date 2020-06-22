@@ -20,7 +20,6 @@ package client_test
 
 import (
 	"context"
-	"errors"
 	"testing"
 
 	"github.com/onflow/cadence"
@@ -30,6 +29,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/client"
@@ -37,7 +38,10 @@ import (
 	"github.com/onflow/flow-go-sdk/test"
 )
 
-var mockRPCError = errors.New("rpc error")
+var (
+	errInternal = status.Error(codes.Internal, "internal server error")
+	errNotFound = status.Error(codes.NotFound, "not found")
+)
 
 func clientTest(
 	f func(t *testing.T, ctx context.Context, rpc *MockRPCClient, client *client.Client),
@@ -61,12 +65,13 @@ func TestClient_Ping(t *testing.T) {
 		assert.NoError(t, err)
 	}))
 
-	t.Run("Error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
+	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
 		rpc.On("Ping", ctx, mock.Anything).
-			Return(nil, mockRPCError)
+			Return(nil, errInternal)
 
 		err := c.Ping(ctx)
 		assert.Error(t, err)
+		assert.Equal(t, codes.Internal, status.Code(err))
 	}))
 }
 
@@ -91,12 +96,13 @@ func TestClient_GetLatestBlockHeader(t *testing.T) {
 		assert.Equal(t, expectedHeader, *header)
 	}))
 
-	t.Run("Error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
+	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
 		rpc.On("GetLatestBlockHeader", ctx, mock.Anything).
-			Return(nil, mockRPCError)
+			Return(nil, errInternal)
 
 		header, err := c.GetLatestBlockHeader(ctx, true)
 		assert.Error(t, err)
+		assert.Equal(t, codes.Internal, status.Code(err))
 		assert.Nil(t, header)
 	}))
 }
@@ -124,14 +130,15 @@ func TestClient_GetBlockHeaderByID(t *testing.T) {
 		assert.Equal(t, expectedHeader, *header)
 	}))
 
-	t.Run("Error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
 		blockID := ids.New()
 
 		rpc.On("GetBlockHeaderByID", ctx, mock.Anything).
-			Return(nil, mockRPCError)
+			Return(nil, errNotFound)
 
 		header, err := c.GetBlockHeaderByID(ctx, blockID)
 		assert.Error(t, err)
+		assert.Equal(t, codes.NotFound, status.Code(err))
 		assert.Nil(t, header)
 	}))
 }
@@ -157,12 +164,13 @@ func TestClient_GetBlockHeaderByHeight(t *testing.T) {
 		assert.Equal(t, expectedHeader, *header)
 	}))
 
-	t.Run("Error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
 		rpc.On("GetBlockHeaderByHeight", ctx, mock.Anything).
-			Return(nil, mockRPCError)
+			Return(nil, errNotFound)
 
 		header, err := c.GetBlockHeaderByHeight(ctx, 42)
 		assert.Error(t, err)
+		assert.Equal(t, codes.NotFound, status.Code(err))
 		assert.Nil(t, header)
 	}))
 }
@@ -188,12 +196,13 @@ func TestClient_GetLatestBlock(t *testing.T) {
 		assert.Equal(t, expectedBlock, block)
 	}))
 
-	t.Run("Error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
+	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
 		rpc.On("GetLatestBlock", ctx, mock.Anything).
-			Return(nil, mockRPCError)
+			Return(nil, errInternal)
 
 		block, err := c.GetLatestBlock(ctx, true)
 		assert.Error(t, err)
+		assert.Equal(t, codes.Internal, status.Code(err))
 		assert.Nil(t, block)
 	}))
 }
@@ -221,14 +230,15 @@ func TestClient_GetBlockByID(t *testing.T) {
 		assert.Equal(t, expectedBlock, block)
 	}))
 
-	t.Run("Error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
 		blockID := ids.New()
 
 		rpc.On("GetBlockByID", ctx, mock.Anything).
-			Return(nil, mockRPCError)
+			Return(nil, errNotFound)
 
 		block, err := c.GetBlockByID(ctx, blockID)
 		assert.Error(t, err)
+		assert.Equal(t, codes.NotFound, status.Code(err))
 		assert.Nil(t, block)
 	}))
 }
@@ -254,12 +264,13 @@ func TestClient_GetBlockByHeight(t *testing.T) {
 		assert.Equal(t, expectedBlock, block)
 	}))
 
-	t.Run("Error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
 		rpc.On("GetBlockByHeight", ctx, mock.Anything).
-			Return(nil, mockRPCError)
+			Return(nil, errNotFound)
 
 		block, err := c.GetBlockByHeight(ctx, 42)
 		assert.Error(t, err)
+		assert.Equal(t, codes.NotFound, status.Code(err))
 		assert.Nil(t, block)
 	}))
 }
@@ -283,14 +294,15 @@ func TestClient_GetCollection(t *testing.T) {
 		assert.Equal(t, expectedCol, col)
 	}))
 
-	t.Run("Error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
 		colID := ids.New()
 
 		rpc.On("GetCollectionByID", ctx, mock.Anything).
-			Return(nil, mockRPCError)
+			Return(nil, errNotFound)
 
 		col, err := c.GetCollection(ctx, colID)
 		assert.Error(t, err)
+		assert.Equal(t, codes.NotFound, status.Code(err))
 		assert.Nil(t, col)
 	}))
 }
@@ -311,14 +323,15 @@ func TestClient_SendTransaction(t *testing.T) {
 		require.NoError(t, err)
 	}))
 
-	t.Run("Error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
+	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
 		tx := transactions.New()
 
 		rpc.On("SendTransaction", ctx, mock.Anything).
-			Return(nil, mockRPCError)
+			Return(nil, errInternal)
 
 		err := c.SendTransaction(ctx, *tx)
 		assert.Error(t, err)
+		assert.Equal(t, codes.Internal, status.Code(err))
 	}))
 }
 
@@ -345,14 +358,15 @@ func TestClient_GetTransaction(t *testing.T) {
 		assert.Equal(t, expectedTx, tx)
 	}))
 
-	t.Run("Error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
 		txID := ids.New()
 
 		rpc.On("GetTransaction", ctx, mock.Anything).
-			Return(nil, mockRPCError)
+			Return(nil, errNotFound)
 
 		tx, err := c.GetTransaction(ctx, txID)
 		assert.Error(t, err)
+		assert.Equal(t, codes.NotFound, status.Code(err))
 		assert.Nil(t, tx)
 	}))
 }
@@ -375,14 +389,15 @@ func TestClient_GetTransactionResult(t *testing.T) {
 
 	}))
 
-	t.Run("Error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
 		txID := ids.New()
 
 		rpc.On("GetTransactionResult", ctx, mock.Anything).
-			Return(nil, mockRPCError)
+			Return(nil, errNotFound)
 
 		result, err := c.GetTransactionResult(ctx, txID)
 		assert.Error(t, err)
+		assert.Equal(t, codes.NotFound, status.Code(err))
 		assert.Nil(t, result)
 	}))
 }
@@ -405,14 +420,15 @@ func TestClient_GetAccount(t *testing.T) {
 		assert.Equal(t, expectedAccount, account)
 	}))
 
-	t.Run("Error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
 		address := addresses.New()
 
 		rpc.On("GetAccount", ctx, mock.Anything).
-			Return(nil, mockRPCError)
+			Return(nil, errNotFound)
 
 		account, err := c.GetAccount(ctx, address)
 		assert.Error(t, err)
+		assert.Equal(t, codes.NotFound, status.Code(err))
 		assert.Nil(t, account)
 	}))
 }
@@ -429,7 +445,8 @@ func TestClient_ExecuteScriptAtLatestBlock(t *testing.T) {
 
 		rpc.On("ExecuteScriptAtLatestBlock", ctx, mock.Anything).Return(response, nil)
 
-		value, err := c.ExecuteScriptAtLatestBlock(ctx, []byte("foo"), nil)
+		var value cadence.Value
+		value, err = c.ExecuteScriptAtLatestBlock(ctx, []byte("foo"), nil)
 		require.NoError(t, err)
 
 		assert.Equal(t, expectedValue, value)
@@ -442,6 +459,7 @@ func TestClient_ExecuteScriptAtLatestBlock(t *testing.T) {
 
 		arg := cadence.String("test")
 		expectedArgs, err := jsoncdc.Encode(arg)
+		require.NoError(t, err)
 
 		rpcReq := &access.ExecuteScriptAtLatestBlockRequest{
 			Script:    []byte("foo"),
@@ -453,6 +471,7 @@ func TestClient_ExecuteScriptAtLatestBlock(t *testing.T) {
 		}
 
 		rpc.On("ExecuteScriptAtLatestBlock", ctx, rpcReq).Return(response, nil)
+
 		value, err := c.ExecuteScriptAtLatestBlock(ctx, []byte("foo"), []cadence.Value{arg})
 		require.NoError(t, err)
 
@@ -474,12 +493,13 @@ func TestClient_ExecuteScriptAtLatestBlock(t *testing.T) {
 		}),
 	)
 
-	t.Run("Error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
+	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
 		rpc.On("ExecuteScriptAtLatestBlock", ctx, mock.Anything).
-			Return(nil, mockRPCError)
+			Return(nil, errInternal)
 
 		value, err := c.ExecuteScriptAtLatestBlock(ctx, []byte("foo"), nil)
 		assert.Error(t, err)
+		assert.Equal(t, codes.Internal, status.Code(err))
 		assert.Nil(t, value)
 	}))
 }
@@ -519,12 +539,13 @@ func TestClient_ExecuteScriptAtBlockID(t *testing.T) {
 		}),
 	)
 
-	t.Run("Error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
 		rpc.On("ExecuteScriptAtBlockID", ctx, mock.Anything).
-			Return(nil, mockRPCError)
+			Return(nil, errNotFound)
 
 		value, err := c.ExecuteScriptAtBlockID(ctx, ids.New(), []byte("foo"), nil)
 		assert.Error(t, err)
+		assert.Equal(t, codes.NotFound, status.Code(err))
 		assert.Nil(t, value)
 	}))
 }
@@ -562,12 +583,13 @@ func TestClient_ExecuteScriptAtBlockHeight(t *testing.T) {
 		}),
 	)
 
-	t.Run("Error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
 		rpc.On("ExecuteScriptAtBlockHeight", ctx, mock.Anything).
-			Return(nil, mockRPCError)
+			Return(nil, errNotFound)
 
 		value, err := c.ExecuteScriptAtBlockHeight(ctx, 42, []byte("foo"), nil)
 		assert.Error(t, err)
+		assert.Equal(t, codes.NotFound, status.Code(err))
 		assert.Nil(t, value)
 	}))
 }
@@ -651,9 +673,9 @@ func TestClient_GetEventsForHeightRange(t *testing.T) {
 		}),
 	)
 
-	t.Run("Error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
+	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
 		rpc.On("GetEventsForHeightRange", ctx, mock.Anything).
-			Return(nil, mockRPCError)
+			Return(nil, errInternal)
 
 		blocks, err := c.GetEventsForHeightRange(ctx, client.EventRangeQuery{
 			Type:        "foo",
@@ -661,6 +683,7 @@ func TestClient_GetEventsForHeightRange(t *testing.T) {
 			EndHeight:   10,
 		})
 		assert.Error(t, err)
+		assert.Equal(t, codes.Internal, status.Code(err))
 		assert.Empty(t, blocks)
 	}))
 }
@@ -739,14 +762,15 @@ func TestClient_GetEventsForBlockIDs(t *testing.T) {
 		}),
 	)
 
-	t.Run("Error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
 		blockIDA, blockIDB := ids.New(), ids.New()
 
 		rpc.On("GetEventsForBlockIDs", ctx, mock.Anything).
-			Return(nil, mockRPCError)
+			Return(nil, errNotFound)
 
 		blocks, err := c.GetEventsForBlockIDs(ctx, "foo", []flow.Identifier{blockIDA, blockIDB})
 		assert.Error(t, err)
+		assert.Equal(t, codes.NotFound, status.Code(err))
 		assert.Empty(t, blocks)
 	}))
 }
