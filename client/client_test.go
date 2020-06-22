@@ -682,6 +682,7 @@ func TestClient_GetEventsForHeightRange(t *testing.T) {
 			StartHeight: 1,
 			EndHeight:   10,
 		})
+
 		assert.Error(t, err)
 		assert.Equal(t, codes.Internal, status.Code(err))
 		assert.Empty(t, blocks)
