@@ -29,7 +29,6 @@ package client
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/onflow/cadence"
 	"github.com/onflow/flow/protobuf/go/flow/access"
@@ -97,8 +96,7 @@ func (c *Client) GetLatestBlockHeader(
 
 	res, err := c.rpcClient.GetLatestBlockHeader(ctx, req)
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newRPCError(err)
 	}
 
 	return getBlockHeaderResult(res)
@@ -112,8 +110,7 @@ func (c *Client) GetBlockHeaderByID(ctx context.Context, blockID flow.Identifier
 
 	res, err := c.rpcClient.GetBlockHeaderByID(ctx, req)
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newRPCError(err)
 	}
 
 	return getBlockHeaderResult(res)
@@ -127,8 +124,7 @@ func (c *Client) GetBlockHeaderByHeight(ctx context.Context, height uint64) (*fl
 
 	res, err := c.rpcClient.GetBlockHeaderByHeight(ctx, req)
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newRPCError(err)
 	}
 
 	return getBlockHeaderResult(res)
@@ -151,8 +147,7 @@ func (c *Client) GetLatestBlock(ctx context.Context, isSealed bool) (*flow.Block
 
 	res, err := c.rpcClient.GetLatestBlock(ctx, req)
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newRPCError(err)
 	}
 
 	return getBlockResult(res)
@@ -166,8 +161,7 @@ func (c *Client) GetBlockByID(ctx context.Context, blockID flow.Identifier) (*fl
 
 	res, err := c.rpcClient.GetBlockByID(ctx, req)
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newRPCError(err)
 	}
 
 	return getBlockResult(res)
@@ -181,8 +175,7 @@ func (c *Client) GetBlockByHeight(ctx context.Context, height uint64) (*flow.Blo
 
 	res, err := c.rpcClient.GetBlockByHeight(ctx, req)
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newRPCError(err)
 	}
 
 	return getBlockResult(res)
@@ -205,8 +198,7 @@ func (c *Client) GetCollection(ctx context.Context, colID flow.Identifier) (*flo
 
 	res, err := c.rpcClient.GetCollectionByID(ctx, req)
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newRPCError(err)
 	}
 
 	result, err := convert.MessageToCollection(res.GetCollection())
@@ -230,8 +222,7 @@ func (c *Client) SendTransaction(ctx context.Context, tx flow.Transaction) error
 
 	_, err = c.rpcClient.SendTransaction(ctx, req)
 	if err != nil {
-		// TODO: improve errors
-		return fmt.Errorf("client: %w", err)
+		return newRPCError(err)
 	}
 
 	return nil
@@ -245,8 +236,7 @@ func (c *Client) GetTransaction(ctx context.Context, txID flow.Identifier) (*flo
 
 	res, err := c.rpcClient.GetTransaction(ctx, req)
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newRPCError(err)
 	}
 
 	result, err := convert.MessageToTransaction(res.GetTransaction())
@@ -265,8 +255,7 @@ func (c *Client) GetTransactionResult(ctx context.Context, txID flow.Identifier)
 
 	res, err := c.rpcClient.GetTransactionResult(ctx, req)
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newRPCError(err)
 	}
 
 	result, err := convert.MessageToTransactionResult(res)
@@ -285,8 +274,7 @@ func (c *Client) GetAccount(ctx context.Context, address flow.Address) (*flow.Ac
 
 	res, err := c.rpcClient.GetAccount(ctx, req)
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newRPCError(err)
 	}
 
 	account, err := convert.MessageToAccount(res.GetAccount())
@@ -315,8 +303,7 @@ func (c *Client) ExecuteScriptAtLatestBlock(
 
 	res, err := c.rpcClient.ExecuteScriptAtLatestBlock(ctx, req)
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newRPCError(err)
 	}
 
 	return executeScriptResult(res)
@@ -344,8 +331,7 @@ func (c *Client) ExecuteScriptAtBlockID(
 
 	res, err := c.rpcClient.ExecuteScriptAtBlockID(ctx, req)
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newRPCError(err)
 	}
 
 	return executeScriptResult(res)
@@ -373,8 +359,7 @@ func (c *Client) ExecuteScriptAtBlockHeight(
 
 	res, err := c.rpcClient.ExecuteScriptAtBlockHeight(ctx, req)
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newRPCError(err)
 	}
 
 	return executeScriptResult(res)
@@ -417,8 +402,7 @@ func (c *Client) GetEventsForHeightRange(ctx context.Context, query EventRangeQu
 
 	res, err := c.rpcClient.GetEventsForHeightRange(ctx, req)
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newRPCError(err)
 	}
 
 	return getEventsResult(res)
@@ -437,8 +421,7 @@ func (c *Client) GetEventsForBlockIDs(
 
 	res, err := c.rpcClient.GetEventsForBlockIDs(ctx, req)
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newRPCError(err)
 	}
 
 	return getEventsResult(res)
