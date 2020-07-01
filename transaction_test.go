@@ -24,6 +24,7 @@ import (
 	"testing"
 
 	"github.com/onflow/cadence"
+	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -142,22 +143,83 @@ func TestTransaction_AddArgument(t *testing.T) {
 	})
 
 	t.Run("Single argument", func(t *testing.T) {
-		arg := cadence.NewString("foo")
-		tx := flow.NewTransaction().
-			AddArgument(arg)
+		expectedArg := cadence.NewString("foo")
 
-		assert.Equal(t, []cadence.Value{arg}, tx.Arguments)
+		tx := flow.NewTransaction().
+			AddArgument(expectedArg)
+
+		actualArg, err := tx.Argument(0)
+		assert.NoError(t, err)
+
+		assert.Equal(t, expectedArg, actualArg)
 	})
 
 	t.Run("Multiple arguments", func(t *testing.T) {
-		argA := cadence.NewString("foo")
-		argB := cadence.NewInt(42)
+		expectedArgA := cadence.NewString("foo")
+		expectedArgB := cadence.NewInt(42)
 
 		tx := flow.NewTransaction().
-			AddArgument(argA).
-			AddArgument(argB)
+			AddArgument(expectedArgA).
+			AddArgument(expectedArgB)
 
-		assert.Equal(t, []cadence.Value{argA, argB}, tx.Arguments)
+		actualArgA, err := tx.Argument(0)
+		assert.NoError(t, err)
+
+		actualArgB, err := tx.Argument(1)
+		assert.NoError(t, err)
+
+		assert.Equal(t, expectedArgA, actualArgA)
+		assert.Equal(t, expectedArgB, actualArgB)
+	})
+}
+
+func TestTransaction_AddRawArgument(t *testing.T) {
+	t.Run("Single argument", func(t *testing.T) {
+		expectedArg := cadence.NewString("foo")
+
+		encodedArg, err := jsoncdc.Encode(expectedArg)
+		require.NoError(t, err)
+
+		tx := flow.NewTransaction().
+			AddRawArgument(encodedArg)
+
+		actualArg, err := tx.Argument(0)
+		assert.NoError(t, err)
+
+		assert.Equal(t, expectedArg, actualArg)
+	})
+
+	t.Run("Multiple arguments", func(t *testing.T) {
+		expectedArgA := cadence.NewString("foo")
+		expectedArgB := cadence.NewInt(42)
+
+		encodedArgA, err := jsoncdc.Encode(expectedArgA)
+		require.NoError(t, err)
+
+		encodedArgB, err := jsoncdc.Encode(expectedArgB)
+		require.NoError(t, err)
+
+		tx := flow.NewTransaction().
+			AddRawArgument(encodedArgA).
+			AddRawArgument(encodedArgB)
+
+		actualArgA, err := tx.Argument(0)
+		assert.NoError(t, err)
+
+		actualArgB, err := tx.Argument(1)
+		assert.NoError(t, err)
+
+		assert.Equal(t, expectedArgA, actualArgA)
+		assert.Equal(t, expectedArgB, actualArgB)
+	})
+
+	t.Run("Invalid argument", func(t *testing.T) {
+		tx := flow.NewTransaction().
+			AddRawArgument([]byte{1, 2, 3})
+
+		actualArg, err := tx.Argument(0)
+		assert.Nil(t, actualArg)
+		assert.Error(t, err)
 	})
 }
 
