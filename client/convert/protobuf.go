@@ -345,16 +345,6 @@ func MessagesToIdentifiers(l [][]byte) []flow.Identifier {
 }
 
 func TransactionToMessage(t flow.Transaction) (*entities.Transaction, error) {
-	var err error
-
-	arguments := make([][]byte, len(t.Arguments))
-	for i, arg := range t.Arguments {
-		arguments[i], err = CadenceValueToMessage(arg)
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	proposalKeyMessage := &entities.Transaction_ProposalKey{
 		Address:        t.ProposalKey.Address.Bytes(),
 		KeyId:          uint32(t.ProposalKey.KeyID),
@@ -388,7 +378,7 @@ func TransactionToMessage(t flow.Transaction) (*entities.Transaction, error) {
 
 	return &entities.Transaction{
 		Script:             t.Script,
-		Arguments:          arguments,
+		Arguments:          t.Arguments,
 		ReferenceBlockId:   t.ReferenceBlockID.Bytes(),
 		GasLimit:           t.GasLimit,
 		ProposalKey:        proposalKeyMessage,
@@ -411,12 +401,7 @@ func MessageToTransaction(m *entities.Transaction) (flow.Transaction, error) {
 	t.SetGasLimit(m.GetGasLimit())
 
 	for _, arg := range m.GetArguments() {
-		value, err := MessageToCadenceValue(arg)
-		if err != nil {
-			return flow.Transaction{}, err
-		}
-
-		t.AddArgument(value)
+		t.AddRawArgument(arg)
 	}
 
 	proposalKey := m.GetProposalKey()
