@@ -326,14 +326,20 @@ func (g *Transactions) NewUnsigned() *flow.Transaction {
 
 	proposalKey := accountA.Keys[0]
 
-	return flow.NewTransaction().
+	tx := flow.NewTransaction().
 		SetScript(GreetingScript).
-		AddArgument(cadence.NewString(g.greetings.New())).
 		SetReferenceBlockID(blockID).
 		SetGasLimit(42).
 		SetProposalKey(accountA.Address, proposalKey.ID, proposalKey.SequenceNumber).
 		AddAuthorizer(accountA.Address).
 		SetPayer(accountB.Address)
+
+	err := tx.AddArgument(cadence.NewString(g.greetings.New()))
+	if err != nil {
+		panic(err)
+	}
+
+	return tx
 }
 
 type TransactionResults struct {
