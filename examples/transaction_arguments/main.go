@@ -47,9 +47,11 @@ func TransactionArgumentsDemo() {
 
 	tx := flow.NewTransaction().
 		SetScript(test.GreetingScript).
-		AddArgument(greeting).
 		SetProposalKey(serviceAcctAddr, serviceAcctKey.ID, serviceAcctKey.SequenceNumber).
 		SetPayer(serviceAcctAddr)
+
+	err = tx.AddArgument(greeting)
+	examples.Handle(err)
 
 	fmt.Println("Sending transaction:")
 	fmt.Println()

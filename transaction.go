@@ -58,15 +58,14 @@ func (t *Transaction) SetScript(script []byte) *Transaction {
 }
 
 // AddArgument adds a Cadence argument to this transaction.
-func (t *Transaction) AddArgument(arg cadence.Value) *Transaction {
+func (t *Transaction) AddArgument(arg cadence.Value) error {
 	encodedArg, err := jsoncdc.Encode(arg)
 	if err != nil {
-		// argument is not added if encoding fails
-		return t
+		return fmt.Errorf("failed to encode argument: %w", err)
 	}
 
 	t.Arguments = append(t.Arguments, encodedArg)
-	return t
+	return nil
 }
 
 // AddRawArgument adds a raw JSON-CDC encoded argument to this transaction.
