@@ -137,9 +137,6 @@ github.com/olekukonko/tablewriter v0.0.1/go.mod h1:vsDQFd/mU46D+Z4whnwzcISnGGzXW
 github.com/olekukonko/tablewriter v0.0.2-0.20190409134802-7e037d187b0c/go.mod h1:vsDQFd/mU46D+Z4whnwzcISnGGzXWMclvtLoiIKAKIo=
 github.com/onflow/cadence v0.4.1-0.20200604185918-21edaa9bfcdd h1:MYPhW5wojW1wlIncBN6Atsi+aC9FPUcCJcURADcmzsk=
 github.com/onflow/cadence v0.4.1-0.20200604185918-21edaa9bfcdd/go.mod h1:dgj1JPlSDeY6ZSqD/yCW06reFSt+19d/IFgQ1eE8Bfg=
-github.com/onflow/flow v0.1.4-0.20200619174948-a3a856d16a27 h1:SJ3N+6dEwpQYbr0ZZVdNNDNWOSZktdDsSw8x4NDD6qc=
-github.com/onflow/flow/protobuf/go/flow v0.1.5-0.20200611205353-548107cc9aca h1:iw0VQx3aic04XPqpgJfw3CmHpkflK5vEb6EHi/hBsk8=
-github.com/onflow/flow/protobuf/go/flow v0.1.5-0.20200611205353-548107cc9aca/go.mod h1:kRugbzZjwQqvevJhrnnCFMJZNmoSJmxlKt6hTGXZojM=
 github.com/onflow/flow/protobuf/go/flow v0.1.5-0.20200619174948-a3a856d16a27 h1:ZZ8njaFTOz7JyBpQwXGfFUUOc9l2urVAxQ7FpMUpfnc=
 github.com/onflow/flow/protobuf/go/flow v0.1.5-0.20200619174948-a3a856d16a27/go.mod h1:kRugbzZjwQqvevJhrnnCFMJZNmoSJmxlKt6hTGXZojM=
 github.com/onsi/ginkgo v1.6.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
@@ -193,8 +190,6 @@ github.com/syndtr/goleveldb v1.0.1-0.20190923125748-758128399b1d h1:gZZadD8H+fF+
 github.com/syndtr/goleveldb v1.0.1-0.20190923125748-758128399b1d/go.mod h1:9OrXJhf154huy1nPWmuSrkgjPUtUNhA+Zmy+6AESzuA=
 github.com/tyler-smith/go-bip39 v1.0.1-0.20181017060643-dbb3b84ba2ef/go.mod h1:sJ5fKU0s6JVwZjjcUEX2zFOnvq0ASQ2K9Zr6cf67kNs=
 github.com/urfave/cli v1.22.1/go.mod h1:Gos4lmkARVdJ6EkW0WaNv/tZAAMe9V7XWyB60NtXRu0=
-github.com/vektra/mockery v1.1.2 h1:uc0Yn67rJpjt8U/mAZimdCKn9AeA97BOkjpmtBSlfP4=
-github.com/vektra/mockery v1.1.2/go.mod h1:VcfZjKaFOPO+MpN4ZvwPjs4c48lkq1o3Ym8yHZJu0jU=
 github.com/wsddn/go-ecdh v0.0.0-20161211032359-48726bab9208/go.mod h1:IotVbo4F+mw0EzQ08zFqg7pK3FebNXpaMsRy2RT+Ees=
 github.com/x448/float16 v0.8.4 h1:qLwI1I70+NjRFUR3zs1JPUCgaCXSh3SW62uAKT1mSBM=
 github.com/x448/float16 v0.8.4/go.mod h1:14CWIYCyZA/cWjXOioeEpHeN/83MdbZDRQHoFcYsOfg=
