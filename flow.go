@@ -20,6 +20,7 @@ package flow
 
 import (
 	"encoding/hex"
+	"fmt"
 	"sync"
 
 	"github.com/ethereum/go-ethereum/rlp"
@@ -119,4 +120,28 @@ func mustRLPEncode(v interface{}) []byte {
 		panic(err)
 	}
 	return b
+}
+
+const domainTagLength = 32
+
+// TransactionDomainTag is the prefix of all signed transaction payloads.
+//
+// A domain tag is encoded as UTF-8 bytes, right padded to a total length of 32 bytes.
+var TransactionDomainTag = paddedDomainTag("FLOW-V0.0-transaction")
+
+// UserDomainTag is the prefix of all signed user space payloads.
+//
+// A domain tag is encoded as UTF-8 bytes, right padded to a total length of 32 bytes.
+var UserDomainTag = paddedDomainTag("FLOW-V0.0-user")
+
+func paddedDomainTag(s string) [domainTagLength]byte {
+	var tag [domainTagLength]byte
+
+	if len(s) > domainTagLength {
+		panic(fmt.Sprintf("domain tag %s cannot be longer than %d characters", s, domainTagLength))
+	}
+
+	copy(tag[:], s)
+
+	return tag
 }
