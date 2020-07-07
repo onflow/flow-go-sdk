@@ -54,15 +54,13 @@ func DeployContractDemo() {
 		SetWeight(flow.AccountKeyWeightThreshold)
 	mySigner := crypto.NewInMemorySigner(myPrivateKey, myAcctKey.HashAlgo)
 
-	// Generate an account creation script
-	createAccountScript, err := templates.CreateAccount([]*flow.AccountKey{myAcctKey}, nil)
-	examples.Handle(err)
-
-	createAccountTx := flow.NewTransaction().
-		SetScript(createAccountScript).
-		SetProposalKey(serviceAcctAddr, serviceAcctKey.ID, serviceAcctKey.SequenceNumber).
-		SetPayer(serviceAcctAddr).
-		AddAuthorizer(serviceAcctAddr)
+	createAccountTx := templates.CreateAccount([]*flow.AccountKey{myAcctKey}, nil, serviceAcctAddr)
+	createAccountTx.SetProposalKey(
+		serviceAcctAddr,
+		serviceAcctKey.ID,
+		serviceAcctKey.SequenceNumber,
+	)
+	createAccountTx.SetPayer(serviceAcctAddr)
 
 	err = createAccountTx.SignEnvelope(serviceAcctAddr, serviceAcctKey.ID, serviceSigner)
 	examples.Handle(err)
@@ -89,13 +87,10 @@ func DeployContractDemo() {
 
 	// Deploy the Great NFT contract
 	nftCode := examples.ReadFile(GreatTokenContractFile)
-	deployScript, err := templates.CreateAccount(nil, nftCode)
+	deployContractTx := templates.CreateAccount(nil, nftCode, myAddress)
 
-	deployContractTx := flow.NewTransaction().
-		SetScript(deployScript).
-		SetProposalKey(myAddress, myAcctKey.ID, myAcctKey.SequenceNumber).
-		SetPayer(myAddress).
-		AddAuthorizer(myAddress)
+	deployContractTx.SetProposalKey(myAddress, myAcctKey.ID, myAcctKey.SequenceNumber)
+	deployContractTx.SetPayer(myAddress)
 
 	err = deployContractTx.SignEnvelope(
 		myAddress,
