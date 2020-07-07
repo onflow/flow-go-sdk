@@ -48,6 +48,10 @@ func paddedDomainTag(s string) [domainTagLength]byte {
 	return tag
 }
 
+// SignUserMessage signs a message in the user domain.
+//
+// User messages are distinct from other signed messages (i.e. transactions), and can be
+// verified directly in on-chain Cadence code.
 func SignUserMessage(signer crypto.Signer, message []byte) ([]byte, error) {
 	message = append(UserDomainTag[:], message...)
 	return signer.Sign(message)
