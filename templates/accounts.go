@@ -39,7 +39,12 @@ transaction(publicKeys: [[UInt8]], code: [UInt8]) {
 }
 `
 
-// CreateAccount generates a script that creates a new account.
+// CreateAccount generates a transactions that creates a new account.
+//
+// This template accepts a list of public keys and a code argument, both of which are optional.
+//
+// The final argument is the address of the account that will pay the account creation fee.
+// This account is added as a transaction authorizer and therefore must sign the resulting transaction.
 func CreateAccount(accountKeys []*flow.AccountKey, code []byte, payer flow.Address) *flow.Transaction {
 	publicKeys := make([]cadence.Value, len(accountKeys))
 
@@ -65,7 +70,7 @@ transaction(code: [UInt8]) {
 }
 `
 
-// UpdateAccountCode generates a script that updates the code associated with an account.
+// UpdateAccountCode generates a transaction that updates the code deployed at an account.
 func UpdateAccountCode(address flow.Address, code []byte) *flow.Transaction {
 	cadenceCode := bytesToCadenceArray(code)
 
@@ -83,7 +88,7 @@ transaction(publicKey: [UInt8]) {
 }
 `
 
-// AddAccountKey generates a script that adds a key to an account.
+// AddAccountKey generates a transactions that adds a public key to an account.
 func AddAccountKey(address flow.Address, accountKey *flow.AccountKey) *flow.Transaction {
 	cadencePublicKey := bytesToCadenceArray(accountKey.Encode())
 
