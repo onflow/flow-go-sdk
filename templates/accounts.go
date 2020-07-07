@@ -98,13 +98,12 @@ func AddAccountKey(address flow.Address, accountKey *flow.AccountKey) *flow.Tran
 		AddAuthorizer(address)
 }
 
-const removeAccountKey = `
+const removeAccountKeyTemplate = `
 transaction(keyID: Int) {
   prepare(signer: AuthAccount) {
     signer.removePublicKey(keyID)
   }	
 }
-
 `
 
 // RemoveAccountKey generates a transaction that removes a key from an account.
@@ -112,7 +111,7 @@ func RemoveAccountKey(address flow.Address, keyID int) *flow.Transaction {
 	cadenceKeyID := cadence.NewInt(keyID)
 
 	return flow.NewTransaction().
-		SetScript([]byte(addAccountKeyTemplate)).
+		SetScript([]byte(removeAccountKeyTemplate)).
 		AddRawArgument(jsoncdc.MustEncode(cadenceKeyID)).
 		AddAuthorizer(address)
 }
