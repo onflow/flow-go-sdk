@@ -50,18 +50,10 @@ func AddAccountKeyDemo() {
 		SetHashAlgo(crypto.SHA3_256).
 		SetWeight(flow.AccountKeyWeightThreshold)
 
-	// Create a Cadence script that will add another key to our account.
-	addKeyScript, err := templates.AddAccountKey(myAcctKey)
-	examples.Handle(err)
+	addKeyTx := templates.AddAccountKey(acctAddr, myAcctKey)
 
-	// Create a transaction to execute the script.
-	// The transaction is signed by our account key so it has permission to add keys.
-	addKeyTx := flow.NewTransaction().
-		SetScript(addKeyScript).
-		SetProposalKey(acctAddr, acctKey.ID, acctKey.SequenceNumber).
-		SetPayer(acctAddr).
-		// This defines which accounts are accessed by this transaction
-		AddAuthorizer(acctAddr)
+	addKeyTx.SetProposalKey(acctAddr, acctKey.ID, acctKey.SequenceNumber)
+	addKeyTx.SetPayer(acctAddr)
 
 	// Sign the transaction with the new account.
 	err = addKeyTx.SignEnvelope(acctAddr, acctKey.ID, acctSigner)
