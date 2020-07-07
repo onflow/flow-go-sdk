@@ -151,16 +151,12 @@ func CreateAccount(flowClient *client.Client, publicKeys []*flow.AccountKey, cod
 
 	serviceAcctAddr, serviceAcctKey, serviceSigner := ServiceAccount(flowClient)
 
-	createAccountScript, err := templates.CreateAccount(publicKeys, code)
-	Handle(err)
-
-	createAccountTx := flow.NewTransaction().
-		SetScript(createAccountScript).
+	createAccountTx := templates.CreateAccount(publicKeys, code, serviceAcctAddr)
+	createAccountTx.
 		SetProposalKey(serviceAcctAddr, serviceAcctKey.ID, serviceAcctKey.SequenceNumber).
-		SetPayer(serviceAcctAddr).
-		AddAuthorizer(serviceAcctAddr)
+		SetPayer(serviceAcctAddr)
 
-	err = createAccountTx.SignEnvelope(serviceAcctAddr, serviceAcctKey.ID, serviceSigner)
+	err := createAccountTx.SignEnvelope(serviceAcctAddr, serviceAcctKey.ID, serviceSigner)
 	Handle(err)
 
 	err = flowClient.SendTransaction(ctx, *createAccountTx)
