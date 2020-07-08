@@ -7,7 +7,6 @@ require (
 	github.com/ethereum/go-ethereum v1.9.9
 	github.com/golang/protobuf v1.3.5
 	github.com/google/go-cmp v0.4.0 // indirect
-	github.com/lithammer/dedent v1.1.0
 	github.com/onflow/cadence v0.5.0
 	github.com/onflow/flow/protobuf/go/flow v0.1.5-0.20200619174948-a3a856d16a27
 	github.com/pkg/errors v0.8.1
