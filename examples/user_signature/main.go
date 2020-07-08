@@ -29,6 +29,7 @@ import (
 	"github.com/onflow/flow-go-sdk/client"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/examples"
+	"github.com/onflow/flow-go-sdk/test"
 )
 
 func main() {
@@ -39,10 +40,12 @@ var script = []byte(`
 import Crypto
 
 pub fun main(
-  rawPublicKeys: [[Int]],
+  rawPublicKeys: [[UInt8]],
   weights: [UFix64],
-  message: [Int], 
-  signatures: [[Int]],
+  signatures: [[UInt8]],
+  toAddress: Address,
+  fromAddress: Address,
+  amount: UFix64,
 ): Bool {
   let keyList = Crypto.KeyList()
 
@@ -72,6 +75,10 @@ pub fun main(
     j = j + 1
   }
 
+  let message = toAddress.toBytes().
+    concat(fromAddress.toBytes()).
+    concat(amount.toBigEndianBytes())
+
   return keyList.isValid(
     signatureSet: signatureSet,
     signedData: message,
@@ -82,7 +89,7 @@ pub fun main(
 func bytesToCadenceArray(b []byte) cadence.Array {
 	values := make([]cadence.Value, len(b))
 	for i, b := range b {
-		values[i] = cadence.NewInt(int(b))
+		values[i] = cadence.NewUInt8(b)
 	}
 
 	return cadence.NewArray(values)
@@ -99,7 +106,15 @@ func UserSignatureDemo() {
 	privateKeyB := examples.RandomPrivateKey()
 	publicKeyB := privateKeyB.PublicKey()
 
-	message := []byte("foo")
+	addresses := test.AddressGenerator()
+
+	toAddress := cadence.Address(addresses.New())
+	fromAddress := cadence.Address(addresses.New())
+	amount, err := cadence.NewUFix64("100.00")
+	examples.Handle(err)
+
+	message := append(toAddress.Bytes(), fromAddress.Bytes()...)
+	message = append(message, amount.ToBigEndianBytes()...)
 
 	signerA := crypto.NewInMemorySigner(privateKeyA, crypto.SHA3_256)
 	signerB := crypto.NewInMemorySigner(privateKeyB, crypto.SHA3_256)
@@ -110,25 +125,23 @@ func UserSignatureDemo() {
 	signatureB, err := flow.SignUserMessage(signerB, message)
 	examples.Handle(err)
 
-	cadenceMessage := bytesToCadenceArray(message)
-
-	cadencePublicKeys := cadence.NewArray([]cadence.Value{
+	publicKeys := cadence.NewArray([]cadence.Value{
 		bytesToCadenceArray(publicKeyA.Encode()),
 		bytesToCadenceArray(publicKeyB.Encode()),
 	})
 
-	cadenceWeightA, err := cadence.NewUFix64("0.5")
+	weightA, err := cadence.NewUFix64("0.5")
 	examples.Handle(err)
 
-	cadenceWeightB, err := cadence.NewUFix64("0.5")
+	weightB, err := cadence.NewUFix64("0.5")
 	examples.Handle(err)
 
-	cadenceWeights := cadence.NewArray([]cadence.Value{
-		cadenceWeightA,
-		cadenceWeightB,
+	weights := cadence.NewArray([]cadence.Value{
+		weightA,
+		weightB,
 	})
 
-	cadenceSignatures := cadence.NewArray([]cadence.Value{
+	signatures := cadence.NewArray([]cadence.Value{
 		bytesToCadenceArray(signatureA),
 		bytesToCadenceArray(signatureB),
 	})
@@ -137,10 +150,12 @@ func UserSignatureDemo() {
 		ctx,
 		script,
 		[]cadence.Value{
-			cadencePublicKeys,
-			cadenceWeights,
-			cadenceMessage,
-			cadenceSignatures,
+			publicKeys,
+			weights,
+			signatures,
+			toAddress,
+			fromAddress,
+			amount,
 		},
 	)
 	examples.Handle(err)
