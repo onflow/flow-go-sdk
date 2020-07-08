@@ -75,9 +75,9 @@ pub fun main(
     j = j + 1
   }
 
-  let message = toAddress.toBytes().
-    concat(fromAddress.toBytes()).
-    concat(amount.toBigEndianBytes())
+  let message = toAddress.toBytes()
+    .concat(fromAddress.toBytes())
+    .concat(amount.toBigEndianBytes())
 
   return keyList.isValid(
     signatureSet: signatureSet,
