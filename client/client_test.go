@@ -408,13 +408,13 @@ func TestClient_GetAccount(t *testing.T) {
 
 	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
 		expectedAccount := accounts.New()
-		response := &access.AccountResponse{
+		response := &access.GetAccountResponse{
 			Account: convert.AccountToMessage(*expectedAccount),
 		}
 
-		rpc.On("GetAccountAtLatestBlock", ctx, mock.Anything).Return(response, nil)
+		rpc.On("GetAccount", ctx, mock.Anything).Return(response, nil)
 
-		account, err := c.GetAccountAtLatestBlock(ctx, expectedAccount.Address)
+		account, err := c.GetAccount(ctx, expectedAccount.Address)
 		require.NoError(t, err)
 
 		assert.Equal(t, expectedAccount, account)
@@ -423,10 +423,10 @@ func TestClient_GetAccount(t *testing.T) {
 	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
 		address := addresses.New()
 
-		rpc.On("GetAccountAtLatestBlock", ctx, mock.Anything).
+		rpc.On("GetAccount", ctx, mock.Anything).
 			Return(nil, errNotFound)
 
-		account, err := c.GetAccountAtLatestBlock(ctx, address)
+		account, err := c.GetAccount(ctx, address)
 		assert.Error(t, err)
 		assert.Equal(t, codes.NotFound, status.Code(err))
 		assert.Nil(t, account)
