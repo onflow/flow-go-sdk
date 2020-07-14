@@ -266,13 +266,18 @@ func (c *Client) GetTransactionResult(ctx context.Context, txID flow.Identifier)
 	return &result, nil
 }
 
-// GetAccount gets an account by address at the latest sealed block.
+// GetAccount is an alias for GetAccountAtLatestBlock.
 func (c *Client) GetAccount(ctx context.Context, address flow.Address) (*flow.Account, error) {
-	req := &access.GetAccountRequest{
+	return c.GetAccountAtLatestBlock(ctx, address)
+}
+
+// GetAccountAtLatestBlock gets an account by address at the latest sealed block.
+func (c *Client) GetAccountAtLatestBlock(ctx context.Context, address flow.Address) (*flow.Account, error) {
+	req := &access.GetAccountAtLatestBlockRequest{
 		Address: address.Bytes(),
 	}
 
-	res, err := c.rpcClient.GetAccount(ctx, req)
+	res, err := c.rpcClient.GetAccountAtLatestBlock(ctx, req)
 	if err != nil {
 		return nil, newRPCError(err)
 	}
