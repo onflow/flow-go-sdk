@@ -402,7 +402,7 @@ func TestClient_GetTransactionResult(t *testing.T) {
 	}))
 }
 
-func TestClient_GetAccount(t *testing.T) {
+func TestClient_GetAccountAtLatestBlock(t *testing.T) {
 	accounts := test.AccountGenerator()
 	addresses := test.AddressGenerator()
 
