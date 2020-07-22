@@ -20,6 +20,7 @@ This package contains code samples that interact with the [Flow Emulator](https:
     - [Single Party, Multiple Signatures](#single-party-multiple-signatures)
     - [Multiple Parties](#multiple-parties)
     - [Multiple Parties, Multiple Signatures](#multiple-parties-multiple-signatures)
+  - [User Signature](#user-signature)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -48,74 +49,82 @@ Watch the emulator logs to see transaction output.
 
 ### Create Account
 
-Create a new account on Flow.
+[Create a new account on Flow.](./create_account/main.go)
 
 ```sh
-go run ./create_account/main.go
+make create-account
 ```
 
 ### Add Account Key
 
-Add a key to an existing account.
+[Add a key to an existing account.](./add_account_key/main.go)
 
 ```sh
-go run ./add_account_key/main.go
+make add-account-key
 ```
 
 ### Deploy Contract
 
-Deploy a Cadence smart contract.
+[Deploy a Cadence smart contract.](./deploy_contract/main.go)
 
 ```sh
-go run ./deploy_contract/main.go
+make deploy-contract
 ```
 
 ### Query Events
 
-Query events emitted by transactions.
+[Query events emitted by transactions.](./query_events/main.go)
 
 ```sh
-go run ./query_events/main.go
+make query-events
 ```
 
 ### Transaction Arguments
 
-Submit a transaction with Cadence arguments:
+[Submit a transaction with Cadence arguments.](./transaction_arguments/main.go)
 
 ```sh
-go run ./transaction_arguments/main.go
+make transaction-arguments
 ```
 
 ### Transaction Signing
 
 #### Single Party, Single Signature
 
-Sign a transaction with a single account.
+[Sign a transaction with a single account.](./transaction_signing/single_party/main.go)
 
 ```sh
-go run ./transaction_signing/single_party/main.go
+make single-party
 ```
 
 #### Single Party, Multiple Signatures
 
-Sign a transaction with a single account using multiple signatures.
+[Sign a transaction with a single account using multiple signatures.](./transaction_signing/single_party_multisig/main.go)
 
 ```sh
-go run ./transaction_signing/single_party_multisig/main.go
+make single-party-multisig
 ```
 
 #### Multiple Parties
 
-Sign a transaction with multiple accounts.
+[Sign a transaction with multiple accounts.](./transaction_signing/multi_party/main.go)
 
 ```sh
-go run ./transaction_signing/multi_party/main.go
+make multi-party
 ```
 
 #### Multiple Parties, Multiple Signatures
 
-Sign a transaction with multiple accounts using multiple signatures.
+[Sign a transaction with multiple accounts using multiple signatures.](./transaction_signing/multi_party_multisig/main.go)
 
 ```sh
-go run ./transaction_signing/multi_party_multisig/main.go
+make multi-party-multisig
+```
+
+### User Signature
+
+[Sign an arbitrary user message.](./user_signature/main.go)
+
+```sh
+make user-signature
 ```
