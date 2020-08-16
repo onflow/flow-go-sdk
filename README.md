@@ -318,9 +318,9 @@ tx := flow.NewTransaction().
     SetScript([]byte(`
         transaction {
             prepare(signer: AuthAccount, signer2:AuthAccount) {
-						  log(signer.address)
-						  log(signer2.address)
-						}
+              log(signer.address)
+              log(signer2.address)
+          }
         }
     `)).
     SetGasLimit(100).
