@@ -297,6 +297,7 @@ err = tx.SignEnvelope(account1.Address, key2.ID, key2Signer)
 - Account `0x01` signs the payload.
 - Account `0x02` signs the envelope.
   - Account `0x02` must sign last since it is the payer.
+- Account `0x02` is also an authorizer to show how to include two AuthAccounts into an transaction
 
 | Account   | Key ID | Weight |
 |-----------|--------|--------|
