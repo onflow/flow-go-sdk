@@ -316,14 +316,18 @@ key3Signer := getSignerForKey3()
 
 tx := flow.NewTransaction().
     SetScript([]byte(`
-        transaction { 
-            prepare(signer: AuthAccount) { log(signer.address) }
+        transaction {
+            prepare(signer: AuthAccount, signer2:AuthAccount) {
+						  log(signer.address)
+						  log(signer2.address)
+						}
         }
     `)).
     SetGasLimit(100).
     SetProposalKey(account1.Address, key1.ID, key1.SequenceNumber).
     SetPayer(account2.Address).
-    AddAuthorizer(account1.Address)
+    AddAuthorizer(account1.Address).
+    AddAuthorizer(account2.Address)
 
 // account 1 signs the payload with key 1
 err := tx.SignPayload(account1.Address, key1.ID, key1Signer)
