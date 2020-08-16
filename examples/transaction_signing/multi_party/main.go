@@ -64,13 +64,12 @@ func MultiPartySingleSignatureDemo() {
 
 	tx := flow.NewTransaction().
 		SetScript([]byte(`
-            transaction { 
+			transaction { 
 				prepare(signer: AuthAccount, signer2:AuthAccount) { 
 					log(signer.address) 
 					log(signer2.address)
 				}
-            }
-        `)).
+			}`)).
 		SetGasLimit(100).
 		SetProposalKey(account1.Address, account1.Keys[0].ID, account1.Keys[0].SequenceNumber).
 		SetPayer(account2.Address).
