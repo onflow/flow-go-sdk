@@ -391,5 +391,5 @@ const (
 
 // String returns the string representation of a transaction status.
 func (s TransactionStatus) String() string {
-	return [...]string{"UNKNOWN", "PENDING", "FINALIZED", "EXECUTED", "SEALED"}[s]
+	return [...]string{"UNKNOWN", "PENDING", "FINALIZED", "EXECUTED", "SEALED", "EXPIRED"}[s]
 }
