@@ -30,14 +30,35 @@ import (
 
 // A Transaction is a full transaction object containing a payload and signatures.
 type Transaction struct {
-	Script             []byte
-	Arguments          [][]byte
-	ReferenceBlockID   Identifier
-	GasLimit           uint64
-	ProposalKey        ProposalKey
-	Payer              Address
-	Authorizers        []Address
-	PayloadSignatures  []TransactionSignature
+	// Script is the transaction script as UTF-8 encoded Cadence source code
+	Script []byte
+
+	// Arguments that are passed to the Cadence transaction
+	Arguments [][]byte
+
+	// ReferenceBlockID is a reference to another.
+	//
+	// A transaction is expired after specific number of blocks (defined by network) counting from this block.
+	// For example, if block reference is pointing to a block with height of X and network limit is 10,
+	// a block with x+10 height is the last block that is allowed to include this transaction.
+	// This reference can be set to an older block if the tx should expire faster.
+	ReferenceBlockID Identifier
+
+	// GasLimit is the max amount of computation which is allowed to be used during this transaction
+	GasLimit uint64
+
+	// ProposalKey is key of the account used to propose the transaction
+	ProposalKey ProposalKey
+
+	// Payer is the account that pays the feed for this transaction
+	Payer Address
+
+	Authorizers []Address
+
+	// PayloadSignatures is the list of account signatures excluding signature of the payer account
+	PayloadSignatures []TransactionSignature
+
+	// EnvelopeSignatures is the payer signature over the envelope (payload + payload signatures)
 	EnvelopeSignatures []TransactionSignature
 }
 
@@ -52,6 +73,8 @@ func (t *Transaction) ID() Identifier {
 }
 
 // SetScript sets the Cadence script for this transaction.
+//
+// The script is the UTF-8 encoded Cadence source code.
 func (t *Transaction) SetScript(script []byte) *Transaction {
 	t.Script = script
 	return t
@@ -95,6 +118,11 @@ func (t *Transaction) Argument(i int) (cadence.Value, error) {
 }
 
 // SetReferenceBlockID sets the reference block ID for this transaction.
+//
+// A transaction is expired after specific number of blocks (defined by network) counting from this block.
+// For example, if block reference is pointing to a block with height of X and network limit is 10,
+// a block with x+10 height is the last block that is allowed to include this transaction.
+// This reference can be set to an older block if the tx should expire faster.
 func (t *Transaction) SetReferenceBlockID(blockID Identifier) *Transaction {
 	t.ReferenceBlockID = blockID
 	return t
