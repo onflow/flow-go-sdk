@@ -33,6 +33,10 @@ single-party-multisig:
 multi-party:
 	go run ./transaction_signing/multi_party/main.go
 
+.PHONY: multi-party-two-authorizers
+multi-party-two-authorizers:
+	go run ./transaction_signing/multi_party_two_authorizers/main.go
+
 .PHONY: multi-party-multisig
 multi-party-multisig:
 	go run ./transaction_signing/multi_party_multisig/main.go
