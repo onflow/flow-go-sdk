@@ -337,7 +337,7 @@ err = tx.SignEnvelope(account2.Address, key3.ID, key3Signer)
 [Full Runnable Example](/examples#multiple-parties)
 
 ---
-##### [Multiple parties with 2 authorizers](https://github.com/onflow/flow/blob/master/docs/accounts-and-keys.md#multiple-parties)
+##### [Multiple parties, two authorizers](https://github.com/onflow/flow/blob/master/docs/accounts-and-keys.md#multiple-parties)
 
 - Proposer and authorizer are the same account (`0x01`).
 - Payer is a separate account (`0x02`).
