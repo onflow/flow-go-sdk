@@ -23,6 +23,7 @@ Flow is a new blockchain for open worlds. Read more about it [here](https://gith
       - [Single party, single signature](#single-party-single-signature)
       - [Single party, multiple signatures](#single-party-multiple-signatures)
       - [Multiple parties](#multiple-parties)
+      - [Multiple parties, two autorizers](#multiple-parties-two-autorizers)
       - [Multiple parties, multiple signatures](#multiple-parties-multiple-signatures)
   - [Sending a Transaction](#sending-a-transaction)
   - [Querying Transaction Results](#querying-transaction-results)
@@ -316,7 +317,7 @@ key3Signer := getSignerForKey3()
 
 tx := flow.NewTransaction().
     SetScript([]byte(`
-        transaction {
+        transaction { 
             prepare(signer: AuthAccount) { log(signer.address) }
         }
     `)).
