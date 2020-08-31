@@ -66,7 +66,8 @@ func MultiPartySingleSignatureDemo() {
 		SetScript([]byte(`
 		transaction { 
 			prepare(signer: AuthAccount) { log(signer.address) }
-		}`)).
+		}
+	`)).
 		SetGasLimit(100).
 		SetProposalKey(account1.Address, account1.Keys[0].ID, account1.Keys[0].SequenceNumber).
 		SetPayer(account2.Address).
