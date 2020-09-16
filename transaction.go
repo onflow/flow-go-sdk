@@ -50,7 +50,7 @@ type Transaction struct {
 	// ProposalKey is key of the account used to propose the transaction
 	ProposalKey ProposalKey
 
-	// Payer is the account that pays the feed for this transaction
+	// Payer is the account that pays the fee for this transaction
 	Payer Address
 
 	Authorizers []Address
