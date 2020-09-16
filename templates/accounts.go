@@ -31,10 +31,12 @@ transaction(publicKeys: [[UInt8]], code: [UInt8]) {
 	let acct = AuthAccount(payer: signer)
 
 	for key in publicKeys {
-		acct.addPublicKey(key)
+	  acct.addPublicKey(key)
 	}
-
-	acct.setCode(code)
+	
+	if code.length > 0 {
+	  acct.setCode(code)
+	}
   }
 }
 `
