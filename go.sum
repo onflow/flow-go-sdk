@@ -133,6 +133,8 @@ github.com/onflow/cadence v0.8.0 h1:7qMjZ3QJBdHZO+/HsxAJaLAXBJWVwT60Zw7t2PmJ/pY=
 github.com/onflow/cadence v0.8.0/go.mod h1:R43uGnqQsTcnFf1fMPCcMjDPplBIzbR5XkFZRF2OH3Y=
 github.com/onflow/flow/protobuf/go/flow v0.1.5 h1:OQJhjreSkzV8nsBpx6yJNtCaGdqe5xYn83IkcFMERGU=
 github.com/onflow/flow/protobuf/go/flow v0.1.5/go.mod h1:kRugbzZjwQqvevJhrnnCFMJZNmoSJmxlKt6hTGXZojM=
+github.com/onflow/flow/protobuf/go/flow v0.1.6-0.20200918135459-967e2d272597 h1:ok1yH3tpBZE1pLVYHKXxmP4E9uiCDVtUcmXtPJLZRNQ=
+github.com/onflow/flow/protobuf/go/flow v0.1.6-0.20200918135459-967e2d272597/go.mod h1:kRugbzZjwQqvevJhrnnCFMJZNmoSJmxlKt6hTGXZojM=
 github.com/onsi/ginkgo v1.6.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
 github.com/onsi/ginkgo v1.7.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
 github.com/onsi/gomega v1.4.3/go.mod h1:ex+gbHU/CVuBBDIJjb2X0qEXbFg53c61hWP/1CpauHY=
@@ -184,6 +186,8 @@ github.com/syndtr/goleveldb v1.0.1-0.20190923125748-758128399b1d h1:gZZadD8H+fF+
 github.com/syndtr/goleveldb v1.0.1-0.20190923125748-758128399b1d/go.mod h1:9OrXJhf154huy1nPWmuSrkgjPUtUNhA+Zmy+6AESzuA=
 github.com/tyler-smith/go-bip39 v1.0.1-0.20181017060643-dbb3b84ba2ef/go.mod h1:sJ5fKU0s6JVwZjjcUEX2zFOnvq0ASQ2K9Zr6cf67kNs=
 github.com/urfave/cli v1.22.1/go.mod h1:Gos4lmkARVdJ6EkW0WaNv/tZAAMe9V7XWyB60NtXRu0=
+github.com/vektra/mockery v1.1.2 h1:uc0Yn67rJpjt8U/mAZimdCKn9AeA97BOkjpmtBSlfP4=
+github.com/vektra/mockery v1.1.2/go.mod h1:VcfZjKaFOPO+MpN4ZvwPjs4c48lkq1o3Ym8yHZJu0jU=
 github.com/wsddn/go-ecdh v0.0.0-20161211032359-48726bab9208/go.mod h1:IotVbo4F+mw0EzQ08zFqg7pK3FebNXpaMsRy2RT+Ees=
 github.com/x448/float16 v0.8.4 h1:qLwI1I70+NjRFUR3zs1JPUCgaCXSh3SW62uAKT1mSBM=
 github.com/x448/float16 v0.8.4/go.mod h1:14CWIYCyZA/cWjXOioeEpHeN/83MdbZDRQHoFcYsOfg=
