@@ -29,6 +29,8 @@ package client
 
 import (
 	"context"
+	"github.com/golang/protobuf/ptypes"
+	"time"
 
 	"github.com/onflow/cadence"
 	"github.com/onflow/flow/protobuf/go/flow/access"
@@ -393,6 +395,7 @@ type EventRangeQuery struct {
 type BlockEvents struct {
 	BlockID flow.Identifier
 	Height  uint64
+	BlockTimestamp time.Time
 	Events  []flow.Event
 }
 
@@ -450,10 +453,15 @@ func getEventsResult(res *access.EventsResponse) ([]BlockEvents, error) {
 			events[i] = evt
 		}
 
+		blockTimestamp, err := ptypes.Timestamp(result.BlockTimestamp)
+		if err != nil {
+			return nil, newMessageToEntityError(entityEvent, err)
+		}
 		results[i] = BlockEvents{
-			BlockID: flow.HashToID(result.GetBlockId()),
-			Height:  result.GetBlockHeight(),
-			Events:  events,
+			BlockID:        flow.HashToID(result.GetBlockId()),
+			Height:         result.GetBlockHeight(),
+			BlockTimestamp: blockTimestamp,
+			Events:         events,
 		}
 	}
 

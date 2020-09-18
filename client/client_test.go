@@ -20,8 +20,7 @@ package client_test
 
 import (
 	"context"
-	"testing"
-
+	"github.com/golang/protobuf/ptypes"
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/flow/protobuf/go/flow/access"
@@ -31,6 +30,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"testing"
 
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/client"
@@ -631,16 +631,18 @@ func TestClient_GetEventsForHeightRange(t *testing.T) {
 			response := &access.EventsResponse{
 				Results: []*access.EventsResponse_Result{
 					{
-						BlockId:     ids.New().Bytes(),
-						BlockHeight: 1,
+						BlockId:        ids.New().Bytes(),
+						BlockHeight:    1,
+						BlockTimestamp: ptypes.TimestampNow(),
 						Events: []*entities.Event{
 							eventAMsg,
 							eventBMsg,
 						},
 					},
 					{
-						BlockId:     ids.New().Bytes(),
-						BlockHeight: 2,
+						BlockId:        ids.New().Bytes(),
+						BlockHeight:    2,
+						BlockTimestamp: ptypes.TimestampNow(),
 						Events: []*entities.Event{
 							eventCMsg,
 							eventDMsg,
@@ -725,16 +727,18 @@ func TestClient_GetEventsForBlockIDs(t *testing.T) {
 			response := &access.EventsResponse{
 				Results: []*access.EventsResponse_Result{
 					{
-						BlockId:     blockIDA.Bytes(),
-						BlockHeight: 1,
+						BlockId:        blockIDA.Bytes(),
+						BlockHeight:    1,
+						BlockTimestamp: ptypes.TimestampNow(),
 						Events: []*entities.Event{
 							eventAMsg,
 							eventBMsg,
 						},
 					},
 					{
-						BlockId:     blockIDB.Bytes(),
-						BlockHeight: 2,
+						BlockId:        blockIDB.Bytes(),
+						BlockHeight:    2,
+						BlockTimestamp: ptypes.TimestampNow(),
 						Events: []*entities.Event{
 							eventCMsg,
 							eventDMsg,
