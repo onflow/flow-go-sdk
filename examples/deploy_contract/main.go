@@ -57,12 +57,12 @@ func DeployContractDemo() {
 	createAccountTx := templates.CreateAccount([]*flow.AccountKey{myAcctKey}, nil, serviceAcctAddr)
 	createAccountTx.SetProposalKey(
 		serviceAcctAddr,
-		serviceAcctKey.ID,
+		serviceAcctKey.Index,
 		serviceAcctKey.SequenceNumber,
 	)
 	createAccountTx.SetPayer(serviceAcctAddr)
 
-	err = createAccountTx.SignEnvelope(serviceAcctAddr, serviceAcctKey.ID, serviceSigner)
+	err = createAccountTx.SignEnvelope(serviceAcctAddr, serviceAcctKey.Index, serviceSigner)
 	examples.Handle(err)
 
 	err = flowClient.SendTransaction(ctx, *createAccountTx)
@@ -89,12 +89,12 @@ func DeployContractDemo() {
 	nftCode := examples.ReadFile(GreatTokenContractFile)
 	deployContractTx := templates.CreateAccount(nil, nftCode, myAddress)
 
-	deployContractTx.SetProposalKey(myAddress, myAcctKey.ID, myAcctKey.SequenceNumber)
+	deployContractTx.SetProposalKey(myAddress, myAcctKey.Index, myAcctKey.SequenceNumber)
 	deployContractTx.SetPayer(myAddress)
 
 	err = deployContractTx.SignEnvelope(
 		myAddress,
-		myAcctKey.ID,
+		myAcctKey.Index,
 		crypto.NewInMemorySigner(myPrivateKey, myAcctKey.HashAlgo),
 	)
 	examples.Handle(err)
@@ -124,11 +124,11 @@ func DeployContractDemo() {
 
 	createMinterTx := flow.NewTransaction().
 		SetScript(createMinterScript).
-		SetProposalKey(myAddress, myAcctKey.ID, myAcctKey.SequenceNumber).
+		SetProposalKey(myAddress, myAcctKey.Index, myAcctKey.SequenceNumber).
 		SetPayer(myAddress).
 		AddAuthorizer(myAddress)
 
-	err = createMinterTx.SignEnvelope(myAddress, myAcctKey.ID, mySigner)
+	err = createMinterTx.SignEnvelope(myAddress, myAcctKey.Index, mySigner)
 	examples.Handle(err)
 
 	err = flowClient.SendTransaction(ctx, *createMinterTx)
@@ -145,11 +145,11 @@ func DeployContractDemo() {
 	// Mint the NFT
 	mintTx := flow.NewTransaction().
 		SetScript(mintScript).
-		SetProposalKey(myAddress, myAcctKey.ID, myAcctKey.SequenceNumber).
+		SetProposalKey(myAddress, myAcctKey.Index, myAcctKey.SequenceNumber).
 		SetPayer(myAddress).
 		AddAuthorizer(myAddress)
 
-	err = mintTx.SignEnvelope(myAddress, myAcctKey.ID, mySigner)
+	err = mintTx.SignEnvelope(myAddress, myAcctKey.Index, mySigner)
 	examples.Handle(err)
 
 	err = flowClient.SendTransaction(ctx, *mintTx)

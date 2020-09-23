@@ -69,9 +69,9 @@ func QueryEventsDemo() {
 	runScriptTx := flow.NewTransaction().
 		SetScript([]byte(script)).
 		SetPayer(acctAddr).
-		SetProposalKey(acctAddr, acctKey.ID, acctKey.SequenceNumber)
+		SetProposalKey(acctAddr, acctKey.Index, acctKey.SequenceNumber)
 
-	err = runScriptTx.SignEnvelope(acctAddr, acctKey.ID, acctSigner)
+	err = runScriptTx.SignEnvelope(acctAddr, acctKey.Index, acctSigner)
 	examples.Handle(err)
 
 	err = flowClient.SendTransaction(ctx, *runScriptTx)

@@ -59,12 +59,12 @@ func SinglePartySingleSignatureDemo() {
             }
         `)).
 		SetGasLimit(100).
-		SetProposalKey(account1.Address, account1.Keys[0].ID, account1.Keys[0].SequenceNumber).
+		SetProposalKey(account1.Address, account1.Keys[0].Index, account1.Keys[0].SequenceNumber).
 		SetPayer(account1.Address).
 		AddAuthorizer(account1.Address)
 
 	// account 1 signs the envelope with key 1
-	err = tx.SignEnvelope(account1.Address, account1.Keys[0].ID, key1Signer)
+	err = tx.SignEnvelope(account1.Address, account1.Keys[0].Index, key1Signer)
 	examples.Handle(err)
 
 	err = flowClient.SendTransaction(ctx, *tx)

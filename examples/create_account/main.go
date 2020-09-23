@@ -51,14 +51,14 @@ func CreateAccountDemo() {
 	createAccountTx := templates.CreateAccount([]*flow.AccountKey{myAcctKey}, nil, serviceAcctAddr)
 	createAccountTx.SetProposalKey(
 		serviceAcctAddr,
-		serviceAcctKey.ID,
+		serviceAcctKey.Index,
 		serviceAcctKey.SequenceNumber,
 	)
 	createAccountTx.SetPayer(serviceAcctAddr)
 
 	// Sign the transaction with the service account, which already exists
 	// All new accounts must be created by an existing account
-	err = createAccountTx.SignEnvelope(serviceAcctAddr, serviceAcctKey.ID, serviceSigner)
+	err = createAccountTx.SignEnvelope(serviceAcctAddr, serviceAcctKey.Index, serviceSigner)
 	examples.Handle(err)
 
 	// Send the transaction to the network

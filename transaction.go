@@ -161,10 +161,10 @@ func (t *Transaction) SetGasLimit(limit uint64) *Transaction {
 //
 // The first two arguments specify the account key to be used, and the last argument is the sequence
 // number being declared.
-func (t *Transaction) SetProposalKey(address Address, keyID int, sequenceNum uint64) *Transaction {
+func (t *Transaction) SetProposalKey(address Address, keyIndex int, sequenceNum uint64) *Transaction {
 	proposalKey := ProposalKey{
 		Address:        address,
-		KeyID:          keyID,
+		KeyIndex:       keyIndex,
 		SequenceNumber: sequenceNum,
 	}
 	t.ProposalKey = proposalKey
@@ -234,43 +234,43 @@ func (t *Transaction) signerMap() map[Address]int {
 
 // SignPayload signs the transaction payload with the specified account key.
 //
-// The resulting signature is combined with the account address and key ID before
+// The resulting signature is combined with the account address and key index before
 // being added to the transaction.
 //
 // This function returns an error if the signature cannot be generated.
-func (t *Transaction) SignPayload(address Address, keyID int, signer crypto.Signer) error {
+func (t *Transaction) SignPayload(address Address, keyIndex int, signer crypto.Signer) error {
 	sig, err := signer.Sign(t.PayloadMessage())
 	if err != nil {
 		// TODO: wrap error
 		return err
 	}
 
-	t.AddPayloadSignature(address, keyID, sig)
+	t.AddPayloadSignature(address, keyIndex, sig)
 
 	return nil
 }
 
 // SignEnvelope signs the full transaction (payload + payload signatures) with the specified account key.
 //
-// The resulting signature is combined with the account address and key ID before
+// The resulting signature is combined with the account address and key index before
 // being added to the transaction.
 //
 // This function returns an error if the signature cannot be generated.
-func (t *Transaction) SignEnvelope(address Address, keyID int, signer crypto.Signer) error {
+func (t *Transaction) SignEnvelope(address Address, keyIndex int, signer crypto.Signer) error {
 	sig, err := signer.Sign(t.EnvelopeMessage())
 	if err != nil {
 		// TODO: wrap error
 		return err
 	}
 
-	t.AddEnvelopeSignature(address, keyID, sig)
+	t.AddEnvelopeSignature(address, keyIndex, sig)
 
 	return nil
 }
 
-// AddPayloadSignature adds a payload signature to the transaction for the given address and key ID.
-func (t *Transaction) AddPayloadSignature(address Address, keyID int, sig []byte) *Transaction {
-	s := t.createSignature(address, keyID, sig)
+// AddPayloadSignature adds a payload signature to the transaction for the given address and key index.
+func (t *Transaction) AddPayloadSignature(address Address, keyIndex int, sig []byte) *Transaction {
+	s := t.createSignature(address, keyIndex, sig)
 
 	t.PayloadSignatures = append(t.PayloadSignatures, s)
 	sort.Slice(t.PayloadSignatures, compareSignatures(t.PayloadSignatures))
@@ -278,9 +278,9 @@ func (t *Transaction) AddPayloadSignature(address Address, keyID int, sig []byte
 	return t
 }
 
-// AddEnvelopeSignature adds an envelope signature to the transaction for the given address and key ID.
-func (t *Transaction) AddEnvelopeSignature(address Address, keyID int, sig []byte) *Transaction {
-	s := t.createSignature(address, keyID, sig)
+// AddEnvelopeSignature adds an envelope signature to the transaction for the given address and key index.
+func (t *Transaction) AddEnvelopeSignature(address Address, keyIndex int, sig []byte) *Transaction {
+	s := t.createSignature(address, keyIndex, sig)
 
 	t.EnvelopeSignatures = append(t.EnvelopeSignatures, s)
 	sort.Slice(t.EnvelopeSignatures, compareSignatures(t.EnvelopeSignatures))
@@ -288,7 +288,7 @@ func (t *Transaction) AddEnvelopeSignature(address Address, keyID int, sig []byt
 	return t
 }
 
-func (t *Transaction) createSignature(address Address, keyID int, sig []byte) TransactionSignature {
+func (t *Transaction) createSignature(address Address, keyIndex int, sig []byte) TransactionSignature {
 	signerIndex, signerExists := t.signerMap()[address]
 	if !signerExists {
 		signerIndex = -1
@@ -297,7 +297,7 @@ func (t *Transaction) createSignature(address Address, keyID int, sig []byte) Tr
 	return TransactionSignature{
 		Address:     address,
 		SignerIndex: signerIndex,
-		KeyID:       keyID,
+		KeyIndex:    keyIndex,
 		Signature:   sig,
 	}
 }
@@ -319,7 +319,7 @@ func (t *Transaction) payloadCanonicalForm() interface{} {
 		ReferenceBlockID          []byte
 		GasLimit                  uint64
 		ProposalKeyAddress        []byte
-		ProposalKeyID             uint64
+		ProposalKeyIndex          uint64
 		ProposalKeySequenceNumber uint64
 		Payer                     []byte
 		Authorizers               [][]byte
@@ -329,7 +329,7 @@ func (t *Transaction) payloadCanonicalForm() interface{} {
 		ReferenceBlockID:          t.ReferenceBlockID[:],
 		GasLimit:                  t.GasLimit,
 		ProposalKeyAddress:        t.ProposalKey.Address.Bytes(),
-		ProposalKeyID:             uint64(t.ProposalKey.KeyID),
+		ProposalKeyIndex:          uint64(t.ProposalKey.KeyIndex),
 		ProposalKeySequenceNumber: t.ProposalKey.SequenceNumber,
 		Payer:                     t.Payer.Bytes(),
 		Authorizers:               authorizers,
@@ -372,7 +372,7 @@ func (t *Transaction) Encode() []byte {
 // A ProposalKey is the key that specifies the proposal key and sequence number for a transaction.
 type ProposalKey struct {
 	Address        Address
-	KeyID          int
+	KeyIndex       int
 	SequenceNumber uint64
 }
 
@@ -380,18 +380,18 @@ type ProposalKey struct {
 type TransactionSignature struct {
 	Address     Address
 	SignerIndex int
-	KeyID       int
+	KeyIndex    int
 	Signature   []byte
 }
 
 func (s TransactionSignature) canonicalForm() interface{} {
 	return struct {
 		SignerIndex uint
-		KeyID       uint
+		KeyIndex    uint
 		Signature   []byte
 	}{
 		SignerIndex: uint(s.SignerIndex), // int is not RLP-serializable
-		KeyID:       uint(s.KeyID),       // int is not RLP-serializable
+		KeyIndex:    uint(s.KeyIndex),    // int is not RLP-serializable
 		Signature:   s.Signature,
 	}
 }
@@ -400,7 +400,7 @@ func compareSignatures(signatures []TransactionSignature) func(i, j int) bool {
 	return func(i, j int) bool {
 		sigA := signatures[i]
 		sigB := signatures[j]
-		return sigA.SignerIndex < sigB.SignerIndex || sigA.KeyID < sigB.KeyID
+		return sigA.SignerIndex < sigB.SignerIndex || sigA.KeyIndex < sigB.KeyIndex
 	}
 }
 

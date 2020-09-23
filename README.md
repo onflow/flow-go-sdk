@@ -133,10 +133,10 @@ payer, payerKey, payerSigner := examples.ServiceAccount(c)
 tx := flow.NewTransaction().
     SetScript(script).
     SetGasLimit(100).
-    SetProposalKey(payer, payerKey.ID, payerKey.SequenceNumber).
+    SetProposalKey(payer, payerKey.Index, payerKey.SequenceNumber).
     SetPayer(payer)
 
-err = tx.SignEnvelope(payer, payerKey.ID, payerSigner)
+err = tx.SignEnvelope(payer, payerKey.Index, payerSigner)
 if err != nil {
     panic("failed to sign transaction")
 }
@@ -182,7 +182,7 @@ var (
 tx := flow.NewTransaction().
     SetScript([]byte("transaction { execute { log(\"Hello, World!\") } }")).
     SetGasLimit(100).
-    SetProposalKey(myAddress, myAccountKey.ID, myAccountKey.SequenceNumber).
+    SetProposalKey(myAddress, myAccountKey.Index, myAccountKey.SequenceNumber).
     SetPayer(myAddress)
 ```
 
@@ -198,7 +198,7 @@ and is not limited to in-memory implementations.
 // construct a signer from your private key and configured hash algorithm
 mySigner := crypto.NewInMemorySigner(myPrivateKey, myAccountKey.HashAlgo)
 
-err := tx.SignEnvelope(myAddress, myAccountKey.ID, mySigner)
+err := tx.SignEnvelope(myAddress, myAccountKey.Index, mySigner)
 if err != nil {
     panic("failed to sign transaction")
 }
@@ -236,12 +236,12 @@ tx := flow.NewTransaction().
         }
     `)).
     SetGasLimit(100).
-    SetProposalKey(account1.Address, key1.ID, key1.SequenceNumber).
+    SetProposalKey(account1.Address, key1.Index, key1.SequenceNumber).
     SetPayer(account1.Address).
     AddAuthorizer(account1.Address)
 
 // account 1 signs the envelope with key 1
-err := tx.SignEnvelope(account1.Address, key1.ID, key1Signer)
+err := tx.SignEnvelope(account1.Address, key1.Index, key1Signer)
 ```
 
 [Full Runnable Example](/examples#single-party-single-signature)
@@ -276,15 +276,15 @@ tx := flow.NewTransaction().
         }
     `)).
     SetGasLimit(100).
-    SetProposalKey(account1.Address, key1.ID, key1.SequenceNumber).
+    SetProposalKey(account1.Address, key1.Index, key1.SequenceNumber).
     SetPayer(account1.Address).
     AddAuthorizer(account1.Address)
 
 // account 1 signs the envelope with key 1
-err := tx.SignEnvelope(account1.Address, key1.ID, key1Signer)
+err := tx.SignEnvelope(account1.Address, key1.Index, key1Signer)
 
 // account 1 signs the envelope with key 2
-err = tx.SignEnvelope(account1.Address, key2.ID, key2Signer)
+err = tx.SignEnvelope(account1.Address, key2.Index, key2Signer)
 ```
 
 [Full Runnable Example](/examples#single-party-multiple-signatures)
@@ -322,16 +322,16 @@ tx := flow.NewTransaction().
         }
     `)).
     SetGasLimit(100).
-    SetProposalKey(account1.Address, key1.ID, key1.SequenceNumber).
+    SetProposalKey(account1.Address, key1.Index, key1.SequenceNumber).
     SetPayer(account2.Address).
     AddAuthorizer(account1.Address)
 
 // account 1 signs the payload with key 1
-err := tx.SignPayload(account1.Address, key1.ID, key1Signer)
+err := tx.SignPayload(account1.Address, key1.Index, key1Signer)
 
 // account 2 signs the envelope with key 3
 // note: payer always signs last
-err = tx.SignEnvelope(account2.Address, key3.ID, key3Signer)
+err = tx.SignEnvelope(account2.Address, key3.Index, key3Signer)
 ```
 
 [Full Runnable Example](/examples#multiple-parties)
@@ -372,17 +372,17 @@ tx := flow.NewTransaction().
         }
     `)).
     SetGasLimit(100).
-    SetProposalKey(account1.Address, key1.ID, key1.SequenceNumber).
+    SetProposalKey(account1.Address, key1.Index, key1.SequenceNumber).
     SetPayer(account2.Address).
     AddAuthorizer(account1.Address).
     AddAuthorizer(account2.Address)
 
 // account 1 signs the payload with key 1
-err := tx.SignPayload(account1.Address, key1.ID, key1Signer)
+err := tx.SignPayload(account1.Address, key1.Index, key1Signer)
 
 // account 2 signs the envelope with key 3
 // note: payer always signs last
-err = tx.SignEnvelope(account2.Address, key3.ID, key3Signer)
+err = tx.SignEnvelope(account2.Address, key3.Index, key3Signer)
 ```
 
 [Full Runnable Example](/examples#multiple-parties-two-authorizers)
@@ -427,23 +427,23 @@ tx := flow.NewTransaction().
         }
     `)).
     SetGasLimit(100).
-    SetProposalKey(account1.Address, key1.ID, key1.SequenceNumber).
+    SetProposalKey(account1.Address, key1.Index, key1.SequenceNumber).
     SetPayer(account2.Address).
     AddAuthorizer(account1.Address)
 
 // account 1 signs the payload with key 1
-err := tx.SignPayload(account1.Address, key1.ID, key1Signer)
+err := tx.SignPayload(account1.Address, key1.Index, key1Signer)
 
 // account 1 signs the payload with key 2
-err = tx.SignPayload(account1.Address, key2.ID, key2Signer)
+err = tx.SignPayload(account1.Address, key2.Index, key2Signer)
 
 // account 2 signs the envelope with key 3
 // note: payer always signs last
-err = tx.SignEnvelope(account2.Address, key3.ID, key3Signer)
+err = tx.SignEnvelope(account2.Address, key3.Index, key3Signer)
 
 // account 2 signs the envelope with key 4
 // note: payer always signs last
-err = tx.SignEnvelope(account2.Address, key4.ID, key4Signer)
+err = tx.SignEnvelope(account2.Address, key4.Index, key4Signer)
 ```
 
 [Full Runnable Example](/examples#multiple-parties-multiple-signatures)
