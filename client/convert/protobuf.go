@@ -74,7 +74,7 @@ func MessageToAccount(m *entities.Account) (flow.Account, error) {
 
 func AccountKeyToMessage(a *flow.AccountKey) *entities.AccountKey {
 	return &entities.AccountKey{
-		Index:          uint32(a.ID),
+		Index:          uint32(a.Index),
 		PublicKey:      a.PublicKey.Encode(),
 		SignAlgo:       uint32(a.SigAlgo),
 		HashAlgo:       uint32(a.HashAlgo),
@@ -98,7 +98,7 @@ func MessageToAccountKey(m *entities.AccountKey) (*flow.AccountKey, error) {
 	}
 
 	return &flow.AccountKey{
-		ID:             int(m.GetIndex()),
+		Index:          int(m.GetIndex()),
 		PublicKey:      publicKey,
 		SigAlgo:        sigAlgo,
 		HashAlgo:       hashAlgo,
@@ -349,7 +349,7 @@ func MessagesToIdentifiers(l [][]byte) []flow.Identifier {
 func TransactionToMessage(t flow.Transaction) (*entities.Transaction, error) {
 	proposalKeyMessage := &entities.Transaction_ProposalKey{
 		Address:        t.ProposalKey.Address.Bytes(),
-		KeyId:          uint32(t.ProposalKey.KeyID),
+		KeyId:          uint32(t.ProposalKey.KeyIndex),
 		SequenceNumber: t.ProposalKey.SequenceNumber,
 	}
 
@@ -363,7 +363,7 @@ func TransactionToMessage(t flow.Transaction) (*entities.Transaction, error) {
 	for i, sig := range t.PayloadSignatures {
 		payloadSigMessages[i] = &entities.Transaction_Signature{
 			Address:   sig.Address.Bytes(),
-			KeyId:     uint32(sig.KeyID),
+			KeyId:     uint32(sig.KeyIndex),
 			Signature: sig.Signature,
 		}
 	}
@@ -373,7 +373,7 @@ func TransactionToMessage(t flow.Transaction) (*entities.Transaction, error) {
 	for i, sig := range t.EnvelopeSignatures {
 		envelopeSigMessages[i] = &entities.Transaction_Signature{
 			Address:   sig.Address.Bytes(),
-			KeyId:     uint32(sig.KeyID),
+			KeyId:     uint32(sig.KeyIndex),
 			Signature: sig.Signature,
 		}
 	}

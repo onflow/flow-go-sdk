@@ -52,11 +52,11 @@ func AddAccountKeyDemo() {
 
 	addKeyTx := templates.AddAccountKey(acctAddr, myAcctKey)
 
-	addKeyTx.SetProposalKey(acctAddr, acctKey.ID, acctKey.SequenceNumber)
+	addKeyTx.SetProposalKey(acctAddr, acctKey.Index, acctKey.SequenceNumber)
 	addKeyTx.SetPayer(acctAddr)
 
 	// Sign the transaction with the new account.
-	err = addKeyTx.SignEnvelope(acctAddr, acctKey.ID, acctSigner)
+	err = addKeyTx.SignEnvelope(acctAddr, acctKey.Index, acctSigner)
 	examples.Handle(err)
 
 	// Send the transaction to the network.

@@ -85,7 +85,7 @@ func (g *AccountKeys) NewWithSigner() (*flow.AccountKey, crypto.Signer) {
 	}
 
 	accountKey := flow.AccountKey{
-		ID:             g.count,
+		Index:          g.count,
 		PublicKey:      privateKey.PublicKey(),
 		SigAlgo:        crypto.ECDSA_P256,
 		HashAlgo:       crypto.SHA3_256,
@@ -293,8 +293,8 @@ func (g *Transactions) New() *flow.Transaction {
 	// sign payload with proposal key
 	err := tx.SignPayload(
 		tx.ProposalKey.Address,
-		tx.ProposalKey.KeyID,
-		MockSigner([]byte{uint8(tx.ProposalKey.KeyID)}),
+		tx.ProposalKey.KeyIndex,
+		MockSigner([]byte{uint8(tx.ProposalKey.KeyIndex)}),
 	)
 	if err != nil {
 		panic(err)
@@ -330,7 +330,7 @@ func (g *Transactions) NewUnsigned() *flow.Transaction {
 		SetScript(GreetingScript).
 		SetReferenceBlockID(blockID).
 		SetGasLimit(42).
-		SetProposalKey(accountA.Address, proposalKey.ID, proposalKey.SequenceNumber).
+		SetProposalKey(accountA.Address, proposalKey.Index, proposalKey.SequenceNumber).
 		AddAuthorizer(accountA.Address).
 		SetPayer(accountB.Address)
 

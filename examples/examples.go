@@ -153,10 +153,10 @@ func CreateAccount(flowClient *client.Client, publicKeys []*flow.AccountKey, cod
 
 	createAccountTx := templates.CreateAccount(publicKeys, code, serviceAcctAddr)
 	createAccountTx.
-		SetProposalKey(serviceAcctAddr, serviceAcctKey.ID, serviceAcctKey.SequenceNumber).
+		SetProposalKey(serviceAcctAddr, serviceAcctKey.Index, serviceAcctKey.SequenceNumber).
 		SetPayer(serviceAcctAddr)
 
-	err := createAccountTx.SignEnvelope(serviceAcctAddr, serviceAcctKey.ID, serviceSigner)
+	err := createAccountTx.SignEnvelope(serviceAcctAddr, serviceAcctKey.Index, serviceSigner)
 	Handle(err)
 
 	err = flowClient.SendTransaction(ctx, *createAccountTx)

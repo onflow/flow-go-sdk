@@ -87,24 +87,24 @@ func MultiPartyMultiSignatureDemo() {
             }
         `)).
 		SetGasLimit(100).
-		SetProposalKey(account1.Address, account1.Keys[0].ID, account1.Keys[0].SequenceNumber).
+		SetProposalKey(account1.Address, account1.Keys[0].Index, account1.Keys[0].SequenceNumber).
 		SetPayer(account2.Address).
 		AddAuthorizer(account1.Address)
 
 	// account 1 signs the payload with key 1
-	err = tx.SignPayload(account1.Address, account1.Keys[0].ID, key1Signer)
+	err = tx.SignPayload(account1.Address, account1.Keys[0].Index, key1Signer)
 	examples.Handle(err)
 
 	// account 1 signs the payload with key 2
-	err = tx.SignPayload(account1.Address, account1.Keys[1].ID, key2Signer)
+	err = tx.SignPayload(account1.Address, account1.Keys[1].Index, key2Signer)
 	examples.Handle(err)
 
 	// account 2 signs the envelope with key 3
-	err = tx.SignEnvelope(account2.Address, account2.Keys[0].ID, key3Signer)
+	err = tx.SignEnvelope(account2.Address, account2.Keys[0].Index, key3Signer)
 	examples.Handle(err)
 
 	// account 2 signs the envelope with key 4
-	err = tx.SignEnvelope(account2.Address, account2.Keys[1].ID, key4Signer)
+	err = tx.SignEnvelope(account2.Address, account2.Keys[1].Index, key4Signer)
 	examples.Handle(err)
 
 	err = flowClient.SendTransaction(ctx, *tx)
