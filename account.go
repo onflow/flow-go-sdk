@@ -43,6 +43,7 @@ type AccountKey struct {
 	HashAlgo       crypto.HashAlgorithm
 	Weight         int
 	SequenceNumber uint64
+	Revoked        bool
 }
 
 // NewAccountKey returns an empty account key.

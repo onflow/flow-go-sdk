@@ -80,6 +80,7 @@ func AccountKeyToMessage(a *flow.AccountKey) *entities.AccountKey {
 		HashAlgo:       uint32(a.HashAlgo),
 		Weight:         uint32(a.Weight),
 		SequenceNumber: uint32(a.SequenceNumber),
+		Revoked:        a.Revoked,
 	}
 }
 
@@ -103,6 +104,7 @@ func MessageToAccountKey(m *entities.AccountKey) (*flow.AccountKey, error) {
 		HashAlgo:       hashAlgo,
 		Weight:         int(m.GetWeight()),
 		SequenceNumber: uint64(m.GetSequenceNumber()),
+		Revoked:        m.GetRevoked(),
 	}, nil
 }
 
