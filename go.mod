@@ -7,7 +7,7 @@ require (
 	github.com/btcsuite/btcd v0.0.0-20171128150713-2e60448ffcc6
 	github.com/ethereum/go-ethereum v1.9.9
 	github.com/golang/protobuf v1.4.2
-	github.com/onflow/cadence v0.8.0
+	github.com/onflow/cadence v0.9.0
 	github.com/onflow/flow/protobuf/go/flow v0.1.7
 	github.com/pkg/errors v0.8.1
 	github.com/stretchr/objx v0.1.1 // indirect

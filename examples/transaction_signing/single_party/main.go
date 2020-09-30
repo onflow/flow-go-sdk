@@ -52,6 +52,7 @@ func SinglePartySingleSignatureDemo() {
 
 	account1 := examples.CreateAccount(flowClient, []*flow.AccountKey{key1}, nil)
 
+	referenceBlockId := examples.GetReferenceBlockId(flowClient)
 	tx := flow.NewTransaction().
 		SetScript([]byte(`
             transaction { 
@@ -60,6 +61,7 @@ func SinglePartySingleSignatureDemo() {
         `)).
 		SetGasLimit(100).
 		SetProposalKey(account1.Address, account1.Keys[0].Index, account1.Keys[0].SequenceNumber).
+		SetReferenceBlockID(referenceBlockId).
 		SetPayer(account1.Address).
 		AddAuthorizer(account1.Address)
 

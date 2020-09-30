@@ -52,7 +52,10 @@ func AddAccountKeyDemo() {
 
 	addKeyTx := templates.AddAccountKey(acctAddr, myAcctKey)
 
+	referenceBlockId := examples.GetReferenceBlockId(flowClient)
+
 	addKeyTx.SetProposalKey(acctAddr, acctKey.Index, acctKey.SequenceNumber)
+	addKeyTx.SetReferenceBlockID(referenceBlockId)
 	addKeyTx.SetPayer(acctAddr)
 
 	// Sign the transaction with the new account.
