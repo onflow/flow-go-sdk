@@ -82,7 +82,7 @@ func NewClient(ctx context.Context) (*Client, error) {
 //
 // ECDSA_P256 is currently the only Flow signature algorithm supported by Google Cloud KMS.
 //
-// Reference: https://cloud.google.com/kms/docs/retrieve-public-key
+// Ref: https://cloud.google.com/kms/docs/retrieve-public-key
 func (c *Client) GetPublicKey(ctx context.Context, key Key) (crypto.PublicKey, crypto.HashAlgorithm, error) {
 	request := &kmspb.GetPublicKeyRequest{
 		Name: key.ResourceID(),
