@@ -141,6 +141,12 @@ func RandomAccount(flowClient *client.Client) (flow.Address, *flow.AccountKey, c
 	return account.Address, account.Keys[0], signer
 }
 
+func GetReferenceBlockId(flowClient *client.Client) flow.Identifier {
+	blk, err := flowClient.GetLatestBlock(context.Background(), false)
+	Handle(err)
+	return blk.ID
+}
+
 func DeployContract(flowClient *client.Client, code []byte) flow.Address {
 	account := CreateAccount(flowClient, nil, code)
 	return account.Address
@@ -150,10 +156,12 @@ func CreateAccount(flowClient *client.Client, publicKeys []*flow.AccountKey, cod
 	ctx := context.Background()
 
 	serviceAcctAddr, serviceAcctKey, serviceSigner := ServiceAccount(flowClient)
+	referenceBlockId := GetReferenceBlockId(flowClient)
 
 	createAccountTx := templates.CreateAccount(publicKeys, code, serviceAcctAddr)
 	createAccountTx.
 		SetProposalKey(serviceAcctAddr, serviceAcctKey.Index, serviceAcctKey.SequenceNumber).
+		SetReferenceBlockID(referenceBlockId).
 		SetPayer(serviceAcctAddr)
 
 	err := createAccountTx.SignEnvelope(serviceAcctAddr, serviceAcctKey.Index, serviceSigner)
