@@ -19,7 +19,10 @@
 package crypto
 
 import (
+	"crypto/ecdsa"
+	"crypto/x509"
 	"encoding/hex"
+	"encoding/pem"
 	"fmt"
 
 	"github.com/onflow/flow-go-sdk/crypto/internal/crypto"
@@ -293,4 +296,23 @@ func DecodePublicKeyHex(sigAlgo SignatureAlgorithm, s string) (PublicKey, error)
 	}
 
 	return DecodePublicKey(sigAlgo, b)
+}
+
+// DecodePublicKeyHex decodes a PEM public key with the given signature algorithm.
+func DecodePublicKeyPEM(sigAlgo SignatureAlgorithm, s string) (PublicKey, error) {
+	block, _ := pem.Decode([]byte(s))
+
+	publicKey, err := x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		return PublicKey{}, fmt.Errorf("crypto: failed to parse PEM string: %w", err)
+	}
+
+	goPublicKey := publicKey.(*ecdsa.PublicKey)
+
+	rawPublicKey := append(
+		goPublicKey.X.Bytes(),
+		goPublicKey.Y.Bytes()...,
+	)
+
+	return DecodePublicKey(sigAlgo, rawPublicKey)
 }
