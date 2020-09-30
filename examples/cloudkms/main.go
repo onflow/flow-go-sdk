@@ -27,7 +27,6 @@ import (
 
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/client"
-	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/crypto/cloudkms"
 	"github.com/onflow/flow-go-sdk/examples"
 	"github.com/onflow/flow-go-sdk/test"
@@ -54,11 +53,15 @@ func GoogleCloudKMSDemo() {
 		KeyVersion: "1",
 	}
 
-	accountKMSSigner, err := cloudkms.NewSigner(
+	kmsClient, err := cloudkms.NewClient(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	accountKMSSigner, err := kmsClient.SignerForKey(
 		ctx,
 		accountAddress,
 		accountKMSKey,
-		crypto.SHA2_256,
 	)
 	if err != nil {
 		panic(err)
