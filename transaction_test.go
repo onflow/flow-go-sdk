@@ -547,3 +547,19 @@ func TestTransaction_RLPMessages(t *testing.T) {
 		})
 	}
 }
+
+func TestAddresses(t *testing.T) {
+	emulator := flow.NewAddressGenerator(flow.Emulator)
+	testnet := flow.NewAddressGenerator(flow.Testnet)
+	mainnet := flow.NewAddressGenerator(flow.Mainnet)
+
+	t.Logf("Emulator: %s", emulator.SetIndex(42).Address())
+	t.Logf("Testnet: %s", testnet.SetIndex(42).Address())
+	t.Logf("Mainnet: %s", mainnet.SetIndex(42).Address())
+
+	address := flow.HexToAddress("f8d6e0586b0a20c7")
+
+	t.Log(address.IsValid(flow.Emulator))
+	t.Log(address.IsValid(flow.Testnet))
+	t.Log(address.IsValid(flow.Mainnet))
+}
