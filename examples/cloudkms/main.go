@@ -82,13 +82,13 @@ func GoogleCloudKMSDemo() {
 	tx := flow.NewTransaction().
 		SetScript(test.GreetingScript).
 		SetReferenceBlockID(latestBlock.ID).
-		SetProposalKey(accountAddress, accountKey.ID, accountKey.SequenceNumber).
+		SetProposalKey(accountAddress, accountKey.Index, accountKey.SequenceNumber).
 		SetPayer(accountAddress)
 
 	err = tx.AddArgument(cadence.NewString(test.GreetingGenerator().Random()))
 	examples.Handle(err)
 
-	err = tx.SignEnvelope(accountAddress, accountKey.ID, accountKMSSigner)
+	err = tx.SignEnvelope(accountAddress, accountKey.Index, accountKMSSigner)
 	examples.Handle(err)
 
 	err = flowClient.SendTransaction(ctx, *tx)
