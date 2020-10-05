@@ -66,11 +66,11 @@ func QueryEventsDemo() {
 		}
 	`, contractAddr.Hex())
 
-	referenceBlockId := examples.GetReferenceBlockId(flowClient)
+	referenceBlockID := examples.GetReferenceBlockId(flowClient)
 	runScriptTx := flow.NewTransaction().
 		SetScript([]byte(script)).
 		SetPayer(acctAddr).
-		SetReferenceBlockID(referenceBlockId).
+		SetReferenceBlockID(referenceBlockID).
 		SetProposalKey(acctAddr, acctKey.Index, acctKey.SequenceNumber)
 
 	err = runScriptTx.SignEnvelope(acctAddr, acctKey.Index, acctSigner)

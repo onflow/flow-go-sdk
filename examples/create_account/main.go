@@ -48,14 +48,14 @@ func CreateAccountDemo() {
 		SetHashAlgo(crypto.SHA3_256).
 		SetWeight(flow.AccountKeyWeightThreshold)
 
-	referenceBlockId := examples.GetReferenceBlockId(flowClient)
+	referenceBlockID := examples.GetReferenceBlockId(flowClient)
 	createAccountTx := templates.CreateAccount([]*flow.AccountKey{myAcctKey}, nil, serviceAcctAddr)
 	createAccountTx.SetProposalKey(
 		serviceAcctAddr,
 		serviceAcctKey.Index,
 		serviceAcctKey.SequenceNumber,
 	)
-	createAccountTx.SetReferenceBlockID(referenceBlockId)
+	createAccountTx.SetReferenceBlockID(referenceBlockID)
 	createAccountTx.SetPayer(serviceAcctAddr)
 
 	// Sign the transaction with the service account, which already exists
