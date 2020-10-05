@@ -59,7 +59,7 @@ func SinglePartyMultiSignatureDemo() {
 
 	key2Signer := crypto.NewInMemorySigner(privateKey2, key2.HashAlgo)
 
-	account1 := examples.CreateAccount(flowClient, []*flow.AccountKey{key1, key2}, nil)
+	account1 := examples.CreateAccount(flowClient, []*flow.AccountKey{key1, key2})
 
 	referenceBlockID := examples.GetReferenceBlockId(flowClient)
 	tx := flow.NewTransaction().

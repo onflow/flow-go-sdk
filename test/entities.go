@@ -49,7 +49,6 @@ func (g *Accounts) New() *flow.Account {
 			g.accountKeys.New(),
 			g.accountKeys.New(),
 		},
-		Code: nil,
 	}
 }
 

@@ -26,10 +26,11 @@ import (
 
 // An Account is an account on the Flow network.
 type Account struct {
-	Address Address
-	Balance uint64
-	Code    []byte
-	Keys    []*AccountKey
+	Address   Address
+	Balance   uint64
+	Code      []byte
+	Keys      []*AccountKey
+	Contracts map[string][]byte
 }
 
 // AccountKeyWeightThreshold is the total key weight required to authorize access to an account.

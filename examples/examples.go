@@ -34,12 +34,12 @@ import (
 )
 
 // ReadFile reads a file from the file system.
-func ReadFile(path string) []byte {
+func ReadFile(path string) string {
 	contents, err := ioutil.ReadFile(path)
 	if err != nil {
 		panic(err)
 	}
-	return contents
+	return string(contents)
 }
 
 const configPath = "./flow.json"
@@ -133,7 +133,6 @@ func RandomAccount(flowClient *client.Client) (flow.Address, *flow.AccountKey, c
 	account := CreateAccount(
 		flowClient,
 		[]*flow.AccountKey{accountKey},
-		nil,
 	)
 
 	signer := crypto.NewInMemorySigner(privateKey, accountKey.HashAlgo)
@@ -147,18 +146,13 @@ func GetReferenceBlockId(flowClient *client.Client) flow.Identifier {
 	return block.ID
 }
 
-func DeployContract(flowClient *client.Client, code []byte) flow.Address {
-	account := CreateAccount(flowClient, nil, code)
-	return account.Address
-}
-
-func CreateAccount(flowClient *client.Client, publicKeys []*flow.AccountKey, code []byte) *flow.Account {
+func CreateAccountWithContracts(flowClient *client.Client, publicKeys []*flow.AccountKey, contracts []templates.Contract) *flow.Account {
 	ctx := context.Background()
 
 	serviceAcctAddr, serviceAcctKey, serviceSigner := ServiceAccount(flowClient)
 	referenceBlockID := GetReferenceBlockId(flowClient)
 
-	createAccountTx := templates.CreateAccount(publicKeys, code, serviceAcctAddr)
+	createAccountTx := templates.CreateAccount(publicKeys, contracts, serviceAcctAddr)
 	createAccountTx.
 		SetProposalKey(serviceAcctAddr, serviceAcctKey.Index, serviceAcctKey.SequenceNumber).
 		SetReferenceBlockID(referenceBlockID).
@@ -182,6 +176,10 @@ func CreateAccount(flowClient *client.Client, publicKeys []*flow.AccountKey, cod
 	Handle(err)
 
 	return account
+}
+
+func CreateAccount(flowClient *client.Client, publicKeys []*flow.AccountKey) *flow.Account {
+	return CreateAccountWithContracts(flowClient, publicKeys, nil)
 }
 
 func Handle(err error) {
