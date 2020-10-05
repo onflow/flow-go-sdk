@@ -70,10 +70,10 @@ func KeyFromResourceID(resourceID string) (Key, error) {
 	)
 
 	if err != nil {
-		fmt.Println(resourceID, resourceIDFormat, key.ProjectID, key.LocationID, key.KeyRingID, key.KeyID, key.KeyVersion)
-		return key, fmt.Errorf("Could not scanf %s: %w", resourceID, err)
-	} else if scanned != 5 {
-		return key, fmt.Errorf("Scanned arguments (%d) did not matched expected (5)", scanned)
+		return key, fmt.Errorf("cloudkms: failed to parse resource ID %s, scanf error: %w", resourceID, err)
+	}
+	if scanned != 5 {
+		return key, fmt.Errorf("cloudkms: failed to parse resource ID %s, found %d arguments but expected 5", resourceID, scanned)
 	}
 
 	return key, nil
