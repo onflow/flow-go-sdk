@@ -25,68 +25,117 @@ import (
 	"github.com/onflow/flow-go-sdk"
 )
 
-const createAccountTemplate = `
-transaction(publicKeys: [[UInt8]], code: [UInt8]) {
-  prepare(signer: AuthAccount) {
-	let acct = AuthAccount(payer: signer)
+// Contract is a Cadence contract deployed to a Flow account.
+//
+// Name is the identifier for the contract within the account.
+//
+// Source is the the Cadence code of the contract.
+type Contract struct {
+	Name   string
+	Source string
+}
 
-	for key in publicKeys {
-	  acct.addPublicKey(key)
+// SourceBytes returns the UTF-8 encoded source code (Source) of the contract.
+func (c Contract) SourceBytes() []byte {
+	return []byte(c.Source)
+}
+
+const createAccountTemplate = `
+transaction(publicKeys: [[UInt8]], contracts: {String: [UInt8]}) {
+	prepare(signer: AuthAccount) {
+		let acct = AuthAccount(payer: signer)
+
+		for key in publicKeys {
+			acct.addPublicKey(key)
+		}
+
+		for contract in contracts.keys {
+			acct.contracts.add(name: contract, code: contracts[contract]!)
+		}
 	}
-	
-	if code.length > 0 {
-	  acct.setCode(code)
-	}
-  }
 }
 `
 
 // CreateAccount generates a transactions that creates a new account.
 //
-// This template accepts a list of public keys and a code argument, both of which are optional.
+// This template accepts a list of public keys and a contracts argument, both of which are optional.
+//
+// The contracts argument is a dictionary of *contract name*: *contract code (in bytes)*.
+// All of the contracts will be deployed to the account.
 //
 // The final argument is the address of the account that will pay the account creation fee.
 // This account is added as a transaction authorizer and therefore must sign the resulting transaction.
-func CreateAccount(accountKeys []*flow.AccountKey, code []byte, payer flow.Address) *flow.Transaction {
+func CreateAccount(accountKeys []*flow.AccountKey, contracts []Contract, payer flow.Address) *flow.Transaction {
 	publicKeys := make([]cadence.Value, len(accountKeys))
 
 	for i, accountKey := range accountKeys {
 		publicKeys[i] = bytesToCadenceArray(accountKey.Encode())
 	}
 
+	contractKeyPairs := make([]cadence.KeyValuePair, len(contracts))
+
+	for i, contract := range contracts {
+		contractKeyPairs[i] = cadence.KeyValuePair{
+			Key:   cadence.NewString(contract.Name),
+			Value: bytesToCadenceArray(contract.SourceBytes()),
+		}
+	}
+
 	cadencePublicKeys := cadence.NewArray(publicKeys)
-	cadenceCode := bytesToCadenceArray(code)
+	cadenceContracts := cadence.NewDictionary(contractKeyPairs)
 
 	return flow.NewTransaction().
 		SetScript([]byte(createAccountTemplate)).
 		AddAuthorizer(payer).
 		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
-		AddRawArgument(jsoncdc.MustEncode(cadenceCode))
+		AddRawArgument(jsoncdc.MustEncode(cadenceContracts))
 }
 
-const updateAccountCodeTemplate = `
-transaction(code: [UInt8]) {
-  prepare(signer: AuthAccount) {
-	signer.setCode(code)
-  }
+const updateAccountContractTemplate = `
+transaction(name: String, code: [UInt8]) {
+	prepare(signer: AuthAccount) {
+		signer.contracts.update__experimental(name: name, code: code)
+	}
 }
 `
 
-// UpdateAccountCode generates a transaction that updates the code deployed at an account.
-func UpdateAccountCode(address flow.Address, code []byte) *flow.Transaction {
+// UpdateAccountContract generates a transaction that updates a contract deployed at an account.
+func UpdateAccountContract(address flow.Address, name string, code []byte) *flow.Transaction {
+	cadenceName := cadence.NewString(name)
 	cadenceCode := bytesToCadenceArray(code)
 
 	return flow.NewTransaction().
-		SetScript([]byte(updateAccountCodeTemplate)).
+		SetScript([]byte(updateAccountContractTemplate)).
+		AddRawArgument(jsoncdc.MustEncode(cadenceName)).
+		AddRawArgument(jsoncdc.MustEncode(cadenceCode)).
+		AddAuthorizer(address)
+}
+
+const addAccountContractTemplate = `
+transaction(name: String, code: [UInt8]) {
+	prepare(signer: AuthAccount) {
+		signer.contracts.add(name: name, code: code)
+	}
+}
+`
+
+// AddAccountContract generates a transaction that deploys a contract to an account.
+func AddAccountContract(address flow.Address, name string, code []byte) *flow.Transaction {
+	cadenceName := cadence.NewString(name)
+	cadenceCode := bytesToCadenceArray(code)
+
+	return flow.NewTransaction().
+		SetScript([]byte(addAccountContractTemplate)).
+		AddRawArgument(jsoncdc.MustEncode(cadenceName)).
 		AddRawArgument(jsoncdc.MustEncode(cadenceCode)).
 		AddAuthorizer(address)
 }
 
 const addAccountKeyTemplate = `
 transaction(publicKey: [UInt8]) {
-  prepare(signer: AuthAccount) {
-	signer.addPublicKey(publicKey)
-  }
+	prepare(signer: AuthAccount) {
+		signer.addPublicKey(publicKey)
+	}
 }
 `
 
@@ -102,9 +151,9 @@ func AddAccountKey(address flow.Address, accountKey *flow.AccountKey) *flow.Tran
 
 const removeAccountKeyTemplate = `
 transaction(keyIndex: Int) {
-  prepare(signer: AuthAccount) {
-    signer.removePublicKey(keyIndex)
-  }	
+	prepare(signer: AuthAccount) {
+		signer.removePublicKey(keyIndex)
+	}
 }
 `
 

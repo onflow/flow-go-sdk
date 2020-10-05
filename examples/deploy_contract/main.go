@@ -89,7 +89,11 @@ func DeployContractDemo() {
 
 	// Deploy the Great NFT contract
 	nftCode := examples.ReadFile(GreatTokenContractFile)
-	deployContractTx := templates.CreateAccount(nil, nftCode, myAddress)
+	deployContractTx := templates.CreateAccount(nil,
+		[]templates.Contract{{
+			Name:   "GreatToken",
+			Source: nftCode,
+		}}, myAddress)
 
 	deployContractTx.SetProposalKey(myAddress, myAcctKey.Index, myAcctKey.SequenceNumber)
 	// we can set the same reference block id. We shouldn't be to far away from it

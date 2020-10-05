@@ -393,10 +393,10 @@ type EventRangeQuery struct {
 
 // BlockEvents are the events that occurred in a specific block.
 type BlockEvents struct {
-	BlockID flow.Identifier
-	Height  uint64
+	BlockID        flow.Identifier
+	Height         uint64
 	BlockTimestamp time.Time
-	Events  []flow.Event
+	Events         []flow.Event
 }
 
 // GetEventsForHeightRange retrieves events for all sealed blocks between the start and end block

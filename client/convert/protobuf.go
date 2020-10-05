@@ -42,10 +42,11 @@ func AccountToMessage(a flow.Account) *entities.Account {
 	}
 
 	return &entities.Account{
-		Address: a.Address.Bytes(),
-		Balance: a.Balance,
-		Code:    a.Code,
-		Keys:    accountKeys,
+		Address:   a.Address.Bytes(),
+		Balance:   a.Balance,
+		Code:      a.Code,
+		Keys:      accountKeys,
+		Contracts: a.Contracts,
 	}
 }
 
@@ -65,10 +66,11 @@ func MessageToAccount(m *entities.Account) (flow.Account, error) {
 	}
 
 	return flow.Account{
-		Address: flow.BytesToAddress(m.GetAddress()),
-		Balance: m.GetBalance(),
-		Code:    m.GetCode(),
-		Keys:    accountKeys,
+		Address:   flow.BytesToAddress(m.GetAddress()),
+		Balance:   m.GetBalance(),
+		Code:      m.GetCode(),
+		Keys:      accountKeys,
+		Contracts: m.GetContracts(),
 	}, nil
 }
 
