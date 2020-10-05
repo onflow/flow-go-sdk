@@ -66,7 +66,7 @@ func KeyFromResourceID(resourceID string) (Key, error) {
 	scanned, err := fmt.Sscanf(
 		strings.ReplaceAll(resourceID, "/", " "),       // input
 		strings.ReplaceAll(resourceIDFormat, "/", " "), // format
-		&key.ProjectID, &key.LocationID, &key.KeyRingID, &key.KeyID, &key.KeyVersion, // arugments to fill
+		&key.ProjectID, &key.LocationID, &key.KeyRingID, &key.KeyID, &key.KeyVersion, // arguments to fill
 	)
 
 	if err != nil {
