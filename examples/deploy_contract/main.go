@@ -54,14 +54,14 @@ func DeployContractDemo() {
 		SetWeight(flow.AccountKeyWeightThreshold)
 	mySigner := crypto.NewInMemorySigner(myPrivateKey, myAcctKey.HashAlgo)
 
-	referenceBlockId := examples.GetReferenceBlockId(flowClient)
+	referenceBlockID := examples.GetReferenceBlockId(flowClient)
 	createAccountTx := templates.CreateAccount([]*flow.AccountKey{myAcctKey}, nil, serviceAcctAddr)
 	createAccountTx.SetProposalKey(
 		serviceAcctAddr,
 		serviceAcctKey.Index,
 		serviceAcctKey.SequenceNumber,
 	)
-	createAccountTx.SetReferenceBlockID(referenceBlockId)
+	createAccountTx.SetReferenceBlockID(referenceBlockID)
 	createAccountTx.SetPayer(serviceAcctAddr)
 
 	err = createAccountTx.SignEnvelope(serviceAcctAddr, serviceAcctKey.Index, serviceSigner)
@@ -93,7 +93,7 @@ func DeployContractDemo() {
 
 	deployContractTx.SetProposalKey(myAddress, myAcctKey.Index, myAcctKey.SequenceNumber)
 	// we can set the same reference block id. We shouldn't be to far away from it
-	deployContractTx.SetReferenceBlockID(referenceBlockId)
+	deployContractTx.SetReferenceBlockID(referenceBlockID)
 	deployContractTx.SetPayer(myAddress)
 
 	err = deployContractTx.SignEnvelope(
@@ -130,7 +130,7 @@ func DeployContractDemo() {
 		SetScript(createMinterScript).
 		SetProposalKey(myAddress, myAcctKey.Index, myAcctKey.SequenceNumber).
 		SetPayer(myAddress).
-		SetReferenceBlockID(referenceBlockId).
+		SetReferenceBlockID(referenceBlockID).
 		AddAuthorizer(myAddress)
 
 	err = createMinterTx.SignEnvelope(myAddress, myAcctKey.Index, mySigner)
@@ -152,7 +152,7 @@ func DeployContractDemo() {
 		SetScript(mintScript).
 		SetProposalKey(myAddress, myAcctKey.Index, myAcctKey.SequenceNumber).
 		SetPayer(myAddress).
-		SetReferenceBlockID(referenceBlockId).
+		SetReferenceBlockID(referenceBlockID).
 		AddAuthorizer(myAddress)
 
 	err = mintTx.SignEnvelope(myAddress, myAcctKey.Index, mySigner)

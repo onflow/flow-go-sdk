@@ -45,11 +45,11 @@ func TransactionArgumentsDemo() {
 	message := test.GreetingGenerator().Random()
 	greeting := cadence.NewString(message)
 
-	referenceBlockId := examples.GetReferenceBlockId(flowClient)
+	referenceBlockID := examples.GetReferenceBlockId(flowClient)
 	tx := flow.NewTransaction().
 		SetScript(test.GreetingScript).
 		SetProposalKey(serviceAcctAddr, serviceAcctKey.Index, serviceAcctKey.SequenceNumber).
-		SetReferenceBlockID(referenceBlockId).
+		SetReferenceBlockID(referenceBlockID).
 		SetPayer(serviceAcctAddr)
 
 	err = tx.AddArgument(greeting)
