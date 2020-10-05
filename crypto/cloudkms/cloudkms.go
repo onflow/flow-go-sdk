@@ -33,7 +33,10 @@ import (
 	"github.com/onflow/flow-go-sdk/crypto"
 )
 
-const resourceIDFormat = "projects/%s/locations/%s/keyRings/%s/cryptoKeys/%s/cryptoKeyVersions/%s"
+const (
+	resourceIDFormat        = "projects/%s/locations/%s/keyRings/%s/cryptoKeys/%s/cryptoKeyVersions/%s"
+	resourceIDArgumentCount = 5
+)
 
 // Key is a reference to a Google Cloud KMS asymmetric signing key version.
 //
@@ -72,8 +75,8 @@ func KeyFromResourceID(resourceID string) (Key, error) {
 	if err != nil {
 		return key, fmt.Errorf("cloudkms: failed to parse resource ID %s, scanf error: %w", resourceID, err)
 	}
-	if scanned != 5 {
-		return key, fmt.Errorf("cloudkms: failed to parse resource ID %s, found %d arguments but expected 5", resourceID, scanned)
+	if scanned != resourceIDArgumentCount {
+		return key, fmt.Errorf("cloudkms: failed to parse resource ID %s, found %d arguments but expected %d", resourceID, scanned, resourceIDArgumentCount)
 	}
 
 	return key, nil
