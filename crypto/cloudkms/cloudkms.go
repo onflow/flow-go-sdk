@@ -25,6 +25,7 @@ package cloudkms
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	kms "cloud.google.com/go/kms/apiv1"
 	kmspb "google.golang.org/genproto/googleapis/cloud/kms/v1"
@@ -32,15 +33,17 @@ import (
 	"github.com/onflow/flow-go-sdk/crypto"
 )
 
+const resourceIDFormat = "projects/%s/locations/%s/keyRings/%s/cryptoKeys/%s/cryptoKeyVersions/%s"
+
 // Key is a reference to a Google Cloud KMS asymmetric signing key version.
 //
 // Ref: https://cloud.google.com/kms/docs/creating-asymmetric-keys#create_an_asymmetric_signing_key
 type Key struct {
-	ProjectID  string
-	LocationID string
-	KeyRingID  string
-	KeyID      string
-	KeyVersion string
+	ProjectID  string `json:"projectId"`
+	LocationID string `json:"locationId"`
+	KeyRingID  string `json:"keyRingId"`
+	KeyID      string `json:"keyId"`
+	KeyVersion string `json:"keyVersion"`
 }
 
 // ResourceID returns the resource ID for this KMS key version.
@@ -48,13 +51,32 @@ type Key struct {
 // Ref: https://cloud.google.com/kms/docs/getting-resource-ids
 func (k Key) ResourceID() string {
 	return fmt.Sprintf(
-		"projects/%s/locations/%s/keyRings/%s/cryptoKeys/%s/cryptoKeyVersions/%s",
+		resourceIDFormat,
 		k.ProjectID,
 		k.LocationID,
 		k.KeyRingID,
 		k.KeyID,
 		k.KeyVersion,
 	)
+}
+
+func KeyFromResourceID(resourceID string) (Key, error) {
+	key := Key{}
+
+	scanned, err := fmt.Sscanf(
+		strings.ReplaceAll(resourceID, "/", " "),       // input
+		strings.ReplaceAll(resourceIDFormat, "/", " "), // format
+		&key.ProjectID, &key.LocationID, &key.KeyRingID, &key.KeyID, &key.KeyVersion, // arugments to fill
+	)
+
+	if err != nil {
+		fmt.Println(resourceID, resourceIDFormat, key.ProjectID, key.LocationID, key.KeyRingID, key.KeyID, key.KeyVersion)
+		return key, fmt.Errorf("Could not scanf %s: %w", resourceID, err)
+	} else if scanned != 5 {
+		return key, fmt.Errorf("Scanned arguments (%d) did not matched expected (5)", scanned)
+	}
+
+	return key, nil
 }
 
 // Client is a client for interacting with the Google Cloud KMS API
