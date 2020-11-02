@@ -96,71 +96,83 @@ Once you have [generated a key pair](#generating-keys), you can create a new acc
 using its public key.
 
 ```go
+package main
+
 import (
-    "github.com/onflow/flow-go-sdk"
-    "github.com/onflow/flow-go-sdk/crypto"
-    "github.com/onflow/flow-go-sdk/templates"
+	"context"
+	"fmt"
+
+	"google.golang.org/grpc"
+
+	"github.com/onflow/flow-go-sdk"
+	"github.com/onflow/flow-go-sdk/client"
+	"github.com/onflow/flow-go-sdk/crypto"
+	"github.com/onflow/flow-go-sdk/examples"
+	"github.com/onflow/flow-go-sdk/templates"
 )
 
-ctx := context.Background()
+const (
+	seed        = "elephant ears space cowboy octopus rodeo potato cannon pineapple"
+	localServer = "localhost:3569"
+	gasLimit    = 100
+)
 
-// generate a new private key for the account
-// note: this is only an example, please use a secure random generator for the key seed
-seed := []byte("elephant ears space cowboy octopus rodeo potato cannon pineapple")
-privateKey, _ := crypto.GeneratePrivateKey(crypto.ECDSA_P256, seed)
-
-// get the public key
-publicKey := privateKey.PublicKey()
-
-// construct an account key from the public key
-accountKey := flow.NewAccountKey().
-    SetPublicKey(publicKey).
-    SetHashAlgo(crypto.SHA3_256).             // pair this key with the SHA3_256 hashing algorithm
-    SetWeight(flow.AccountKeyWeightThreshold) // give this key full signing weight
-
-// generate an account creation script
-// this creates an account with a single public key and no code
-script, _ := templates.CreateAccount([]*flow.AccountKey{accountKey}, nil)
-
-// connect to an emulator running locally
-c, err := client.New("localhost:3569")
-if err != nil {
-    panic("failed to connect to emulator")
-}
-
-payer, payerKey, payerSigner := examples.ServiceAccount(c)
-
-tx := flow.NewTransaction().
-    SetScript(script).
-    SetGasLimit(100).
-    SetProposalKey(payer, payerKey.Index, payerKey.SequenceNumber).
-    SetPayer(payer)
-
-err = tx.SignEnvelope(payer, payerKey.Index, payerSigner)
-if err != nil {
-    panic("failed to sign transaction")
-}
-
-err = c.SendTransaction(ctx, *tx)
-if err != nil {
-    panic("failed to send transaction")
-}
-
-result, err := c.GetTransactionResult(ctx, tx.ID())
-if err != nil {
-    panic("failed to get transaction result")
-}
-
-var myAddress flow.Address
-
-if result.Status == flow.TransactionStatusSealed {
-    for _, event := range result.Events {
-        if event.Type == flow.EventAccountCreated {
-            accountCreatedEvent := flow.AccountCreatedEvent(event)
-            myAddress = accountCreatedEvent.Address()
-        }
+func main() {
+	// generate a new private key for the account
+	// note: this is only an example, please use a secure random generator for the key seed
+	privateKey, err := crypto.GeneratePrivateKey(crypto.ECDSA_P256, []byte(seed))
+	if err != nil {
+		panic(err)
 	}
+
+	// get the public key
+	publicKey := privateKey.PublicKey()
+
+	myAcctKey := flow.NewAccountKey().
+		SetPublicKey(publicKey).
+		SetHashAlgo(crypto.SHA3_256).
+		SetWeight(flow.AccountKeyWeightThreshold)
+
+	flowClient, err := client.New(localServer, grpc.WithInsecure())
+	if err != nil {
+		panic(err)
+	}
+
+	payer, payerKey, payerSigner := examples.ServiceAccount(flowClient)
+	createAccountTx := templates.CreateAccount([]*flow.AccountKey{myAcctKey}, nil, payer)
+	tx := flow.NewTransaction().
+		SetScript(createAccountTx.Script).
+		SetGasLimit(gasLimit).
+		SetProposalKey(payer, payerKey.Index, payerKey.SequenceNumber).
+		SetPayer(payer)
+
+	if err := createAccountTx.SignEnvelope(payer, payerKey.Index, payerSigner); err != nil {
+		panic(err)
+	}
+
+	// Send the transaction to the network
+	ctx := context.Background()
+	if err := flowClient.SendTransaction(ctx, *createAccountTx); err != nil {
+		panic(err)
+	}
+
+	result, err := flowClient.GetTransactionResult(ctx, tx.ID())
+	if err != nil {
+		panic("failed to get transaction result")
+	}
+
+	var myAddress flow.Address
+	if result.Status == flow.TransactionStatusSealed {
+		for _, event := range result.Events {
+			if event.Type == flow.EventAccountCreated {
+				accountCreatedEvent := flow.AccountCreatedEvent(event)
+				myAddress = accountCreatedEvent.Address()
+			}
+		}
+	}
+	fmt.Println("Account created with address:", myAddress.Hex())
 }
+
 ```
 
 ### Signing a Transaction
