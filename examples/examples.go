@@ -40,14 +40,6 @@ var (
 	servicePrivateKeySigAlgo crypto.SignatureAlgorithm
 )
 
-// ReadFile reads a file from the file system.
-func ReadFile(path string) string {
-	contents, err := ioutil.ReadFile(path)
-	Handle(err)
-
-	return string(contents)
-}
-
 type config struct {
 	Accounts struct {
 		Service struct {
@@ -57,6 +49,14 @@ type config struct {
 			HashAlgo   string `json:"hashAlgorithm"`
 		}
 	}
+}
+
+// ReadFile reads a file from the file system.
+func ReadFile(path string) string {
+	contents, err := ioutil.ReadFile(path)
+	Handle(err)
+
+	return string(contents)
 }
 
 func readConfig() config {
