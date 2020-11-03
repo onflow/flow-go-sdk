@@ -71,10 +71,8 @@ func readConfig() config {
 		os.Exit(1)
 	}
 
-	d := json.NewDecoder(f)
-
 	var conf config
-	err = d.Decode(&conf)
+	err = json.NewDecoder(f).Decode(&conf)
 	Handle(err)
 
 	return conf
