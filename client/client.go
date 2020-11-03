@@ -29,12 +29,13 @@ package client
 
 import (
 	"context"
-	"github.com/golang/protobuf/ptypes"
 	"time"
+
+	"github.com/golang/protobuf/ptypes"
+	"google.golang.org/grpc"
 
 	"github.com/onflow/cadence"
 	"github.com/onflow/flow/protobuf/go/flow/access"
-	"google.golang.org/grpc"
 
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/client/convert"
@@ -88,10 +89,7 @@ func (c *Client) Ping(ctx context.Context) error {
 }
 
 // GetLatestBlockHeader gets the latest sealed or unsealed block header.
-func (c *Client) GetLatestBlockHeader(
-	ctx context.Context,
-	isSealed bool,
-) (*flow.BlockHeader, error) {
+func (c *Client) GetLatestBlockHeader(ctx context.Context, isSealed bool) (*flow.BlockHeader, error) {
 	req := &access.GetLatestBlockHeaderRequest{
 		IsSealed: isSealed,
 	}
