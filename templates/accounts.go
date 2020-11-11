@@ -19,6 +19,7 @@
 package templates
 
 import (
+	"encoding/hex"
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 
@@ -35,13 +36,13 @@ type Contract struct {
 	Source string
 }
 
-// SourceBytes returns the UTF-8 encoded source code (Source) of the contract.
-func (c Contract) SourceBytes() []byte {
-	return []byte(c.Source)
+// SourceHex returns the UTF-8 encoded source code (Source) of the contract as a hex string.
+func (c Contract) SourceHex() string {
+	return hex.EncodeToString([]byte(c.Source))
 }
 
 const createAccountTemplate = `
-transaction(publicKeys: [[UInt8]], contracts: {String: [UInt8]}) {
+transaction(publicKeys: [[UInt8]], contracts: {String: String}) {
 	prepare(signer: AuthAccount) {
 		let acct = AuthAccount(payer: signer)
 
@@ -50,7 +51,7 @@ transaction(publicKeys: [[UInt8]], contracts: {String: [UInt8]}) {
 		}
 
 		for contract in contracts.keys {
-			acct.contracts.add(name: contract, code: contracts[contract]!)
+			acct.contracts.add(name: contract, code: contracts[contract]!.decodeHex())
 		}
 	}
 }
@@ -77,7 +78,7 @@ func CreateAccount(accountKeys []*flow.AccountKey, contracts []Contract, payer f
 	for i, contract := range contracts {
 		contractKeyPairs[i] = cadence.KeyValuePair{
 			Key:   cadence.NewString(contract.Name),
-			Value: bytesToCadenceArray(contract.SourceBytes()),
+			Value: cadence.NewString(contract.SourceHex()),
 		}
 	}
 
@@ -92,17 +93,17 @@ func CreateAccount(accountKeys []*flow.AccountKey, contracts []Contract, payer f
 }
 
 const updateAccountContractTemplate = `
-transaction(name: String, code: [UInt8]) {
+transaction(name: String, code: String) {
 	prepare(signer: AuthAccount) {
-		signer.contracts.update__experimental(name: name, code: code)
+		signer.contracts.update__experimental(name: name, code: code.decodeHex())
 	}
 }
 `
 
 // UpdateAccountContract generates a transaction that updates a contract deployed at an account.
-func UpdateAccountContract(address flow.Address, name string, code []byte) *flow.Transaction {
-	cadenceName := cadence.NewString(name)
-	cadenceCode := bytesToCadenceArray(code)
+func UpdateAccountContract(address flow.Address, contract Contract) *flow.Transaction {
+	cadenceName := cadence.NewString(contract.Name)
+	cadenceCode := cadence.NewString(contract.SourceHex())
 
 	return flow.NewTransaction().
 		SetScript([]byte(updateAccountContractTemplate)).
@@ -112,17 +113,17 @@ func UpdateAccountContract(address flow.Address, name string, code []byte) *flow
 }
 
 const addAccountContractTemplate = `
-transaction(name: String, code: [UInt8]) {
+transaction(name: String, code: String) {
 	prepare(signer: AuthAccount) {
-		signer.contracts.add(name: name, code: code)
+		signer.contracts.add(name: name, code: code.decodeHex())
 	}
 }
 `
 
 // AddAccountContract generates a transaction that deploys a contract to an account.
-func AddAccountContract(address flow.Address, name string, code []byte) *flow.Transaction {
-	cadenceName := cadence.NewString(name)
-	cadenceCode := bytesToCadenceArray(code)
+func AddAccountContract(address flow.Address, contract Contract) *flow.Transaction {
+	cadenceName := cadence.NewString(contract.Name)
+	cadenceCode := cadence.NewString(contract.SourceHex())
 
 	return flow.NewTransaction().
 		SetScript([]byte(addAccountContractTemplate)).
