@@ -36,18 +36,23 @@ type Contract struct {
 	Source string
 }
 
+// SourceBytes returns the UTF-8 encoded source code (Source) of the contract.
+func (c Contract) SourceBytes() []byte {
+	return []byte(c.Source)
+}
+
 // SourceHex returns the UTF-8 encoded source code (Source) of the contract as a hex string.
 func (c Contract) SourceHex() string {
-	return hex.EncodeToString([]byte(c.Source))
+	return hex.EncodeToString(c.SourceBytes())
 }
 
 const createAccountTemplate = `
-transaction(publicKeys: [[UInt8]], contracts: {String: String}) {
+transaction(publicKeys: [String], contracts: {String: String}) {
 	prepare(signer: AuthAccount) {
 		let acct = AuthAccount(payer: signer)
 
 		for key in publicKeys {
-			acct.addPublicKey(key)
+			acct.addPublicKey(key.decodeHex())
 		}
 
 		for contract in contracts.keys {
@@ -70,7 +75,8 @@ func CreateAccount(accountKeys []*flow.AccountKey, contracts []Contract, payer f
 	publicKeys := make([]cadence.Value, len(accountKeys))
 
 	for i, accountKey := range accountKeys {
-		publicKeys[i] = bytesToCadenceArray(accountKey.Encode())
+		keyHex := hex.EncodeToString(accountKey.Encode())
+		publicKeys[i] = cadence.NewString(keyHex)
 	}
 
 	contractKeyPairs := make([]cadence.KeyValuePair, len(contracts))
@@ -133,16 +139,17 @@ func AddAccountContract(address flow.Address, contract Contract) *flow.Transacti
 }
 
 const addAccountKeyTemplate = `
-transaction(publicKey: [UInt8]) {
+transaction(publicKey: String) {
 	prepare(signer: AuthAccount) {
-		signer.addPublicKey(publicKey)
+		signer.addPublicKey(publicKey.decodeHex())
 	}
 }
 `
 
 // AddAccountKey generates a transaction that adds a public key to an account.
 func AddAccountKey(address flow.Address, accountKey *flow.AccountKey) *flow.Transaction {
-	cadencePublicKey := bytesToCadenceArray(accountKey.Encode())
+	keyHex := hex.EncodeToString(accountKey.Encode())
+	cadencePublicKey := cadence.NewString(keyHex)
 
 	return flow.NewTransaction().
 		SetScript([]byte(addAccountKeyTemplate)).

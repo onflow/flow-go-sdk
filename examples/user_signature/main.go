@@ -20,6 +20,7 @@ package main
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 
 	"github.com/onflow/cadence"
@@ -40,9 +41,9 @@ var script = []byte(`
 import Crypto
 
 pub fun main(
-  rawPublicKeys: [[UInt8]],
+  rawPublicKeys: [String],
   weights: [UFix64],
-  signatures: [[UInt8]],
+  signatures: [String],
   toAddress: Address,
   fromAddress: Address,
   amount: UFix64,
@@ -53,7 +54,7 @@ pub fun main(
   for rawPublicKey in rawPublicKeys {
     keyList.add(
       Crypto.PublicKey(
-        publicKey: rawPublicKey,
+        publicKey: rawPublicKey.decodeHex(),
         signatureAlgorithm: Crypto.ECDSA_P256
       ),
       hashAlgorithm: Crypto.SHA3_256,
@@ -69,7 +70,7 @@ pub fun main(
     signatureSet.append(
       Crypto.KeyListSignature(
         keyIndex: j,
-        signature: signature
+        signature: signature.decodeHex()
       )
     )
     j = j + 1
@@ -126,8 +127,8 @@ func UserSignatureDemo() {
 	examples.Handle(err)
 
 	publicKeys := cadence.NewArray([]cadence.Value{
-		bytesToCadenceArray(publicKeyA.Encode()),
-		bytesToCadenceArray(publicKeyB.Encode()),
+		cadence.String(hex.EncodeToString(publicKeyA.Encode())),
+		cadence.String(hex.EncodeToString(publicKeyB.Encode())),
 	})
 
 	weightA, err := cadence.NewUFix64("0.5")
@@ -142,8 +143,8 @@ func UserSignatureDemo() {
 	})
 
 	signatures := cadence.NewArray([]cadence.Value{
-		bytesToCadenceArray(signatureA),
-		bytesToCadenceArray(signatureB),
+		cadence.String(hex.EncodeToString(signatureA)),
+		cadence.String(hex.EncodeToString(signatureB)),
 	})
 
 	value, err := flowClient.ExecuteScriptAtLatestBlock(
