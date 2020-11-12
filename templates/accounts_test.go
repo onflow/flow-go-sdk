@@ -26,7 +26,7 @@ import (
 )
 
 func TestCreateAccount(t *testing.T) {
-	// Converting transaction arguments to cadence values, can increase their size.
+	// Converting transaction arguments to Cadence values can increase their size.
 	// If this is not taken into account the transaction can quickly grow over the maximum transaction size limit.
 	t.Run("Transaction should not grow uncontrollably in size", func(t *testing.T) {
 		contractLen := 1000
