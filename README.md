@@ -1,8 +1,11 @@
+
 # Flow Go SDK [![GoDoc](https://godoc.org/github.com/onflow/flow-go-sdk?status.svg)](https://godoc.org/github.com/onflow/flow-go-sdk)
 
 The Flow Go SDK provides a set of packages for Go developers to build applications that interact with the Flow network.
 
 *Note: This SDK is also fully compatible with the [Flow Emulator](https://github.com/onflow/flow/blob/master/docs/emulator.md) and can be used for local development.*
+
+## [English](#) | [Chinese](./README_zh_CN)
 
 ## What is Flow?
 
