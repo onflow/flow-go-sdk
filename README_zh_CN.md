@@ -4,7 +4,7 @@ Flow Go SDK 提供相关开发包帮助 Golang 开发者完成在 Flow network �
 
 *注意: 这个 SDK 通过 [Flow Emulator](https://github.com/onflow/flow/blob/master/docs/emulator.md)完成实现，并且可以被用于本地开发。*
 
-## [英文](#) | [中文（简体）](./README_zh_CN)
+## [英文](/README.md) | [中文（简体）](#)
 
 ## 什么是 Flow ?
 
