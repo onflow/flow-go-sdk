@@ -28,6 +28,7 @@ import (
 	"strings"
 
 	kms "cloud.google.com/go/kms/apiv1"
+	"google.golang.org/api/option"
 	kmspb "google.golang.org/genproto/googleapis/cloud/kms/v1"
 
 	"github.com/onflow/flow-go-sdk/crypto"
@@ -89,8 +90,8 @@ type Client struct {
 }
 
 // NewClient creates a new KMS client.
-func NewClient(ctx context.Context) (*Client, error) {
-	client, err := kms.NewKeyManagementClient(ctx)
+func NewClient(ctx context.Context, opts option.ClientOption) (*Client, error) {
+	client, err := kms.NewKeyManagementClient(ctx, opts)
 	if err != nil {
 		return nil, fmt.Errorf("cloudkms: failed to initialize client: %w", err)
 	}
