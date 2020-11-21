@@ -328,23 +328,25 @@ func (t *Transaction) PayloadMessage() []byte {
 	return mustRLPEncode(&temp)
 }
 
-func (t *Transaction) payloadCanonicalForm() interface{} {
+type payloadCanonicalForm struct {
+	Script                    []byte
+	Arguments                 [][]byte
+	ReferenceBlockID          []byte
+	GasLimit                  uint64
+	ProposalKeyAddress        []byte
+	ProposalKeyIndex          uint64
+	ProposalKeySequenceNumber uint64
+	Payer                     []byte
+	Authorizers               [][]byte
+}
+
+func (t *Transaction) payloadCanonicalForm() payloadCanonicalForm {
 	authorizers := make([][]byte, len(t.Authorizers))
 	for i, auth := range t.Authorizers {
 		authorizers[i] = auth.Bytes()
 	}
 
-	return struct {
-		Script                    []byte
-		Arguments                 [][]byte
-		ReferenceBlockID          []byte
-		GasLimit                  uint64
-		ProposalKeyAddress        []byte
-		ProposalKeyIndex          uint64
-		ProposalKeySequenceNumber uint64
-		Payer                     []byte
-		Authorizers               [][]byte
-	}{
+	return payloadCanonicalForm{
 		Script:                    t.Script,
 		Arguments:                 t.Arguments,
 		ReferenceBlockID:          t.ReferenceBlockID[:],
@@ -365,11 +367,13 @@ func (t *Transaction) EnvelopeMessage() []byte {
 	return mustRLPEncode(&temp)
 }
 
-func (t *Transaction) envelopeCanonicalForm() interface{} {
-	return struct {
-		Payload           interface{}
-		PayloadSignatures interface{}
-	}{
+type envelopeCanonicalForm struct {
+	Payload           payloadCanonicalForm
+	PayloadSignatures []transactionSignatureCanonicalForm
+}
+
+func (t *Transaction) envelopeCanonicalForm() envelopeCanonicalForm {
+	return envelopeCanonicalForm{
 		Payload:           t.payloadCanonicalForm(),
 		PayloadSignatures: signaturesList(t.PayloadSignatures).canonicalForm(),
 	}
@@ -378,7 +382,7 @@ func (t *Transaction) envelopeCanonicalForm() interface{} {
 // Encode serializes the full transaction data including the payload and all signatures.
 func (t *Transaction) Encode() []byte {
 	temp := struct {
-		Payload            interface{}
+		Payload            payloadCanonicalForm
 		PayloadSignatures  interface{}
 		EnvelopeSignatures interface{}
 	}{
@@ -388,6 +392,68 @@ func (t *Transaction) Encode() []byte {
 	}
 
 	return mustRLPEncode(&temp)
+}
+
+// DecodeFromPayloadMessage returns the signable message for the transaction envelope.
+//
+// This message is only signed by the payer account.
+func (t *Transaction) DecodeFromPayloadMessage(envelopeMessage []byte) {
+	temp := t.envelopeCanonicalForm()
+	mustRLPDecode(envelopeMessage, &temp)
+	authorizers := make([]Address, len(temp.Payload.Authorizers))
+	for i, auth := range temp.Payload.Authorizers {
+		authorizers[i] = BytesToAddress(auth)
+	}
+	t = new(Transaction)
+	*t = Transaction{
+		Script:           temp.Payload.Script,
+		Arguments:        temp.Payload.Arguments,
+		ReferenceBlockID: BytesToID(temp.Payload.ReferenceBlockID),
+		GasLimit:         temp.Payload.GasLimit,
+		ProposalKey: ProposalKey{
+			Address:        BytesToAddress(temp.Payload.ProposalKeyAddress),
+			KeyIndex:       int(temp.Payload.ProposalKeyIndex),
+			SequenceNumber: temp.Payload.ProposalKeySequenceNumber,
+		},
+		Payer:       BytesToAddress(temp.Payload.Payer),
+		Authorizers: authorizers,
+	}
+	return
+}
+
+// DecodeFromEnvelopeMessage returns the signable message for the transaction envelope.
+//
+// This message is only signed by the payer account.
+func (t *Transaction) DecodeFromEnvelopeMessage(envelopeMessage []byte) {
+	temp := t.envelopeCanonicalForm()
+	mustRLPDecode(envelopeMessage, &temp)
+	authorizers := make([]Address, len(temp.Payload.Authorizers))
+	for i, auth := range temp.Payload.Authorizers {
+		fmt.Println(auth)
+		authorizers[i] = BytesToAddress(auth)
+	}
+	payloadSignatures := make([]TransactionSignature, len(temp.PayloadSignatures))
+	for i, sig := range temp.PayloadSignatures {
+		payloadSignatures[i] = transactionSignatureFromCanonicalForm(sig)
+	}
+	if t == nil {
+		t = new(Transaction)
+	}
+	*t = Transaction{
+		Script:           temp.Payload.Script,
+		Arguments:        temp.Payload.Arguments,
+		ReferenceBlockID: BytesToID(temp.Payload.ReferenceBlockID),
+		GasLimit:         temp.Payload.GasLimit,
+		ProposalKey: ProposalKey{
+			Address:        BytesToAddress(temp.Payload.ProposalKeyAddress),
+			KeyIndex:       int(temp.Payload.ProposalKeyIndex),
+			SequenceNumber: temp.Payload.ProposalKeySequenceNumber,
+		},
+		Payer:             BytesToAddress(temp.Payload.Payer),
+		Authorizers:       authorizers,
+		PayloadSignatures: payloadSignatures,
+	}
+	return
 }
 
 // A ProposalKey is the key that specifies the proposal key and sequence number for a transaction.
@@ -405,15 +471,26 @@ type TransactionSignature struct {
 	Signature   []byte
 }
 
-func (s TransactionSignature) canonicalForm() interface{} {
-	return struct {
-		SignerIndex uint
-		KeyIndex    uint
-		Signature   []byte
-	}{
+type transactionSignatureCanonicalForm struct {
+	SignerIndex uint
+	KeyIndex    uint
+	Signature   []byte
+}
+
+func (s TransactionSignature) canonicalForm() transactionSignatureCanonicalForm {
+	return transactionSignatureCanonicalForm{
 		SignerIndex: uint(s.SignerIndex), // int is not RLP-serializable
 		KeyIndex:    uint(s.KeyIndex),    // int is not RLP-serializable
 		Signature:   s.Signature,
+	}
+}
+
+func transactionSignatureFromCanonicalForm(v interface{}) TransactionSignature {
+	temp := v.(transactionSignatureCanonicalForm)
+	return TransactionSignature{
+		SignerIndex: int(temp.SignerIndex),
+		KeyIndex:    int(temp.KeyIndex),
+		Signature:   temp.Signature,
 	}
 }
 
@@ -427,8 +504,8 @@ func compareSignatures(signatures []TransactionSignature) func(i, j int) bool {
 
 type signaturesList []TransactionSignature
 
-func (s signaturesList) canonicalForm() interface{} {
-	signatures := make([]interface{}, len(s))
+func (s signaturesList) canonicalForm() []transactionSignatureCanonicalForm {
+	signatures := make([]transactionSignatureCanonicalForm, len(s))
 
 	for i, signature := range s {
 		signatures[i] = signature.canonicalForm()
