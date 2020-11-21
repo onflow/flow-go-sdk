@@ -597,6 +597,15 @@ func TestTransaction_RLPMessages(t *testing.T) {
 
 			assert.Equal(t, tt.payload, payload)
 			assert.Equal(t, tt.envelope, envelope)
+
+			// payloadBytes, err := hex.DecodeString(payload)
+			// assert.NoError(t, err)
+			envelopeBytes, err := hex.DecodeString(envelope)
+			assert.NoError(t, err)
+
+			newTx := &flow.Transaction{}
+			newTx.DecodeFromEnvelopeMessage(envelopeBytes)
+			assert.Equal(t, tt.tx, newTx)
 		})
 	}
 }
