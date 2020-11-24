@@ -31,8 +31,6 @@ type SignatureAlgorithm crypto.SigningAlgorithm
 
 const (
 	UnknownSignatureAlgorithm SignatureAlgorithm = SignatureAlgorithm(crypto.UnknownSigningAlgorithm)
-	// BLS_BLS12381 is BLS on BLS 12-381 curve
-	BLS_BLS12381 = SignatureAlgorithm(crypto.BLSBLS12381)
 	// ECDSA_P256 is ECDSA on NIST P-256 curve
 	ECDSA_P256 = SignatureAlgorithm(crypto.ECDSAP256)
 	// ECDSA_secp256k1 is ECDSA on secp256k1 curve
@@ -47,8 +45,6 @@ func (f SignatureAlgorithm) String() string {
 // StringToSignatureAlgorithm converts a string to a SignatureAlgorithm.
 func StringToSignatureAlgorithm(s string) SignatureAlgorithm {
 	switch s {
-	case BLS_BLS12381.String():
-		return BLS_BLS12381
 	case ECDSA_P256.String():
 		return ECDSA_P256
 	case ECDSA_secp256k1.String():
@@ -122,55 +118,30 @@ func (k KeyType) HashAlgorithm() HashAlgorithm {
 
 // A PrivateKey is a cryptographic private key that can be used for in-memory signing.
 type PrivateKey struct {
-	privateKey crypto.PrivateKey
-}
-
-// Sign signs the given message with this private key and the provided hasher.
-//
-// This function returns an error if a signature cannot be generated.
-func (sk PrivateKey) Sign(message []byte, hasher Hasher) ([]byte, error) {
-	return sk.privateKey.Sign(message, hasher)
+	crypto.PrivateKey
 }
 
 // Algorithm returns the signature algorithm for this private key.
 func (sk PrivateKey) Algorithm() SignatureAlgorithm {
-	return SignatureAlgorithm(sk.privateKey.Algorithm())
+	return SignatureAlgorithm(sk.PrivateKey.Algorithm())
 }
 
 // PublicKey returns the public key for this private key.
 func (sk PrivateKey) PublicKey() PublicKey {
-	return PublicKey{publicKey: sk.privateKey.PublicKey()}
-}
-
-// Encode returns the raw byte encoding of this private key.
-func (sk PrivateKey) Encode() []byte {
-	return sk.privateKey.Encode()
+	return PublicKey{PublicKey: sk.PrivateKey.PublicKey()}
 }
 
 // A PublicKey is a cryptographic public key that can be used to verify signatures.
 type PublicKey struct {
-	publicKey crypto.PublicKey
-}
-
-// Verify verifies the given signature against a message with this public key and the provided hasher.
-//
-// This function returns true if the signature is valid for the message, and false otherwise. An error
-// is returned if the signature cannot be verified.
-func (pk PublicKey) Verify(sig, message []byte, hasher Hasher) (bool, error) {
-	return pk.publicKey.Verify(sig, message, hasher)
+	crypto.PublicKey
 }
 
 // Algorithm returns the signature algorithm for this public key.
 func (pk PublicKey) Algorithm() SignatureAlgorithm {
-	return SignatureAlgorithm(pk.publicKey.Algorithm())
+	return SignatureAlgorithm(pk.PublicKey.Algorithm())
 }
 
-// Encode returns the raw byte encoding of this public key.
-func (pk PublicKey) Encode() []byte {
-	return pk.publicKey.Encode()
-}
-
-// A Signer is capable of signing messages.
+// A Signer is capable of generating cryptographic signatures.
 type Signer interface {
 	// Sign signs the given message with this signer.
 	Sign(message []byte) ([]byte, error)
@@ -261,7 +232,7 @@ func GeneratePrivateKey(sigAlgo SignatureAlgorithm, seed []byte) (PrivateKey, er
 	}
 
 	return PrivateKey{
-		privateKey: privKey,
+		PrivateKey: privKey,
 	}, nil
 }
 
@@ -273,7 +244,7 @@ func DecodePrivateKey(sigAlgo SignatureAlgorithm, b []byte) (PrivateKey, error) 
 	}
 
 	return PrivateKey{
-		privateKey: privKey,
+		PrivateKey: privKey,
 	}, nil
 }
 
@@ -295,7 +266,7 @@ func DecodePublicKey(sigAlgo SignatureAlgorithm, b []byte) (PublicKey, error) {
 	}
 
 	return PublicKey{
-		publicKey: pubKey,
+		PublicKey: pubKey,
 	}, nil
 }
 
