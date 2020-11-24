@@ -63,7 +63,9 @@ type HashAlgorithm hash.HashingAlgorithm
 const (
 	UnknownHashAlgorithm HashAlgorithm = HashAlgorithm(hash.UnknownHashingAlgorithm)
 	SHA2_256                           = HashAlgorithm(hash.SHA2_256)
+	SHA2_384                           = HashAlgorithm(hash.SHA2_384)
 	SHA3_256                           = HashAlgorithm(hash.SHA3_256)
+	SHA3_384                           = HashAlgorithm(hash.SHA3_384)
 )
 
 // String returns the string representation of this hash algorithm.
