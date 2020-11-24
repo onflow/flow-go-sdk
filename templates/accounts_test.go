@@ -19,57 +19,35 @@
 package templates_test
 
 import (
-	"testing"
-
-	"github.com/lithammer/dedent"
-	"github.com/stretchr/testify/assert"
-
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/templates"
-	"github.com/onflow/flow-go-sdk/test"
+	"github.com/stretchr/testify/require"
+	"testing"
 )
 
 func TestCreateAccount(t *testing.T) {
-	accountKey := test.AccountKeyGenerator().New()
+	// Converting transaction arguments to Cadence values can increase their size.
+	// If this is not taken into account the transaction can quickly grow over the maximum transaction size limit.
+	t.Run("Transaction should not grow uncontrollably in size", func(t *testing.T) {
+		contractLen := 1000
+		contractCode := make([]byte, contractLen)
 
-	t.Run("without code", func(t *testing.T) {
-		script, err := templates.CreateAccount([]*flow.AccountKey{accountKey}, []byte{})
-		assert.NoError(t, err)
+		tx := templates.CreateAccount(
+			[]*flow.AccountKey{},
+			[]templates.Contract{{
+				Name:   "contract",
+				Source: string(contractCode),
+			}},
+			flow.HexToAddress("01"))
 
-		expectedScript := "\ntransaction {\n  prepare(signer: AuthAccount) {\n    let acct = AuthAccount(payer: signer)\n\n    for key in [[248,71,184,64,141,166,11,217,138,130,124,135,226,22,34,197,7,10,227,238,68,10,191,9,39,213,219,51,249,101,44,177,48,62,184,160,77,254,65,222,162,201,234,100,238,131,238,141,124,141,6,141,184,56,108,123,171,152,105,74,249,86,224,253,174,55,24,78,2,3,130,3,232]] {\n        acct.addPublicKey(key)\n    }\n\n    acct.setCode(\"\".decodeHex())\n  }\n}\n"
-
-		assert.Equal(t,
-			dedent.Dedent(expectedScript),
-			dedent.Dedent(string(script)),
-		)
+		txSize := len(tx.Script)
+		argumentsSize := 0
+		for _, argument := range tx.Arguments {
+			argumentsSize += len(argument)
+		}
+		require.Less(t, txSize, 1000, "The create account script should not grow over 1kB.")
+		require.Less(t, argumentsSize, contractLen*2+500,
+			"The create account argument size should not grow over "+
+				"2 times the contract code (converted to hex) + 500 bytes of extra data.")
 	})
-
-	t.Run("with code", func(t *testing.T) {
-		script, err := templates.CreateAccount([]*flow.AccountKey{accountKey}, []byte("pub fun main() {}"))
-		assert.Nil(t, err)
-
-		expectedScript := "\ntransaction {\n  prepare(signer: AuthAccount) {\n    let acct = AuthAccount(payer: signer)\n\n    for key in [[248,71,184,64,141,166,11,217,138,130,124,135,226,22,34,197,7,10,227,238,68,10,191,9,39,213,219,51,249,101,44,177,48,62,184,160,77,254,65,222,162,201,234,100,238,131,238,141,124,141,6,141,184,56,108,123,171,152,105,74,249,86,224,253,174,55,24,78,2,3,130,3,232]] {\n        acct.addPublicKey(key)\n    }\n\n    acct.setCode(\"7075622066756e206d61696e2829207b7d\".decodeHex())\n  }\n}\n"
-
-		assert.Equal(t,
-			dedent.Dedent(expectedScript),
-			dedent.Dedent(string(script)),
-		)
-	})
-}
-
-func TestUpdateAccountCode(t *testing.T) {
-	script := templates.UpdateAccountCode([]byte("pub fun main() {}"))
-
-	expectedScript := `
-      transaction {
-        prepare(signer: AuthAccount) {
-          signer.setCode("7075622066756e206d61696e2829207b7d".decodeHex())
-        }
-      }
-    `
-
-	assert.Equal(t,
-		dedent.Dedent(expectedScript),
-		dedent.Dedent(string(script)),
-	)
 }

@@ -42,10 +42,11 @@ func AccountToMessage(a flow.Account) *entities.Account {
 	}
 
 	return &entities.Account{
-		Address: a.Address.Bytes(),
-		Balance: a.Balance,
-		Code:    a.Code,
-		Keys:    accountKeys,
+		Address:   a.Address.Bytes(),
+		Balance:   a.Balance,
+		Code:      a.Code,
+		Keys:      accountKeys,
+		Contracts: a.Contracts,
 	}
 }
 
@@ -65,21 +66,23 @@ func MessageToAccount(m *entities.Account) (flow.Account, error) {
 	}
 
 	return flow.Account{
-		Address: flow.BytesToAddress(m.GetAddress()),
-		Balance: m.GetBalance(),
-		Code:    m.GetCode(),
-		Keys:    accountKeys,
+		Address:   flow.BytesToAddress(m.GetAddress()),
+		Balance:   m.GetBalance(),
+		Code:      m.GetCode(),
+		Keys:      accountKeys,
+		Contracts: m.GetContracts(),
 	}, nil
 }
 
 func AccountKeyToMessage(a *flow.AccountKey) *entities.AccountKey {
 	return &entities.AccountKey{
-		Index:          uint32(a.ID),
+		Index:          uint32(a.Index),
 		PublicKey:      a.PublicKey.Encode(),
 		SignAlgo:       uint32(a.SigAlgo),
 		HashAlgo:       uint32(a.HashAlgo),
 		Weight:         uint32(a.Weight),
 		SequenceNumber: uint32(a.SequenceNumber),
+		Revoked:        a.Revoked,
 	}
 }
 
@@ -97,12 +100,13 @@ func MessageToAccountKey(m *entities.AccountKey) (*flow.AccountKey, error) {
 	}
 
 	return &flow.AccountKey{
-		ID:             int(m.GetIndex()),
+		Index:          int(m.GetIndex()),
 		PublicKey:      publicKey,
 		SigAlgo:        sigAlgo,
 		HashAlgo:       hashAlgo,
 		Weight:         int(m.GetWeight()),
 		SequenceNumber: uint64(m.GetSequenceNumber()),
+		Revoked:        m.GetRevoked(),
 	}, nil
 }
 
@@ -345,19 +349,9 @@ func MessagesToIdentifiers(l [][]byte) []flow.Identifier {
 }
 
 func TransactionToMessage(t flow.Transaction) (*entities.Transaction, error) {
-	var err error
-
-	arguments := make([][]byte, len(t.Arguments))
-	for i, arg := range t.Arguments {
-		arguments[i], err = CadenceValueToMessage(arg)
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	proposalKeyMessage := &entities.Transaction_ProposalKey{
 		Address:        t.ProposalKey.Address.Bytes(),
-		KeyId:          uint32(t.ProposalKey.KeyID),
+		KeyId:          uint32(t.ProposalKey.KeyIndex),
 		SequenceNumber: t.ProposalKey.SequenceNumber,
 	}
 
@@ -371,7 +365,7 @@ func TransactionToMessage(t flow.Transaction) (*entities.Transaction, error) {
 	for i, sig := range t.PayloadSignatures {
 		payloadSigMessages[i] = &entities.Transaction_Signature{
 			Address:   sig.Address.Bytes(),
-			KeyId:     uint32(sig.KeyID),
+			KeyId:     uint32(sig.KeyIndex),
 			Signature: sig.Signature,
 		}
 	}
@@ -381,14 +375,14 @@ func TransactionToMessage(t flow.Transaction) (*entities.Transaction, error) {
 	for i, sig := range t.EnvelopeSignatures {
 		envelopeSigMessages[i] = &entities.Transaction_Signature{
 			Address:   sig.Address.Bytes(),
-			KeyId:     uint32(sig.KeyID),
+			KeyId:     uint32(sig.KeyIndex),
 			Signature: sig.Signature,
 		}
 	}
 
 	return &entities.Transaction{
 		Script:             t.Script,
-		Arguments:          arguments,
+		Arguments:          t.Arguments,
 		ReferenceBlockId:   t.ReferenceBlockID.Bytes(),
 		GasLimit:           t.GasLimit,
 		ProposalKey:        proposalKeyMessage,
@@ -411,12 +405,7 @@ func MessageToTransaction(m *entities.Transaction) (flow.Transaction, error) {
 	t.SetGasLimit(m.GetGasLimit())
 
 	for _, arg := range m.GetArguments() {
-		value, err := MessageToCadenceValue(arg)
-		if err != nil {
-			return flow.Transaction{}, err
-		}
-
-		t.AddArgument(value)
+		t.AddRawArgument(arg)
 	}
 
 	proposalKey := m.GetProposalKey()

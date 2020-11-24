@@ -48,21 +48,19 @@ func CreateAccountDemo() {
 		SetHashAlgo(crypto.SHA3_256).
 		SetWeight(flow.AccountKeyWeightThreshold)
 
-	// Create a Cadence script which will create an account with one key with weight 1 and
-	createAccountScript, err := templates.CreateAccount([]*flow.AccountKey{myAcctKey}, nil)
-	examples.Handle(err)
-
-	// Create a transaction that will execute the script. The transaction is signed
-	// by the service account.
-	createAccountTx := flow.NewTransaction().
-		SetScript(createAccountScript).
-		SetProposalKey(serviceAcctAddr, serviceAcctKey.ID, serviceAcctKey.SequenceNumber).
-		SetPayer(serviceAcctAddr).
-		AddAuthorizer(serviceAcctAddr)
+	referenceBlockID := examples.GetReferenceBlockId(flowClient)
+	createAccountTx := templates.CreateAccount([]*flow.AccountKey{myAcctKey}, nil, serviceAcctAddr)
+	createAccountTx.SetProposalKey(
+		serviceAcctAddr,
+		serviceAcctKey.Index,
+		serviceAcctKey.SequenceNumber,
+	)
+	createAccountTx.SetReferenceBlockID(referenceBlockID)
+	createAccountTx.SetPayer(serviceAcctAddr)
 
 	// Sign the transaction with the service account, which already exists
 	// All new accounts must be created by an existing account
-	err = createAccountTx.SignEnvelope(serviceAcctAddr, serviceAcctKey.ID, serviceSigner)
+	err = createAccountTx.SignEnvelope(serviceAcctAddr, serviceAcctKey.Index, serviceSigner)
 	examples.Handle(err)
 
 	// Send the transaction to the network

@@ -19,7 +19,10 @@
 package crypto
 
 import (
+	"crypto/ecdsa"
+	"crypto/x509"
 	"encoding/hex"
+	"encoding/pem"
 	"fmt"
 
 	"github.com/onflow/flow-go/crypto"
@@ -81,39 +84,20 @@ func StringToHashAlgorithm(s string) HashAlgorithm {
 	}
 }
 
-// KeyType is a key format supported by Flow.
-type KeyType int
-
-const (
-	UnknownKeyType KeyType = iota
-	ECDSA_P256_SHA2_256
-	ECDSA_P256_SHA3_256
-	ECDSA_secp256k1_SHA2_256
-	ECDSA_secp256k1_SHA3_256
-)
-
-// SignatureAlgorithm returns the signature algorithm for this key type.
-func (k KeyType) SignatureAlgorithm() SignatureAlgorithm {
-	switch k {
-	case ECDSA_P256_SHA2_256, ECDSA_P256_SHA3_256:
-		return ECDSA_P256
-	case ECDSA_secp256k1_SHA2_256, ECDSA_secp256k1_SHA3_256:
-		return ECDSA_secp256k1
-	default:
-		return UnknownSignatureAlgorithm
+// CompatibleAlgorithms returns true if the signature and hash algorithms are compatible.
+func CompatibleAlgorithms(sigAlgo SignatureAlgorithm, hashAlgo HashAlgorithm) bool {
+	switch sigAlgo {
+	case ECDSA_P256:
+		fallthrough
+	case ECDSA_secp256k1:
+		switch hashAlgo {
+		case SHA2_256:
+			fallthrough
+		case SHA3_256:
+			return true
+		}
 	}
-}
-
-// HashAlgorithm returns the hash algorithm for this key type.
-func (k KeyType) HashAlgorithm() HashAlgorithm {
-	switch k {
-	case ECDSA_P256_SHA2_256, ECDSA_secp256k1_SHA2_256:
-		return SHA2_256
-	case ECDSA_P256_SHA3_256, ECDSA_secp256k1_SHA3_256:
-		return SHA3_256
-	default:
-		return UnknownHashAlgorithm
-	}
+	return false
 }
 
 // A PrivateKey is a cryptographic private key that can be used for in-memory signing.
@@ -148,6 +132,9 @@ type Signer interface {
 }
 
 // An InMemorySigner is a signer that generates signatures using an in-memory private key.
+//
+// InMemorySigner implements simple signing that does not protect the private key against
+// any tampering or side channel attacks.
 type InMemorySigner struct {
 	PrivateKey PrivateKey
 	Hasher     Hasher
@@ -280,18 +267,21 @@ func DecodePublicKeyHex(sigAlgo SignatureAlgorithm, s string) (PublicKey, error)
 	return DecodePublicKey(sigAlgo, b)
 }
 
-// CompatibleAlgorithms returns true if the signature and hash algorithms are compatible.
-func CompatibleAlgorithms(sigAlgo SignatureAlgorithm, hashAlgo HashAlgorithm) bool {
-	switch sigAlgo {
-	case ECDSA_P256:
-		fallthrough
-	case ECDSA_secp256k1:
-		switch hashAlgo {
-		case SHA2_256:
-			fallthrough
-		case SHA3_256:
-			return true
-		}
+// DecodePublicKeyHex decodes a PEM public key with the given signature algorithm.
+func DecodePublicKeyPEM(sigAlgo SignatureAlgorithm, s string) (PublicKey, error) {
+	block, _ := pem.Decode([]byte(s))
+
+	publicKey, err := x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		return PublicKey{}, fmt.Errorf("crypto: failed to parse PEM string: %w", err)
 	}
-	return false
+
+	goPublicKey := publicKey.(*ecdsa.PublicKey)
+
+	rawPublicKey := append(
+		goPublicKey.X.Bytes(),
+		goPublicKey.Y.Bytes()...,
+	)
+
+	return DecodePublicKey(sigAlgo, rawPublicKey)
 }

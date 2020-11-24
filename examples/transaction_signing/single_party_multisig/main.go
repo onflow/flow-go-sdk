@@ -59,8 +59,9 @@ func SinglePartyMultiSignatureDemo() {
 
 	key2Signer := crypto.NewInMemorySigner(privateKey2, key2.HashAlgo)
 
-	account1 := examples.CreateAccount(flowClient, []*flow.AccountKey{key1, key2}, nil)
+	account1 := examples.CreateAccount(flowClient, []*flow.AccountKey{key1, key2})
 
+	referenceBlockID := examples.GetReferenceBlockId(flowClient)
 	tx := flow.NewTransaction().
 		SetScript([]byte(`
             transaction { 
@@ -68,16 +69,17 @@ func SinglePartyMultiSignatureDemo() {
             }
         `)).
 		SetGasLimit(100).
-		SetProposalKey(account1.Address, account1.Keys[0].ID, account1.Keys[0].SequenceNumber).
+		SetProposalKey(account1.Address, account1.Keys[0].Index, account1.Keys[0].SequenceNumber).
+		SetReferenceBlockID(referenceBlockID).
 		SetPayer(account1.Address).
 		AddAuthorizer(account1.Address)
 
 	// account 1 signs the envelope with key 1
-	err = tx.SignEnvelope(account1.Address, account1.Keys[0].ID, key1Signer)
+	err = tx.SignEnvelope(account1.Address, account1.Keys[0].Index, key1Signer)
 	examples.Handle(err)
 
 	// account 1 signs the envelope with key 2
-	err = tx.SignEnvelope(account1.Address, account1.Keys[1].ID, key2Signer)
+	err = tx.SignEnvelope(account1.Address, account1.Keys[1].Index, key2Signer)
 	examples.Handle(err)
 
 	err = flowClient.SendTransaction(ctx, *tx)

@@ -27,49 +27,74 @@ import (
 
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/client"
+	"github.com/onflow/flow-go-sdk/crypto/cloudkms"
 	"github.com/onflow/flow-go-sdk/examples"
 	"github.com/onflow/flow-go-sdk/test"
 )
 
 func main() {
-	TransactionArgumentsDemo()
+	GoogleCloudKMSDemo()
 }
 
-func TransactionArgumentsDemo() {
+func GoogleCloudKMSDemo() {
 	ctx := context.Background()
+
 	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
 	examples.Handle(err)
 
-	serviceAcctAddr, serviceAcctKey, serviceSigner := examples.ServiceAccount(flowClient)
+	accountAddress := test.AddressGenerator().New()
+	accountKeyID := 0
 
-	message := test.GreetingGenerator().Random()
-	greeting := cadence.NewString(message)
+	accountKMSKey := cloudkms.Key{
+		ProjectID:  "my-project",
+		LocationID: "global",
+		KeyRingID:  "flow",
+		KeyID:      "my-account",
+		KeyVersion: "1",
+	}
 
-	referenceBlockID := examples.GetReferenceBlockId(flowClient)
+	kmsClient, err := cloudkms.NewClient(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	accountKMSSigner, err := kmsClient.SignerForKey(
+		ctx,
+		accountAddress,
+		accountKMSKey,
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	serviceAccount, err := flowClient.GetAccount(ctx, accountAddress)
+	if err != nil {
+		panic(err)
+	}
+
+	latestBlock, err := flowClient.GetLatestBlockHeader(ctx, true)
+	if err != nil {
+		panic(err)
+	}
+
+	accountKey := serviceAccount.Keys[accountKeyID]
+
 	tx := flow.NewTransaction().
 		SetScript(test.GreetingScript).
-		SetProposalKey(serviceAcctAddr, serviceAcctKey.Index, serviceAcctKey.SequenceNumber).
-		SetReferenceBlockID(referenceBlockID).
-		SetPayer(serviceAcctAddr)
+		SetReferenceBlockID(latestBlock.ID).
+		SetProposalKey(accountAddress, accountKey.Index, accountKey.SequenceNumber).
+		SetPayer(accountAddress)
 
-	err = tx.AddArgument(greeting)
+	err = tx.AddArgument(cadence.NewString(test.GreetingGenerator().Random()))
 	examples.Handle(err)
 
-	fmt.Println("Sending transaction:")
-	fmt.Println()
-	fmt.Println("----------------")
-	fmt.Println("Script:")
-	fmt.Println(string(tx.Script))
-	fmt.Println("Arguments:")
-	fmt.Printf("greeting: %s\n", greeting)
-	fmt.Println("----------------")
-	fmt.Println()
-
-	err = tx.SignEnvelope(serviceAcctAddr, serviceAcctKey.Index, serviceSigner)
+	err = tx.SignEnvelope(accountAddress, accountKey.Index, accountKMSSigner)
 	examples.Handle(err)
 
 	err = flowClient.SendTransaction(ctx, *tx)
 	examples.Handle(err)
 
-	_ = examples.WaitForSeal(ctx, flowClient, tx.ID())
+	examples.WaitForSeal(ctx, flowClient, tx.ID())
+
+	fmt.Println("Transaction complete!")
 }

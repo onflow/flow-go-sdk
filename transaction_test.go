@@ -24,6 +24,7 @@ import (
 	"testing"
 
 	"github.com/onflow/cadence"
+	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -37,11 +38,11 @@ func ExampleTransaction() {
 	// Mock user accounts
 
 	adrianLaptopKey := &flow.AccountKey{
-		ID:             3,
+		Index:          3,
 		SequenceNumber: 42,
 	}
 
-	adrianPhoneKey := &flow.AccountKey{ID: 2}
+	adrianPhoneKey := &flow.AccountKey{Index: 2}
 	addressA := addresses.New()
 
 	adrian := flow.Account{
@@ -52,7 +53,7 @@ func ExampleTransaction() {
 		},
 	}
 
-	blaineHardwareKey := &flow.AccountKey{ID: 7}
+	blaineHardwareKey := &flow.AccountKey{Index: 7}
 	addressB := addresses.New()
 
 	blaine := flow.Account{
@@ -68,7 +69,7 @@ func ExampleTransaction() {
 		SetScript([]byte(`transaction { execute { log("Hello, World!") } }`)).
 		SetReferenceBlockID(flow.Identifier{0x01, 0x02}).
 		SetGasLimit(42).
-		SetProposalKey(adrian.Address, adrianLaptopKey.ID, adrianLaptopKey.SequenceNumber).
+		SetProposalKey(adrian.Address, adrianLaptopKey.Index, adrianLaptopKey.SequenceNumber).
 		SetPayer(blaine.Address).
 		AddAuthorizer(adrian.Address)
 
@@ -76,17 +77,17 @@ func ExampleTransaction() {
 
 	// Signing
 
-	err := tx.SignPayload(adrian.Address, adrianLaptopKey.ID, test.MockSigner([]byte{1}))
+	err := tx.SignPayload(adrian.Address, adrianLaptopKey.Index, test.MockSigner([]byte{1}))
 	if err != nil {
 		panic(err)
 	}
 
-	err = tx.SignPayload(adrian.Address, adrianPhoneKey.ID, test.MockSigner([]byte{2}))
+	err = tx.SignPayload(adrian.Address, adrianPhoneKey.Index, test.MockSigner([]byte{2}))
 	if err != nil {
 		panic(err)
 	}
 
-	err = tx.SignEnvelope(blaine.Address, blaineHardwareKey.ID, test.MockSigner([]byte{3}))
+	err = tx.SignEnvelope(blaine.Address, blaineHardwareKey.Index, test.MockSigner([]byte{3}))
 	if err != nil {
 		panic(err)
 	}
@@ -94,9 +95,9 @@ func ExampleTransaction() {
 	fmt.Println("Payload signatures:")
 	for _, sig := range tx.PayloadSignatures {
 		fmt.Printf(
-			"Address: %s, Key ID: %d, Signature: %x\n",
+			"Address: %s, Key Index: %d, Signature: %x\n",
 			sig.Address,
-			sig.KeyID,
+			sig.KeyIndex,
 			sig.Signature,
 		)
 	}
@@ -105,9 +106,9 @@ func ExampleTransaction() {
 	fmt.Println("Envelope signatures:")
 	for _, sig := range tx.EnvelopeSignatures {
 		fmt.Printf(
-			"Address: %s, Key ID: %d, Signature: %x\n",
+			"Address: %s, Key Index: %d, Signature: %x\n",
 			sig.Address,
-			sig.KeyID,
+			sig.KeyIndex,
 			sig.Signature,
 		)
 	}
@@ -119,11 +120,11 @@ func ExampleTransaction() {
 	// Transaction ID (before signing): 8c362dd8b7553d48284cecc94d2ab545d513b29f930555632390fff5ca9772ee
 	//
 	// Payload signatures:
-	// Address: f8d6e0586b0a20c7, Key ID: 2, Signature: 02
-	// Address: f8d6e0586b0a20c7, Key ID: 3, Signature: 01
+	// Address: f8d6e0586b0a20c7, Key Index: 2, Signature: 02
+	// Address: f8d6e0586b0a20c7, Key Index: 3, Signature: 01
 	//
 	// Envelope signatures:
-	// Address: ee82856bf20e2aa6, Key ID: 7, Signature: 03
+	// Address: ee82856bf20e2aa6, Key Index: 7, Signature: 03
 	//
 	// Transaction ID (after signing): d1a2c58aebfce1050a32edf3568ec3b69cb8637ae090b5f7444ca6b2a8de8f8b
 }
@@ -142,22 +143,88 @@ func TestTransaction_AddArgument(t *testing.T) {
 	})
 
 	t.Run("Single argument", func(t *testing.T) {
-		arg := cadence.NewString("foo")
-		tx := flow.NewTransaction().
-			AddArgument(arg)
+		expectedArg := cadence.NewString("foo")
 
-		assert.Equal(t, []cadence.Value{arg}, tx.Arguments)
+		tx := flow.NewTransaction()
+
+		err := tx.AddArgument(expectedArg)
+		require.NoError(t, err)
+
+		actualArg, err := tx.Argument(0)
+		assert.NoError(t, err)
+
+		assert.Equal(t, expectedArg, actualArg)
 	})
 
 	t.Run("Multiple arguments", func(t *testing.T) {
-		argA := cadence.NewString("foo")
-		argB := cadence.NewInt(42)
+		expectedArgA := cadence.NewString("foo")
+		expectedArgB := cadence.NewInt(42)
+
+		tx := flow.NewTransaction()
+
+		err := tx.AddArgument(expectedArgA)
+		require.NoError(t, err)
+		err = tx.AddArgument(expectedArgB)
+		require.NoError(t, err)
+
+		actualArgA, err := tx.Argument(0)
+		assert.NoError(t, err)
+
+		actualArgB, err := tx.Argument(1)
+		assert.NoError(t, err)
+
+		assert.Equal(t, expectedArgA, actualArgA)
+		assert.Equal(t, expectedArgB, actualArgB)
+	})
+}
+
+func TestTransaction_AddRawArgument(t *testing.T) {
+	t.Run("Single argument", func(t *testing.T) {
+		expectedArg := cadence.NewString("foo")
+
+		encodedArg, err := jsoncdc.Encode(expectedArg)
+		require.NoError(t, err)
 
 		tx := flow.NewTransaction().
-			AddArgument(argA).
-			AddArgument(argB)
+			AddRawArgument(encodedArg)
 
-		assert.Equal(t, []cadence.Value{argA, argB}, tx.Arguments)
+		actualArg, err := tx.Argument(0)
+		assert.NoError(t, err)
+
+		assert.Equal(t, expectedArg, actualArg)
+	})
+
+	t.Run("Multiple arguments", func(t *testing.T) {
+		expectedArgA := cadence.NewString("foo")
+		expectedArgB := cadence.NewInt(42)
+
+		encodedArgA, err := jsoncdc.Encode(expectedArgA)
+		require.NoError(t, err)
+
+		encodedArgB, err := jsoncdc.Encode(expectedArgB)
+		require.NoError(t, err)
+
+		tx := flow.NewTransaction().
+			AddRawArgument(encodedArgA).
+			AddRawArgument(encodedArgB)
+
+		actualArgA, err := tx.Argument(0)
+		assert.NoError(t, err)
+
+		actualArgB, err := tx.Argument(1)
+		assert.NoError(t, err)
+
+		assert.Equal(t, expectedArgA, actualArgA)
+		assert.Equal(t, expectedArgB, actualArgB)
+	})
+
+	t.Run("Invalid argument", func(t *testing.T) {
+		tx := flow.NewTransaction().
+			AddRawArgument([]byte{1, 2, 3})
+
+		actualArg, err := tx.Argument(0)
+		assert.Nil(t, actualArg)
+		assert.Error(t, err)
 	})
 }
 
@@ -181,14 +248,14 @@ func TestTransaction_SetGasLimit(t *testing.T) {
 
 func TestTransaction_SetProposalKey(t *testing.T) {
 	address := flow.ServiceAddress(flow.Mainnet)
-	keyID := 7
+	keyIndex := 7
 	var sequenceNumber uint64 = 42
 
 	tx := flow.NewTransaction().
-		SetProposalKey(address, keyID, sequenceNumber)
+		SetProposalKey(address, keyIndex, sequenceNumber)
 
 	assert.Equal(t, address, tx.ProposalKey.Address)
-	assert.Equal(t, keyID, tx.ProposalKey.KeyID)
+	assert.Equal(t, keyIndex, tx.ProposalKey.KeyIndex)
 	assert.Equal(t, sequenceNumber, tx.ProposalKey.SequenceNumber)
 }
 
@@ -241,7 +308,7 @@ func TestTransaction_AddPayloadSignature(t *testing.T) {
 		addressA := addresses.New()
 		addressB := addresses.New()
 
-		keyID := 7
+		keyIndex := 7
 		sig := []byte{42}
 
 		tx := flow.NewTransaction().
@@ -249,19 +316,19 @@ func TestTransaction_AddPayloadSignature(t *testing.T) {
 			AddAuthorizer(addressB)
 
 		// add signatures in reverse order of declaration
-		tx.AddPayloadSignature(addressB, keyID, sig)
-		tx.AddPayloadSignature(addressA, keyID, sig)
+		tx.AddPayloadSignature(addressB, keyIndex, sig)
+		tx.AddPayloadSignature(addressA, keyIndex, sig)
 
 		require.Len(t, tx.PayloadSignatures, 2)
 
 		assert.Equal(t, 0, tx.PayloadSignatures[0].SignerIndex)
 		assert.Equal(t, addressA, tx.PayloadSignatures[0].Address)
-		assert.Equal(t, keyID, tx.PayloadSignatures[0].KeyID)
+		assert.Equal(t, keyIndex, tx.PayloadSignatures[0].KeyIndex)
 		assert.Equal(t, sig, tx.PayloadSignatures[0].Signature)
 
 		assert.Equal(t, 1, tx.PayloadSignatures[1].SignerIndex)
 		assert.Equal(t, addressB, tx.PayloadSignatures[1].Address)
-		assert.Equal(t, keyID, tx.PayloadSignatures[1].KeyID)
+		assert.Equal(t, keyIndex, tx.PayloadSignatures[1].KeyIndex)
 		assert.Equal(t, sig, tx.PayloadSignatures[1].Signature)
 	})
 
@@ -269,58 +336,58 @@ func TestTransaction_AddPayloadSignature(t *testing.T) {
 		addressA := addresses.New()
 		addressB := addresses.New()
 
-		keyID := 7
+		keyIndex := 7
 		sig := []byte{42}
 
 		tx := flow.NewTransaction().
-			SetProposalKey(addressA, keyID, 42).
+			SetProposalKey(addressA, keyIndex, 42).
 			AddAuthorizer(addressB).
 			AddAuthorizer(addressA)
 
 		// add signatures in reverse order of declaration
-		tx.AddPayloadSignature(addressB, keyID, sig)
-		tx.AddPayloadSignature(addressA, keyID, sig)
+		tx.AddPayloadSignature(addressB, keyIndex, sig)
+		tx.AddPayloadSignature(addressA, keyIndex, sig)
 
 		require.Len(t, tx.PayloadSignatures, 2)
 
 		assert.Equal(t, 0, tx.PayloadSignatures[0].SignerIndex)
 		assert.Equal(t, addressA, tx.PayloadSignatures[0].Address)
-		assert.Equal(t, keyID, tx.PayloadSignatures[0].KeyID)
+		assert.Equal(t, keyIndex, tx.PayloadSignatures[0].KeyIndex)
 		assert.Equal(t, sig, tx.PayloadSignatures[0].Signature)
 
 		assert.Equal(t, 1, tx.PayloadSignatures[1].SignerIndex)
 		assert.Equal(t, addressB, tx.PayloadSignatures[1].Address)
-		assert.Equal(t, keyID, tx.PayloadSignatures[1].KeyID)
+		assert.Equal(t, keyIndex, tx.PayloadSignatures[1].KeyIndex)
 		assert.Equal(t, sig, tx.PayloadSignatures[1].Signature)
 	})
 
 	t.Run("Multiple signatures", func(t *testing.T) {
 		address := addresses.New()
 
-		keyIDA := 7
+		keyIndexA := 7
 		sigA := []byte{42}
 
-		keyIDB := 8
+		keyIndexB := 8
 		sigB := []byte{43}
 
 		tx := flow.NewTransaction().
 			AddAuthorizer(address)
 
-		// add signatures in descending order by key ID
-		tx.AddPayloadSignature(address, keyIDB, sigB)
-		tx.AddPayloadSignature(address, keyIDA, sigA)
+		// add signatures in descending order by key index
+		tx.AddPayloadSignature(address, keyIndexB, sigB)
+		tx.AddPayloadSignature(address, keyIndexA, sigA)
 
 		require.Len(t, tx.PayloadSignatures, 2)
 
 		// signatures should be sorted in ascending order by key ID
 		assert.Equal(t, 0, tx.PayloadSignatures[0].SignerIndex)
 		assert.Equal(t, address, tx.PayloadSignatures[0].Address)
-		assert.Equal(t, keyIDA, tx.PayloadSignatures[0].KeyID)
+		assert.Equal(t, keyIndexA, tx.PayloadSignatures[0].KeyIndex)
 		assert.Equal(t, sigA, tx.PayloadSignatures[0].Signature)
 
 		assert.Equal(t, 0, tx.PayloadSignatures[1].SignerIndex)
 		assert.Equal(t, address, tx.PayloadSignatures[1].Address)
-		assert.Equal(t, keyIDB, tx.PayloadSignatures[1].KeyID)
+		assert.Equal(t, keyIndexB, tx.PayloadSignatures[1].KeyIndex)
 		assert.Equal(t, sigB, tx.PayloadSignatures[1].Signature)
 	})
 }
@@ -344,48 +411,48 @@ func TestTransaction_AddEnvelopeSignature(t *testing.T) {
 	t.Run("Valid signer", func(t *testing.T) {
 		address := addresses.New()
 
-		keyID := 7
+		keyIndex := 7
 		sig := []byte{42}
 
 		tx := flow.NewTransaction().
 			SetPayer(address)
 
-		tx.AddEnvelopeSignature(address, keyID, sig)
+		tx.AddEnvelopeSignature(address, keyIndex, sig)
 
 		require.Len(t, tx.EnvelopeSignatures, 1)
 
 		assert.Equal(t, 0, tx.EnvelopeSignatures[0].SignerIndex)
 		assert.Equal(t, address, tx.EnvelopeSignatures[0].Address)
-		assert.Equal(t, keyID, tx.EnvelopeSignatures[0].KeyID)
+		assert.Equal(t, keyIndex, tx.EnvelopeSignatures[0].KeyIndex)
 		assert.Equal(t, sig, tx.EnvelopeSignatures[0].Signature)
 	})
 
 	t.Run("Multiple signatures", func(t *testing.T) {
 		address := addresses.New()
 
-		keyIDA := 7
+		keyIndexA := 7
 		sigA := []byte{42}
 
-		keyIDB := 8
+		keyIndexB := 8
 		sigB := []byte{43}
 
 		tx := flow.NewTransaction().AddAuthorizer(address)
 
 		// add signatures in descending order by key ID
-		tx.AddEnvelopeSignature(address, keyIDB, sigB)
-		tx.AddEnvelopeSignature(address, keyIDA, sigA)
+		tx.AddEnvelopeSignature(address, keyIndexB, sigB)
+		tx.AddEnvelopeSignature(address, keyIndexA, sigA)
 
 		require.Len(t, tx.EnvelopeSignatures, 2)
 
 		// signatures should be sorted in ascending order by key ID
 		assert.Equal(t, 0, tx.EnvelopeSignatures[0].SignerIndex)
 		assert.Equal(t, address, tx.EnvelopeSignatures[0].Address)
-		assert.Equal(t, keyIDA, tx.EnvelopeSignatures[0].KeyID)
+		assert.Equal(t, keyIndexA, tx.EnvelopeSignatures[0].KeyIndex)
 		assert.Equal(t, sigA, tx.EnvelopeSignatures[0].Signature)
 
 		assert.Equal(t, 0, tx.EnvelopeSignatures[1].SignerIndex)
 		assert.Equal(t, address, tx.EnvelopeSignatures[1].Address)
-		assert.Equal(t, keyIDB, tx.EnvelopeSignatures[1].KeyID)
+		assert.Equal(t, keyIndexB, tx.EnvelopeSignatures[1].KeyIndex)
 		assert.Equal(t, sigB, tx.EnvelopeSignatures[1].Signature)
 	})
 }
@@ -456,13 +523,15 @@ func TestTransaction_RLPMessages(t *testing.T) {
 		},
 		{
 			name:     "Single argument",
-			tx:       baseTx().AddArgument(cadence.NewString("foo")),
+			tx:       baseTx().AddRawArgument(jsoncdc.MustEncode(cadence.NewString("foo"))),
 			payload:  "f893b07472616e73616374696f6e207b2065786563757465207b206c6f67282248656c6c6f2c20576f726c64212229207d207de1a07b2274797065223a22537472696e67222c2276616c7565223a22666f6f227d0aa0f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b2a880000000000000001040a880000000000000001c9880000000000000001",
 			envelope: "f8baf893b07472616e73616374696f6e207b2065786563757465207b206c6f67282248656c6c6f2c20576f726c64212229207d207de1a07b2274797065223a22537472696e67222c2276616c7565223a22666f6f227d0aa0f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b2a880000000000000001040a880000000000000001c9880000000000000001e4e38004a0f7225388c1d69d57e6251c9fda50cbbf9e05131e5adb81e5aa0422402f048162",
 		},
 		{
-			name:     "Multiple arguments",
-			tx:       baseTx().AddArgument(cadence.NewString("foo")).AddArgument(cadence.NewInt(42)),
+			name: "Multiple arguments",
+			tx: baseTx().
+				AddRawArgument(jsoncdc.MustEncode(cadence.NewString("foo"))).
+				AddRawArgument(jsoncdc.MustEncode(cadence.NewInt(42))),
 			payload:  "f8b1b07472616e73616374696f6e207b2065786563757465207b206c6f67282248656c6c6f2c20576f726c64212229207d207df83ea07b2274797065223a22537472696e67222c2276616c7565223a22666f6f227d0a9c7b2274797065223a22496e74222c2276616c7565223a223432227d0aa0f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b2a880000000000000001040a880000000000000001c9880000000000000001",
 			envelope: "f8d8f8b1b07472616e73616374696f6e207b2065786563757465207b206c6f67282248656c6c6f2c20576f726c64212229207d207df83ea07b2274797065223a22537472696e67222c2276616c7565223a22666f6f227d0a9c7b2274797065223a22496e74222c2276616c7565223a223432227d0aa0f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b2a880000000000000001040a880000000000000001c9880000000000000001e4e38004a0f7225388c1d69d57e6251c9fda50cbbf9e05131e5adb81e5aa0422402f048162",
 		},

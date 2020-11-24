@@ -33,15 +33,6 @@ import (
 	"github.com/onflow/flow-go-sdk/templates"
 )
 
-// ReadFile reads a file from the file system.
-func ReadFile(path string) []byte {
-	contents, err := ioutil.ReadFile(path)
-	if err != nil {
-		panic(err)
-	}
-	return contents
-}
-
 const configPath = "./flow.json"
 
 var (
@@ -60,6 +51,14 @@ type config struct {
 	}
 }
 
+// ReadFile reads a file from the file system.
+func ReadFile(path string) string {
+	contents, err := ioutil.ReadFile(path)
+	Handle(err)
+
+	return string(contents)
+}
+
 func readConfig() config {
 	f, err := os.Open(configPath)
 	if err != nil {
@@ -72,11 +71,8 @@ func readConfig() config {
 		os.Exit(1)
 	}
 
-	d := json.NewDecoder(f)
-
 	var conf config
-
-	err = d.Decode(&conf)
+	err = json.NewDecoder(f).Decode(&conf)
 	Handle(err)
 
 	return conf
@@ -89,35 +85,26 @@ func init() {
 }
 
 func ServiceAccount(flowClient *client.Client) (flow.Address, *flow.AccountKey, crypto.Signer) {
-
 	privateKey, err := crypto.DecodePrivateKeyHex(servicePrivateKeySigAlgo, servicePrivateKeyHex)
 	Handle(err)
 
 	addr := flow.ServiceAddress(flow.Emulator)
-
 	acc, err := flowClient.GetAccount(context.Background(), addr)
 	Handle(err)
 
 	accountKey := acc.Keys[0]
-
 	signer := crypto.NewInMemorySigner(privateKey, accountKey.HashAlgo)
-
 	return addr, accountKey, signer
 }
 
 // RandomPrivateKey returns a randomly generated ECDSA P-256 private key.
 func RandomPrivateKey() crypto.PrivateKey {
 	seed := make([]byte, crypto.MinSeedLength)
-
 	_, err := rand.Read(seed)
-	if err != nil {
-		panic(err)
-	}
+	Handle(err)
 
 	privateKey, err := crypto.GeneratePrivateKey(crypto.ECDSA_P256, seed)
-	if err != nil {
-		panic(err)
-	}
+	Handle(err)
 
 	return privateKey
 }
@@ -130,39 +117,33 @@ func RandomAccount(flowClient *client.Client) (flow.Address, *flow.AccountKey, c
 		SetHashAlgo(crypto.SHA3_256).
 		SetWeight(flow.AccountKeyWeightThreshold)
 
-	account := CreateAccount(
-		flowClient,
-		[]*flow.AccountKey{accountKey},
-		nil,
-	)
-
+	account := CreateAccount(flowClient, []*flow.AccountKey{accountKey})
 	signer := crypto.NewInMemorySigner(privateKey, accountKey.HashAlgo)
-
 	return account.Address, account.Keys[0], signer
 }
 
-func DeployContract(flowClient *client.Client, code []byte) flow.Address {
-	account := CreateAccount(flowClient, nil, code)
-	return account.Address
+func GetReferenceBlockId(flowClient *client.Client) flow.Identifier {
+	block, err := flowClient.GetLatestBlock(context.Background(), true)
+	Handle(err)
+
+	return block.ID
 }
 
-func CreateAccount(flowClient *client.Client, publicKeys []*flow.AccountKey, code []byte) *flow.Account {
-	ctx := context.Background()
-
+func CreateAccountWithContracts(flowClient *client.Client, publicKeys []*flow.AccountKey, contracts []templates.Contract) *flow.Account {
 	serviceAcctAddr, serviceAcctKey, serviceSigner := ServiceAccount(flowClient)
 
-	createAccountScript, err := templates.CreateAccount(publicKeys, code)
+	referenceBlockID := GetReferenceBlockId(flowClient)
+
+	createAccountTx := templates.CreateAccount(publicKeys, contracts, serviceAcctAddr)
+	createAccountTx.
+		SetProposalKey(serviceAcctAddr, serviceAcctKey.Index, serviceAcctKey.SequenceNumber).
+		SetReferenceBlockID(referenceBlockID).
+		SetPayer(serviceAcctAddr)
+
+	err := createAccountTx.SignEnvelope(serviceAcctAddr, serviceAcctKey.Index, serviceSigner)
 	Handle(err)
 
-	createAccountTx := flow.NewTransaction().
-		SetScript(createAccountScript).
-		SetProposalKey(serviceAcctAddr, serviceAcctKey.ID, serviceAcctKey.SequenceNumber).
-		SetPayer(serviceAcctAddr).
-		AddAuthorizer(serviceAcctAddr)
-
-	err = createAccountTx.SignEnvelope(serviceAcctAddr, serviceAcctKey.ID, serviceSigner)
-	Handle(err)
-
+	ctx := context.Background()
 	err = flowClient.SendTransaction(ctx, *createAccountTx)
 	Handle(err)
 
@@ -173,11 +154,14 @@ func CreateAccount(flowClient *client.Client, publicKeys []*flow.AccountKey, cod
 	Handle(err)
 
 	addr := accountCreatedEvent.Address()
-
 	account, err := flowClient.GetAccount(ctx, addr)
 	Handle(err)
 
 	return account
+}
+
+func CreateAccount(flowClient *client.Client, publicKeys []*flow.AccountKey) *flow.Account {
+	return CreateAccountWithContracts(flowClient, publicKeys, nil)
 }
 
 func Handle(err error) {
@@ -202,6 +186,5 @@ func WaitForSeal(ctx context.Context, c *client.Client, id flow.Identifier) *flo
 
 	fmt.Println()
 	fmt.Printf("Transaction %s sealed\n", id)
-
 	return result
 }

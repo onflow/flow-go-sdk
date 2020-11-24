@@ -49,7 +49,6 @@ func (g *Accounts) New() *flow.Account {
 			g.accountKeys.New(),
 			g.accountKeys.New(),
 		},
-		Code: nil,
 	}
 }
 
@@ -85,7 +84,7 @@ func (g *AccountKeys) NewWithSigner() (*flow.AccountKey, crypto.Signer) {
 	}
 
 	accountKey := flow.AccountKey{
-		ID:             g.count,
+		Index:          g.count,
 		PublicKey:      privateKey.PublicKey(),
 		SigAlgo:        crypto.ECDSA_P256,
 		HashAlgo:       crypto.SHA3_256,
@@ -221,7 +220,7 @@ func (g *Events) New() flow.Event {
 	identifier := fmt.Sprintf("FooEvent%d", g.count)
 	typeID := "test." + identifier
 
-	testEventType := cadence.EventType{
+	testEventType := &cadence.EventType{
 		TypeID:     typeID,
 		Identifier: identifier,
 		Fields: []cadence.Field{
@@ -293,8 +292,8 @@ func (g *Transactions) New() *flow.Transaction {
 	// sign payload with proposal key
 	err := tx.SignPayload(
 		tx.ProposalKey.Address,
-		tx.ProposalKey.KeyID,
-		MockSigner([]byte{uint8(tx.ProposalKey.KeyID)}),
+		tx.ProposalKey.KeyIndex,
+		MockSigner([]byte{uint8(tx.ProposalKey.KeyIndex)}),
 	)
 	if err != nil {
 		panic(err)
@@ -326,14 +325,20 @@ func (g *Transactions) NewUnsigned() *flow.Transaction {
 
 	proposalKey := accountA.Keys[0]
 
-	return flow.NewTransaction().
+	tx := flow.NewTransaction().
 		SetScript(GreetingScript).
-		AddArgument(cadence.NewString(g.greetings.New())).
 		SetReferenceBlockID(blockID).
 		SetGasLimit(42).
-		SetProposalKey(accountA.Address, proposalKey.ID, proposalKey.SequenceNumber).
+		SetProposalKey(accountA.Address, proposalKey.Index, proposalKey.SequenceNumber).
 		AddAuthorizer(accountA.Address).
 		SetPayer(accountB.Address)
+
+	err := tx.AddArgument(cadence.NewString(g.greetings.New()))
+	if err != nil {
+		panic(err)
+	}
+
+	return tx
 }
 
 type TransactionResults struct {

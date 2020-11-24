@@ -29,11 +29,13 @@ package client
 
 import (
 	"context"
-	"fmt"
+	"time"
+
+	"github.com/golang/protobuf/ptypes"
+	"google.golang.org/grpc"
 
 	"github.com/onflow/cadence"
 	"github.com/onflow/flow/protobuf/go/flow/access"
-	"google.golang.org/grpc"
 
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/client/convert"
@@ -87,18 +89,14 @@ func (c *Client) Ping(ctx context.Context) error {
 }
 
 // GetLatestBlockHeader gets the latest sealed or unsealed block header.
-func (c *Client) GetLatestBlockHeader(
-	ctx context.Context,
-	isSealed bool,
-) (*flow.BlockHeader, error) {
+func (c *Client) GetLatestBlockHeader(ctx context.Context, isSealed bool) (*flow.BlockHeader, error) {
 	req := &access.GetLatestBlockHeaderRequest{
 		IsSealed: isSealed,
 	}
 
 	res, err := c.rpcClient.GetLatestBlockHeader(ctx, req)
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newRPCError(err)
 	}
 
 	return getBlockHeaderResult(res)
@@ -112,8 +110,7 @@ func (c *Client) GetBlockHeaderByID(ctx context.Context, blockID flow.Identifier
 
 	res, err := c.rpcClient.GetBlockHeaderByID(ctx, req)
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newRPCError(err)
 	}
 
 	return getBlockHeaderResult(res)
@@ -127,8 +124,7 @@ func (c *Client) GetBlockHeaderByHeight(ctx context.Context, height uint64) (*fl
 
 	res, err := c.rpcClient.GetBlockHeaderByHeight(ctx, req)
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newRPCError(err)
 	}
 
 	return getBlockHeaderResult(res)
@@ -137,8 +133,7 @@ func (c *Client) GetBlockHeaderByHeight(ctx context.Context, height uint64) (*fl
 func getBlockHeaderResult(res *access.BlockHeaderResponse) (*flow.BlockHeader, error) {
 	header, err := convert.MessageToBlockHeader(res.GetBlock())
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newMessageToEntityError(entityBlockHeader, err)
 	}
 
 	return &header, nil
@@ -152,8 +147,7 @@ func (c *Client) GetLatestBlock(ctx context.Context, isSealed bool) (*flow.Block
 
 	res, err := c.rpcClient.GetLatestBlock(ctx, req)
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newRPCError(err)
 	}
 
 	return getBlockResult(res)
@@ -167,8 +161,7 @@ func (c *Client) GetBlockByID(ctx context.Context, blockID flow.Identifier) (*fl
 
 	res, err := c.rpcClient.GetBlockByID(ctx, req)
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newRPCError(err)
 	}
 
 	return getBlockResult(res)
@@ -182,8 +175,7 @@ func (c *Client) GetBlockByHeight(ctx context.Context, height uint64) (*flow.Blo
 
 	res, err := c.rpcClient.GetBlockByHeight(ctx, req)
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newRPCError(err)
 	}
 
 	return getBlockResult(res)
@@ -192,8 +184,7 @@ func (c *Client) GetBlockByHeight(ctx context.Context, height uint64) (*flow.Blo
 func getBlockResult(res *access.BlockResponse) (*flow.Block, error) {
 	block, err := convert.MessageToBlock(res.GetBlock())
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newMessageToEntityError(entityBlock, err)
 	}
 
 	return &block, nil
@@ -207,14 +198,12 @@ func (c *Client) GetCollection(ctx context.Context, colID flow.Identifier) (*flo
 
 	res, err := c.rpcClient.GetCollectionByID(ctx, req)
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newRPCError(err)
 	}
 
 	result, err := convert.MessageToCollection(res.GetCollection())
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newMessageToEntityError(entityCollection, err)
 	}
 
 	return &result, nil
@@ -224,8 +213,7 @@ func (c *Client) GetCollection(ctx context.Context, colID flow.Identifier) (*flo
 func (c *Client) SendTransaction(ctx context.Context, tx flow.Transaction) error {
 	txMsg, err := convert.TransactionToMessage(tx)
 	if err != nil {
-		// TODO: improve errors
-		return fmt.Errorf("client: %w", err)
+		return newEntityToMessageError(entityTransaction, err)
 	}
 
 	req := &access.SendTransactionRequest{
@@ -234,8 +222,7 @@ func (c *Client) SendTransaction(ctx context.Context, tx flow.Transaction) error
 
 	_, err = c.rpcClient.SendTransaction(ctx, req)
 	if err != nil {
-		// TODO: improve errors
-		return fmt.Errorf("client: %w", err)
+		return newRPCError(err)
 	}
 
 	return nil
@@ -249,14 +236,12 @@ func (c *Client) GetTransaction(ctx context.Context, txID flow.Identifier) (*flo
 
 	res, err := c.rpcClient.GetTransaction(ctx, req)
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newRPCError(err)
 	}
 
 	result, err := convert.MessageToTransaction(res.GetTransaction())
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newMessageToEntityError(entityTransaction, err)
 	}
 
 	return &result, nil
@@ -270,35 +255,36 @@ func (c *Client) GetTransactionResult(ctx context.Context, txID flow.Identifier)
 
 	res, err := c.rpcClient.GetTransactionResult(ctx, req)
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newRPCError(err)
 	}
 
 	result, err := convert.MessageToTransactionResult(res)
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newMessageToEntityError(entityTransactionResult, err)
 	}
 
 	return &result, nil
 }
 
-// GetAccount gets an account by address.
+// GetAccount is an alias for GetAccountAtLatestBlock.
 func (c *Client) GetAccount(ctx context.Context, address flow.Address) (*flow.Account, error) {
-	req := &access.GetAccountRequest{
+	return c.GetAccountAtLatestBlock(ctx, address)
+}
+
+// GetAccountAtLatestBlock gets an account by address at the latest sealed block.
+func (c *Client) GetAccountAtLatestBlock(ctx context.Context, address flow.Address) (*flow.Account, error) {
+	req := &access.GetAccountAtLatestBlockRequest{
 		Address: address.Bytes(),
 	}
 
-	res, err := c.rpcClient.GetAccount(ctx, req)
+	res, err := c.rpcClient.GetAccountAtLatestBlock(ctx, req)
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newRPCError(err)
 	}
 
 	account, err := convert.MessageToAccount(res.GetAccount())
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newMessageToEntityError(entityAccount, err)
 	}
 
 	return &account, nil
@@ -312,7 +298,7 @@ func (c *Client) ExecuteScriptAtLatestBlock(
 
 	args, err := convert.CadenceValuesToMessages(arguments)
 	if err != nil {
-		return nil, fmt.Errorf("convert: %w", err)
+		return nil, newEntityToMessageError(entityCadenceValue, err)
 	}
 
 	req := &access.ExecuteScriptAtLatestBlockRequest{
@@ -322,8 +308,7 @@ func (c *Client) ExecuteScriptAtLatestBlock(
 
 	res, err := c.rpcClient.ExecuteScriptAtLatestBlock(ctx, req)
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newRPCError(err)
 	}
 
 	return executeScriptResult(res)
@@ -340,7 +325,7 @@ func (c *Client) ExecuteScriptAtBlockID(
 
 	args, err := convert.CadenceValuesToMessages(arguments)
 	if err != nil {
-		return nil, err
+		return nil, newEntityToMessageError(entityCadenceValue, err)
 	}
 
 	req := &access.ExecuteScriptAtBlockIDRequest{
@@ -351,8 +336,7 @@ func (c *Client) ExecuteScriptAtBlockID(
 
 	res, err := c.rpcClient.ExecuteScriptAtBlockID(ctx, req)
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newRPCError(err)
 	}
 
 	return executeScriptResult(res)
@@ -369,7 +353,7 @@ func (c *Client) ExecuteScriptAtBlockHeight(
 
 	args, err := convert.CadenceValuesToMessages(arguments)
 	if err != nil {
-		return nil, err
+		return nil, newEntityToMessageError(entityCadenceValue, err)
 	}
 
 	req := &access.ExecuteScriptAtBlockHeightRequest{
@@ -380,8 +364,7 @@ func (c *Client) ExecuteScriptAtBlockHeight(
 
 	res, err := c.rpcClient.ExecuteScriptAtBlockHeight(ctx, req)
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newRPCError(err)
 	}
 
 	return executeScriptResult(res)
@@ -390,8 +373,7 @@ func (c *Client) ExecuteScriptAtBlockHeight(
 func executeScriptResult(res *access.ExecuteScriptResponse) (cadence.Value, error) {
 	value, err := convert.MessageToCadenceValue(res.GetValue())
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newMessageToEntityError(entityCadenceValue, err)
 	}
 
 	return value, nil
@@ -409,9 +391,10 @@ type EventRangeQuery struct {
 
 // BlockEvents are the events that occurred in a specific block.
 type BlockEvents struct {
-	BlockID flow.Identifier
-	Height  uint64
-	Events  []flow.Event
+	BlockID        flow.Identifier
+	Height         uint64
+	BlockTimestamp time.Time
+	Events         []flow.Event
 }
 
 // GetEventsForHeightRange retrieves events for all sealed blocks between the start and end block
@@ -425,8 +408,7 @@ func (c *Client) GetEventsForHeightRange(ctx context.Context, query EventRangeQu
 
 	res, err := c.rpcClient.GetEventsForHeightRange(ctx, req)
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newRPCError(err)
 	}
 
 	return getEventsResult(res)
@@ -445,8 +427,7 @@ func (c *Client) GetEventsForBlockIDs(
 
 	res, err := c.rpcClient.GetEventsForBlockIDs(ctx, req)
 	if err != nil {
-		// TODO: improve errors
-		return nil, fmt.Errorf("client: %w", err)
+		return nil, newRPCError(err)
 	}
 
 	return getEventsResult(res)
@@ -464,17 +445,21 @@ func getEventsResult(res *access.EventsResponse) ([]BlockEvents, error) {
 		for i, m := range eventMessages {
 			evt, err := convert.MessageToEvent(m)
 			if err != nil {
-				// TODO: improve errors
-				return nil, fmt.Errorf("client: %w", err)
+				return nil, newMessageToEntityError(entityEvent, err)
 			}
 
 			events[i] = evt
 		}
 
+		blockTimestamp, err := ptypes.Timestamp(result.BlockTimestamp)
+		if err != nil {
+			return nil, newMessageToEntityError(entityEvent, err)
+		}
 		results[i] = BlockEvents{
-			BlockID: flow.HashToID(result.GetBlockId()),
-			Height:  result.GetBlockHeight(),
-			Events:  events,
+			BlockID:        flow.HashToID(result.GetBlockId()),
+			Height:         result.GetBlockHeight(),
+			BlockTimestamp: blockTimestamp,
+			Events:         events,
 		}
 	}
 

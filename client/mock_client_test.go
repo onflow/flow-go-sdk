@@ -137,6 +137,66 @@ func (_m *MockRPCClient) GetAccount(ctx context.Context, in *access.GetAccountRe
 	return r0, r1
 }
 
+// GetAccountAtBlockHeight provides a mock function with given fields: ctx, in, opts
+func (_m *MockRPCClient) GetAccountAtBlockHeight(ctx context.Context, in *access.GetAccountAtBlockHeightRequest, opts ...grpc.CallOption) (*access.AccountResponse, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, in)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *access.AccountResponse
+	if rf, ok := ret.Get(0).(func(context.Context, *access.GetAccountAtBlockHeightRequest, ...grpc.CallOption) *access.AccountResponse); ok {
+		r0 = rf(ctx, in, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*access.AccountResponse)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *access.GetAccountAtBlockHeightRequest, ...grpc.CallOption) error); ok {
+		r1 = rf(ctx, in, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetAccountAtLatestBlock provides a mock function with given fields: ctx, in, opts
+func (_m *MockRPCClient) GetAccountAtLatestBlock(ctx context.Context, in *access.GetAccountAtLatestBlockRequest, opts ...grpc.CallOption) (*access.AccountResponse, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, in)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *access.AccountResponse
+	if rf, ok := ret.Get(0).(func(context.Context, *access.GetAccountAtLatestBlockRequest, ...grpc.CallOption) *access.AccountResponse); ok {
+		r0 = rf(ctx, in, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*access.AccountResponse)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *access.GetAccountAtLatestBlockRequest, ...grpc.CallOption) error); ok {
+		r1 = rf(ctx, in, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetBlockByHeight provides a mock function with given fields: ctx, in, opts
 func (_m *MockRPCClient) GetBlockByHeight(ctx context.Context, in *access.GetBlockByHeightRequest, opts ...grpc.CallOption) (*access.BlockResponse, error) {
 	_va := make([]interface{}, len(opts))

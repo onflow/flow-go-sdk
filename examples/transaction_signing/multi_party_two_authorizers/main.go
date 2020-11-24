@@ -31,16 +31,17 @@ import (
 )
 
 func main() {
-	SinglePartySingleSignatureDemo()
+	MultiPartySingleSignatureDemo()
 }
 
-func SinglePartySingleSignatureDemo() {
+func MultiPartySingleSignatureDemo() {
 	ctx := context.Background()
 
 	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
 	examples.Handle(err)
 
 	privateKey1 := examples.RandomPrivateKey()
+	privateKey3 := examples.RandomPrivateKey()
 
 	key1 := flow.NewAccountKey().
 		SetPublicKey(privateKey1.PublicKey()).
@@ -50,23 +51,39 @@ func SinglePartySingleSignatureDemo() {
 
 	key1Signer := crypto.NewInMemorySigner(privateKey1, key1.HashAlgo)
 
+	key3 := flow.NewAccountKey().
+		SetPublicKey(privateKey3.PublicKey()).
+		SetSigAlgo(privateKey3.Algorithm()).
+		SetHashAlgo(crypto.SHA3_256).
+		SetWeight(flow.AccountKeyWeightThreshold)
+
+	key3Signer := crypto.NewInMemorySigner(privateKey3, key3.HashAlgo)
+
 	account1 := examples.CreateAccount(flowClient, []*flow.AccountKey{key1})
+	account2 := examples.CreateAccount(flowClient, []*flow.AccountKey{key3})
 
 	referenceBlockID := examples.GetReferenceBlockId(flowClient)
 	tx := flow.NewTransaction().
 		SetScript([]byte(`
-            transaction { 
-                prepare(signer: AuthAccount) { log(signer.address) }
-            }
-        `)).
+		transaction { 
+			prepare(signer1: AuthAccount, signer2: AuthAccount) { 
+				log(signer.address) 
+				log(signer2.address)
+			}
+		}`)).
 		SetGasLimit(100).
 		SetProposalKey(account1.Address, account1.Keys[0].Index, account1.Keys[0].SequenceNumber).
 		SetReferenceBlockID(referenceBlockID).
-		SetPayer(account1.Address).
-		AddAuthorizer(account1.Address)
+		SetPayer(account2.Address).
+		AddAuthorizer(account1.Address).
+		AddAuthorizer(account2.Address)
 
-	// account 1 signs the envelope with key 1
-	err = tx.SignEnvelope(account1.Address, account1.Keys[0].Index, key1Signer)
+	// account 1 signs the payload with key 1
+	err = tx.SignPayload(account1.Address, account1.Keys[0].Index, key1Signer)
+	examples.Handle(err)
+
+	// account 2 signs the envelope with key 3
+	err = tx.SignEnvelope(account2.Address, account2.Keys[0].Index, key3Signer)
 	examples.Handle(err)
 
 	err = flowClient.SendTransaction(ctx, *tx)

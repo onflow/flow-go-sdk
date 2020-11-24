@@ -54,17 +54,17 @@ func DeployContractDemo() {
 		SetWeight(flow.AccountKeyWeightThreshold)
 	mySigner := crypto.NewInMemorySigner(myPrivateKey, myAcctKey.HashAlgo)
 
-	// Generate an account creation script
-	createAccountScript, err := templates.CreateAccount([]*flow.AccountKey{myAcctKey}, nil)
-	examples.Handle(err)
+	referenceBlockID := examples.GetReferenceBlockId(flowClient)
+	createAccountTx := templates.CreateAccount([]*flow.AccountKey{myAcctKey}, nil, serviceAcctAddr)
+	createAccountTx.SetProposalKey(
+		serviceAcctAddr,
+		serviceAcctKey.Index,
+		serviceAcctKey.SequenceNumber,
+	)
+	createAccountTx.SetReferenceBlockID(referenceBlockID)
+	createAccountTx.SetPayer(serviceAcctAddr)
 
-	createAccountTx := flow.NewTransaction().
-		SetScript(createAccountScript).
-		SetProposalKey(serviceAcctAddr, serviceAcctKey.ID, serviceAcctKey.SequenceNumber).
-		SetPayer(serviceAcctAddr).
-		AddAuthorizer(serviceAcctAddr)
-
-	err = createAccountTx.SignEnvelope(serviceAcctAddr, serviceAcctKey.ID, serviceSigner)
+	err = createAccountTx.SignEnvelope(serviceAcctAddr, serviceAcctKey.Index, serviceSigner)
 	examples.Handle(err)
 
 	err = flowClient.SendTransaction(ctx, *createAccountTx)
@@ -89,17 +89,20 @@ func DeployContractDemo() {
 
 	// Deploy the Great NFT contract
 	nftCode := examples.ReadFile(GreatTokenContractFile)
-	deployScript, err := templates.CreateAccount(nil, nftCode)
+	deployContractTx := templates.CreateAccount(nil,
+		[]templates.Contract{{
+			Name:   "GreatToken",
+			Source: nftCode,
+		}}, myAddress)
 
-	deployContractTx := flow.NewTransaction().
-		SetScript(deployScript).
-		SetProposalKey(myAddress, myAcctKey.ID, myAcctKey.SequenceNumber).
-		SetPayer(myAddress).
-		AddAuthorizer(myAddress)
+	deployContractTx.SetProposalKey(myAddress, myAcctKey.Index, myAcctKey.SequenceNumber)
+	// we can set the same reference block id. We shouldn't be to far away from it
+	deployContractTx.SetReferenceBlockID(referenceBlockID)
+	deployContractTx.SetPayer(myAddress)
 
 	err = deployContractTx.SignEnvelope(
 		myAddress,
-		myAcctKey.ID,
+		myAcctKey.Index,
 		crypto.NewInMemorySigner(myPrivateKey, myAcctKey.HashAlgo),
 	)
 	examples.Handle(err)
@@ -129,11 +132,12 @@ func DeployContractDemo() {
 
 	createMinterTx := flow.NewTransaction().
 		SetScript(createMinterScript).
-		SetProposalKey(myAddress, myAcctKey.ID, myAcctKey.SequenceNumber).
+		SetProposalKey(myAddress, myAcctKey.Index, myAcctKey.SequenceNumber).
 		SetPayer(myAddress).
+		SetReferenceBlockID(referenceBlockID).
 		AddAuthorizer(myAddress)
 
-	err = createMinterTx.SignEnvelope(myAddress, myAcctKey.ID, mySigner)
+	err = createMinterTx.SignEnvelope(myAddress, myAcctKey.Index, mySigner)
 	examples.Handle(err)
 
 	err = flowClient.SendTransaction(ctx, *createMinterTx)
@@ -150,11 +154,12 @@ func DeployContractDemo() {
 	// Mint the NFT
 	mintTx := flow.NewTransaction().
 		SetScript(mintScript).
-		SetProposalKey(myAddress, myAcctKey.ID, myAcctKey.SequenceNumber).
+		SetProposalKey(myAddress, myAcctKey.Index, myAcctKey.SequenceNumber).
 		SetPayer(myAddress).
+		SetReferenceBlockID(referenceBlockID).
 		AddAuthorizer(myAddress)
 
-	err = mintTx.SignEnvelope(myAddress, myAcctKey.ID, mySigner)
+	err = mintTx.SignEnvelope(myAddress, myAcctKey.Index, mySigner)
 	examples.Handle(err)
 
 	err = flowClient.SendTransaction(ctx, *mintTx)

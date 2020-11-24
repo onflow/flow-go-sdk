@@ -21,6 +21,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/onflow/flow-go-sdk/templates"
 
 	"google.golang.org/grpc"
 
@@ -53,7 +54,11 @@ func QueryEventsDemo() {
 		}
 	`
 
-	contractAddr := examples.DeployContract(flowClient, []byte(contract))
+	contractAccount := examples.CreateAccountWithContracts(flowClient,
+		nil, []templates.Contract{{
+			Name:   "EventDemo",
+			Source: contract,
+		}})
 
 	// Send a tx that emits the event in the deployed contract
 	script := fmt.Sprintf(`
@@ -64,14 +69,16 @@ func QueryEventsDemo() {
 				EventDemo.add(x: 2, y: 3)
 			}
 		}
-	`, contractAddr.Hex())
+	`, contractAccount.Address.Hex())
 
+	referenceBlockID := examples.GetReferenceBlockId(flowClient)
 	runScriptTx := flow.NewTransaction().
 		SetScript([]byte(script)).
 		SetPayer(acctAddr).
-		SetProposalKey(acctAddr, acctKey.ID, acctKey.SequenceNumber)
+		SetReferenceBlockID(referenceBlockID).
+		SetProposalKey(acctAddr, acctKey.Index, acctKey.SequenceNumber)
 
-	err = runScriptTx.SignEnvelope(acctAddr, acctKey.ID, acctSigner)
+	err = runScriptTx.SignEnvelope(acctAddr, acctKey.Index, acctSigner)
 	examples.Handle(err)
 
 	err = flowClient.SendTransaction(ctx, *runScriptTx)
@@ -101,7 +108,7 @@ func QueryEventsDemo() {
 	// 2
 	// Query for our custom event by type
 	results, err = flowClient.GetEventsForHeightRange(ctx, client.EventRangeQuery{
-		Type:        fmt.Sprintf("A.%s.EventDemo.Add", contractAddr.Hex()),
+		Type:        fmt.Sprintf("AC.%s.EventDemo.EventDemo.Add", contractAccount.Address.Hex()),
 		StartHeight: 0,
 		EndHeight:   100,
 	})
