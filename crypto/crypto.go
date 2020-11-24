@@ -25,26 +25,26 @@ import (
 	"encoding/pem"
 	"fmt"
 
-	"github.com/onflow/flow-go-sdk/crypto/internal/crypto"
-	"github.com/onflow/flow-go-sdk/crypto/internal/crypto/hash"
+	"github.com/onflow/flow-go/crypto"
+	"github.com/onflow/flow-go/crypto/hash"
 )
 
 // SignatureAlgorithm is an identifier for a signature algorithm (and parameters if applicable).
-type SignatureAlgorithm int
+type SignatureAlgorithm crypto.SigningAlgorithm
 
 const (
-	UnknownSignatureAlgorithm SignatureAlgorithm = iota
+	UnknownSignatureAlgorithm SignatureAlgorithm = SignatureAlgorithm(crypto.UnknownSigningAlgorithm)
 	// BLS_BLS12381 is BLS on BLS 12-381 curve
-	BLS_BLS12381
+	BLS_BLS12381 = SignatureAlgorithm(crypto.BLSBLS12381)
 	// ECDSA_P256 is ECDSA on NIST P-256 curve
-	ECDSA_P256
+	ECDSA_P256 = SignatureAlgorithm(crypto.ECDSAP256)
 	// ECDSA_secp256k1 is ECDSA on secp256k1 curve
-	ECDSA_secp256k1
+	ECDSA_secp256k1 = SignatureAlgorithm(crypto.ECDSASecp256k1)
 )
 
 // String returns the string representation of this signature algorithm.
 func (f SignatureAlgorithm) String() string {
-	return [...]string{"UNKNOWN", "BLS_BLS12381", "ECDSA_P256", "ECDSA_secp256k1"}[f]
+	return crypto.SigningAlgorithm(f).String()
 }
 
 // StringToSignatureAlgorithm converts a string to a SignatureAlgorithm.
@@ -62,19 +62,17 @@ func StringToSignatureAlgorithm(s string) SignatureAlgorithm {
 }
 
 // HashAlgorithm is an identifier for a hash algorithm.
-type HashAlgorithm int
+type HashAlgorithm hash.HashingAlgorithm
 
 const (
-	UnknownHashAlgorithm HashAlgorithm = iota
-	SHA2_256
-	SHA2_384
-	SHA3_256
-	SHA3_384
+	UnknownHashAlgorithm HashAlgorithm = HashAlgorithm(hash.UnknownHashingAlgorithm)
+	SHA2_256                           = HashAlgorithm(hash.SHA2_256)
+	SHA3_256                           = HashAlgorithm(hash.SHA3_256)
 )
 
 // String returns the string representation of this hash algorithm.
 func (f HashAlgorithm) String() string {
-	return [...]string{"UNKNOWN", "SHA2_256", "SHA2_384", "SHA3_256", "SHA3_384"}[f]
+	return hash.HashingAlgorithm(f).String()
 }
 
 // StringToHashAlgorithm converts a string to a HashAlgorithm.
@@ -82,12 +80,9 @@ func StringToHashAlgorithm(s string) HashAlgorithm {
 	switch s {
 	case SHA2_256.String():
 		return SHA2_256
-	case SHA2_384.String():
-		return SHA2_384
 	case SHA3_256.String():
 		return SHA3_256
-	case SHA3_384.String():
-		return SHA3_384
+
 	default:
 		return UnknownHashAlgorithm
 	}
@@ -159,7 +154,7 @@ func (pk PublicKey) Encode() []byte {
 	return pk.publicKey.Encode()
 }
 
-// A Signer is capable of generating cryptographic signatures.
+// A Signer is capable of signing messages.
 type Signer interface {
 	// Sign signs the given message with this signer.
 	Sign(message []byte) ([]byte, error)
@@ -197,12 +192,15 @@ func NewNaiveSigner(privateKey PrivateKey, hashAlgo HashAlgorithm) NaiveSigner {
 	return NewInMemorySigner(privateKey, hashAlgo)
 }
 
+// targeted security bits of the cryptographic algorithms
+const securityBits = 128
+
 // MinSeedLength is the generic minimum seed length required to guarantee sufficient
 // entropy when generating keys.
 //
 // This minimum is used when the seed source is not necessarily a CSPRG and the seed
 // should be expanded before being passed to the key generation process.
-const MinSeedLength = crypto.MinSeedLen
+const MinSeedLength = 2 * (securityBits / 8)
 
 func keyGenerationKMACTag(sigAlgo SignatureAlgorithm) []byte {
 	return []byte(fmt.Sprintf("%s Key Generation", sigAlgo))
