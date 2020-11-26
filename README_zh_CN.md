@@ -297,7 +297,7 @@ err = tx.SignEnvelope(account1.Address, key2.Index, key2Signer)
 
 - 帐户`0x01`对交易负载(payload)签名。
 
-- 帐户`0x02`在交易上签名。
+- 帐户`0x02`对信封(envolope)签名。
 
 - 帐户`0x02`必须最后签名，因为它是付款人。
 
