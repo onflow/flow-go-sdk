@@ -347,7 +347,7 @@ err = tx.SignEnvelope(account2.Address, key3.Index, key3Signer)
 
 - 帐户`0x01`对支付签名。
 
-- 帐户`0x02`在交易上签名。
+- 帐户`0x02`对信封(envolope)签名。
 
 -帐户`0x02`必须最后签名，因为它是付款人。
 
@@ -404,7 +404,7 @@ err = tx.SignEnvelope(account2.Address, key3.Index, key3Signer)
 
 - 帐户`0x01`对有效付款签名。
 
-- 帐户`0x02`在交易上签名。
+- 帐户`0x02`对信封(envolope)签名。
 
 - 帐户`0x02`必须最后签名，因为它是付款人。
 
