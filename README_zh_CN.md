@@ -339,7 +339,7 @@ err = tx.SignEnvelope(account2.Address, key3.Index, key3Signer)
 [完整的可运行的例子](/examples#multiple-parties)
 
 ---
-##### [多方参与，两个自动执行器](https://github.com/onflow/flow/blob/master/docs/accounts-and-keys.md#multiple-parties)
+##### [多方参与，两个授权者(authorizer)](https://github.com/onflow/flow/blob/master/docs/accounts-and-keys.md#multiple-parties)
 
 - Proposer和authorizer是同一个账号(`0x01`)
 
