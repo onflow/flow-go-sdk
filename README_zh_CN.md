@@ -295,7 +295,7 @@ err = tx.SignEnvelope(account1.Address, key2.Index, key2Signer)
 
 - Payer是一个单独的帐户(`0x02`).
 
-- 帐户`0x01`对有效支付签名。
+- 帐户`0x01`对交易负载(payload)签名。
 
 - 帐户`0x02`在交易上签名。
 
