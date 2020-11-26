@@ -209,7 +209,7 @@ Flow 引入了新的概念，允许在创建和签署事务时具有更大的灵
 ##### [一人一签](https://github.com/onflow/flow/blob/master/docs/accounts-and-keys.md#single-party-single-signature)
 
 - Proposer, payer, authorizer是同一个account (`0x01`)
-- 只要交易必须签名
+- 只有信封(envolope)必须要被签名
 - 提案密钥必须有充分的签名权重。
 
 | Account   | Key ID | Weight |
