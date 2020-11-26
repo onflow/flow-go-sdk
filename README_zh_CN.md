@@ -607,7 +607,7 @@ if err != nil {
 
 例如, 一个 `Transfer` 被定义在一个 `Token` 合约中，该合约被部署在账户 `0x55555555555555555555` 中， 将会得到一个类型 `A.0x55555555555555555555.Token.Transfer`.
 
-阅读 [语言文档](https://github.com/onflow/cadence/blob/master/docs/language.md#events) 关于 Cadence 语言.
+阅读 [编程语言文档](https://github.com/onflow/cadence/blob/master/docs/language.md#events) 关于 Cadence 语言.
 
 **StartHeight, EndHeight**
 
