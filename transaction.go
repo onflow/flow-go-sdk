@@ -84,6 +84,29 @@ type Transaction struct {
 	EnvelopeSignatures []TransactionSignature
 }
 
+type payloadCanonicalForm struct {
+	Script                    []byte
+	Arguments                 [][]byte
+	ReferenceBlockID          []byte
+	GasLimit                  uint64
+	ProposalKeyAddress        []byte
+	ProposalKeyIndex          uint64
+	ProposalKeySequenceNumber uint64
+	Payer                     []byte
+	Authorizers               [][]byte
+}
+
+type envelopeCanonicalForm struct {
+	Payload           payloadCanonicalForm
+	PayloadSignatures []transactionSignatureCanonicalForm
+}
+
+type transactionCanonicalForm struct {
+	Payload            payloadCanonicalForm
+	PayloadSignatures  []transactionSignatureCanonicalForm
+	EnvelopeSignatures []transactionSignatureCanonicalForm
+}
+
 // NewTransaction initializes and returns an empty transaction.
 func NewTransaction() *Transaction {
 	return &Transaction{}
@@ -328,18 +351,6 @@ func (t *Transaction) PayloadMessage() []byte {
 	return mustRLPEncode(&temp)
 }
 
-type payloadCanonicalForm struct {
-	Script                    []byte
-	Arguments                 [][]byte
-	ReferenceBlockID          []byte
-	GasLimit                  uint64
-	ProposalKeyAddress        []byte
-	ProposalKeyIndex          uint64
-	ProposalKeySequenceNumber uint64
-	Payer                     []byte
-	Authorizers               [][]byte
-}
-
 func (t *Transaction) payloadCanonicalForm() payloadCanonicalForm {
 	authorizers := make([][]byte, len(t.Authorizers))
 	for i, auth := range t.Authorizers {
@@ -367,11 +378,6 @@ func (t *Transaction) EnvelopeMessage() []byte {
 	return mustRLPEncode(&temp)
 }
 
-type envelopeCanonicalForm struct {
-	Payload           payloadCanonicalForm
-	PayloadSignatures []transactionSignatureCanonicalForm
-}
-
 func (t *Transaction) envelopeCanonicalForm() envelopeCanonicalForm {
 	return envelopeCanonicalForm{
 		Payload:           t.payloadCanonicalForm(),
@@ -394,38 +400,45 @@ func (t *Transaction) Encode() []byte {
 	return mustRLPEncode(&temp)
 }
 
-// DecodeFromPayloadMessage returns the signable message for the transaction envelope.
+// DecodeTransactionPayloadMessage returns the signable message for the transaction payload.
 //
-// This message is only signed by the payer account.
-func (t *Transaction) DecodeFromPayloadMessage(envelopeMessage []byte) {
-	temp := t.envelopeCanonicalForm()
+// This message is signed by the authorizers account.
+func DecodeTransactionPayloadMessage(envelopeMessage []byte) (*Transaction, error) {
+	temp := payloadCanonicalForm{}
 	mustRLPDecode(envelopeMessage, &temp)
-	authorizers := make([]Address, len(temp.Payload.Authorizers))
-	for i, auth := range temp.Payload.Authorizers {
+	authorizers := make([]Address, len(temp.Authorizers))
+	for i, auth := range temp.Authorizers {
 		authorizers[i] = BytesToAddress(auth)
 	}
-	t = new(Transaction)
+	t := new(Transaction)
 	*t = Transaction{
-		Script:           temp.Payload.Script,
-		Arguments:        temp.Payload.Arguments,
-		ReferenceBlockID: BytesToID(temp.Payload.ReferenceBlockID),
-		GasLimit:         temp.Payload.GasLimit,
+		Script:           temp.Script,
+		Arguments:        temp.Arguments,
+		ReferenceBlockID: BytesToID(temp.ReferenceBlockID),
+		GasLimit:         temp.GasLimit,
 		ProposalKey: ProposalKey{
-			Address:        BytesToAddress(temp.Payload.ProposalKeyAddress),
-			KeyIndex:       int(temp.Payload.ProposalKeyIndex),
-			SequenceNumber: temp.Payload.ProposalKeySequenceNumber,
+			Address:        BytesToAddress(temp.ProposalKeyAddress),
+			KeyIndex:       int(temp.ProposalKeyIndex),
+			SequenceNumber: temp.ProposalKeySequenceNumber,
 		},
-		Payer:       BytesToAddress(temp.Payload.Payer),
+		Payer:       BytesToAddress(temp.Payer),
 		Authorizers: authorizers,
 	}
-	return
+	if len(t.Arguments) == 0 {
+		t.Arguments = nil
+	}
+	if len(t.Script) == 0 {
+		t.Script = nil
+	}
+	return t, nil
 }
 
-// DecodeFromEnvelopeMessage returns the signable message for the transaction envelope.
+// DecodeTransactionEnvelopeMessage returns the signable message for the transaction envelope.
 //
 // This message is only signed by the payer account.
-func (t *Transaction) DecodeFromEnvelopeMessage(envelopeMessage []byte) {
-	temp := t.envelopeCanonicalForm()
+func DecodeTransactionEnvelopeMessage(envelopeMessage []byte) (*Transaction, error) {
+	t := new(Transaction)
+	temp := envelopeCanonicalForm{}
 	mustRLPDecode(envelopeMessage, &temp)
 	authorizers := make([]Address, len(temp.Payload.Authorizers))
 	for i, auth := range temp.Payload.Authorizers {
@@ -435,9 +448,6 @@ func (t *Transaction) DecodeFromEnvelopeMessage(envelopeMessage []byte) {
 	payloadSignatures := make([]TransactionSignature, len(temp.PayloadSignatures))
 	for i, sig := range temp.PayloadSignatures {
 		payloadSignatures[i] = transactionSignatureFromCanonicalForm(sig)
-	}
-	if t == nil {
-		t = new(Transaction)
 	}
 	*t = Transaction{
 		Script:           temp.Payload.Script,
@@ -453,7 +463,69 @@ func (t *Transaction) DecodeFromEnvelopeMessage(envelopeMessage []byte) {
 		Authorizers:       authorizers,
 		PayloadSignatures: payloadSignatures,
 	}
-	return
+	signers := t.signerList()
+
+	for i, sig := range t.PayloadSignatures {
+		t.PayloadSignatures[i].Address = signers[sig.SignerIndex]
+	}
+	if len(t.Arguments) == 0 {
+		t.Arguments = nil
+	}
+	if len(t.Script) == 0 {
+		t.Script = nil
+	}
+	return t, nil
+}
+
+// DecodeTransaction returns the signable message for the transaction.
+func DecodeTransaction(transactionMessage []byte) (*Transaction, error) {
+	t := new(Transaction)
+	temp := transactionCanonicalForm{}
+	mustRLPDecode(transactionMessage, &temp)
+	authorizers := make([]Address, len(temp.Payload.Authorizers))
+	for i, auth := range temp.Payload.Authorizers {
+		fmt.Println(auth)
+		authorizers[i] = BytesToAddress(auth)
+	}
+	*t = Transaction{
+		Script:           temp.Payload.Script,
+		Arguments:        temp.Payload.Arguments,
+		ReferenceBlockID: BytesToID(temp.Payload.ReferenceBlockID),
+		GasLimit:         temp.Payload.GasLimit,
+		ProposalKey: ProposalKey{
+			Address:        BytesToAddress(temp.Payload.ProposalKeyAddress),
+			KeyIndex:       int(temp.Payload.ProposalKeyIndex),
+			SequenceNumber: temp.Payload.ProposalKeySequenceNumber,
+		},
+		Payer:       BytesToAddress(temp.Payload.Payer),
+		Authorizers: authorizers,
+	}
+	signers := t.signerList()
+	if len(temp.PayloadSignatures) > 0 {
+		payloadSignatures := make([]TransactionSignature, len(temp.PayloadSignatures))
+		for i, sig := range temp.PayloadSignatures {
+			payloadSignatures[i] = transactionSignatureFromCanonicalForm(sig)
+			payloadSignatures[i].Address = signers[payloadSignatures[i].SignerIndex]
+		}
+		t.PayloadSignatures = payloadSignatures
+	}
+
+	if len(temp.EnvelopeSignatures) > 0 {
+		envelopeSignatures := make([]TransactionSignature, len(temp.EnvelopeSignatures))
+		for i, sig := range temp.EnvelopeSignatures {
+			envelopeSignatures[i] = transactionSignatureFromCanonicalForm(sig)
+			envelopeSignatures[i].Address = signers[envelopeSignatures[i].SignerIndex]
+		}
+		t.EnvelopeSignatures = envelopeSignatures
+	}
+
+	if len(t.Arguments) == 0 {
+		t.Arguments = nil
+	}
+	if len(t.Script) == 0 {
+		t.Script = nil
+	}
+	return t, nil
 }
 
 // A ProposalKey is the key that specifies the proposal key and sequence number for a transaction.

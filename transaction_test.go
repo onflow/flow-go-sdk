@@ -522,6 +522,18 @@ func baseTx() *flow.Transaction {
 		AddPayloadSignature(flow.HexToAddress("01"), 4, sig)
 }
 
+func copyTxPayload(tx *flow.Transaction) *flow.Transaction {
+	return &flow.Transaction{
+		Script:           tx.Script,
+		Arguments:        tx.Arguments,
+		ReferenceBlockID: tx.ReferenceBlockID,
+		GasLimit:         tx.GasLimit,
+		ProposalKey:      tx.ProposalKey,
+		Payer:            tx.Payer,
+		Authorizers:      tx.Authorizers,
+	}
+}
+
 // NOTE: The following tests have identical cases in the
 // JavaScript SDK to ensure parity between implementations:
 // https://github.com/onflow/flow-js-sdk/blob/master/packages/encode/src/encode.test.js
@@ -598,14 +610,34 @@ func TestTransaction_RLPMessages(t *testing.T) {
 			assert.Equal(t, tt.payload, payload)
 			assert.Equal(t, tt.envelope, envelope)
 
-			// payloadBytes, err := hex.DecodeString(payload)
-			// assert.NoError(t, err)
+			// Check tx decoding
+			transactionBytes := tt.tx.Encode()
+			newTx, err := flow.DecodeTransaction(transactionBytes)
+			assert.NoError(t, err)
+
+			assert.Equal(t, tt.tx, newTx)
+			assert.Equal(t, tt.tx.ID(), newTx.ID())
+
+			// Check envelope decoding
 			envelopeBytes, err := hex.DecodeString(envelope)
 			assert.NoError(t, err)
 
-			newTx := &flow.Transaction{}
-			newTx.DecodeFromEnvelopeMessage(envelopeBytes)
-			assert.Equal(t, tt.tx, newTx)
+			newTxFromEnvelope, err := flow.DecodeTransactionEnvelopeMessage(envelopeBytes)
+			assert.NoError(t, err)
+
+			assert.Equal(t, tt.tx, newTxFromEnvelope)
+			assert.Equal(t, tt.tx.ID(), newTxFromEnvelope.ID())
+
+			// Check payload decoding
+			payloadBytes, err := hex.DecodeString(payload)
+			assert.NoError(t, err)
+
+			newTxFromPayload, err := flow.DecodeTransactionPayloadMessage(payloadBytes)
+			assert.NoError(t, err)
+
+			txPayload := copyTxPayload(tt.tx)
+			assert.Equal(t, txPayload, newTxFromPayload)
+			assert.Equal(t, txPayload.ID(), newTxFromPayload.ID())
 		})
 	}
 }
