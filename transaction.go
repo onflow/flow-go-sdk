@@ -557,12 +557,11 @@ func (s TransactionSignature) canonicalForm() transactionSignatureCanonicalForm 
 	}
 }
 
-func transactionSignatureFromCanonicalForm(v interface{}) TransactionSignature {
-	temp := v.(transactionSignatureCanonicalForm)
+func transactionSignatureFromCanonicalForm(v transactionSignatureCanonicalForm) TransactionSignature {
 	return TransactionSignature{
-		SignerIndex: int(temp.SignerIndex),
-		KeyIndex:    int(temp.KeyIndex),
-		Signature:   temp.Signature,
+		SignerIndex: int(v.SignerIndex),
+		KeyIndex:    int(v.KeyIndex),
+		Signature:   v.Signature,
 	}
 }
 
