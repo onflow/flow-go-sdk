@@ -8,7 +8,7 @@ require (
 	github.com/golang/protobuf v1.4.2
 	github.com/lithammer/dedent v1.1.0
 	github.com/onflow/cadence v0.12.1
-	github.com/onflow/flow-go/crypto v0.11.0
+	github.com/onflow/flow-go/crypto v0.12.0
 	github.com/onflow/flow/protobuf/go/flow v0.1.8
 	github.com/pkg/errors v0.8.1
 	github.com/stretchr/testify v1.5.1
