@@ -30,7 +30,7 @@ import (
 )
 
 // SignatureAlgorithm is an identifier for a signature algorithm (and parameters if applicable).
-type SignatureAlgorithm crypto.SigningAlgorithm
+type SignatureAlgorithm = crypto.SigningAlgorithm
 
 const (
 	UnknownSignatureAlgorithm SignatureAlgorithm = SignatureAlgorithm(crypto.UnknownSigningAlgorithm)
@@ -165,15 +165,13 @@ func NewNaiveSigner(privateKey PrivateKey, hashAlgo HashAlgorithm) NaiveSigner {
 	return NewInMemorySigner(privateKey, hashAlgo)
 }
 
-// targeted security bits of the cryptographic algorithms
-const securityBits = 128
-
-// MinSeedLength is the generic minimum seed length required to guarantee sufficient
-// entropy when generating keys.
+// MinSeedLength is the generic minimum seed length required to make sure there is
+// enough entropy to generate keys targeting 128 bits of security.
+// (this is not a guarantee though).
 //
 // This minimum is used when the seed source is not necessarily a CSPRG and the seed
 // should be expanded before being passed to the key generation process.
-const MinSeedLength = 2 * (securityBits / 8)
+const MinSeedLength = 32
 
 func keyGenerationKMACTag(sigAlgo SignatureAlgorithm) []byte {
 	return []byte(fmt.Sprintf("%s Key Generation", sigAlgo))
