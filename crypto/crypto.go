@@ -30,7 +30,7 @@ import (
 )
 
 // SignatureAlgorithm is an identifier for a signature algorithm (and parameters if applicable).
-type SignatureAlgorithm = crypto.SigningAlgorithm
+type SignatureAlgorithm crypto.SigningAlgorithm
 
 const (
 	UnknownSignatureAlgorithm SignatureAlgorithm = SignatureAlgorithm(crypto.UnknownSigningAlgorithm)
