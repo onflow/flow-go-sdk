@@ -90,8 +90,8 @@ type Client struct {
 }
 
 // NewClient creates a new KMS client.
-func NewClient(ctx context.Context, opts option.ClientOption) (*Client, error) {
-	client, err := kms.NewKeyManagementClient(ctx, opts)
+func NewClient(ctx context.Context, opts ...option.ClientOption) (*Client, error) {
+	client, err := kms.NewKeyManagementClient(ctx, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("cloudkms: failed to initialize client: %w", err)
 	}
