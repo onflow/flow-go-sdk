@@ -2,7 +2,7 @@
 
 Flow Go SDK 提供相关开发包帮助 Golang 开发者完成在 Flow network 上进行应用的构建和开发。
 
-*注意: 这个 SDK 通过 [Flow Emulator](https://github.com/onflow/flow/blob/master/docs/emulator.md)完成实现，并且可以被用于本地开发。*
+*注意: 这个 SDK 通过 [Flow Emulator](https://docs.onflow.org/devtools/emulator/)完成实现，并且可以被用于本地开发。*
 
 ## [英文](/README.md) | [中文（简体）](#)
 
@@ -22,7 +22,7 @@ Flow is a new blockchain for open worlds. Read more about it [here](https://gith
       - [一人一签](#single-party-single-signature)
       - [多人签名](#single-party-multiple-signatures)
       - [多方](#multiple-parties)
-      - [多方参与，两个自动执行器](#multiple-parties-two-autorizers)
+      - [多方参与，两个自动执行器](#multiple-parties-two-authorizers)
       - [多方参与，多个签名](#multiple-parties-multiple-signatures)
   - [发起一笔交易](#sending-a-transaction)
   - [查询交易结果](#querying-transaction-results)
@@ -607,7 +607,7 @@ if err != nil {
 
 例如, 一个 `Transfer` 被定义在一个 `Token` 合约中，该合约被部署在账户 `0x55555555555555555555` 中， 将会得到一个类型 `A.0x55555555555555555555.Token.Transfer`.
 
-阅读 [编程语言文档](https://github.com/onflow/cadence/blob/master/docs/language.md#events) 关于 Cadence 语言.
+阅读 [编程语言文档](https://docs.onflow.org/cadence/language/events/) 关于 Cadence 语言.
 
 **StartHeight, EndHeight**
 
@@ -659,4 +659,4 @@ A `flow.Account` contains the following fields:
 
 [examples](/examples)目录包含使用SDK与控件交互的代码示例
 
-[Flow Emulator](https://github.com/onflow/flow/blob/master/docs/emulator.md).
+[Flow Emulator](https://docs.onflow.org/devtools/emulator/).
