@@ -410,8 +410,7 @@ func DecodeTransactionPayloadMessage(envelopeMessage []byte) (*Transaction, erro
 	for i, auth := range temp.Authorizers {
 		authorizers[i] = BytesToAddress(auth)
 	}
-	t := new(Transaction)
-	*t = Transaction{
+	t := &Transaction{
 		Script:           temp.Script,
 		Arguments:        temp.Arguments,
 		ReferenceBlockID: BytesToID(temp.ReferenceBlockID),
@@ -437,7 +436,6 @@ func DecodeTransactionPayloadMessage(envelopeMessage []byte) (*Transaction, erro
 //
 // This message is only signed by the payer account.
 func DecodeTransactionEnvelopeMessage(envelopeMessage []byte) (*Transaction, error) {
-	t := new(Transaction)
 	temp := envelopeCanonicalForm{}
 	mustRLPDecode(envelopeMessage, &temp)
 	authorizers := make([]Address, len(temp.Payload.Authorizers))
@@ -449,7 +447,7 @@ func DecodeTransactionEnvelopeMessage(envelopeMessage []byte) (*Transaction, err
 	for i, sig := range temp.PayloadSignatures {
 		payloadSignatures[i] = transactionSignatureFromCanonicalForm(sig)
 	}
-	*t = Transaction{
+	t := &Transaction{
 		Script:           temp.Payload.Script,
 		Arguments:        temp.Payload.Arguments,
 		ReferenceBlockID: BytesToID(temp.Payload.ReferenceBlockID),
@@ -479,7 +477,6 @@ func DecodeTransactionEnvelopeMessage(envelopeMessage []byte) (*Transaction, err
 
 // DecodeTransaction returns the signable message for the transaction.
 func DecodeTransaction(transactionMessage []byte) (*Transaction, error) {
-	t := new(Transaction)
 	temp := transactionCanonicalForm{}
 	mustRLPDecode(transactionMessage, &temp)
 	authorizers := make([]Address, len(temp.Payload.Authorizers))
@@ -487,7 +484,7 @@ func DecodeTransaction(transactionMessage []byte) (*Transaction, error) {
 		fmt.Println(auth)
 		authorizers[i] = BytesToAddress(auth)
 	}
-	*t = Transaction{
+	t := &Transaction{
 		Script:           temp.Payload.Script,
 		Arguments:        temp.Payload.Arguments,
 		ReferenceBlockID: BytesToID(temp.Payload.ReferenceBlockID),
