@@ -83,18 +83,23 @@ func (c *Client) Close() error {
 }
 
 // Ping is used to check if the access node is alive and healthy.
-func (c *Client) Ping(ctx context.Context) error {
-	_, err := c.rpcClient.Ping(ctx, &access.PingRequest{})
+func (c *Client) Ping(ctx context.Context, opts ...grpc.CallOption) error {
+	_, err := c.rpcClient.Ping(ctx, &access.PingRequest{}, opts...)
 	return err
 }
 
 // GetLatestBlockHeader gets the latest sealed or unsealed block header.
-func (c *Client) GetLatestBlockHeader(ctx context.Context, isSealed bool) (*flow.BlockHeader, error) {
+func (c *Client) GetLatestBlockHeader(
+	ctx context.Context,
+	isSealed bool,
+	opts ...grpc.CallOption,
+) (*flow.BlockHeader, error) {
+
 	req := &access.GetLatestBlockHeaderRequest{
 		IsSealed: isSealed,
 	}
 
-	res, err := c.rpcClient.GetLatestBlockHeader(ctx, req)
+	res, err := c.rpcClient.GetLatestBlockHeader(ctx, req, opts...)
 	if err != nil {
 		return nil, newRPCError(err)
 	}
@@ -103,12 +108,16 @@ func (c *Client) GetLatestBlockHeader(ctx context.Context, isSealed bool) (*flow
 }
 
 // GetBlockHeaderByID gets a block header by ID.
-func (c *Client) GetBlockHeaderByID(ctx context.Context, blockID flow.Identifier) (*flow.BlockHeader, error) {
+func (c *Client) GetBlockHeaderByID(
+	ctx context.Context,
+	blockID flow.Identifier,
+	opts ...grpc.CallOption,
+) (*flow.BlockHeader, error) {
 	req := &access.GetBlockHeaderByIDRequest{
 		Id: blockID.Bytes(),
 	}
 
-	res, err := c.rpcClient.GetBlockHeaderByID(ctx, req)
+	res, err := c.rpcClient.GetBlockHeaderByID(ctx, req, opts...)
 	if err != nil {
 		return nil, newRPCError(err)
 	}
@@ -117,12 +126,16 @@ func (c *Client) GetBlockHeaderByID(ctx context.Context, blockID flow.Identifier
 }
 
 // GetBlockHeaderByHeight gets a block header by height.
-func (c *Client) GetBlockHeaderByHeight(ctx context.Context, height uint64) (*flow.BlockHeader, error) {
+func (c *Client) GetBlockHeaderByHeight(
+	ctx context.Context,
+	height uint64,
+	opts ...grpc.CallOption,
+) (*flow.BlockHeader, error) {
 	req := &access.GetBlockHeaderByHeightRequest{
 		Height: height,
 	}
 
-	res, err := c.rpcClient.GetBlockHeaderByHeight(ctx, req)
+	res, err := c.rpcClient.GetBlockHeaderByHeight(ctx, req, opts...)
 	if err != nil {
 		return nil, newRPCError(err)
 	}
@@ -140,12 +153,16 @@ func getBlockHeaderResult(res *access.BlockHeaderResponse) (*flow.BlockHeader, e
 }
 
 // GetLatestBlock gets the full payload of the latest sealed or unsealed block.
-func (c *Client) GetLatestBlock(ctx context.Context, isSealed bool) (*flow.Block, error) {
+func (c *Client) GetLatestBlock(
+	ctx context.Context,
+	isSealed bool,
+	opts ...grpc.CallOption,
+) (*flow.Block, error) {
 	req := &access.GetLatestBlockRequest{
 		IsSealed: isSealed,
 	}
 
-	res, err := c.rpcClient.GetLatestBlock(ctx, req)
+	res, err := c.rpcClient.GetLatestBlock(ctx, req, opts...)
 	if err != nil {
 		return nil, newRPCError(err)
 	}
@@ -154,12 +171,16 @@ func (c *Client) GetLatestBlock(ctx context.Context, isSealed bool) (*flow.Block
 }
 
 // GetBlockByID gets a full block by ID.
-func (c *Client) GetBlockByID(ctx context.Context, blockID flow.Identifier) (*flow.Block, error) {
+func (c *Client) GetBlockByID(
+	ctx context.Context,
+	blockID flow.Identifier,
+	opts ...grpc.CallOption,
+) (*flow.Block, error) {
 	req := &access.GetBlockByIDRequest{
 		Id: blockID.Bytes(),
 	}
 
-	res, err := c.rpcClient.GetBlockByID(ctx, req)
+	res, err := c.rpcClient.GetBlockByID(ctx, req, opts...)
 	if err != nil {
 		return nil, newRPCError(err)
 	}
@@ -168,12 +189,16 @@ func (c *Client) GetBlockByID(ctx context.Context, blockID flow.Identifier) (*fl
 }
 
 // GetBlockByHeight gets a full block by height.
-func (c *Client) GetBlockByHeight(ctx context.Context, height uint64) (*flow.Block, error) {
+func (c *Client) GetBlockByHeight(
+	ctx context.Context,
+	height uint64,
+	opts ...grpc.CallOption,
+) (*flow.Block, error) {
 	req := &access.GetBlockByHeightRequest{
 		Height: height,
 	}
 
-	res, err := c.rpcClient.GetBlockByHeight(ctx, req)
+	res, err := c.rpcClient.GetBlockByHeight(ctx, req, opts...)
 	if err != nil {
 		return nil, newRPCError(err)
 	}
@@ -191,12 +216,16 @@ func getBlockResult(res *access.BlockResponse) (*flow.Block, error) {
 }
 
 // GetCollection gets a collection by ID.
-func (c *Client) GetCollection(ctx context.Context, colID flow.Identifier) (*flow.Collection, error) {
+func (c *Client) GetCollection(
+	ctx context.Context,
+	colID flow.Identifier,
+	opts ...grpc.CallOption,
+) (*flow.Collection, error) {
 	req := &access.GetCollectionByIDRequest{
 		Id: colID.Bytes(),
 	}
 
-	res, err := c.rpcClient.GetCollectionByID(ctx, req)
+	res, err := c.rpcClient.GetCollectionByID(ctx, req, opts...)
 	if err != nil {
 		return nil, newRPCError(err)
 	}
@@ -210,7 +239,11 @@ func (c *Client) GetCollection(ctx context.Context, colID flow.Identifier) (*flo
 }
 
 // SendTransaction submits a transaction to the network.
-func (c *Client) SendTransaction(ctx context.Context, tx flow.Transaction) error {
+func (c *Client) SendTransaction(
+	ctx context.Context,
+	tx flow.Transaction,
+	opts ...grpc.CallOption,
+) error {
 	txMsg, err := convert.TransactionToMessage(tx)
 	if err != nil {
 		return newEntityToMessageError(entityTransaction, err)
@@ -220,7 +253,7 @@ func (c *Client) SendTransaction(ctx context.Context, tx flow.Transaction) error
 		Transaction: txMsg,
 	}
 
-	_, err = c.rpcClient.SendTransaction(ctx, req)
+	_, err = c.rpcClient.SendTransaction(ctx, req, opts...)
 	if err != nil {
 		return newRPCError(err)
 	}
@@ -229,12 +262,16 @@ func (c *Client) SendTransaction(ctx context.Context, tx flow.Transaction) error
 }
 
 // GetTransaction gets a transaction by ID.
-func (c *Client) GetTransaction(ctx context.Context, txID flow.Identifier) (*flow.Transaction, error) {
+func (c *Client) GetTransaction(
+	ctx context.Context,
+	txID flow.Identifier,
+	opts ...grpc.CallOption,
+) (*flow.Transaction, error) {
 	req := &access.GetTransactionRequest{
 		Id: txID.Bytes(),
 	}
 
-	res, err := c.rpcClient.GetTransaction(ctx, req)
+	res, err := c.rpcClient.GetTransaction(ctx, req, opts...)
 	if err != nil {
 		return nil, newRPCError(err)
 	}
@@ -248,12 +285,16 @@ func (c *Client) GetTransaction(ctx context.Context, txID flow.Identifier) (*flo
 }
 
 // GetTransactionResult gets the result of a transaction.
-func (c *Client) GetTransactionResult(ctx context.Context, txID flow.Identifier) (*flow.TransactionResult, error) {
+func (c *Client) GetTransactionResult(
+	ctx context.Context,
+	txID flow.Identifier,
+	opts ...grpc.CallOption,
+) (*flow.TransactionResult, error) {
 	req := &access.GetTransactionRequest{
 		Id: txID.Bytes(),
 	}
 
-	res, err := c.rpcClient.GetTransactionResult(ctx, req)
+	res, err := c.rpcClient.GetTransactionResult(ctx, req, opts...)
 	if err != nil {
 		return nil, newRPCError(err)
 	}
@@ -267,17 +308,21 @@ func (c *Client) GetTransactionResult(ctx context.Context, txID flow.Identifier)
 }
 
 // GetAccount is an alias for GetAccountAtLatestBlock.
-func (c *Client) GetAccount(ctx context.Context, address flow.Address) (*flow.Account, error) {
-	return c.GetAccountAtLatestBlock(ctx, address)
+func (c *Client) GetAccount(ctx context.Context, address flow.Address, opts ...grpc.CallOption) (*flow.Account, error) {
+	return c.GetAccountAtLatestBlock(ctx, address, opts...)
 }
 
 // GetAccountAtLatestBlock gets an account by address at the latest sealed block.
-func (c *Client) GetAccountAtLatestBlock(ctx context.Context, address flow.Address) (*flow.Account, error) {
+func (c *Client) GetAccountAtLatestBlock(
+	ctx context.Context,
+	address flow.Address,
+	opts ...grpc.CallOption,
+) (*flow.Account, error) {
 	req := &access.GetAccountAtLatestBlockRequest{
 		Address: address.Bytes(),
 	}
 
-	res, err := c.rpcClient.GetAccountAtLatestBlock(ctx, req)
+	res, err := c.rpcClient.GetAccountAtLatestBlock(ctx, req, opts...)
 	if err != nil {
 		return nil, newRPCError(err)
 	}
@@ -294,7 +339,9 @@ func (c *Client) GetAccountAtLatestBlock(ctx context.Context, address flow.Addre
 func (c *Client) ExecuteScriptAtLatestBlock(
 	ctx context.Context,
 	script []byte,
-	arguments []cadence.Value) (cadence.Value, error) {
+	arguments []cadence.Value,
+	opts ...grpc.CallOption,
+) (cadence.Value, error) {
 
 	args, err := convert.CadenceValuesToMessages(arguments)
 	if err != nil {
@@ -306,7 +353,7 @@ func (c *Client) ExecuteScriptAtLatestBlock(
 		Arguments: args,
 	}
 
-	res, err := c.rpcClient.ExecuteScriptAtLatestBlock(ctx, req)
+	res, err := c.rpcClient.ExecuteScriptAtLatestBlock(ctx, req, opts...)
 	if err != nil {
 		return nil, newRPCError(err)
 	}
@@ -321,6 +368,7 @@ func (c *Client) ExecuteScriptAtBlockID(
 	blockID flow.Identifier,
 	script []byte,
 	arguments []cadence.Value,
+	opts ...grpc.CallOption,
 ) (cadence.Value, error) {
 
 	args, err := convert.CadenceValuesToMessages(arguments)
@@ -334,7 +382,7 @@ func (c *Client) ExecuteScriptAtBlockID(
 		Arguments: args,
 	}
 
-	res, err := c.rpcClient.ExecuteScriptAtBlockID(ctx, req)
+	res, err := c.rpcClient.ExecuteScriptAtBlockID(ctx, req, opts...)
 	if err != nil {
 		return nil, newRPCError(err)
 	}
@@ -349,6 +397,7 @@ func (c *Client) ExecuteScriptAtBlockHeight(
 	height uint64,
 	script []byte,
 	arguments []cadence.Value,
+	opts ...grpc.CallOption,
 ) (cadence.Value, error) {
 
 	args, err := convert.CadenceValuesToMessages(arguments)
@@ -362,7 +411,7 @@ func (c *Client) ExecuteScriptAtBlockHeight(
 		Arguments:   args,
 	}
 
-	res, err := c.rpcClient.ExecuteScriptAtBlockHeight(ctx, req)
+	res, err := c.rpcClient.ExecuteScriptAtBlockHeight(ctx, req, opts...)
 	if err != nil {
 		return nil, newRPCError(err)
 	}
@@ -399,14 +448,18 @@ type BlockEvents struct {
 
 // GetEventsForHeightRange retrieves events for all sealed blocks between the start and end block
 // heights (inclusive) with the given type.
-func (c *Client) GetEventsForHeightRange(ctx context.Context, query EventRangeQuery) ([]BlockEvents, error) {
+func (c *Client) GetEventsForHeightRange(
+	ctx context.Context,
+	query EventRangeQuery,
+	opts ...grpc.CallOption,
+) ([]BlockEvents, error) {
 	req := &access.GetEventsForHeightRangeRequest{
 		Type:        query.Type,
 		StartHeight: query.StartHeight,
 		EndHeight:   query.EndHeight,
 	}
 
-	res, err := c.rpcClient.GetEventsForHeightRange(ctx, req)
+	res, err := c.rpcClient.GetEventsForHeightRange(ctx, req, opts...)
 	if err != nil {
 		return nil, newRPCError(err)
 	}
@@ -419,13 +472,14 @@ func (c *Client) GetEventsForBlockIDs(
 	ctx context.Context,
 	eventType string,
 	blockIDs []flow.Identifier,
+	opts ...grpc.CallOption,
 ) ([]BlockEvents, error) {
 	req := &access.GetEventsForBlockIDsRequest{
 		Type:     eventType,
 		BlockIds: convert.IdentifiersToMessages(blockIDs),
 	}
 
-	res, err := c.rpcClient.GetEventsForBlockIDs(ctx, req)
+	res, err := c.rpcClient.GetEventsForBlockIDs(ctx, req, opts...)
 	if err != nil {
 		return nil, newRPCError(err)
 	}

@@ -1,8 +1,11 @@
+
 # Flow Go SDK [![GoDoc](https://godoc.org/github.com/onflow/flow-go-sdk?status.svg)](https://godoc.org/github.com/onflow/flow-go-sdk)
 
 The Flow Go SDK provides a set of packages for Go developers to build applications that interact with the Flow network.
 
-*Note: This SDK is also fully compatible with the [Flow Emulator](https://github.com/onflow/flow/blob/master/docs/emulator.md) and can be used for local development.*
+*Note: This SDK is also fully compatible with the [Flow Emulator](https://docs.onflow.org/devtools/emulator/) and can be used for local development.*
+
+## [English](#) | [Chinese](/README_zh_CN.md)
 
 ## What is Flow?
 
@@ -11,7 +14,6 @@ Flow is a new blockchain for open worlds. Read more about it [here](https://gith
 ## Table of Contents
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
 
 - [Getting Started](#getting-started)
   - [Installing](#installing)
@@ -23,7 +25,7 @@ Flow is a new blockchain for open worlds. Read more about it [here](https://gith
       - [Single party, single signature](#single-party-single-signature)
       - [Single party, multiple signatures](#single-party-multiple-signatures)
       - [Multiple parties](#multiple-parties)
-      - [Multiple parties, two autorizers](#multiple-parties-two-autorizers)
+      - [Multiple parties, two authorizers](#multiple-parties-two-authorizers)
       - [Multiple parties, multiple signatures](#multiple-parties-multiple-signatures)
   - [Sending a Transaction](#sending-a-transaction)
   - [Querying Transaction Results](#querying-transaction-results)
@@ -587,7 +589,7 @@ The event type to filter by. Event types are namespaced by the account and contr
 
 For example, a `Transfer` event that was defined in the `Token` contract deployed at account `0x55555555555555555555` will have a type of `A.0x55555555555555555555.Token.Transfer`.
 
-Read the [language documentation](https://github.com/onflow/cadence/blob/master/docs/language.md#events) for more information on how to define and emit events in Cadence.
+Read the [language documentation](https://docs.onflow.org/cadence/language/events/) for more information on how to define and emit events in Cadence.
 
 **StartHeight, EndHeight**
 
@@ -636,4 +638,4 @@ A `flow.Account` contains the following fields:
 
 ## Examples
 
-The [examples](/examples) directory contains code samples that use the SDK to interact with the [Flow Emulator](https://github.com/onflow/flow/blob/master/docs/emulator.md).
+The [examples](/examples) directory contains code samples that use the SDK to interact with the [Flow Emulator](https://docs.onflow.org/devtools/emulator/).
