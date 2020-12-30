@@ -457,6 +457,59 @@ func TestTransaction_AddEnvelopeSignature(t *testing.T) {
 	})
 }
 
+func TestTransaction_AbleToReconstructTransaction(t *testing.T) {
+	addresses := test.AddressGenerator()
+	addressOne := addresses.New()
+	addressTwo := addresses.New()
+
+	keyIndex := 7
+	sig := []byte{42}
+
+	tx := flow.NewTransaction().
+		AddAuthorizer(addressOne).
+		SetProposalKey(addressTwo, 0, 0).
+		SetPayer(addressOne)
+
+	tx.
+		AddPayloadSignature(addressTwo, 0, sig).
+		AddEnvelopeSignature(addressOne, keyIndex, sig)
+
+	t.Run("Valid signer", func(t *testing.T) {
+
+		require.Len(t, tx.EnvelopeSignatures, 1)
+		require.Len(t, tx.PayloadSignatures, 1)
+
+		assert.Equal(t, 0, tx.PayloadSignatures[0].SignerIndex)
+		assert.Equal(t, 1, tx.EnvelopeSignatures[0].SignerIndex)
+		assert.Equal(t, addressOne, tx.EnvelopeSignatures[0].Address)
+		assert.Equal(t, keyIndex, tx.EnvelopeSignatures[0].KeyIndex)
+		assert.Equal(t, sig, tx.EnvelopeSignatures[0].Signature)
+	})
+
+	t.Run("Valid reconstructed transaction", func(t *testing.T) {
+
+		newTx := flow.NewTransaction().
+			AddPayloadSignature(addressTwo, 0, sig).
+			AddEnvelopeSignature(addressOne, keyIndex, sig)
+
+		assert.Equal(t, -1, newTx.PayloadSignatures[0].SignerIndex)
+		assert.Equal(t, -1, newTx.EnvelopeSignatures[0].SignerIndex)
+
+		newTx.
+			AddAuthorizer(addressOne).
+			SetProposalKey(addressTwo, 0, 0).
+			SetPayer(addressOne)
+
+		assert.Equal(t, 0, newTx.PayloadSignatures[0].SignerIndex)
+		assert.Equal(t, 1, newTx.EnvelopeSignatures[0].SignerIndex)
+		assert.Equal(t, addressOne, newTx.EnvelopeSignatures[0].Address)
+		assert.Equal(t, keyIndex, newTx.EnvelopeSignatures[0].KeyIndex)
+		assert.Equal(t, sig, newTx.EnvelopeSignatures[0].Signature)
+
+		assert.Equal(t, tx.ID(), newTx.ID())
+	})
+}
+
 func baseTx() *flow.Transaction {
 	sig, _ := hex.DecodeString("f7225388c1d69d57e6251c9fda50cbbf9e05131e5adb81e5aa0422402f048162")
 	return flow.NewTransaction().
