@@ -613,7 +613,7 @@ func TestTransaction_RLPMessages(t *testing.T) {
 			// Check tx decoding
 			transactionBytes := tt.tx.Encode()
 			newTx, err := flow.DecodeTransaction(transactionBytes)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			assert.Equal(t, tt.tx, newTx)
 			assert.Equal(t, tt.tx.ID(), newTx.ID())
@@ -622,8 +622,8 @@ func TestTransaction_RLPMessages(t *testing.T) {
 			envelopeBytes, err := hex.DecodeString(envelope)
 			assert.NoError(t, err)
 
-			newTxFromEnvelope, err := flow.DecodeTransactionEnvelopeMessage(envelopeBytes)
-			assert.NoError(t, err)
+			newTxFromEnvelope, err := flow.DecodeTransaction(envelopeBytes)
+			require.NoError(t, err)
 
 			assert.Equal(t, tt.tx, newTxFromEnvelope)
 			assert.Equal(t, tt.tx.ID(), newTxFromEnvelope.ID())
@@ -632,8 +632,8 @@ func TestTransaction_RLPMessages(t *testing.T) {
 			payloadBytes, err := hex.DecodeString(payload)
 			assert.NoError(t, err)
 
-			newTxFromPayload, err := flow.DecodeTransactionPayloadMessage(payloadBytes)
-			assert.NoError(t, err)
+			newTxFromPayload, err := flow.DecodeTransaction(payloadBytes)
+			require.NoError(t, err)
 
 			txPayload := copyTxPayload(tt.tx)
 			assert.Equal(t, txPayload, newTxFromPayload)

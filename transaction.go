@@ -19,9 +19,12 @@
 package flow
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 	"sort"
 
+	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 
@@ -400,88 +403,17 @@ func (t *Transaction) Encode() []byte {
 	return mustRLPEncode(&temp)
 }
 
-// DecodeTransactionPayloadMessage returns the signable message for the transaction payload.
-//
-// This message is signed by the authorizers account.
-func DecodeTransactionPayloadMessage(envelopeMessage []byte) (*Transaction, error) {
-	temp := payloadCanonicalForm{}
-	mustRLPDecode(envelopeMessage, &temp)
-	authorizers := make([]Address, len(temp.Authorizers))
-	for i, auth := range temp.Authorizers {
-		authorizers[i] = BytesToAddress(auth)
-	}
-	t := &Transaction{
-		Script:           temp.Script,
-		Arguments:        temp.Arguments,
-		ReferenceBlockID: BytesToID(temp.ReferenceBlockID),
-		GasLimit:         temp.GasLimit,
-		ProposalKey: ProposalKey{
-			Address:        BytesToAddress(temp.ProposalKeyAddress),
-			KeyIndex:       int(temp.ProposalKeyIndex),
-			SequenceNumber: temp.ProposalKeySequenceNumber,
-		},
-		Payer:       BytesToAddress(temp.Payer),
-		Authorizers: authorizers,
-	}
-	if len(t.Arguments) == 0 {
-		t.Arguments = nil
-	}
-	if len(t.Script) == 0 {
-		t.Script = nil
-	}
-	return t, nil
-}
-
-// DecodeTransactionEnvelopeMessage returns the signable message for the transaction envelope.
-//
-// This message is only signed by the payer account.
-func DecodeTransactionEnvelopeMessage(envelopeMessage []byte) (*Transaction, error) {
-	temp := envelopeCanonicalForm{}
-	mustRLPDecode(envelopeMessage, &temp)
-	authorizers := make([]Address, len(temp.Payload.Authorizers))
-	for i, auth := range temp.Payload.Authorizers {
-		fmt.Println(auth)
-		authorizers[i] = BytesToAddress(auth)
-	}
-	payloadSignatures := make([]TransactionSignature, len(temp.PayloadSignatures))
-	for i, sig := range temp.PayloadSignatures {
-		payloadSignatures[i] = transactionSignatureFromCanonicalForm(sig)
-	}
-	t := &Transaction{
-		Script:           temp.Payload.Script,
-		Arguments:        temp.Payload.Arguments,
-		ReferenceBlockID: BytesToID(temp.Payload.ReferenceBlockID),
-		GasLimit:         temp.Payload.GasLimit,
-		ProposalKey: ProposalKey{
-			Address:        BytesToAddress(temp.Payload.ProposalKeyAddress),
-			KeyIndex:       int(temp.Payload.ProposalKeyIndex),
-			SequenceNumber: temp.Payload.ProposalKeySequenceNumber,
-		},
-		Payer:             BytesToAddress(temp.Payload.Payer),
-		Authorizers:       authorizers,
-		PayloadSignatures: payloadSignatures,
-	}
-	signers := t.signerList()
-
-	for i, sig := range t.PayloadSignatures {
-		t.PayloadSignatures[i].Address = signers[sig.SignerIndex]
-	}
-	if len(t.Arguments) == 0 {
-		t.Arguments = nil
-	}
-	if len(t.Script) == 0 {
-		t.Script = nil
-	}
-	return t, nil
-}
-
-// DecodeTransaction returns the signable message for the transaction.
+// DecodeTransaction decodes the input bytes into a Transaction struct
+// able to decode outputs from PayloadMessage(), EnvelopeMessage() and Encode()
+// functions
 func DecodeTransaction(transactionMessage []byte) (*Transaction, error) {
-	temp := transactionCanonicalForm{}
-	mustRLPDecode(transactionMessage, &temp)
+	temp, err := decodeTransaction(transactionMessage)
+	if err != nil {
+		return nil, err
+	}
+
 	authorizers := make([]Address, len(temp.Payload.Authorizers))
 	for i, auth := range temp.Payload.Authorizers {
-		fmt.Println(auth)
 		authorizers[i] = BytesToAddress(auth)
 	}
 	t := &Transaction{
@@ -523,6 +455,81 @@ func DecodeTransaction(transactionMessage []byte) (*Transaction, error) {
 		t.Script = nil
 	}
 	return t, nil
+}
+
+func decodeTransaction(transactionMessage []byte) (*transactionCanonicalForm, error) {
+	s := rlp.NewStream(bytes.NewReader(transactionMessage), 0)
+	temp := &transactionCanonicalForm{}
+
+	kind, _, err := s.Kind()
+	if err != nil {
+		return nil, err
+	}
+
+	// First kind should always be a list
+	if kind != rlp.List {
+		return nil, errors.New("unexpected rlp decoding type")
+	}
+
+	_, err = s.List()
+	if err != nil {
+		return nil, err
+	}
+
+	// Need to look at the type of the first element to determine if how we're going to be decoding
+	kind, _, err = s.Kind()
+	if err != nil {
+		return nil, err
+	}
+	// If first kind is not list, safe to assume this is actually just encoded payload, and decrypt as such
+	if kind != rlp.List {
+		fmt.Println("Decoding as payload")
+		s.Reset(bytes.NewReader(transactionMessage), 0)
+		txPayload := payloadCanonicalForm{}
+		err := s.Decode(&txPayload)
+		fmt.Println(txPayload)
+		if err != nil {
+			return nil, err
+		}
+		temp.Payload = txPayload
+		return temp, nil
+	}
+
+	// If we're here, we will assume that we're decoding either a envelopeCanonicalForm
+	// or a full transactionCanonicalForm
+
+	// Decode the payload
+	txPayload := payloadCanonicalForm{}
+	err = s.Decode(&txPayload)
+	if err != nil {
+		return nil, err
+	}
+	temp.Payload = txPayload
+
+	// Decode the payload sigs
+	payloadSigs := []transactionSignatureCanonicalForm{}
+	err = s.Decode(&payloadSigs)
+	if err != nil {
+		return nil, err
+	}
+	temp.PayloadSignatures = payloadSigs
+
+	// It's possible for the envelope signature to not exist (e.g. envelopeCanonicalForm).
+	kind, _, err = s.Kind()
+	if errors.Is(err, rlp.EOL) {
+		return temp, nil
+	} else if err != nil {
+		return nil, err
+	}
+	// If we're not at EOL, and no error, finish decoding
+	envelopeSigs := []transactionSignatureCanonicalForm{}
+	err = s.Decode(&envelopeSigs)
+	if err != nil {
+		return nil, err
+	}
+	temp.EnvelopeSignatures = envelopeSigs
+
+	return temp, nil
 }
 
 // A ProposalKey is the key that specifies the proposal key and sequence number for a transaction.
