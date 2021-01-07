@@ -483,11 +483,9 @@ func decodeTransaction(transactionMessage []byte) (*transactionCanonicalForm, er
 	}
 	// If first kind is not list, safe to assume this is actually just encoded payload, and decrypt as such
 	if kind != rlp.List {
-		fmt.Println("Decoding as payload")
 		s.Reset(bytes.NewReader(transactionMessage), 0)
 		txPayload := payloadCanonicalForm{}
 		err := s.Decode(&txPayload)
-		fmt.Println(txPayload)
 		if err != nil {
 			return nil, err
 		}
