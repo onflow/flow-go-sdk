@@ -168,18 +168,21 @@ func (t *Transaction) SetProposalKey(address Address, keyIndex int, sequenceNum 
 		SequenceNumber: sequenceNum,
 	}
 	t.ProposalKey = proposalKey
+	t.refreshSignerIndex()
 	return t
 }
 
 // SetPayer sets the payer account for this transaction.
 func (t *Transaction) SetPayer(address Address) *Transaction {
 	t.Payer = address
+	t.refreshSignerIndex()
 	return t
 }
 
 // AddAuthorizer adds an authorizer account to this transaction.
 func (t *Transaction) AddAuthorizer(address Address) *Transaction {
 	t.Authorizers = append(t.Authorizers, address)
+	t.refreshSignerIndex()
 	return t
 }
 
@@ -230,6 +233,24 @@ func (t *Transaction) signerMap() map[Address]int {
 	}
 
 	return signers
+}
+
+func (t *Transaction) refreshSignerIndex() {
+	signerMap := t.signerMap()
+	for i, sig := range t.PayloadSignatures {
+		signerIndex, signerExists := signerMap[sig.Address]
+		if !signerExists {
+			signerIndex = -1
+		}
+		t.PayloadSignatures[i].SignerIndex = signerIndex
+	}
+	for i, sig := range t.EnvelopeSignatures {
+		signerIndex, signerExists := signerMap[sig.Address]
+		if !signerExists {
+			signerIndex = -1
+		}
+		t.EnvelopeSignatures[i].SignerIndex = signerIndex
+	}
 }
 
 // SignPayload signs the transaction payload with the specified account key.

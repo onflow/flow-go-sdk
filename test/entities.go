@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/onflow/cadence"
+	"github.com/onflow/cadence/runtime/common"
 
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
@@ -218,11 +219,12 @@ func (g *Events) New() flow.Event {
 	defer func() { g.count++ }()
 
 	identifier := fmt.Sprintf("FooEvent%d", g.count)
-	typeID := "test." + identifier
+
+	location := common.StringLocation("test")
 
 	testEventType := &cadence.EventType{
-		TypeID:     typeID,
-		Identifier: identifier,
+		Location:            location,
+		QualifiedIdentifier: identifier,
 		Fields: []cadence.Field{
 			{
 				Identifier: "a",
@@ -241,8 +243,10 @@ func (g *Events) New() flow.Event {
 			cadence.NewString("foo"),
 		}).WithType(testEventType)
 
+	typeID := location.TypeID(identifier)
+
 	event := flow.Event{
-		Type:             typeID,
+		Type:             string(typeID),
 		TransactionID:    g.ids.New(),
 		TransactionIndex: g.count,
 		EventIndex:       g.count,
