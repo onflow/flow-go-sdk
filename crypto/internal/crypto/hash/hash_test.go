@@ -173,4 +173,3 @@ func TestKmac128(t *testing.T) {
 		checkBytes(t, input, expected[i], hash)
 	}
 }
-
