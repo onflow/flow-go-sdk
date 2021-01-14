@@ -19,9 +19,12 @@
 package flow
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 	"sort"
 
+	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 
@@ -82,6 +85,29 @@ type Transaction struct {
 	//
 	// You can find more information about transaction signatures here: https://docs.onflow.org/concepts/transaction-signing/#anatomy-of-a-transaction
 	EnvelopeSignatures []TransactionSignature
+}
+
+type payloadCanonicalForm struct {
+	Script                    []byte
+	Arguments                 [][]byte
+	ReferenceBlockID          []byte
+	GasLimit                  uint64
+	ProposalKeyAddress        []byte
+	ProposalKeyIndex          uint64
+	ProposalKeySequenceNumber uint64
+	Payer                     []byte
+	Authorizers               [][]byte
+}
+
+type envelopeCanonicalForm struct {
+	Payload           payloadCanonicalForm
+	PayloadSignatures []transactionSignatureCanonicalForm
+}
+
+type transactionCanonicalForm struct {
+	Payload            payloadCanonicalForm
+	PayloadSignatures  []transactionSignatureCanonicalForm
+	EnvelopeSignatures []transactionSignatureCanonicalForm
 }
 
 // NewTransaction initializes and returns an empty transaction.
@@ -328,23 +354,13 @@ func (t *Transaction) PayloadMessage() []byte {
 	return mustRLPEncode(&temp)
 }
 
-func (t *Transaction) payloadCanonicalForm() interface{} {
+func (t *Transaction) payloadCanonicalForm() payloadCanonicalForm {
 	authorizers := make([][]byte, len(t.Authorizers))
 	for i, auth := range t.Authorizers {
 		authorizers[i] = auth.Bytes()
 	}
 
-	return struct {
-		Script                    []byte
-		Arguments                 [][]byte
-		ReferenceBlockID          []byte
-		GasLimit                  uint64
-		ProposalKeyAddress        []byte
-		ProposalKeyIndex          uint64
-		ProposalKeySequenceNumber uint64
-		Payer                     []byte
-		Authorizers               [][]byte
-	}{
+	return payloadCanonicalForm{
 		Script:                    t.Script,
 		Arguments:                 t.Arguments,
 		ReferenceBlockID:          t.ReferenceBlockID[:],
@@ -365,11 +381,8 @@ func (t *Transaction) EnvelopeMessage() []byte {
 	return mustRLPEncode(&temp)
 }
 
-func (t *Transaction) envelopeCanonicalForm() interface{} {
-	return struct {
-		Payload           interface{}
-		PayloadSignatures interface{}
-	}{
+func (t *Transaction) envelopeCanonicalForm() envelopeCanonicalForm {
+	return envelopeCanonicalForm{
 		Payload:           t.payloadCanonicalForm(),
 		PayloadSignatures: signaturesList(t.PayloadSignatures).canonicalForm(),
 	}
@@ -378,7 +391,7 @@ func (t *Transaction) envelopeCanonicalForm() interface{} {
 // Encode serializes the full transaction data including the payload and all signatures.
 func (t *Transaction) Encode() []byte {
 	temp := struct {
-		Payload            interface{}
+		Payload            payloadCanonicalForm
 		PayloadSignatures  interface{}
 		EnvelopeSignatures interface{}
 	}{
@@ -388,6 +401,133 @@ func (t *Transaction) Encode() []byte {
 	}
 
 	return mustRLPEncode(&temp)
+}
+
+// DecodeTransaction decodes the input bytes into a Transaction struct
+// able to decode outputs from PayloadMessage(), EnvelopeMessage() and Encode()
+// functions
+func DecodeTransaction(transactionMessage []byte) (*Transaction, error) {
+	temp, err := decodeTransaction(transactionMessage)
+	if err != nil {
+		return nil, err
+	}
+
+	authorizers := make([]Address, len(temp.Payload.Authorizers))
+	for i, auth := range temp.Payload.Authorizers {
+		authorizers[i] = BytesToAddress(auth)
+	}
+	t := &Transaction{
+		Script:           temp.Payload.Script,
+		Arguments:        temp.Payload.Arguments,
+		ReferenceBlockID: BytesToID(temp.Payload.ReferenceBlockID),
+		GasLimit:         temp.Payload.GasLimit,
+		ProposalKey: ProposalKey{
+			Address:        BytesToAddress(temp.Payload.ProposalKeyAddress),
+			KeyIndex:       int(temp.Payload.ProposalKeyIndex),
+			SequenceNumber: temp.Payload.ProposalKeySequenceNumber,
+		},
+		Payer:       BytesToAddress(temp.Payload.Payer),
+		Authorizers: authorizers,
+	}
+	signers := t.signerList()
+	if len(temp.PayloadSignatures) > 0 {
+		payloadSignatures := make([]TransactionSignature, len(temp.PayloadSignatures))
+		for i, sig := range temp.PayloadSignatures {
+			payloadSignatures[i] = transactionSignatureFromCanonicalForm(sig)
+			payloadSignatures[i].Address = signers[payloadSignatures[i].SignerIndex]
+		}
+		t.PayloadSignatures = payloadSignatures
+	}
+
+	if len(temp.EnvelopeSignatures) > 0 {
+		envelopeSignatures := make([]TransactionSignature, len(temp.EnvelopeSignatures))
+		for i, sig := range temp.EnvelopeSignatures {
+			envelopeSignatures[i] = transactionSignatureFromCanonicalForm(sig)
+			envelopeSignatures[i].Address = signers[envelopeSignatures[i].SignerIndex]
+		}
+		t.EnvelopeSignatures = envelopeSignatures
+	}
+
+	if len(t.Arguments) == 0 {
+		t.Arguments = nil
+	}
+	if len(t.Script) == 0 {
+		t.Script = nil
+	}
+	return t, nil
+}
+
+func decodeTransaction(transactionMessage []byte) (*transactionCanonicalForm, error) {
+	s := rlp.NewStream(bytes.NewReader(transactionMessage), 0)
+	temp := &transactionCanonicalForm{}
+
+	kind, _, err := s.Kind()
+	if err != nil {
+		return nil, err
+	}
+
+	// First kind should always be a list
+	if kind != rlp.List {
+		return nil, errors.New("unexpected rlp decoding type")
+	}
+
+	_, err = s.List()
+	if err != nil {
+		return nil, err
+	}
+
+	// Need to look at the type of the first element to determine if how we're going to be decoding
+	kind, _, err = s.Kind()
+	if err != nil {
+		return nil, err
+	}
+	// If first kind is not list, safe to assume this is actually just encoded payload, and decrypt as such
+	if kind != rlp.List {
+		s.Reset(bytes.NewReader(transactionMessage), 0)
+		txPayload := payloadCanonicalForm{}
+		err := s.Decode(&txPayload)
+		if err != nil {
+			return nil, err
+		}
+		temp.Payload = txPayload
+		return temp, nil
+	}
+
+	// If we're here, we will assume that we're decoding either a envelopeCanonicalForm
+	// or a full transactionCanonicalForm
+
+	// Decode the payload
+	txPayload := payloadCanonicalForm{}
+	err = s.Decode(&txPayload)
+	if err != nil {
+		return nil, err
+	}
+	temp.Payload = txPayload
+
+	// Decode the payload sigs
+	payloadSigs := []transactionSignatureCanonicalForm{}
+	err = s.Decode(&payloadSigs)
+	if err != nil {
+		return nil, err
+	}
+	temp.PayloadSignatures = payloadSigs
+
+	// It's possible for the envelope signature to not exist (e.g. envelopeCanonicalForm).
+	kind, _, err = s.Kind()
+	if errors.Is(err, rlp.EOL) {
+		return temp, nil
+	} else if err != nil {
+		return nil, err
+	}
+	// If we're not at EOL, and no error, finish decoding
+	envelopeSigs := []transactionSignatureCanonicalForm{}
+	err = s.Decode(&envelopeSigs)
+	if err != nil {
+		return nil, err
+	}
+	temp.EnvelopeSignatures = envelopeSigs
+
+	return temp, nil
 }
 
 // A ProposalKey is the key that specifies the proposal key and sequence number for a transaction.
@@ -405,15 +545,25 @@ type TransactionSignature struct {
 	Signature   []byte
 }
 
-func (s TransactionSignature) canonicalForm() interface{} {
-	return struct {
-		SignerIndex uint
-		KeyIndex    uint
-		Signature   []byte
-	}{
+type transactionSignatureCanonicalForm struct {
+	SignerIndex uint
+	KeyIndex    uint
+	Signature   []byte
+}
+
+func (s TransactionSignature) canonicalForm() transactionSignatureCanonicalForm {
+	return transactionSignatureCanonicalForm{
 		SignerIndex: uint(s.SignerIndex), // int is not RLP-serializable
 		KeyIndex:    uint(s.KeyIndex),    // int is not RLP-serializable
 		Signature:   s.Signature,
+	}
+}
+
+func transactionSignatureFromCanonicalForm(v transactionSignatureCanonicalForm) TransactionSignature {
+	return TransactionSignature{
+		SignerIndex: int(v.SignerIndex),
+		KeyIndex:    int(v.KeyIndex),
+		Signature:   v.Signature,
 	}
 }
 
@@ -427,8 +577,8 @@ func compareSignatures(signatures []TransactionSignature) func(i, j int) bool {
 
 type signaturesList []TransactionSignature
 
-func (s signaturesList) canonicalForm() interface{} {
-	signatures := make([]interface{}, len(s))
+func (s signaturesList) canonicalForm() []transactionSignatureCanonicalForm {
+	signatures := make([]transactionSignatureCanonicalForm, len(s))
 
 	for i, signature := range s {
 		signatures[i] = signature.canonicalForm()

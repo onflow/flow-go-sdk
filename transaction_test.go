@@ -510,8 +510,9 @@ func TestTransaction_AbleToReconstructTransaction(t *testing.T) {
 	})
 }
 
+var sig, _ = hex.DecodeString("f7225388c1d69d57e6251c9fda50cbbf9e05131e5adb81e5aa0422402f048162")
+
 func baseTx() *flow.Transaction {
-	sig, _ := hex.DecodeString("f7225388c1d69d57e6251c9fda50cbbf9e05131e5adb81e5aa0422402f048162")
 	return flow.NewTransaction().
 		SetScript([]byte(`transaction { execute { log("Hello, World!") } }`)).
 		SetReferenceBlockID(flow.HexToID("f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b")).
@@ -520,6 +521,24 @@ func baseTx() *flow.Transaction {
 		SetPayer(flow.HexToAddress("01")).
 		AddAuthorizer(flow.HexToAddress("01")).
 		AddPayloadSignature(flow.HexToAddress("01"), 4, sig)
+}
+
+func copyTxPayload(tx *flow.Transaction) *flow.Transaction {
+	return &flow.Transaction{
+		Script:           tx.Script,
+		Arguments:        tx.Arguments,
+		ReferenceBlockID: tx.ReferenceBlockID,
+		GasLimit:         tx.GasLimit,
+		ProposalKey:      tx.ProposalKey,
+		Payer:            tx.Payer,
+		Authorizers:      tx.Authorizers,
+	}
+}
+
+func copyTxEnvelope(tx *flow.Transaction) *flow.Transaction {
+	newTx := copyTxPayload(tx)
+	newTx.PayloadSignatures = tx.PayloadSignatures
+	return newTx
 }
 
 // NOTE: The following tests have identical cases in the
@@ -535,6 +554,12 @@ func TestTransaction_RLPMessages(t *testing.T) {
 		{
 			name:     "Complete transaction",
 			tx:       baseTx(),
+			payload:  "f872b07472616e73616374696f6e207b2065786563757465207b206c6f67282248656c6c6f2c20576f726c64212229207d207dc0a0f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b2a880000000000000001040a880000000000000001c9880000000000000001",
+			envelope: "f899f872b07472616e73616374696f6e207b2065786563757465207b206c6f67282248656c6c6f2c20576f726c64212229207d207dc0a0f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b2a880000000000000001040a880000000000000001c9880000000000000001e4e38004a0f7225388c1d69d57e6251c9fda50cbbf9e05131e5adb81e5aa0422402f048162",
+		},
+		{
+			name:     "Complete transaction with envelope sig",
+			tx:       baseTx().AddEnvelopeSignature(flow.HexToAddress("01"), 4, sig),
 			payload:  "f872b07472616e73616374696f6e207b2065786563757465207b206c6f67282248656c6c6f2c20576f726c64212229207d207dc0a0f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b2a880000000000000001040a880000000000000001c9880000000000000001",
 			envelope: "f899f872b07472616e73616374696f6e207b2065786563757465207b206c6f67282248656c6c6f2c20576f726c64212229207d207dc0a0f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b2a880000000000000001040a880000000000000001c9880000000000000001e4e38004a0f7225388c1d69d57e6251c9fda50cbbf9e05131e5adb81e5aa0422402f048162",
 		},
@@ -595,8 +620,40 @@ func TestTransaction_RLPMessages(t *testing.T) {
 			payload := hex.EncodeToString(tt.tx.PayloadMessage())
 			envelope := hex.EncodeToString(tt.tx.EnvelopeMessage())
 
+			fmt.Println(envelope)
+
 			assert.Equal(t, tt.payload, payload)
 			assert.Equal(t, tt.envelope, envelope)
+
+			// Check tx decoding
+			transactionBytes := tt.tx.Encode()
+			newTx, err := flow.DecodeTransaction(transactionBytes)
+			require.NoError(t, err)
+
+			assert.Equal(t, tt.tx, newTx)
+			assert.Equal(t, tt.tx.ID(), newTx.ID())
+
+			// Check envelope decoding
+			envelopeBytes, err := hex.DecodeString(envelope)
+			assert.NoError(t, err)
+
+			newTxFromEnvelope, err := flow.DecodeTransaction(envelopeBytes)
+			require.NoError(t, err)
+
+			txEnvelope := copyTxEnvelope(tt.tx)
+			assert.Equal(t, txEnvelope, newTxFromEnvelope)
+			assert.Equal(t, txEnvelope.ID(), newTxFromEnvelope.ID())
+
+			// Check payload decoding
+			payloadBytes, err := hex.DecodeString(payload)
+			assert.NoError(t, err)
+
+			newTxFromPayload, err := flow.DecodeTransaction(payloadBytes)
+			require.NoError(t, err)
+
+			txPayload := copyTxPayload(tt.tx)
+			assert.Equal(t, txPayload, newTxFromPayload)
+			assert.Equal(t, txPayload.ID(), newTxFromPayload.ID())
 		})
 	}
 }
