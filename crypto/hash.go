@@ -24,8 +24,8 @@ import (
 	"github.com/onflow/flow-go/crypto/hash"
 )
 
-type Hasher hash.Hasher
-type Hash hash.Hash
+type Hasher = hash.Hasher
+type Hash = hash.Hash
 
 // NewHasher initializes and returns a new hasher with the given hash algorithm.
 //

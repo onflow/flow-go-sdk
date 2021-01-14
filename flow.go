@@ -93,7 +93,7 @@ type entityHasher struct {
 func (h *entityHasher) ComputeHash(b []byte) crypto.Hash {
 	h.mut.Lock()
 	defer h.mut.Unlock()
-	return h.hasher.ComputeHash(b)
+	return crypto.Hash(h.hasher.ComputeHash(b))
 }
 
 // defaultEntityHasher is the default hasher used to compute Flow identifiers.
