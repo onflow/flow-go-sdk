@@ -62,7 +62,7 @@ If you follow these guidelines when researching and reporting an issue
 
 ## **Disclosure Acknowledgements**
 
-We're happy to acknowledge contributors. Security acknowledgements can be found here.
+We're happy to acknowledge contributors. Security acknowledgements can be found [here]().
 
 ## Rewards
 
