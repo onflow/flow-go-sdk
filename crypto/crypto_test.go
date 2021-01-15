@@ -37,7 +37,7 @@ func TestGeneratePrivateKey(t *testing.T) {
 
 	// key algorithms not currently supported by the SDK
 	unsupportedAlgos := []crypto.SignatureAlgorithm{
-		crypto.SignatureAlgorithm(fgcrypto.BLSBLS12381),
+		fgcrypto.BLSBLS12381,
 	}
 
 	// key algorithm that does not represent any valid algorithm

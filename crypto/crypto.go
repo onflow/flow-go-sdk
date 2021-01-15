@@ -30,20 +30,15 @@ import (
 )
 
 // SignatureAlgorithm is an identifier for a signature algorithm (and parameters if applicable).
-type SignatureAlgorithm crypto.SigningAlgorithm
+type SignatureAlgorithm = crypto.SigningAlgorithm
 
 const (
-	UnknownSignatureAlgorithm SignatureAlgorithm = SignatureAlgorithm(crypto.UnknownSigningAlgorithm)
+	UnknownSignatureAlgorithm SignatureAlgorithm = crypto.UnknownSigningAlgorithm
 	// ECDSA_P256 is ECDSA on NIST P-256 curve
-	ECDSA_P256 = SignatureAlgorithm(crypto.ECDSAP256)
+	ECDSA_P256 = crypto.ECDSAP256
 	// ECDSA_secp256k1 is ECDSA on secp256k1 curve
-	ECDSA_secp256k1 = SignatureAlgorithm(crypto.ECDSASecp256k1)
+	ECDSA_secp256k1 = crypto.ECDSASecp256k1
 )
-
-// String returns the string representation of this signature algorithm.
-func (f SignatureAlgorithm) String() string {
-	return crypto.SigningAlgorithm(f).String()
-}
 
 // StringToSignatureAlgorithm converts a string to a SignatureAlgorithm.
 func StringToSignatureAlgorithm(s string) SignatureAlgorithm {
@@ -58,20 +53,15 @@ func StringToSignatureAlgorithm(s string) SignatureAlgorithm {
 }
 
 // HashAlgorithm is an identifier for a hash algorithm.
-type HashAlgorithm hash.HashingAlgorithm
+type HashAlgorithm = hash.HashingAlgorithm
 
 const (
-	UnknownHashAlgorithm HashAlgorithm = HashAlgorithm(hash.UnknownHashingAlgorithm)
-	SHA2_256                           = HashAlgorithm(hash.SHA2_256)
-	SHA2_384                           = HashAlgorithm(hash.SHA2_384)
-	SHA3_256                           = HashAlgorithm(hash.SHA3_256)
-	SHA3_384                           = HashAlgorithm(hash.SHA3_384)
+	UnknownHashAlgorithm HashAlgorithm = hash.UnknownHashingAlgorithm
+	SHA2_256                           = hash.SHA2_256
+	SHA2_384                           = hash.SHA2_384
+	SHA3_256                           = hash.SHA3_256
+	SHA3_384                           = hash.SHA3_384
 )
-
-// String returns the string representation of this hash algorithm.
-func (f HashAlgorithm) String() string {
-	return hash.HashingAlgorithm(f).String()
-}
 
 // StringToHashAlgorithm converts a string to a HashAlgorithm.
 func StringToHashAlgorithm(s string) HashAlgorithm {
@@ -107,11 +97,6 @@ type PrivateKey struct {
 	crypto.PrivateKey
 }
 
-// Algorithm returns the signature algorithm for this private key.
-func (sk PrivateKey) Algorithm() SignatureAlgorithm {
-	return SignatureAlgorithm(sk.PrivateKey.Algorithm())
-}
-
 // PublicKey returns the public key for this private key.
 func (sk PrivateKey) PublicKey() PublicKey {
 	return PublicKey{PublicKey: sk.PrivateKey.PublicKey()}
@@ -120,11 +105,6 @@ func (sk PrivateKey) PublicKey() PublicKey {
 // A PublicKey is a cryptographic public key that can be used to verify signatures.
 type PublicKey struct {
 	crypto.PublicKey
-}
-
-// Algorithm returns the signature algorithm for this public key.
-func (pk PublicKey) Algorithm() SignatureAlgorithm {
-	return SignatureAlgorithm(pk.PublicKey.Algorithm())
 }
 
 // A Signer is capable of generating cryptographic signatures.
@@ -213,7 +193,7 @@ func GeneratePrivateKey(sigAlgo SignatureAlgorithm, seed []byte) (PrivateKey, er
 	hashedSeed := hasher.ComputeHash(seed)
 
 	// generate the key
-	privKey, err := crypto.GeneratePrivateKey(crypto.SigningAlgorithm(sigAlgo), hashedSeed)
+	privKey, err := crypto.GeneratePrivateKey(sigAlgo, hashedSeed)
 	if err != nil {
 		return PrivateKey{}, err
 	}
@@ -225,7 +205,7 @@ func GeneratePrivateKey(sigAlgo SignatureAlgorithm, seed []byte) (PrivateKey, er
 
 // DecodePrivateKey decodes a raw byte encoded private key with the given signature algorithm.
 func DecodePrivateKey(sigAlgo SignatureAlgorithm, b []byte) (PrivateKey, error) {
-	privKey, err := crypto.DecodePrivateKey(crypto.SigningAlgorithm(sigAlgo), b)
+	privKey, err := crypto.DecodePrivateKey(sigAlgo, b)
 	if err != nil {
 		return PrivateKey{}, err
 	}
@@ -247,7 +227,7 @@ func DecodePrivateKeyHex(sigAlgo SignatureAlgorithm, s string) (PrivateKey, erro
 
 // DecodePublicKey decodes a raw byte encoded public key with the given signature algorithm.
 func DecodePublicKey(sigAlgo SignatureAlgorithm, b []byte) (PublicKey, error) {
-	pubKey, err := crypto.DecodePublicKey(crypto.SigningAlgorithm(sigAlgo), b)
+	pubKey, err := crypto.DecodePublicKey(sigAlgo, b)
 	if err != nil {
 		return PublicKey{}, err
 	}
