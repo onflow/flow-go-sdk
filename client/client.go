@@ -335,6 +335,31 @@ func (c *Client) GetAccountAtLatestBlock(
 	return &account, nil
 }
 
+// GetAccountAtBlockHeight gets an account by address at the given block height
+func (c *Client) GetAccountAtBlockHeight(
+	ctx context.Context,
+	address flow.Address,
+	blockHeight uint64,
+	opts ...grpc.CallOption,
+) (*flow.Account, error) {
+	req := &access.GetAccountAtBlockHeightRequest{
+		Address:     address.Bytes(),
+		BlockHeight: blockHeight,
+	}
+
+	res, err := c.rpcClient.GetAccountAtBlockHeight(ctx, req, opts...)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	account, err := convert.MessageToAccount(res.GetAccount())
+	if err != nil {
+		return nil, newMessageToEntityError(entityAccount, err)
+	}
+
+	return &account, nil
+}
+
 // ExecuteScriptAtLatestBlock executes a read-only Cadence script against the latest sealed execution state.
 func (c *Client) ExecuteScriptAtLatestBlock(
 	ctx context.Context,
