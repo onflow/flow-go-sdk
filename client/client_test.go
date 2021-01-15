@@ -20,6 +20,8 @@ package client_test
 
 import (
 	"context"
+	"testing"
+
 	"github.com/golang/protobuf/ptypes"
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
@@ -30,7 +32,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"testing"
 
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/client"
@@ -427,6 +428,38 @@ func TestClient_GetAccountAtLatestBlock(t *testing.T) {
 			Return(nil, errNotFound)
 
 		account, err := c.GetAccountAtLatestBlock(ctx, address)
+		assert.Error(t, err)
+		assert.Equal(t, codes.NotFound, status.Code(err))
+		assert.Nil(t, account)
+	}))
+}
+
+func TestClient_GetAccountAtBlockHeight(t *testing.T) {
+	accounts := test.AccountGenerator()
+	addresses := test.AddressGenerator()
+	height := uint64(42)
+
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
+		expectedAccount := accounts.New()
+		response := &access.AccountResponse{
+			Account: convert.AccountToMessage(*expectedAccount),
+		}
+
+		rpc.On("GetAccountAtBlockHeight", ctx, mock.Anything).Return(response, nil)
+
+		account, err := c.GetAccountAtBlockHeight(ctx, expectedAccount.Address, height)
+		require.NoError(t, err)
+
+		assert.Equal(t, expectedAccount, account)
+	}))
+
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
+		address := addresses.New()
+
+		rpc.On("GetAccountAtBlockHeight", ctx, mock.Anything).
+			Return(nil, errNotFound)
+
+		account, err := c.GetAccountAtBlockHeight(ctx, address, height)
 		assert.Error(t, err)
 		assert.Equal(t, codes.NotFound, status.Code(err))
 		assert.Nil(t, account)
