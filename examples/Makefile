@@ -1,5 +1,5 @@
 .PHONY: all
-all: create-account add-account-key deploy-contract query-events transaction-arguments single-party single-party-multisig multi-party multi-party-multisig user-signature
+all: create-account add-account-key deploy-contract query-events storage-usage transaction-arguments single-party single-party-multisig multi-party multi-party-multisig user-signature
 
 .PHONY: create-account
 create-account:
@@ -16,6 +16,10 @@ deploy-contract:
 .PHONY: query-events
 query-events:
 	go run ./query_events/main.go
+
+.PHONY: storage-usage
+storage-usage:
+	go run ./storage_usage/main.go
 
 .PHONY: transaction-arguments
 transaction-arguments:
