@@ -1,0 +1,54 @@
+- color: fbca04
+  description: ""
+  name: Breaking Change
+- color: 3E4B9E
+  description: ""
+  name: Epic
+- color: 0e8a16
+  description: ""
+  name: Feature
+- color: d4c5f9
+  description: ""
+  name: Feedback
+- color: 1d76db
+  description: ""
+  name: Improvement
+- color: efbd7f
+  description: ""
+  name: Needs Definition
+- color: f99875
+  description: ""
+  name: Needs Estimation
+- color: efa497
+  description: ""
+  name: Needs Test Cases
+- color: fcadab
+  description: ""
+  name: P-High
+- color: bfd4f2
+  description: ""
+  name: P-Low
+- color: ddcd3e
+  description: ""
+  name: P-Medium
+- color: CCCCCC
+  description: ""
+  name: Technical Debt
+- color: d73a4a
+  description: Something isn't working
+  name: Bug
+- color: c2e0c6
+  description: ""
+  name: Bugfix
+- color: cfd3d7
+  description: This issue or pull request already exists
+  name: Duplicate
+- color: 7057ff
+  description: Good for newcomers
+  name: Good First Issue
+- color: d876e3
+  description: Further information is requested
+  name: Question
+- color: 0075ca
+  description: Improvements or additions to documentation
+  name: Documentation
