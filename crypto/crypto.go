@@ -25,33 +25,24 @@ import (
 	"encoding/pem"
 	"fmt"
 
-	"github.com/onflow/flow-go-sdk/crypto/internal/crypto"
-	"github.com/onflow/flow-go-sdk/crypto/internal/crypto/hash"
+	"github.com/onflow/flow-go/crypto"
+	"github.com/onflow/flow-go/crypto/hash"
 )
 
 // SignatureAlgorithm is an identifier for a signature algorithm (and parameters if applicable).
-type SignatureAlgorithm int
+type SignatureAlgorithm = crypto.SigningAlgorithm
 
 const (
-	UnknownSignatureAlgorithm SignatureAlgorithm = iota
-	// BLS_BLS12381 is BLS on BLS 12-381 curve
-	BLS_BLS12381
+	UnknownSignatureAlgorithm SignatureAlgorithm = crypto.UnknownSigningAlgorithm
 	// ECDSA_P256 is ECDSA on NIST P-256 curve
-	ECDSA_P256
+	ECDSA_P256 = crypto.ECDSAP256
 	// ECDSA_secp256k1 is ECDSA on secp256k1 curve
-	ECDSA_secp256k1
+	ECDSA_secp256k1 = crypto.ECDSASecp256k1
 )
-
-// String returns the string representation of this signature algorithm.
-func (f SignatureAlgorithm) String() string {
-	return [...]string{"UNKNOWN", "BLS_BLS12381", "ECDSA_P256", "ECDSA_secp256k1"}[f]
-}
 
 // StringToSignatureAlgorithm converts a string to a SignatureAlgorithm.
 func StringToSignatureAlgorithm(s string) SignatureAlgorithm {
 	switch s {
-	case BLS_BLS12381.String():
-		return BLS_BLS12381
 	case ECDSA_P256.String():
 		return ECDSA_P256
 	case ECDSA_secp256k1.String():
@@ -62,32 +53,24 @@ func StringToSignatureAlgorithm(s string) SignatureAlgorithm {
 }
 
 // HashAlgorithm is an identifier for a hash algorithm.
-type HashAlgorithm int
+type HashAlgorithm = hash.HashingAlgorithm
 
 const (
-	UnknownHashAlgorithm HashAlgorithm = iota
-	SHA2_256
-	SHA2_384
-	SHA3_256
-	SHA3_384
+	UnknownHashAlgorithm HashAlgorithm = hash.UnknownHashingAlgorithm
+	SHA2_256                           = hash.SHA2_256
+	SHA2_384                           = hash.SHA2_384
+	SHA3_256                           = hash.SHA3_256
+	SHA3_384                           = hash.SHA3_384
 )
-
-// String returns the string representation of this hash algorithm.
-func (f HashAlgorithm) String() string {
-	return [...]string{"UNKNOWN", "SHA2_256", "SHA2_384", "SHA3_256", "SHA3_384"}[f]
-}
 
 // StringToHashAlgorithm converts a string to a HashAlgorithm.
 func StringToHashAlgorithm(s string) HashAlgorithm {
 	switch s {
 	case SHA2_256.String():
 		return SHA2_256
-	case SHA2_384.String():
-		return SHA2_384
 	case SHA3_256.String():
 		return SHA3_256
-	case SHA3_384.String():
-		return SHA3_384
+
 	default:
 		return UnknownHashAlgorithm
 	}
@@ -111,52 +94,17 @@ func CompatibleAlgorithms(sigAlgo SignatureAlgorithm, hashAlgo HashAlgorithm) bo
 
 // A PrivateKey is a cryptographic private key that can be used for in-memory signing.
 type PrivateKey struct {
-	privateKey crypto.PrivateKey
-}
-
-// Sign signs the given message with this private key and the provided hasher.
-//
-// This function returns an error if a signature cannot be generated.
-func (sk PrivateKey) Sign(message []byte, hasher Hasher) ([]byte, error) {
-	return sk.privateKey.Sign(message, hasher)
-}
-
-// Algorithm returns the signature algorithm for this private key.
-func (sk PrivateKey) Algorithm() SignatureAlgorithm {
-	return SignatureAlgorithm(sk.privateKey.Algorithm())
+	crypto.PrivateKey
 }
 
 // PublicKey returns the public key for this private key.
 func (sk PrivateKey) PublicKey() PublicKey {
-	return PublicKey{publicKey: sk.privateKey.PublicKey()}
-}
-
-// Encode returns the raw byte encoding of this private key.
-func (sk PrivateKey) Encode() []byte {
-	return sk.privateKey.Encode()
+	return PublicKey{PublicKey: sk.PrivateKey.PublicKey()}
 }
 
 // A PublicKey is a cryptographic public key that can be used to verify signatures.
 type PublicKey struct {
-	publicKey crypto.PublicKey
-}
-
-// Verify verifies the given signature against a message with this public key and the provided hasher.
-//
-// This function returns true if the signature is valid for the message, and false otherwise. An error
-// is returned if the signature cannot be verified.
-func (pk PublicKey) Verify(sig, message []byte, hasher Hasher) (bool, error) {
-	return pk.publicKey.Verify(sig, message, hasher)
-}
-
-// Algorithm returns the signature algorithm for this public key.
-func (pk PublicKey) Algorithm() SignatureAlgorithm {
-	return SignatureAlgorithm(pk.publicKey.Algorithm())
-}
-
-// Encode returns the raw byte encoding of this public key.
-func (pk PublicKey) Encode() []byte {
-	return pk.publicKey.Encode()
+	crypto.PublicKey
 }
 
 // A Signer is capable of generating cryptographic signatures.
@@ -197,12 +145,13 @@ func NewNaiveSigner(privateKey PrivateKey, hashAlgo HashAlgorithm) NaiveSigner {
 	return NewInMemorySigner(privateKey, hashAlgo)
 }
 
-// MinSeedLength is the generic minimum seed length required to guarantee sufficient
-// entropy when generating keys.
+// MinSeedLength is the generic minimum seed length required to make sure there is
+// enough entropy to generate keys targeting 128 bits of security.
+// (this is not a guarantee though).
 //
 // This minimum is used when the seed source is not necessarily a CSPRG and the seed
 // should be expanded before being passed to the key generation process.
-const MinSeedLength = crypto.MinSeedLen
+const MinSeedLength = 32
 
 func keyGenerationKMACTag(sigAlgo SignatureAlgorithm) []byte {
 	return []byte(fmt.Sprintf("%s Key Generation", sigAlgo))
@@ -244,25 +193,25 @@ func GeneratePrivateKey(sigAlgo SignatureAlgorithm, seed []byte) (PrivateKey, er
 	hashedSeed := hasher.ComputeHash(seed)
 
 	// generate the key
-	privKey, err := crypto.GeneratePrivateKey(crypto.SigningAlgorithm(sigAlgo), hashedSeed)
+	privKey, err := crypto.GeneratePrivateKey(sigAlgo, hashedSeed)
 	if err != nil {
 		return PrivateKey{}, err
 	}
 
 	return PrivateKey{
-		privateKey: privKey,
+		PrivateKey: privKey,
 	}, nil
 }
 
 // DecodePrivateKey decodes a raw byte encoded private key with the given signature algorithm.
 func DecodePrivateKey(sigAlgo SignatureAlgorithm, b []byte) (PrivateKey, error) {
-	privKey, err := crypto.DecodePrivateKey(crypto.SigningAlgorithm(sigAlgo), b)
+	privKey, err := crypto.DecodePrivateKey(sigAlgo, b)
 	if err != nil {
 		return PrivateKey{}, err
 	}
 
 	return PrivateKey{
-		privateKey: privKey,
+		PrivateKey: privKey,
 	}, nil
 }
 
@@ -278,13 +227,13 @@ func DecodePrivateKeyHex(sigAlgo SignatureAlgorithm, s string) (PrivateKey, erro
 
 // DecodePublicKey decodes a raw byte encoded public key with the given signature algorithm.
 func DecodePublicKey(sigAlgo SignatureAlgorithm, b []byte) (PublicKey, error) {
-	pubKey, err := crypto.DecodePublicKey(crypto.SigningAlgorithm(sigAlgo), b)
+	pubKey, err := crypto.DecodePublicKey(sigAlgo, b)
 	if err != nil {
 		return PublicKey{}, err
 	}
 
 	return PublicKey{
-		publicKey: pubKey,
+		PublicKey: pubKey,
 	}, nil
 }
 
