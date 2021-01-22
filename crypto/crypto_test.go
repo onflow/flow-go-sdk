@@ -25,6 +25,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/onflow/flow-go-sdk/crypto"
+	fgcrypto "github.com/onflow/flow-go/crypto"
 )
 
 func TestGeneratePrivateKey(t *testing.T) {
@@ -36,7 +37,7 @@ func TestGeneratePrivateKey(t *testing.T) {
 
 	// key algorithms not currently supported by the SDK
 	unsupportedAlgos := []crypto.SignatureAlgorithm{
-		crypto.BLS_BLS12381,
+		fgcrypto.BLSBLS12381,
 	}
 
 	// key algorithm that does not represent any valid algorithm
