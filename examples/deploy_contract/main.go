@@ -1,7 +1,7 @@
 /*
  * Flow Go SDK
  *
- * Copyright 2019-2020 Dapper Labs, Inc.
+ * Copyright 2019-2021 Dapper Labs, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -93,18 +93,20 @@ func DeployContractDemo() {
 		[]templates.Contract{{
 			Name:   "GreatToken",
 			Source: nftCode,
-		}}, myAddress)
+		}}, serviceAcctAddr)
 
-	deployContractTx.SetProposalKey(myAddress, myAcctKey.Index, myAcctKey.SequenceNumber)
+	deployContractTx.SetProposalKey(
+		serviceAcctAddr,
+		serviceAcctKey.Index,
+		serviceAcctKey.SequenceNumber,
+	)
 	// we can set the same reference block id. We shouldn't be to far away from it
 	deployContractTx.SetReferenceBlockID(referenceBlockID)
-	deployContractTx.SetPayer(myAddress)
+	deployContractTx.SetPayer(serviceAcctAddr)
 
-	err = deployContractTx.SignEnvelope(
-		myAddress,
-		myAcctKey.Index,
-		crypto.NewInMemorySigner(myPrivateKey, myAcctKey.HashAlgo),
-	)
+
+	err = deployContractTx.SignEnvelope(serviceAcctAddr, serviceAcctKey.Index, serviceSigner)
+	examples.Handle(err)
 	examples.Handle(err)
 
 	err = flowClient.SendTransaction(ctx, *deployContractTx)
@@ -114,7 +116,7 @@ func DeployContractDemo() {
 	examples.Handle(deployContractTxResp.Error)
 
 	// Successful Tx, increment sequence number
-	myAcctKey.SequenceNumber++
+	serviceAcctKey.SequenceNumber++
 
 	var nftAddress flow.Address
 
