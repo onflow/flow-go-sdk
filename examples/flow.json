@@ -1,10 +1,17 @@
 {
-	"accounts": {
-		"service": {
-			"address": "e467b9dd11fa00df",
-			"privateKey": "68ee617d9bf67a4677af80aaca5a090fcda80ff2f4dbc340e0e36201fa1f1d8c",
-			"sigAlgorithm": "ECDSA_P256",
-			"hashAlgorithm": "SHA3_256"
-		}
-	}
+  "accounts": {
+    "service": {
+      "address": "f8d6e0586b0a20c7",
+      "privateKey": "68ee617d9bf67a4677af80aaca5a090fcda80ff2f4dbc340e0e36201fa1f1d8c",
+      "sigAlgorithm": "ECDSA_P256",
+      "hashAlgorithm": "SHA3_256"
+    }
+  },
+  "contracts": {
+    "FlowServiceAccount": "f8d6e0586b0a20c7",
+    "FlowFees": "e5a8b7f23e8b548f",
+    "FlowStorageFees": "f8d6e0586b0a20c7",
+    "FlowToken": "0ae53cb6e3f42a79",
+    "FungibleToken": "ee82856bf20e2aa6"
+  }
 }
