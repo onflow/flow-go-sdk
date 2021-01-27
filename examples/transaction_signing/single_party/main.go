@@ -51,6 +51,8 @@ func SinglePartySingleSignatureDemo() {
 	key1Signer := crypto.NewInMemorySigner(privateKey1, key1.HashAlgo)
 
 	account1 := examples.CreateAccount(flowClient, []*flow.AccountKey{key1})
+	// Add some flow for the transaction fees
+	examples.FundAccount(flowClient, account1.Address, 1.0)
 
 	referenceBlockID := examples.GetReferenceBlockId(flowClient)
 	tx := flow.NewTransaction().
