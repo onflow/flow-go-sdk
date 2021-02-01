@@ -20,6 +20,7 @@ package templates
 
 import (
 	"encoding/hex"
+
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 
@@ -145,6 +146,43 @@ transaction(publicKey: String) {
 	}
 }
 `
+
+const addAccountContractsTemplate = `
+transaction(contracts: {String: String}, update: Bool) {
+	prepare(signer: AuthAccount) {
+		
+		for contract in contracts.keys {
+			if signer.contracts.get(name: contract) == nil {
+				signer.contracts.add(name: contract, code: contracts[contract]!.decodeHex())
+			} else if update {
+				signer.contracts.update__experimental(name: contract, code: contracts[contract]!.decodeHex())
+			}
+		}
+	}
+}
+`
+
+// AddAccountContracts generates a transaction that adds multiple contracts to an account.
+//
+// This function will not update existing contracts unless the update parameter is true.
+func AddAccountContracts(address flow.Address, contracts []Contract, update bool) *flow.Transaction {
+	contractKeyPairs := make([]cadence.KeyValuePair, len(contracts))
+
+	for i, contract := range contracts {
+		contractKeyPairs[i] = cadence.KeyValuePair{
+			Key:   cadence.NewString(contract.Name),
+			Value: cadence.NewString(contract.SourceHex()),
+		}
+	}
+
+	cadenceContracts := cadence.NewDictionary(contractKeyPairs)
+
+	return flow.NewTransaction().
+		SetScript([]byte(addAccountContractsTemplate)).
+		AddAuthorizer(address).
+		AddRawArgument(jsoncdc.MustEncode(cadenceContracts)).
+		AddRawArgument(jsoncdc.MustEncode(cadence.NewBool(update)))
+}
 
 // AddAccountKey generates a transaction that adds a public key to an account.
 func AddAccountKey(address flow.Address, accountKey *flow.AccountKey) *flow.Transaction {
