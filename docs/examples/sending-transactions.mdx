@@ -1,0 +1,22 @@
+---
+title: Sending Transactions
+---
+
+You can submit a transaction to the network using the Access API client.
+
+```go
+import "github.com/onflow/flow-go-sdk/client"
+
+// connect to an emulator running locally
+c, err := client.New("localhost:3569")
+if err != nil {
+    panic("failed to connect to emulator")
+}
+
+ctx := context.Background()
+
+err = c.SendTransaction(ctx, tx)
+if err != nil {
+    panic("failed to send transaction")
+}
+```
