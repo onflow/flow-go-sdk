@@ -1,7 +1,5 @@
---- 
-title: Flow GO SDK 
-description: Packages for Go developers to build applications that interact with the Flow network
----
+# Flow Go SDK 
+Packages for Go developers to build applications that interact with the Flow network
 
 [![GoDoc](https://godoc.org/github.com/onflow/flow-go-sdk?status.svg)](https://godoc.org/github.com/onflow/flow-go-sdk)
 
