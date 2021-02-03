@@ -67,6 +67,7 @@ key1 := account1.Keys[0]
 // create signer from securely-stored private key
 key1Signer := getSignerForKey1()
 
+referenceBlock, _ := flow.GetLatestBlock(ctx, true)
 tx := flow.NewTransaction().
     SetScript([]byte(`
         transaction {
@@ -75,6 +76,7 @@ tx := flow.NewTransaction().
     `)).
     SetGasLimit(100).
     SetProposalKey(account1.Address, key1.Index, key1.SequenceNumber).
+    SetReferenceBlockID(referenceBlock.ID).
     SetPayer(account1.Address).
     AddAuthorizer(account1.Address)
 
@@ -107,6 +109,7 @@ key2 := account1.Keys[1]
 key1Signer := getSignerForKey1()
 key2Signer := getSignerForKey2()
 
+referenceBlock, _ := flow.GetLatestBlock(ctx, true)
 tx := flow.NewTransaction().
     SetScript([]byte(`
         transaction {
@@ -153,6 +156,7 @@ key3 := account2.Keys[0]
 key1Signer := getSignerForKey1()
 key3Signer := getSignerForKey3()
 
+referenceBlock, _ := flow.GetLatestBlock(ctx, true)
 tx := flow.NewTransaction().
     SetScript([]byte(`
         transaction {
@@ -201,6 +205,7 @@ key3 := account2.Keys[0]
 key1Signer := getSignerForKey1()
 key3Signer := getSignerForKey3()
 
+referenceBlock, _ := flow.GetLatestBlock(ctx, true)
 tx := flow.NewTransaction().
     SetScript([]byte(`
         transaction {
@@ -212,6 +217,7 @@ tx := flow.NewTransaction().
     `)).
     SetGasLimit(100).
     SetProposalKey(account1.Address, key1.Index, key1.SequenceNumber).
+    SetReferenceBlockID(referenceBlock.ID).
     SetPayer(account2.Address).
     AddAuthorizer(account1.Address).
     AddAuthorizer(account2.Address)
@@ -259,6 +265,7 @@ key2Signer := getSignerForKey1()
 key3Signer := getSignerForKey3()
 key4Signer := getSignerForKey4()
 
+referenceBlock, _ := flow.GetLatestBlock(ctx, true)
 tx := flow.NewTransaction().
     SetScript([]byte(`
         transaction {
@@ -267,6 +274,7 @@ tx := flow.NewTransaction().
     `)).
     SetGasLimit(100).
     SetProposalKey(account1.Address, key1.Index, key1.SequenceNumber).
+    SetReferenceBlockID(referenceBlock.ID).
     SetPayer(account2.Address).
     AddAuthorizer(account1.Address)
 
