@@ -166,6 +166,7 @@ tx := flow.NewTransaction().
     `)).
     SetGasLimit(100).
     SetProposalKey(account1.Address, key1.Index, key1.SequenceNumber).
+    SetReferenceBlockID(referenceBlock.ID).
     SetPayer(account2.Address).
     AddAuthorizer(account1.Address)
 
