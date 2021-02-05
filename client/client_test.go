@@ -20,7 +20,7 @@ package client_test
 
 import (
 	"context"
-	"crypto/rand"
+	"math/rand"
 	"testing"
 
 	"github.com/golang/protobuf/ptypes"
