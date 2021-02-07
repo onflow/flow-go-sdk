@@ -112,7 +112,7 @@ tx := templates.CreateAccount([]*flow.AccountKey{accountKey}, nil, creatorAddres
 tx.SetPayer(creatorAddress)
 tx.SetProposalKey(
   creatorAddress,
-  creatorAccountKey.ID,
+  creatorAccountKey.Index,
   creatorAccountKey.SequenceNumber,
 )
 
@@ -126,7 +126,7 @@ tx.SetReferenceBlockID(latestBlock.ID)
 
 // Sign and submit the transaction
 
-err = tx.SignEnvelope(creatorAddress, creatorAccountKey.ID, creatorSigner)
+err = tx.SignEnvelope(creatorAddress, creatorAccountKey.Index, creatorSigner)
 if err != nil {
   panic("failed to sign transaction envelope")
 }
