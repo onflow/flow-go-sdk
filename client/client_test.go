@@ -20,6 +20,7 @@ package client_test
 
 import (
 	"context"
+	"math/rand"
 	"testing"
 
 	"github.com/golang/protobuf/ptypes"
@@ -810,5 +811,30 @@ func TestClient_GetEventsForBlockIDs(t *testing.T) {
 		assert.Error(t, err)
 		assert.Equal(t, codes.NotFound, status.Code(err))
 		assert.Empty(t, blocks)
+	}))
+}
+
+func TestClient_GetLatestProtocolStateSnapshot(t *testing.T) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
+		expected := &access.ProtocolStateSnapshotResponse{
+			SerializedSnapshot: make([]byte, 128),
+		}
+		_, err := rand.Read(expected.SerializedSnapshot)
+		assert.NoError(t, err)
+
+		rpc.On("GetLatestProtocolStateSnapshot", ctx, mock.Anything).Return(expected, nil)
+
+		res, err := c.GetLatestProtocolStateSnapshot(ctx)
+		assert.NoError(t, err)
+		assert.Equal(t, expected.SerializedSnapshot, res)
+	}))
+
+	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
+		rpc.On("GetLatestProtocolStateSnapshot", ctx, mock.Anything).
+			Return(nil, errInternal)
+
+		_, err := c.GetLatestProtocolStateSnapshot(ctx)
+		assert.Error(t, err)
+		assert.Equal(t, codes.Internal, status.Code(err))
 	}))
 }

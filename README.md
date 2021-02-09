@@ -1,5 +1,7 @@
+# Flow Go SDK 
+Packages for Go developers to build applications that interact with the Flow network
 
-# Flow Go SDK [![GoDoc](https://godoc.org/github.com/onflow/flow-go-sdk?status.svg)](https://godoc.org/github.com/onflow/flow-go-sdk)
+[![GoDoc](https://godoc.org/github.com/onflow/flow-go-sdk?status.svg)](https://godoc.org/github.com/onflow/flow-go-sdk)
 
 The Flow Go SDK provides a set of packages for Go developers to build applications that interact with the Flow network.
 
@@ -15,6 +17,10 @@ Flow is a new blockchain for open worlds. Read more about it [here](https://gith
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
+- [Flow Go SDK ![GoDoc](https://godoc.org/github.com/onflow/flow-go-sdk)](#flow-go-sdk-)
+  - [English | [Chinese](/README_zh_CN.md)](#english--chinese)
+  - [What is Flow?](#what-is-flow)
+  - [Table of Contents](#table-of-contents)
 - [Getting Started](#getting-started)
   - [Installing](#installing)
   - [Generating Keys](#generating-keys)
@@ -35,13 +41,13 @@ Flow is a new blockchain for open worlds. Read more about it [here](https://gith
     - [Event Query Format](#event-query-format)
     - [Event Results](#event-results)
   - [Querying Accounts](#querying-accounts)
-- [Examples](#examples)
+  - [Examples](#examples)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-## Getting Started
+# Getting Started
 
-### Installing
+## Installing
 
 To start using the SDK, install Go 1.13 or above and run go get:
 
@@ -49,7 +55,7 @@ To start using the SDK, install Go 1.13 or above and run go get:
 go get github.com/onflow/flow-go-sdk
 ```
 
-### Generating Keys
+## Generating Keys
 
 Flow uses [ECDSA](https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm) 
 to control access to user accounts. Each key pair can be used in combination with
@@ -79,7 +85,7 @@ A private key has an accompanying public key:
 publicKey := privateKey.PublicKey()
 ```
 
-#### Supported Curves
+### Supported Curves
 
 The example above uses an ECDSA key pair on the P-256 (secp256r1) elliptic curve.
 Flow also supports the secp256k1 curve used by Bitcoin and Ethereum.
@@ -92,7 +98,7 @@ privateKey, err := crypto.GeneratePrivateKey(crypto.ECDSA_secp256k1, seed)
 
 Here's a full list of the supported signature and hash algorithms: [Flow Signature & Hash Algorithms](https://github.com/onflow/flow/blob/master/docs/accounts-and-keys.md#supported-signature--hash-algorithms)
 
-### Creating an Account
+## Creating an Account
 
 Once you have [generated a key pair](#generating-keys), you can create a new account
 using its public key.
@@ -165,7 +171,7 @@ if result.Status == flow.TransactionStatusSealed {
 }
 ```
 
-### Signing a Transaction
+## Signing a Transaction
 
 Below is a simple example of how to sign a transaction using a `crypto.PrivateKey`.
 
@@ -206,14 +212,14 @@ if err != nil {
 }
 ```
 
-#### How Signatures Work in Flow
+### How Signatures Work in Flow
 
 Flow introduces new concepts that allow for more flexibility when creating and signing transactions. 
 Before trying the examples below, we recommend that you read through the [transaction signature documentation](https://github.com/onflow/flow/blob/master/docs/accounts-and-keys.md#signing-a-transaction).
 
 ---
 
-##### [Single party, single signature](https://github.com/onflow/flow/blob/master/docs/accounts-and-keys.md#single-party-single-signature)
+#### [Single party, single signature](https://github.com/onflow/flow/blob/master/docs/accounts-and-keys.md#single-party-single-signature)
 
 - Proposer, payer and authorizer are the same account (`0x01`).
 - Only the envelope must be signed.
@@ -250,7 +256,7 @@ err := tx.SignEnvelope(account1.Address, key1.Index, key1Signer)
 
 ---
 
-##### [Single party, multiple signatures](https://github.com/onflow/flow/blob/master/docs/accounts-and-keys.md#single-party-multiple-signatures)
+#### [Single party, multiple signatures](https://github.com/onflow/flow/blob/master/docs/accounts-and-keys.md#single-party-multiple-signatures)
 
 - Proposer, payer and authorizer are the same account (`0x01`).
 - Only the envelope must be signed.
@@ -293,7 +299,7 @@ err = tx.SignEnvelope(account1.Address, key2.Index, key2Signer)
 
 ---
 
-##### [Multiple parties](https://github.com/onflow/flow/blob/master/docs/accounts-and-keys.md#multiple-parties)
+#### [Multiple parties](https://github.com/onflow/flow/blob/master/docs/accounts-and-keys.md#multiple-parties)
 
 - Proposer and authorizer are the same account (`0x01`).
 - Payer is a separate account (`0x02`).
@@ -339,7 +345,7 @@ err = tx.SignEnvelope(account2.Address, key3.Index, key3Signer)
 [Full Runnable Example](/examples#multiple-parties)
 
 ---
-##### [Multiple parties, two authorizers](https://github.com/onflow/flow/blob/master/docs/accounts-and-keys.md#multiple-parties)
+#### [Multiple parties, two authorizers](https://github.com/onflow/flow/blob/master/docs/accounts-and-keys.md#multiple-parties)
 
 - Proposer and authorizer are the same account (`0x01`).
 - Payer is a separate account (`0x02`).
@@ -391,7 +397,7 @@ err = tx.SignEnvelope(account2.Address, key3.Index, key3Signer)
 
 ---
 
-##### [Multiple parties, multiple signatures](https://github.com/onflow/flow/blob/master/docs/accounts-and-keys.md#multiple-parties-multiple-signatures)
+#### [Multiple parties, multiple signatures](https://github.com/onflow/flow/blob/master/docs/accounts-and-keys.md#multiple-parties-multiple-signatures)
 
 - Proposer and authorizer are the same account (`0x01`).
 - Payer is a separate account (`0x02`).
@@ -450,7 +456,7 @@ err = tx.SignEnvelope(account2.Address, key4.Index, key4Signer)
 
 [Full Runnable Example](/examples#multiple-parties-multiple-signatures)
 
-### Sending a Transaction
+## Sending a Transaction
 
 You can submit a transaction to the network using the Access API client.
 
@@ -471,7 +477,7 @@ if err != nil {
 }
 ```
 
-### Querying Transaction Results
+## Querying Transaction Results
 
 After you have submitted a transaction, you can query its status by ID:
 
@@ -503,7 +509,7 @@ if result.Error != nil {
 }
 ```
 
-### Querying Blocks
+## Querying Blocks
 
 You can use the `GetLatestBlock` method to fetch the latest sealed or unsealed block:
 
@@ -530,7 +536,7 @@ A block contains the following fields:
 - `Height` - The height of the block in the chain.
 - `CollectionGuarantees` - The list of collections included in the block.
 
-### Executing a Script
+## Executing a Script
 
 You can use the `ExecuteScriptAtLatestBlock` method to execute a read-only script against the latest sealed execution state.
 
@@ -562,7 +568,7 @@ ID := value.(cadence.Int)
 myID := ID.Int()
 ```
 
-### Querying Events
+## Querying Events
 
 You can query events with the `GetEventsForHeightRange` function:
 
@@ -579,7 +585,7 @@ if err != nil {
 }
 ```
 
-#### Event Query Format
+### Event Query Format
 
 An event query includes the following fields:
 
@@ -595,7 +601,7 @@ Read the [language documentation](https://docs.onflow.org/cadence/language/event
 
 The blocks to filter by. Events will be returned from blocks in the range `StartHeight` to `EndHeight`, inclusive.
 
-#### Event Results
+### Event Results
 
 The `GetEventsForHeightRange` function returns events grouped by block. Each block contains a list of events matching the query in order of execution.
 
@@ -609,12 +615,12 @@ for _, block := range blocks {
 ```
 
 <!--
-#### Decoding an Event
+### Decoding an Event
 
 TODO: example for event decoding
 -->
 
-### Querying Accounts
+## Querying Accounts
 
 You can query the state of an account with the `GetAccount` function:
 

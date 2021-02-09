@@ -1,0 +1,54 @@
+---
+title: Querying Events
+description: How to query events using the Flow Go SDK
+---
+
+You can query events with the `GetEventsForHeightRange` function:
+
+```go
+import "github.com/onflow/flow-go-sdk/client"
+
+blocks, err := c.GetEventsForHeightRange(ctx, client.EventRangeQuery{
+    Type:       "flow.AccountCreated",
+    StartHeight: 10,
+    EndHeight:   15,
+})
+if err != nil {
+    panic("failed to query events")
+}
+```
+
+### Event Query Format
+
+An event query includes the following fields:
+
+**Type**
+
+The event type to filter by. Event types are namespaced by the account and contract in which they are declared.
+
+For example, a `Transfer` event that was defined in the `Token` contract deployed at account `0x55555555555555555555` will have a type of `A.0x55555555555555555555.Token.Transfer`.
+
+Read the [language documentation](https://docs.onflow.org/cadence/language/events/) for more information on how to define and emit events in Cadence.
+
+**StartHeight, EndHeight**
+
+The blocks to filter by. Events will be returned from blocks in the range `StartHeight` to `EndHeight`, inclusive.
+
+### Event Results
+
+The `GetEventsForHeightRange` function returns events grouped by block. Each block contains a list of events matching the query in order of execution.
+
+```go
+for _, block := range blocks {
+    fmt.Printf("Events for block %s:\n", block.BlockID)
+    for _, event := range block.Events {
+        fmt.Printf(" - %s", event)
+    }
+}
+```
+
+<!--
+### Decoding an Event
+
+TODO: example for event decoding
+-->
