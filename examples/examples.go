@@ -120,7 +120,7 @@ func RandomAccount(flowClient *client.Client) (flow.Address, *flow.AccountKey, c
 		SetWeight(flow.AccountKeyWeightThreshold)
 
 	account := CreateAccount(flowClient, []*flow.AccountKey{accountKey})
-	FundAccount(flowClient, account.Address,10.0)
+	FundAccountInEmulator(flowClient, account.Address, 10.0)
 	signer := crypto.NewInMemorySigner(privateKey, accountKey.HashAlgo)
 	return account.Address, account.Keys[0], signer
 }
@@ -163,7 +163,44 @@ func CreateAccountWithContracts(flowClient *client.Client, publicKeys []*flow.Ac
 	return account
 }
 
-func FundAccount(flowClient *client.Client, address flow.Address, amount float64) {
+/**
+ * mintTokensToAccountTemplate transaction mints tokens by using the service account (in the emulator)
+ * and deposits them to the recipient.
+ */
+var mintTokensToAccountTemplate = `
+import FungibleToken from 0x%s
+import FlowToken from 0x%s
+
+transaction(recipient: Address, amount: UFix64) {
+	let tokenAdmin: &FlowToken.Administrator
+	let tokenReceiver: &{FungibleToken.Receiver}
+
+	prepare(signer: AuthAccount) {
+		self.tokenAdmin = signer
+			.borrow<&FlowToken.Administrator>(from: /storage/flowTokenAdmin)
+			?? panic("Signer is not the token admin")
+
+		self.tokenReceiver = getAccount(recipient)
+			.getCapability(/public/flowTokenReceiver)
+			.borrow<&{FungibleToken.Receiver}>()
+			?? panic("Unable to borrow receiver reference")
+	}
+
+	execute {
+		let minter <- self.tokenAdmin.createNewMinter(allowedAmount: amount)
+		let mintedVault <- minter.mintTokens(amount: amount)
+
+		self.tokenReceiver.deposit(from: <-mintedVault)
+
+		destroy minter
+	}
+}
+`
+
+/**
+ * FundAccountInEmulator Mints FLOW to an account. Minting only works in an emulator environment.
+ */
+func FundAccountInEmulator(flowClient *client.Client, address flow.Address, amount float64) {
 	serviceAcctAddr, serviceAcctKey, serviceSigner := ServiceAccount(flowClient)
 
 	referenceBlockID := GetReferenceBlockId(flowClient)
@@ -175,43 +212,15 @@ func FundAccount(flowClient *client.Client, address flow.Address, amount float64
 	uintAmount := uint64(amount * sema.Fix64Factor)
 	cadenceAmount := cadence.UFix64(uintAmount)
 
-	fundAccountTx := flow.NewTransaction().
-		SetScript([]byte(fmt.Sprintf(`
-			import FungibleToken from 0x%s
-			import FlowToken from 0x%s
-			
-			transaction(recipient: Address, amount: UFix64) {
-				let tokenAdmin: &FlowToken.Administrator
-				let tokenReceiver: &{FungibleToken.Receiver}
-			
-				prepare(signer: AuthAccount) {
-					self.tokenAdmin = signer
-						.borrow<&FlowToken.Administrator>(from: /storage/flowTokenAdmin)
-						?? panic("Signer is not the token admin")
-			
-					self.tokenReceiver = getAccount(recipient)
-						.getCapability(/public/flowTokenReceiver)
-						.borrow<&{FungibleToken.Receiver}>()
-						?? panic("Unable to borrow receiver reference")
-				}
-			
-				execute {
-					let minter <- self.tokenAdmin.createNewMinter(allowedAmount: amount)
-					let mintedVault <- minter.mintTokens(amount: amount)
-			
-					self.tokenReceiver.deposit(from: <-mintedVault)
-			
-					destroy minter
-				}
-			}
-			`, fungibleTokenAddress, flowTokenAddress))).
-		AddAuthorizer(serviceAcctAddr).
-		AddRawArgument(jsoncdc.MustEncode(recipient)).
-		AddRawArgument(jsoncdc.MustEncode(cadenceAmount))
-	fundAccountTx.
-		SetProposalKey(serviceAcctAddr, serviceAcctKey.Index, serviceAcctKey.SequenceNumber).
-		SetReferenceBlockID(referenceBlockID).
-		SetPayer(serviceAcctAddr)
+	fundAccountTx :=
+		flow.NewTransaction().
+			SetScript([]byte(fmt.Sprintf(mintTokensToAccountTemplate, fungibleTokenAddress, flowTokenAddress))).
+			AddAuthorizer(serviceAcctAddr).
+			AddRawArgument(jsoncdc.MustEncode(recipient)).
+			AddRawArgument(jsoncdc.MustEncode(cadenceAmount)).
+			SetProposalKey(serviceAcctAddr, serviceAcctKey.Index, serviceAcctKey.SequenceNumber).
+			SetReferenceBlockID(referenceBlockID).
+			SetPayer(serviceAcctAddr)
 
 	err := fundAccountTx.SignEnvelope(serviceAcctAddr, serviceAcctKey.Index, serviceSigner)
 	Handle(err)

@@ -94,7 +94,7 @@ func StorageUsageDemo() {
 	fmt.Println("Storage limit reached.")
 
 	// Add some flow to increase storage capacity
-	examples.FundAccount(flowClient, demoAccount.Address, 1.0)
+	examples.FundAccountInEmulator(flowClient, demoAccount.Address, 1.0)
 
 	// try to save a very large resource again. This time it should work.
 	txId = sendSaveLargeResourceTransaction(
