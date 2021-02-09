@@ -62,7 +62,7 @@ func MultiPartySingleSignatureDemo() {
 	account1 := examples.CreateAccount(flowClient, []*flow.AccountKey{key1})
 	account2 := examples.CreateAccount(flowClient, []*flow.AccountKey{key3})
 	// Add some flow for the transaction fees
-	examples.FundAccount(flowClient, account2.Address, 1.0)
+	examples.FundAccountInEmulator(flowClient, account2.Address, 1.0)
 
 	referenceBlockID := examples.GetReferenceBlockId(flowClient)
 

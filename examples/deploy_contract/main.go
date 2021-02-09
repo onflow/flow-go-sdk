@@ -87,7 +87,7 @@ func DeployContractDemo() {
 
 	fmt.Println("My Address:", myAddress.Hex())
 
-	examples.FundAccount(flowClient, myAddress, 100.0)
+	examples.FundAccountInEmulator(flowClient, myAddress, 100.0)
 	serviceAcctKey.SequenceNumber++
 
 	// Deploy the Great NFT contract
@@ -131,7 +131,7 @@ func DeployContractDemo() {
 
 	fmt.Println("My Address:", nftAddress.Hex())
 
-	examples.FundAccount(flowClient, nftAddress, 100.0)
+	examples.FundAccountInEmulator(flowClient, nftAddress, 100.0)
 	serviceAcctKey.SequenceNumber++
 
 	// Next, instantiate the minter
