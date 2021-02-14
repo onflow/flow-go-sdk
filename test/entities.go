@@ -113,12 +113,14 @@ func (g *Addresses) New() flow.Address {
 type Blocks struct {
 	headers    *BlockHeaders
 	guarantees *CollectionGuarantees
+	seals      *BlockSeals
 }
 
 func BlockGenerator() *Blocks {
 	return &Blocks{
 		headers:    BlockHeaderGenerator(),
 		guarantees: CollectionGuaranteeGenerator(),
+		seals:      BlockSealGenerator(),
 	}
 }
 
@@ -131,7 +133,9 @@ func (g *Blocks) New() *flow.Block {
 		g.guarantees.New(),
 	}
 
-	seals := []*flow.BlockSeal{}
+	seals := []*flow.BlockSeal{
+		g.seals.New(),
+	}
 
 	payload := flow.BlockPayload{
 		CollectionGuarantees: guarantees,
