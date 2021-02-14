@@ -42,5 +42,9 @@ type BlockPayload struct {
 	Seals                []*BlockSeal
 }
 
-// TODO: define block seal struct
-type BlockSeal struct{}
+type BlockSeal struct {
+	BlockID            Identifier
+	ExecutionReceiptID Identifier
+	// TODO: ExecutionReceiptSignatures
+	// TODO: ResultApprovalSignatures
+}
