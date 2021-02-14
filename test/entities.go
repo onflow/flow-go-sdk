@@ -131,8 +131,11 @@ func (g *Blocks) New() *flow.Block {
 		g.guarantees.New(),
 	}
 
+	seals := []*flow.BlockSeal{}
+
 	payload := flow.BlockPayload{
 		CollectionGuarantees: guarantees,
+		Seals:                seals,
 	}
 
 	return &flow.Block{
@@ -191,6 +194,10 @@ type CollectionGuarantees struct {
 	ids *Identifiers
 }
 
+type BlockSeals struct {
+	ids *Identifiers
+}
+
 func CollectionGuaranteeGenerator() *CollectionGuarantees {
 	return &CollectionGuarantees{
 		ids: IdentifierGenerator(),
@@ -200,6 +207,19 @@ func CollectionGuaranteeGenerator() *CollectionGuarantees {
 func (g *CollectionGuarantees) New() *flow.CollectionGuarantee {
 	return &flow.CollectionGuarantee{
 		CollectionID: g.ids.New(),
+	}
+}
+
+func BlockSealGenerator() *BlockSeals {
+	return &BlockSeals{
+		ids: IdentifierGenerator(),
+	}
+}
+
+func (g *BlockSeals) New() *flow.BlockSeal {
+	return &flow.BlockSeal{
+		BlockID:            g.ids.New(),
+		ExecutionReceiptID: g.ids.New(),
 	}
 }
 

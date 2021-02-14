@@ -122,6 +122,7 @@ func BlockToMessage(b flow.Block) (*entities.Block, error) {
 		Height:               b.BlockHeader.Height,
 		Timestamp:            t,
 		CollectionGuarantees: CollectionGuaranteesToMessages(b.BlockPayload.CollectionGuarantees),
+		BlockSeals:           BlockSealsToMessages(b.BlockPayload.Seals),
 	}, nil
 }
 
@@ -148,8 +149,14 @@ func MessageToBlock(m *entities.Block) (flow.Block, error) {
 		return flow.Block{}, err
 	}
 
+	seals, err := MessagesToBlockSeals(m.GetBlockSeals())
+	if err != nil {
+		return flow.Block{}, err
+	}
+
 	payload := &flow.BlockPayload{
 		CollectionGuarantees: guarantees,
+		Seals:                seals,
 	}
 
 	return flow.Block{
@@ -259,6 +266,15 @@ func CollectionGuaranteeToMessage(g flow.CollectionGuarantee) *entities.Collecti
 	}
 }
 
+func BlockSealToMessage(g flow.BlockSeal) *entities.BlockSeal {
+	return &entities.BlockSeal{
+		BlockId:            g.BlockID.Bytes(),
+		ExecutionReceiptId: g.ExecutionReceiptID.Bytes(),
+		// TODO: ExecutionReceiptSignatures
+		// TODO: ResultApprovalSignatures
+	}
+}
+
 func MessageToCollectionGuarantee(m *entities.CollectionGuarantee) (flow.CollectionGuarantee, error) {
 	if m == nil {
 		return flow.CollectionGuarantee{}, ErrEmptyMessage
@@ -266,6 +282,19 @@ func MessageToCollectionGuarantee(m *entities.CollectionGuarantee) (flow.Collect
 
 	return flow.CollectionGuarantee{
 		CollectionID: flow.HashToID(m.CollectionId),
+	}, nil
+}
+
+func MessageToBlockSeal(m *entities.BlockSeal) (flow.BlockSeal, error) {
+	if m == nil {
+		return flow.BlockSeal{}, ErrEmptyMessage
+	}
+
+	return flow.BlockSeal{
+		BlockID:            flow.BytesToID(m.BlockId),
+		ExecutionReceiptID: flow.BytesToID(m.ExecutionReceiptId),
+		// TODO: ExecutionReceiptSignatures
+		// TODO: ResultApprovalSignatures
 	}, nil
 }
 
@@ -277,10 +306,30 @@ func CollectionGuaranteesToMessages(l []*flow.CollectionGuarantee) []*entities.C
 	return results
 }
 
+func BlockSealsToMessages(l []*flow.BlockSeal) []*entities.BlockSeal {
+	results := make([]*entities.BlockSeal, len(l))
+	for i, item := range l {
+		results[i] = BlockSealToMessage(*item)
+	}
+	return results
+}
+
 func MessagesToCollectionGuarantees(l []*entities.CollectionGuarantee) ([]*flow.CollectionGuarantee, error) {
 	results := make([]*flow.CollectionGuarantee, len(l))
 	for i, item := range l {
 		temp, err := MessageToCollectionGuarantee(item)
+		if err != nil {
+			return nil, err
+		}
+		results[i] = &temp
+	}
+	return results, nil
+}
+
+func MessagesToBlockSeals(l []*entities.BlockSeal) ([]*flow.BlockSeal, error) {
+	results := make([]*flow.BlockSeal, len(l))
+	for i, item := range l {
+		temp, err := MessageToBlockSeal(item)
 		if err != nil {
 			return nil, err
 		}

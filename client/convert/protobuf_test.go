@@ -149,6 +149,17 @@ func TestConvert_CollectionGuarantee(t *testing.T) {
 	assert.Equal(t, *cgA, cgB)
 }
 
+func TestConvert_BlockSeal(t *testing.T) {
+	bsA := test.BlockSealGenerator().New()
+
+	msg := convert.BlockSealToMessage(*bsA)
+
+	bsB, err := convert.MessageToBlockSeal(msg)
+	require.NoError(t, err)
+
+	assert.Equal(t, *bsA, bsB)
+}
+
 func TestConvert_CollectionGuarantees(t *testing.T) {
 	cgs := test.CollectionGuaranteeGenerator()
 
@@ -164,6 +175,23 @@ func TestConvert_CollectionGuarantees(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, cgsA, cgsB)
+}
+
+func TestConvert_BlockSeals(t *testing.T) {
+	bss := test.BlockSealGenerator()
+
+	bssA := []*flow.BlockSeal{
+		bss.New(),
+		bss.New(),
+		bss.New(),
+	}
+
+	msg := convert.BlockSealsToMessages(bssA)
+
+	bssB, err := convert.MessagesToBlockSeals(msg)
+	require.NoError(t, err)
+
+	assert.Equal(t, bssA, bssB)
 }
 
 func TestConvert_Event(t *testing.T) {
