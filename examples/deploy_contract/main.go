@@ -87,6 +87,9 @@ func DeployContractDemo() {
 
 	fmt.Println("My Address:", myAddress.Hex())
 
+	examples.FundAccountInEmulator(flowClient, myAddress, 100.0)
+	serviceAcctKey.SequenceNumber++
+
 	// Deploy the Great NFT contract
 	nftCode := examples.ReadFile(GreatTokenContractFile)
 	deployContractTx := templates.CreateAccount(nil,
@@ -103,7 +106,6 @@ func DeployContractDemo() {
 	// we can set the same reference block id. We shouldn't be to far away from it
 	deployContractTx.SetReferenceBlockID(referenceBlockID)
 	deployContractTx.SetPayer(serviceAcctAddr)
-
 
 	err = deployContractTx.SignEnvelope(serviceAcctAddr, serviceAcctKey.Index, serviceSigner)
 	examples.Handle(err)
@@ -128,6 +130,9 @@ func DeployContractDemo() {
 	}
 
 	fmt.Println("My Address:", nftAddress.Hex())
+
+	examples.FundAccountInEmulator(flowClient, nftAddress, 100.0)
+	serviceAcctKey.SequenceNumber++
 
 	// Next, instantiate the minter
 	createMinterScript := GenerateCreateMinterScript(nftAddress, 1, 2)

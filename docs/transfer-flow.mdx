@@ -1,0 +1,92 @@
+---
+title: Transfer FLOW
+description: How to transfer FLOW using the Flow Go SDK
+---
+
+This is an example of how to construct a FLOW token transfer transaction
+with the Flow Go SDK.
+
+Before using this example, read the [Build a Transaction guide](../building-transactions)
+for a general overview of how Flow transactions are constructed.
+
+## Cadence Script
+
+The following Cadence script will transfer FLOW tokens from a sender
+to a recipient.
+
+_Note: this transaction is only compatible with Flow Mainnet._
+
+```cadence
+import FungibleToken from 0xf233dcee88fe0abe
+import FlowToken from 0x1654653399040a61
+
+transaction(amount: UFix64, recipient: Address) {
+  let sentVault: @FungibleToken.Vault
+  prepare(signer: AuthAccount) {
+    let vaultRef = signer.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)
+      ?? panic("failed to borrow reference to sender vault")
+
+    self.sentVault <- vaultRef.withdraw(amount: amount)
+  }
+
+  execute {
+    let receiverRef =  getAccount(recipient)
+      .getCapability(/public/flowTokenReceiver)
+      .borrow<&{FungibleToken.Receiver}>()
+        ?? panic("failed to borrow reference to recipient vault")
+
+    receiverRef.deposit(from: <-self.sentVault)
+  }
+}
+```
+
+## Build the Transaction
+
+```go
+import (
+    "github.com/onflow/cadence"
+    "github.com/onflow/flow-go-sdk"
+)
+
+// Replace with script above
+const transferScript string = TOKEN_TRANSFER_CADENCE_SCRIPT
+
+var (
+    senderAddress    flow.Address
+    senderAccountKey flow.AccountKey
+    senderPrivateKey crypto.PrivateKey
+)
+
+func main() {
+    tx := flow.NewTransaction().
+        SetScript([]byte(transferScript)).
+        SetGasLimit(100).
+        SetPayer(senderAddress).
+        SetAuthorizer(senderAddress).
+        SetProposalKey(senderAddress, senderAccountKey.Index, senderAccountKey.SequenceNumber)
+
+    amount, err := cadence.NewUFix64("123.4")
+    if err != nil {
+        panic(err)
+    }
+
+    recipient := cadence.NewAddress(flow.HexToAddress("0xabc..."))
+
+    err = tx.AddArgument(amount)
+    if err != nil {
+        panic(err)
+    }
+
+    err = tx.AddArgument(recipient)
+    if err != nil {
+        panic(err)
+    }
+}
+```
+
+## Sign and Send the Transaction
+
+Read the following guides to learn how to sign and send the transfer transaction:
+
+- [Sign a Flow Transaction](../signing-transactions)
+- [Send a Flow Transaction](../sending-transactions)

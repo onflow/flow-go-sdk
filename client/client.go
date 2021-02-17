@@ -544,3 +544,15 @@ func getEventsResult(res *access.EventsResponse) ([]BlockEvents, error) {
 
 	return results, nil
 }
+
+// GetLatestProtocolStateSnapshot retrieves the latest snapshot of the protocol
+// state in serialized form. This is used to generate a root snapshot file
+// used by Flow nodes to bootstrap their local protocol state database.
+func (c *Client) GetLatestProtocolStateSnapshot(ctx context.Context, opts ...grpc.CallOption) ([]byte, error) {
+	res, err := c.rpcClient.GetLatestProtocolStateSnapshot(ctx, &access.GetLatestProtocolStateSnapshotRequest{}, opts...)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	return res.GetSerializedSnapshot(), nil
+}

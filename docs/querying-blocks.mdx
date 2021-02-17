@@ -1,0 +1,61 @@
+---
+title: Querying Blocks
+description: How to query blocks using the Flow Go SDK
+---
+
+You can use the `GetLatestBlock` method to fetch the latest sealed or unsealed block:
+
+```go
+// fetch the latest sealed block
+isSealed := true
+latestBlock, err := c.GetLatestBlock(ctx, isSealed)
+if err != nil {
+    panic("failed to fetch latest sealed block")
+}
+
+// fetch the latest unsealed block
+isSealed := false
+latestBlock, err := c.GetLatestBlock(ctx, isSealed)
+if err != nil {
+    panic("failed to fetch latest unsealed block")
+}
+```
+
+A block contains the following fields:
+
+- `ID` - The ID (hash) of the block.
+- `ParentBlockID` - The ID of the previous block in the chain.
+- `Height` - The height of the block in the chain.
+- `CollectionGuarantees` - The list of collections included in the block.
+
+## Executing a Script
+
+You can use the `ExecuteScriptAtLatestBlock` method to execute a read-only script against the latest sealed execution state.
+
+This functionality can be used to read state from the blockchain.
+
+Scripts must be in the following form:
+
+- A single `main` function with a single return value
+
+This is an example of a valid script:
+
+```
+fun main(): Int { return 1 }
+```
+
+```go
+import "github.com/onflow/cadence"
+
+script := []byte("fun main(): Int { return 1 }")
+
+value, err := c.ExecuteScript(ctx, script)
+if err != nil {
+    panic("failed to execute script")
+}
+
+ID := value.(cadence.Int)
+
+// convert to Go int type
+myID := ID.Int()
+```

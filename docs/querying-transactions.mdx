@@ -1,0 +1,35 @@
+---
+title: Querying Transaction Results
+description: How to query transaction results using the Flow Go SDK
+---
+
+After you have submitted a transaction, you can query its status by ID:
+
+```go
+result, err := c.GetTransactionResult(ctx, tx.ID())
+if err != nil {
+    panic("failed to fetch transaction result")
+}
+```
+
+The result includes a `Status` field that will be one of the following values:
+
+- `UNKNOWN` - The transaction has not yet been seen by the network.
+- `PENDING` - The transaction has not yet been included in a block.
+- `FINALIZED` - The transaction has been included in a block.
+- `EXECUTED` - The transaction has been executed but the result has not yet been sealed.
+- `SEALED` - The transaction has been executed and the result is sealed in a block.
+
+```go
+if result.Status == flow.TransactionStatusSealed {
+  fmt.Println("Transaction is sealed!")
+}
+```
+
+The result also contains an `Error` that holds the error information for a failed transaction.
+
+```go
+if result.Error != nil {
+    fmt.Printf("Transaction failed with error: %v\n", result.Error)
+}
+```

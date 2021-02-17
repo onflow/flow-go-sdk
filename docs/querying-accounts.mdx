@@ -1,0 +1,23 @@
+---
+title: Querying Accounts
+---
+
+You can query the state of an account with the `GetAccount` function:
+
+```go
+import "github.com/onflow/flow-go-sdk"
+
+address := flow.HexToAddress("01")
+
+account, err := c.GetAccount(ctx, address)
+if err != nil {
+    panic("failed to fetch account")
+}
+```
+
+A `flow.Account` contains the following fields:
+
+- `Address: flow.Address` - The account address.
+- `Balance: uint64` - The account balance.
+- `Contracts: map[string][]byte` - The contracts deployed at this account.
+- `Keys: []flow.AccountKey` - A list of the public keys associated with this account.

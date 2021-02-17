@@ -1,0 +1,44 @@
+---
+title: Generating Keys
+---
+
+Flow uses [ECDSA](https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm)
+to control access to user accounts. Each key pair can be used in combination with
+the SHA2-256 or SHA3-256 hashing algorithms.
+
+Here's how to generate an ECDSA private key for the P-256 (secp256r1) curve:
+
+```go
+import "github.com/onflow/flow-go-sdk/crypto"
+
+// deterministic seed phrase
+// note: this is only an example, please use a secure random generator for the key seed
+seed := []byte("elephant ears space cowboy octopus rodeo potato cannon pineapple")
+
+privateKey, err := crypto.GeneratePrivateKey(crypto.ECDSA_P256, seed)
+```
+
+The private key can then be encoded as bytes (i.e. for storage):
+
+```go
+encPrivateKey := privateKey.Encode()
+```
+
+A private key has an accompanying public key:
+
+```go
+publicKey := privateKey.PublicKey()
+```
+
+### Supported Curves
+
+The example above uses an ECDSA key pair on the P-256 (secp256r1) elliptic curve.
+Flow also supports the secp256k1 curve used by Bitcoin and Ethereum.
+
+Here's how to generate an ECDSA private key for the secp256k1 curve:
+
+```go
+privateKey, err := crypto.GeneratePrivateKey(crypto.ECDSA_secp256k1, seed)
+```
+
+Here's a full list of the supported signature and hash algorithms: [Flow Signature & Hash Algorithms](https://docs.onflow.org/concepts/accounts-and-keys.md#supported-signature--hash-algorithms)

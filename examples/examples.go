@@ -23,6 +23,9 @@ import (
 	"crypto/rand"
 	"encoding/json"
 	"fmt"
+	"github.com/onflow/cadence"
+	jsoncdc "github.com/onflow/cadence/encoding/json"
+	"github.com/onflow/cadence/runtime/sema"
 	"io/ioutil"
 	"os"
 	"time"
@@ -36,8 +39,7 @@ import (
 const configPath = "./flow.json"
 
 var (
-	servicePrivateKeyHex     string
-	servicePrivateKeySigAlgo crypto.SignatureAlgorithm
+	conf config
 )
 
 type config struct {
@@ -49,6 +51,7 @@ type config struct {
 			HashAlgo   string `json:"hashAlgorithm"`
 		}
 	}
+	Contracts map[string]string `json:"contracts"`
 }
 
 // ReadFile reads a file from the file system.
@@ -79,16 +82,15 @@ func readConfig() config {
 }
 
 func init() {
-	conf := readConfig()
-	servicePrivateKeyHex = conf.Accounts.Service.PrivateKey
-	servicePrivateKeySigAlgo = crypto.StringToSignatureAlgorithm(conf.Accounts.Service.SigAlgo)
+	conf = readConfig()
 }
 
 func ServiceAccount(flowClient *client.Client) (flow.Address, *flow.AccountKey, crypto.Signer) {
-	privateKey, err := crypto.DecodePrivateKeyHex(servicePrivateKeySigAlgo, servicePrivateKeyHex)
+	sigAlgo := crypto.StringToSignatureAlgorithm(conf.Accounts.Service.SigAlgo)
+	privateKey, err := crypto.DecodePrivateKeyHex(sigAlgo, conf.Accounts.Service.PrivateKey)
 	Handle(err)
 
-	addr := flow.ServiceAddress(flow.Emulator)
+	addr := flow.HexToAddress(conf.Accounts.Service.Address)
 	acc, err := flowClient.GetAccount(context.Background(), addr)
 	Handle(err)
 
@@ -118,6 +120,7 @@ func RandomAccount(flowClient *client.Client) (flow.Address, *flow.AccountKey, c
 		SetWeight(flow.AccountKeyWeightThreshold)
 
 	account := CreateAccount(flowClient, []*flow.AccountKey{accountKey})
+	FundAccountInEmulator(flowClient, account.Address, 10.0)
 	signer := crypto.NewInMemorySigner(privateKey, accountKey.HashAlgo)
 	return account.Address, account.Keys[0], signer
 }
@@ -158,6 +161,76 @@ func CreateAccountWithContracts(flowClient *client.Client, publicKeys []*flow.Ac
 	Handle(err)
 
 	return account
+}
+
+/**
+ * mintTokensToAccountTemplate transaction mints tokens by using the service account (in the emulator)
+ * and deposits them to the recipient.
+ */
+var mintTokensToAccountTemplate = `
+import FungibleToken from 0x%s
+import FlowToken from 0x%s
+
+transaction(recipient: Address, amount: UFix64) {
+	let tokenAdmin: &FlowToken.Administrator
+	let tokenReceiver: &{FungibleToken.Receiver}
+
+	prepare(signer: AuthAccount) {
+		self.tokenAdmin = signer
+			.borrow<&FlowToken.Administrator>(from: /storage/flowTokenAdmin)
+			?? panic("Signer is not the token admin")
+
+		self.tokenReceiver = getAccount(recipient)
+			.getCapability(/public/flowTokenReceiver)
+			.borrow<&{FungibleToken.Receiver}>()
+			?? panic("Unable to borrow receiver reference")
+	}
+
+	execute {
+		let minter <- self.tokenAdmin.createNewMinter(allowedAmount: amount)
+		let mintedVault <- minter.mintTokens(amount: amount)
+
+		self.tokenReceiver.deposit(from: <-mintedVault)
+
+		destroy minter
+	}
+}
+`
+
+/**
+ * FundAccountInEmulator Mints FLOW to an account. Minting only works in an emulator environment.
+ */
+func FundAccountInEmulator(flowClient *client.Client, address flow.Address, amount float64) {
+	serviceAcctAddr, serviceAcctKey, serviceSigner := ServiceAccount(flowClient)
+
+	referenceBlockID := GetReferenceBlockId(flowClient)
+
+	fungibleTokenAddress := flow.HexToAddress(conf.Contracts["FungibleToken"])
+	flowTokenAddress := flow.HexToAddress(conf.Contracts["FlowToken"])
+
+	recipient := cadence.NewAddress(address)
+	uintAmount := uint64(amount * sema.Fix64Factor)
+	cadenceAmount := cadence.UFix64(uintAmount)
+
+	fundAccountTx :=
+		flow.NewTransaction().
+			SetScript([]byte(fmt.Sprintf(mintTokensToAccountTemplate, fungibleTokenAddress, flowTokenAddress))).
+			AddAuthorizer(serviceAcctAddr).
+			AddRawArgument(jsoncdc.MustEncode(recipient)).
+			AddRawArgument(jsoncdc.MustEncode(cadenceAmount)).
+			SetProposalKey(serviceAcctAddr, serviceAcctKey.Index, serviceAcctKey.SequenceNumber).
+			SetReferenceBlockID(referenceBlockID).
+			SetPayer(serviceAcctAddr)
+
+	err := fundAccountTx.SignEnvelope(serviceAcctAddr, serviceAcctKey.Index, serviceSigner)
+	Handle(err)
+
+	ctx := context.Background()
+	err = flowClient.SendTransaction(ctx, *fundAccountTx)
+	Handle(err)
+
+	result := WaitForSeal(ctx, flowClient, fundAccountTx.ID())
+	Handle(result.Error)
 }
 
 func CreateAccount(flowClient *client.Client, publicKeys []*flow.AccountKey) *flow.Account {
