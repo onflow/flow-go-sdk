@@ -20,6 +20,7 @@ package templates
 
 import (
 	"encoding/hex"
+
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 
@@ -184,3 +185,21 @@ func bytesToCadenceArray(b []byte) cadence.Array {
 
 	return cadence.NewArray(values)
 }
+
+// RemoveAccountContract generates a transaction that updates a contract deployed at an account.
+func RemoveAccountContract(address flow.Address, contractName string) *flow.Transaction {
+	cadenceName := cadence.NewString(contractName)
+
+	return flow.NewTransaction().
+		SetScript([]byte(removeAccountContractTemplate)).
+		AddRawArgument(jsoncdc.MustEncode(cadenceName)).
+		AddAuthorizer(address)
+}
+
+const removeAccountContractTemplate = `
+transaction(name: String) {
+	prepare(signer: AuthAccount) {
+		signer.contracts.remove(name: name)
+	}
+}
+`
