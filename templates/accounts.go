@@ -186,7 +186,7 @@ func bytesToCadenceArray(b []byte) cadence.Array {
 	return cadence.NewArray(values)
 }
 
-// RemoveAccountContract generates a transaction that remove a contract with the given name
+// RemoveAccountContract generates a transaction that removes a contract with the given name
 func RemoveAccountContract(address flow.Address, contractName string) *flow.Transaction {
 	cadenceName := cadence.NewString(contractName)
 
