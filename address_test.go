@@ -37,7 +37,6 @@ func TestHexToAddress(t *testing.T) {
 	address := "123"
 	withPrefix := "0x" + address
 	assert.Equal(t, HexToAddress(address), HexToAddress(withPrefix))
-
 }
 
 func TestAddressJSON(t *testing.T) {
