@@ -33,6 +33,13 @@ type addressWrapper struct {
 	Address Address
 }
 
+func TestHextOAddress(t *testing.T) {
+	address := "123"
+	withPrefix := "0x" + address
+	assert.Equal(t, HexToAddress(address), HexToAddress(withPrefix))
+
+}
+
 func TestAddressJSON(t *testing.T) {
 	addr := ServiceAddress(Mainnet)
 	data, err := json.Marshal(addressWrapper{Address: addr})
