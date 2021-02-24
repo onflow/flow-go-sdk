@@ -657,8 +657,11 @@ func TestTransaction_RLPMessages(t *testing.T) {
 			payload := hex.EncodeToString(tt.tx.PayloadMessage())
 			envelope := hex.EncodeToString(tt.tx.EnvelopeMessage())
 
-			assert.Equal(t, tt.payload, payload)
-			assert.Equal(t, tt.envelope, envelope)
+			fmt.Println(envelope)
+
+			domainTagPrefix := "464c4f572d56302e302d7472616e73616374696f6e0000000000000000000000"
+			assert.Equal(t, domainTagPrefix+tt.payload, payload)
+			assert.Equal(t, domainTagPrefix+tt.envelope, envelope)
 
 			// Check tx decoding
 			transactionBytes := tt.tx.Encode()

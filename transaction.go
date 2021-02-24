@@ -351,7 +351,8 @@ func (t *Transaction) createSignature(address Address, keyIndex int, sig []byte)
 
 func (t *Transaction) PayloadMessage() []byte {
 	temp := t.payloadCanonicalForm()
-	return mustRLPEncode(&temp)
+	rlp := mustRLPEncode(&temp)
+	return append(TransactionDomainTag[:], rlp...)
 }
 
 func (t *Transaction) payloadCanonicalForm() payloadCanonicalForm {
@@ -378,7 +379,8 @@ func (t *Transaction) payloadCanonicalForm() payloadCanonicalForm {
 // This message is only signed by the payer account.
 func (t *Transaction) EnvelopeMessage() []byte {
 	temp := t.envelopeCanonicalForm()
-	return mustRLPEncode(&temp)
+	rlp := mustRLPEncode(&temp)
+	return append(TransactionDomainTag[:], rlp...)
 }
 
 func (t *Transaction) envelopeCanonicalForm() envelopeCanonicalForm {
@@ -407,7 +409,10 @@ func (t *Transaction) Encode() []byte {
 // able to decode outputs from PayloadMessage(), EnvelopeMessage() and Encode()
 // functions
 func DecodeTransaction(transactionMessage []byte) (*Transaction, error) {
-	temp, err := decodeTransaction(transactionMessage)
+
+	transasctionMessageWithoutDomainTag := bytes.TrimPrefix(transactionMessage, TransactionDomainTag[:])
+
+	temp, err := decodeTransaction(transasctionMessageWithoutDomainTag)
 	if err != nil {
 		return nil, err
 	}
