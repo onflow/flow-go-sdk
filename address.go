@@ -130,7 +130,7 @@ func zeroAddress(chain ChainID) Address {
 
 // HexToAddress converts a hex string to an Address.
 func HexToAddress(h string) Address {
-	b, _ := hex.DecodeString(h)
+	b, _ := hex.DecodeString(strings.TrimPrefix("0x", h))
 	return BytesToAddress(b)
 }
 
