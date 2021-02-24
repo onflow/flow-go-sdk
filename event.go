@@ -1,7 +1,7 @@
 /*
  * Flow Go SDK
  *
- * Copyright 2019-2020 Dapper Labs, Inc.
+ * Copyright 2019-2021 Dapper Labs, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,10 @@ import (
 
 // List of built-in account event types.
 const (
-	EventAccountCreated string = "flow.AccountCreated"
+	EventAccountCreated     string = "flow.AccountCreated"
+	EventAccountAdded       string = "flow.AccountKeyAdded"
+	EventAccountKeyRemoved  string = "flow.AccountKeyRemoved"
+	EventAccountCodeUpdated string = "flow.AccountCodeUpdated"
 )
 
 type Event struct {
