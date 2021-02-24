@@ -557,7 +557,7 @@ import "github.com/onflow/cadence"
 
 script := []byte("fun main(): Int { return 1 }")
 
-value, err := c.ExecuteScriptAtLatestBlock(ctx, script)
+value, err := c.ExecuteScriptAtLatestBlock(ctx, script, nil)
 if err != nil {
     panic("failed to execute script")
 }
