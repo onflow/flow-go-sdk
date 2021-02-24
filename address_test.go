@@ -33,7 +33,7 @@ type addressWrapper struct {
 	Address Address
 }
 
-func TestHextOAddress(t *testing.T) {
+func TestHexToAddress(t *testing.T) {
 	address := "123"
 	withPrefix := "0x" + address
 	assert.Equal(t, HexToAddress(address), HexToAddress(withPrefix))
