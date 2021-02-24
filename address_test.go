@@ -34,17 +34,20 @@ type addressWrapper struct {
 }
 
 func TestHexToAddress(t *testing.T) {
+
 	address := "123"
 	withPrefix := "0x" + address
-	assert.Equal(t, HexToAddress(address), HexToAddress(withPrefix))
+
+	expected := BytesToAddress([]byte{0x1, 0x23})
+
+	assert.Equal(t, expected, HexToAddress(address))
+	assert.Equal(t, expected, HexToAddress(withPrefix))
 }
 
 func TestAddressJSON(t *testing.T) {
 	addr := ServiceAddress(Mainnet)
 	data, err := json.Marshal(addressWrapper{Address: addr})
 	require.Nil(t, err)
-
-	t.Log(string(data))
 
 	var out addressWrapper
 	err = json.Unmarshal(data, &out)
