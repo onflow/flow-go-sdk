@@ -321,7 +321,7 @@ func (t *Transaction) AddPayloadSignature(address Address, keyIndex int, sig []b
 
 	t.PayloadSignatures = append(t.PayloadSignatures, s)
 	sort.Slice(t.PayloadSignatures, compareSignatures(t.PayloadSignatures))
-
+	t.refreshSignerIndex()
 	return t
 }
 
@@ -331,7 +331,7 @@ func (t *Transaction) AddEnvelopeSignature(address Address, keyIndex int, sig []
 
 	t.EnvelopeSignatures = append(t.EnvelopeSignatures, s)
 	sort.Slice(t.EnvelopeSignatures, compareSignatures(t.EnvelopeSignatures))
-
+	t.refreshSignerIndex()
 	return t
 }
 
