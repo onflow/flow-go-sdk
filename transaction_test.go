@@ -319,6 +319,8 @@ func TestTransaction_AddPayloadSignature(t *testing.T) {
 		tx.AddPayloadSignature(addressB, keyIndex, sig)
 		tx.AddPayloadSignature(addressA, keyIndex, sig)
 
+		t.Log(tx.PayloadSignatures)
+
 		require.Len(t, tx.PayloadSignatures, 2)
 
 		assert.Equal(t, 0, tx.PayloadSignatures[0].SignerIndex)
