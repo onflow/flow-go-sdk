@@ -319,8 +319,6 @@ func TestTransaction_AddPayloadSignature(t *testing.T) {
 		tx.AddPayloadSignature(addressB, keyIndex, sig)
 		tx.AddPayloadSignature(addressA, keyIndex, sig)
 
-		t.Log(tx.PayloadSignatures)
-
 		require.Len(t, tx.PayloadSignatures, 2)
 
 		assert.Equal(t, 0, tx.PayloadSignatures[0].SignerIndex)
@@ -540,9 +538,6 @@ func TestTransaction_SignatureOrdering(t *testing.T) {
 	tx.AddAuthorizer(authorizerAddress)
 	tx.AddPayloadSignature(authorizerAddress, authorizerKeyIndex, authorizerSignature)
 
-	t.Log(tx.PayloadSignatures)
-	t.Log(tx.EnvelopeSignatures)
-
 	require.Len(t, tx.PayloadSignatures, 2)
 
 	signatureA := tx.PayloadSignatures[0]
@@ -661,8 +656,6 @@ func TestTransaction_RLPMessages(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			payload := hex.EncodeToString(tt.tx.PayloadMessage())
 			envelope := hex.EncodeToString(tt.tx.EnvelopeMessage())
-
-			fmt.Println(envelope)
 
 			assert.Equal(t, tt.payload, payload)
 			assert.Equal(t, tt.envelope, envelope)
