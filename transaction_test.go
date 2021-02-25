@@ -510,6 +510,46 @@ func TestTransaction_AbleToReconstructTransaction(t *testing.T) {
 	})
 }
 
+func TestTransaction_SignatureOrdering(t *testing.T) {
+	tx := flow.NewTransaction()
+
+	addresses := test.AddressGenerator()
+
+	proposerAddress := addresses.New()
+	proposerKeyIndex := 8
+	proposerSequenceNumber := uint64(42)
+	proposerSignature := []byte{1, 2, 3}
+
+	authorizerAddress := addresses.New()
+	authorizerKeyIndex := 0
+	authorizerSignature := []byte{4, 5, 6}
+
+	payerAddress := addresses.New()
+	payerKeyIndex := 0
+	payerSignature := []byte{7, 8, 9}
+
+	tx.SetProposalKey(proposerAddress, proposerKeyIndex, proposerSequenceNumber)
+
+	tx.AddPayloadSignature(proposerAddress, proposerKeyIndex, proposerSignature)
+
+	tx.SetPayer(payerAddress)
+	tx.AddEnvelopeSignature(payerAddress, payerKeyIndex, payerSignature)
+
+	tx.AddAuthorizer(authorizerAddress)
+	tx.AddPayloadSignature(authorizerAddress, authorizerKeyIndex, authorizerSignature)
+
+	t.Log(tx.PayloadSignatures)
+	t.Log(tx.EnvelopeSignatures)
+
+	require.Len(t, tx.PayloadSignatures, 2)
+
+	signatureA := tx.PayloadSignatures[0]
+	signatureB := tx.PayloadSignatures[1]
+
+	assert.Equal(t, proposerAddress, signatureA.Address)
+	assert.Equal(t, authorizerAddress, signatureB.Address)
+}
+
 var sig, _ = hex.DecodeString("f7225388c1d69d57e6251c9fda50cbbf9e05131e5adb81e5aa0422402f048162")
 
 func baseTx() *flow.Transaction {
