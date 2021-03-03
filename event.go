@@ -29,7 +29,9 @@ const (
 	EventAccountCreated     string = "flow.AccountCreated"
 	EventAccountAdded       string = "flow.AccountKeyAdded"
 	EventAccountKeyRemoved  string = "flow.AccountKeyRemoved"
-	EventAccountCodeUpdated string = "flow.AccountCodeUpdated"
+	EventAccountContractAdded   string = "flow.AccountContractAdded"
+	EventAccountContractUpdated string = "flow.AccountContractUpdated"
+	EventAccountContractRemoved string = "flow.AccountContractRemoved"
 )
 
 type Event struct {
