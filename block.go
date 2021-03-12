@@ -42,6 +42,8 @@ type BlockPayload struct {
 	Seals                []*BlockSeal
 }
 
+// BlockSeal is the attestation by verification nodes that the transactions in a previously
+// executed block have been verified.
 type BlockSeal struct {
 	BlockID            Identifier
 	ExecutionReceiptID Identifier
