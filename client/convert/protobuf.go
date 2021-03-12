@@ -268,10 +268,10 @@ func CollectionGuaranteeToMessage(g flow.CollectionGuarantee) *entities.Collecti
 
 func BlockSealToMessage(g flow.BlockSeal) *entities.BlockSeal {
 	return &entities.BlockSeal{
-		BlockId:            g.BlockID.Bytes(),
-		ExecutionReceiptId: g.ExecutionReceiptID.Bytes(),
-		// TODO: ExecutionReceiptSignatures
-		// TODO: ResultApprovalSignatures
+		BlockId:                    g.BlockID.Bytes(),
+		ExecutionReceiptId:         g.ExecutionReceiptID.Bytes(),
+		ExecutionReceiptSignatures: g.ExecutionReceiptSignatures,
+		ResultApprovalSignatures:   g.ResultApprovalSignatures,
 	}
 }
 
@@ -291,10 +291,10 @@ func MessageToBlockSeal(m *entities.BlockSeal) (flow.BlockSeal, error) {
 	}
 
 	return flow.BlockSeal{
-		BlockID:            flow.BytesToID(m.BlockId),
-		ExecutionReceiptID: flow.BytesToID(m.ExecutionReceiptId),
-		// TODO: ExecutionReceiptSignatures
-		// TODO: ResultApprovalSignatures
+		BlockID:                    flow.BytesToID(m.BlockId),
+		ExecutionReceiptID:         flow.BytesToID(m.ExecutionReceiptId),
+		ExecutionReceiptSignatures: m.ExecutionReceiptSignatures,
+		ResultApprovalSignatures:   m.ResultApprovalSignatures,
 	}, nil
 }
 

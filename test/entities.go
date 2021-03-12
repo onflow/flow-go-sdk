@@ -222,8 +222,10 @@ func BlockSealGenerator() *BlockSeals {
 
 func (g *BlockSeals) New() *flow.BlockSeal {
 	return &flow.BlockSeal{
-		BlockID:            g.ids.New(),
-		ExecutionReceiptID: g.ids.New(),
+		BlockID:                    g.ids.New(),
+		ExecutionReceiptID:         g.ids.New(),
+		ExecutionReceiptSignatures: [][]byte{},
+		ResultApprovalSignatures:   [][]byte{},
 	}
 }
 
