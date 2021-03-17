@@ -35,13 +35,23 @@ type addressWrapper struct {
 
 func TestHexToAddress(t *testing.T) {
 
-	address := "123"
-	withPrefix := "0x" + address
+	type testCase struct {
+		literal string
+		value []byte
+	}
 
-	expected := BytesToAddress([]byte{0x1, 0x23})
+	for _, test := range []testCase{
+		{"123", []byte{0x1, 0x23}},
+		{"1", []byte{0x1}},
+		// leading zero
+		{"01", []byte{0x1}},
+	} {
 
-	assert.Equal(t, expected, HexToAddress(address))
-	assert.Equal(t, expected, HexToAddress(withPrefix))
+		expected := BytesToAddress(test.value)
+
+		assert.Equal(t, expected, HexToAddress(test.literal))
+		assert.Equal(t, expected, HexToAddress("0x"+test.literal))
+	}
 }
 
 func TestAddressJSON(t *testing.T) {
