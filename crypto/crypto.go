@@ -247,21 +247,42 @@ func DecodePublicKeyHex(sigAlgo SignatureAlgorithm, s string) (PublicKey, error)
 	return DecodePublicKey(sigAlgo, b)
 }
 
-// DecodePublicKeyHex decodes a PEM public key with the given signature algorithm.
+// DecodePublicKeyHex decodes a PEM ECDSA public key with the given curve.
 func DecodePublicKeyPEM(sigAlgo SignatureAlgorithm, s string) (PublicKey, error) {
-	block, _ := pem.Decode([]byte(s))
+	block, rest := pem.Decode([]byte(s))
+	if len(rest) > 0 {
+		return PublicKey{}, fmt.Errorf("crypto: failed to parse PEM string, all not bytes in PEM key were decoded: %s", string(rest))
+	}
 
+	// TODO: Replace with function that is compatible with secp256k1
 	publicKey, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
 		return PublicKey{}, fmt.Errorf("crypto: failed to parse PEM string: %w", err)
 	}
 
-	goPublicKey := publicKey.(*ecdsa.PublicKey)
-
-	rawPublicKey := append(
-		goPublicKey.X.Bytes(),
-		goPublicKey.Y.Bytes()...,
-	)
+	goPublicKey, ok := publicKey.(*ecdsa.PublicKey)
+	if !ok {
+		return PublicKey{}, fmt.Errorf("only ECDSA public keys are supported")
+	}
+	xBytes := goPublicKey.X.Bytes()
+	yBytes := goPublicKey.Y.Bytes()
+	expectedLength := bitsToBytes(goPublicKey.Params().P.BitLen())
+	// If an expected length for the point byte slice sizes, make sure to
+	// pad up to the expected length
+	rawPublicKey := make([]byte, 0, 2*expectedLength)
+	rawPublicKey = appendWithLeftPad(rawPublicKey, xBytes, expectedLength)
+	rawPublicKey = appendWithLeftPad(rawPublicKey, yBytes, expectedLength)
 
 	return DecodePublicKey(sigAlgo, rawPublicKey)
+}
+
+func bitsToBytes(bits int) int {
+	return (bits + 7) >> 3
+}
+
+func appendWithLeftPad(dst, src []byte, length int) []byte {
+	for i := 0; i < length-len(src); i++ {
+		dst = append(dst, byte(0))
+	}
+	return append(dst, src...)
 }
