@@ -247,6 +247,16 @@ func DecodePublicKeyHex(sigAlgo SignatureAlgorithm, s string) (PublicKey, error)
 	return DecodePublicKey(sigAlgo, b)
 }
 
+// It is possible in some cases where the resulting byte slice from the PEM
+// decoding of the X and Y points do not generate the right size byte slices
+// If we know there is an expected length for a specific signature algorithm,
+// we make sure to left pad it to the right length. This is a mapping of the
+// signature algorithms to the expected length of the byte slices representing
+// the X and Y points
+var expectedPointByteLength = map[SignatureAlgorithm]int{
+	crypto.ECDSAP256: 32,
+}
+
 // DecodePublicKeyHex decodes a PEM public key with the given signature algorithm.
 func DecodePublicKeyPEM(sigAlgo SignatureAlgorithm, s string) (PublicKey, error) {
 	block, _ := pem.Decode([]byte(s))
@@ -257,11 +267,31 @@ func DecodePublicKeyPEM(sigAlgo SignatureAlgorithm, s string) (PublicKey, error)
 	}
 
 	goPublicKey := publicKey.(*ecdsa.PublicKey)
-
-	rawPublicKey := append(
-		goPublicKey.X.Bytes(),
-		goPublicKey.Y.Bytes()...,
-	)
+	xBytes := goPublicKey.X.Bytes()
+	yBytes := goPublicKey.Y.Bytes()
+	expectedLength := expectedPointByteLength[sigAlgo]
+	var rawPublicKey []byte
+	if expectedLength > 0 {
+		// If an expected length for the point byte slice sizes, make sure to
+		// pad up to the expected length
+		rawPublicKey = make([]byte, 0, 2*expectedLength)
+		rawPublicKey = appendWithLeftPad(rawPublicKey, xBytes, expectedLength)
+		rawPublicKey = appendWithLeftPad(rawPublicKey, yBytes, expectedLength)
+	} else {
+		// If no expected length is provided, simply append the two slices
+		// together
+		rawPublicKey = append(
+			xBytes,
+			yBytes...,
+		)
+	}
 
 	return DecodePublicKey(sigAlgo, rawPublicKey)
+}
+
+func appendWithLeftPad(dst, src []byte, length int) []byte {
+	for i := 0; i < length-len(src); i++ {
+		dst = append(dst, byte(0))
+	}
+	return append(dst, src...)
 }

@@ -129,3 +129,13 @@ func makeSeed(l int) []byte {
 	}
 	return seed
 }
+
+const TestPEM = `-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAECi6YPHhCRPZWg0sUeNAi7QdpH5E8
+hbOhaN5CWXjw0HQAZeXqjoswiWlVH0baBuwAPwFcdk5fG/KW60QvOYPExA==
+-----END PUBLIC KEY-----`
+
+func TestDecodePublicKeyPEM(t *testing.T) {
+	_, err := crypto.DecodePublicKeyPEM(crypto.ECDSA_P256, TestPEM)
+	assert.NoError(t, err)
+}
