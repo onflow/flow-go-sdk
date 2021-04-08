@@ -19,10 +19,11 @@
 package crypto
 
 import (
-	"crypto/ecdsa"
-	"crypto/x509"
+	"crypto/x509/pkix"
+	"encoding/asn1"
 	"encoding/hex"
 	"encoding/pem"
+	"errors"
 	"fmt"
 
 	"github.com/onflow/flow-go/crypto"
@@ -105,6 +106,11 @@ func (sk PrivateKey) PublicKey() PublicKey {
 // A PublicKey is a cryptographic public key that can be used to verify signatures.
 type PublicKey struct {
 	crypto.PublicKey
+}
+
+// Equals test the equality of two public keys
+func (pk *PublicKey) Equals(other PublicKey) bool {
+	return pk.PublicKey.Equals(other.PublicKey)
 }
 
 // A Signer is capable of generating cryptographic signatures.
@@ -247,42 +253,80 @@ func DecodePublicKeyHex(sigAlgo SignatureAlgorithm, s string) (PublicKey, error)
 	return DecodePublicKey(sigAlgo, b)
 }
 
-// DecodePublicKeyHex decodes a PEM ECDSA public key with the given curve.
+// DecodePublicKeyHex decodes a PEM ECDSA public key with the given curve, encoded in `sigAlgo`.
+//
+// The function only supports ECDSA with P256 and secp256k1 curves.
 func DecodePublicKeyPEM(sigAlgo SignatureAlgorithm, s string) (PublicKey, error) {
-	block, rest := pem.Decode([]byte(s))
-	if len(rest) > 0 {
-		return PublicKey{}, fmt.Errorf("crypto: failed to parse PEM string, all not bytes in PEM key were decoded: %s", string(rest))
+
+	if sigAlgo != ECDSA_P256 && sigAlgo != ECDSA_secp256k1 {
+		return PublicKey{}, fmt.Errorf("crypto: only ECDSA algorithms are supported")
 	}
 
-	// TODO: Replace with function that is compatible with secp256k1
-	publicKey, err := x509.ParsePKIXPublicKey(block.Bytes)
+	block, rest := pem.Decode([]byte(s))
+	if len(rest) > 0 {
+		return PublicKey{}, fmt.Errorf("crypto: failed to parse PEM string, not all bytes in PEM key were decoded: %x", rest)
+	}
+
+	// parse the public key data and extract the raw public key
+	pkBytes, err := x509ParseECDSAPublicKey(block.Bytes)
 	if err != nil {
 		return PublicKey{}, fmt.Errorf("crypto: failed to parse PEM string: %w", err)
 	}
 
-	goPublicKey, ok := publicKey.(*ecdsa.PublicKey)
-	if !ok {
-		return PublicKey{}, fmt.Errorf("only ECDSA public keys are supported")
-	}
-	xBytes := goPublicKey.X.Bytes()
-	yBytes := goPublicKey.Y.Bytes()
-	expectedLength := bitsToBytes(goPublicKey.Params().P.BitLen())
-	// If an expected length for the point byte slice sizes, make sure to
-	// pad up to the expected length
-	rawPublicKey := make([]byte, 0, 2*expectedLength)
-	rawPublicKey = appendWithLeftPad(rawPublicKey, xBytes, expectedLength)
-	rawPublicKey = appendWithLeftPad(rawPublicKey, yBytes, expectedLength)
-
-	return DecodePublicKey(sigAlgo, rawPublicKey)
+	// decode the point and check the resulting key is a valid point on the curve
+	return DecodePublicKey(sigAlgo, pkBytes)
 }
 
-func bitsToBytes(bits int) int {
-	return (bits + 7) >> 3
+type publicKeyInfo struct {
+	Raw       asn1.RawContent
+	Algorithm pkix.AlgorithmIdentifier
+	PublicKey asn1.BitString
 }
 
-func appendWithLeftPad(dst, src []byte, length int) []byte {
-	for i := 0; i < length-len(src); i++ {
-		dst = append(dst, byte(0))
+var (
+	// object IDs of ECDSA and the 2 supported curves (https://www.secg.org/sec2-v2.pdf)
+	oidPublicKeyECDSA      = asn1.ObjectIdentifier{1, 2, 840, 10045, 2, 1}
+	oidNamedCurveP256      = asn1.ObjectIdentifier{1, 2, 840, 10045, 3, 1, 7}
+	oidNamedCurveSECP256K1 = asn1.ObjectIdentifier{1, 3, 132, 0, 10}
+)
+
+// x509ParseECDSAPublicKey parses an ECDSA public key in PKIX, ASN.1 DER form.
+//
+// The function only supports curves P256 and secp256k1. It doesn't check the
+// encoding represents a valid point on the curve.
+func x509ParseECDSAPublicKey(derBytes []byte) ([]byte, error) {
+
+	var pki publicKeyInfo
+	if rest, err := asn1.Unmarshal(derBytes, &pki); err != nil {
+		return nil, err
+	} else if len(rest) != 0 {
+		return nil, errors.New("x509: trailing data after ASN.1 of public-key")
 	}
-	return append(dst, src...)
+
+	// Only ECDSA is supported
+	if !pki.Algorithm.Algorithm.Equal(oidPublicKeyECDSA) {
+		return nil, errors.New("x509: unknown public key algorithm")
+	}
+
+	asn1Data := pki.PublicKey.RightAlign()
+	paramsData := pki.Algorithm.Parameters.FullBytes
+	namedCurveOID := new(asn1.ObjectIdentifier)
+	rest, err := asn1.Unmarshal(paramsData, namedCurveOID)
+	if err != nil {
+		return nil, errors.New("x509: failed to parse ECDSA parameters as named curve")
+	}
+	if len(rest) != 0 {
+		return nil, errors.New("x509: trailing data after ECDSA parameters")
+	}
+
+	// Check the curve is supported
+	if !(namedCurveOID.Equal(oidNamedCurveP256) || namedCurveOID.Equal(oidNamedCurveSECP256K1)) {
+		return nil, errors.New("x509: unsupported elliptic curve")
+	}
+
+	// the candidate field length - this function doesn't check the length is valid
+	if asn1Data[0] != 4 { // uncompressed form
+		return nil, errors.New("x509: only uncompressed keys are supported")
+	}
+	return asn1Data[1:], nil
 }
