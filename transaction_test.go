@@ -561,15 +561,16 @@ func baseTx() *flow.Transaction {
 }
 
 func copyTxPayload(tx *flow.Transaction) *flow.Transaction {
-	return &flow.Transaction{
-		Script:           tx.Script,
-		Arguments:        tx.Arguments,
-		ReferenceBlockID: tx.ReferenceBlockID,
-		GasLimit:         tx.GasLimit,
-		ProposalKey:      tx.ProposalKey,
-		Payer:            tx.Payer,
-		Authorizers:      tx.Authorizers,
-	}
+	t := flow.NewTransaction()
+	t.Script = tx.Script
+	t.Arguments = tx.Arguments
+	t.ReferenceBlockID = tx.ReferenceBlockID
+	t.GasLimit = tx.GasLimit
+	t.ProposalKey = tx.ProposalKey
+	t.Payer = tx.Payer
+	t.Authorizers = tx.Authorizers
+
+	return t
 }
 
 func copyTxEnvelope(tx *flow.Transaction) *flow.Transaction {

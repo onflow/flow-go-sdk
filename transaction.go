@@ -88,6 +88,8 @@ type Transaction struct {
 
 	// TransactionDomainTag is prepended to the transaction message before it is signed.
 	//
+	// The transaction domain tag is not encoded together with the transaction. The default transaction domain tag is `paddedDomainTag("FLOW-V0.0-transaction")`
+	//
 	// You can find more information about transaction domain tag here: https://docs.onflow.org/concepts/transaction-signing/#anatomy-of-a-transaction
 	TransactionDomainTag []byte
 }
@@ -427,19 +429,19 @@ func DecodeTransaction(transactionMessage []byte) (*Transaction, error) {
 	for i, auth := range temp.Payload.Authorizers {
 		authorizers[i] = BytesToAddress(auth)
 	}
-	t := &Transaction{
-		Script:           temp.Payload.Script,
-		Arguments:        temp.Payload.Arguments,
-		ReferenceBlockID: BytesToID(temp.Payload.ReferenceBlockID),
-		GasLimit:         temp.Payload.GasLimit,
-		ProposalKey: ProposalKey{
-			Address:        BytesToAddress(temp.Payload.ProposalKeyAddress),
-			KeyIndex:       int(temp.Payload.ProposalKeyIndex),
-			SequenceNumber: temp.Payload.ProposalKeySequenceNumber,
-		},
-		Payer:       BytesToAddress(temp.Payload.Payer),
-		Authorizers: authorizers,
+	t := NewTransaction()
+	t.Script = temp.Payload.Script
+	t.Arguments = temp.Payload.Arguments
+	t.ReferenceBlockID = BytesToID(temp.Payload.ReferenceBlockID)
+	t.GasLimit = temp.Payload.GasLimit
+	t.ProposalKey = ProposalKey{
+		Address:        BytesToAddress(temp.Payload.ProposalKeyAddress),
+		KeyIndex:       int(temp.Payload.ProposalKeyIndex),
+		SequenceNumber: temp.Payload.ProposalKeySequenceNumber,
 	}
+	t.Payer = BytesToAddress(temp.Payload.Payer)
+	t.Authorizers = authorizers
+
 	signers := t.signerList()
 	if len(temp.PayloadSignatures) > 0 {
 		payloadSignatures := make([]TransactionSignature, len(temp.PayloadSignatures))
