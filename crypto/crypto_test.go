@@ -55,32 +55,32 @@ func TestGeneratePrivateKey(t *testing.T) {
 			t.Run("Nil seed", func(t *testing.T) {
 				sk, err := crypto.GeneratePrivateKey(sigAlgo, nil)
 				assert.Error(t, err)
-				assert.Equal(t, crypto.PrivateKey{}, sk)
+				assert.Nil(t, sk)
 			})
 
 			t.Run("Empty seed", func(t *testing.T) {
 				sk, err := crypto.GeneratePrivateKey(sigAlgo, emptySeed)
 				assert.Error(t, err)
-				assert.Equal(t, crypto.PrivateKey{}, sk)
+				assert.Nil(t, sk)
 			})
 
 			t.Run("Seed length too short", func(t *testing.T) {
 				sk, err := crypto.GeneratePrivateKey(sigAlgo, shortSeed)
 				assert.Error(t, err)
-				assert.Equal(t, crypto.PrivateKey{}, sk)
+				assert.Nil(t, sk)
 			})
 
 			t.Run("Seed length exactly equal", func(t *testing.T) {
 				sk, err := crypto.GeneratePrivateKey(sigAlgo, equalSeed)
 				require.NoError(t, err)
-				assert.NotEqual(t, crypto.PrivateKey{}, sk)
+				assert.NotEqual(t, nil, sk)
 				assert.Equal(t, sigAlgo, sk.Algorithm())
 			})
 
 			t.Run("Valid signature algorithm", func(t *testing.T) {
 				sk, err := crypto.GeneratePrivateKey(sigAlgo, longSeed)
 				require.NoError(t, err)
-				assert.NotEqual(t, crypto.PrivateKey{}, sk)
+				assert.NotEqual(t, nil, sk)
 				assert.Equal(t, sigAlgo, sk.Algorithm())
 			})
 
@@ -110,7 +110,7 @@ func TestGeneratePrivateKey(t *testing.T) {
 			t.Run(sigAlgo.String(), func(t *testing.T) {
 				sk, err := crypto.GeneratePrivateKey(sigAlgo, longSeed)
 				assert.Error(t, err)
-				assert.Equal(t, crypto.PrivateKey{}, sk)
+				assert.Nil(t, sk)
 			})
 		}
 	})
@@ -118,7 +118,7 @@ func TestGeneratePrivateKey(t *testing.T) {
 	t.Run("Invalid signature algorithm", func(t *testing.T) {
 		sk, err := crypto.GeneratePrivateKey(invalidAlgo, longSeed)
 		assert.Error(t, err)
-		assert.Equal(t, crypto.PrivateKey{}, sk)
+		assert.Nil(t, sk)
 	})
 }
 
