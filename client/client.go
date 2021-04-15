@@ -455,11 +455,11 @@ func executeScriptResult(res *access.ExecuteScriptResponse) (cadence.Value, erro
 
 // EventRangeQuery defines a query for Flow events.
 type EventRangeQuery struct {
-	// The event type to search for. If empty, no filtering by type is done.
+	// The event type to search for.
 	Type string
-	// The block height to begin looking for events
+	// The block height to begin looking for events (inclusive).
 	StartHeight uint64
-	// The block height to end looking for events (inclusive)
+	// The block height to end looking for events (inclusive).
 	EndHeight uint64
 }
 
