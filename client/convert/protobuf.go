@@ -444,7 +444,7 @@ func TransactionToMessage(t flow.Transaction) (*entities.Transaction, error) {
 
 func MessageToTransaction(m *entities.Transaction) (flow.Transaction, error) {
 	if m == nil {
-		return *flow.NewTransaction(), ErrEmptyMessage
+		return flow.Transaction{}, ErrEmptyMessage
 	}
 
 	t := flow.NewTransaction()
