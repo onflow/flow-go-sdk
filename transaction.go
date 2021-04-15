@@ -420,19 +420,19 @@ func DecodeTransaction(transactionMessage []byte) (*Transaction, error) {
 	for i, auth := range temp.Payload.Authorizers {
 		authorizers[i] = BytesToAddress(auth)
 	}
-	t := NewTransaction()
-	t.Script = temp.Payload.Script
-	t.Arguments = temp.Payload.Arguments
-	t.ReferenceBlockID = BytesToID(temp.Payload.ReferenceBlockID)
-	t.GasLimit = temp.Payload.GasLimit
-	t.ProposalKey = ProposalKey{
-		Address:        BytesToAddress(temp.Payload.ProposalKeyAddress),
-		KeyIndex:       int(temp.Payload.ProposalKeyIndex),
-		SequenceNumber: temp.Payload.ProposalKeySequenceNumber,
+	t := &Transaction{
+		Script:           temp.Payload.Script,
+		Arguments:        temp.Payload.Arguments,
+		ReferenceBlockID: BytesToID(temp.Payload.ReferenceBlockID),
+		GasLimit:         temp.Payload.GasLimit,
+		ProposalKey: ProposalKey{
+			Address:        BytesToAddress(temp.Payload.ProposalKeyAddress),
+			KeyIndex:       int(temp.Payload.ProposalKeyIndex),
+			SequenceNumber: temp.Payload.ProposalKeySequenceNumber,
+		},
+		Payer:       BytesToAddress(temp.Payload.Payer),
+		Authorizers: authorizers,
 	}
-	t.Payer = BytesToAddress(temp.Payload.Payer)
-	t.Authorizers = authorizers
-
 	signers := t.signerList()
 	if len(temp.PayloadSignatures) > 0 {
 		payloadSignatures := make([]TransactionSignature, len(temp.PayloadSignatures))
