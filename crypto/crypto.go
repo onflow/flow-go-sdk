@@ -94,24 +94,10 @@ func CompatibleAlgorithms(sigAlgo SignatureAlgorithm, hashAlgo HashAlgorithm) bo
 }
 
 // A PrivateKey is a cryptographic private key that can be used for in-memory signing.
-type PrivateKey struct {
-	crypto.PrivateKey
-}
-
-// PublicKey returns the public key for this private key.
-func (sk PrivateKey) PublicKey() PublicKey {
-	return PublicKey{PublicKey: sk.PrivateKey.PublicKey()}
-}
+type PrivateKey = crypto.PrivateKey
 
 // A PublicKey is a cryptographic public key that can be used to verify signatures.
-type PublicKey struct {
-	crypto.PublicKey
-}
-
-// Equals test the equality of two public keys
-func (pk *PublicKey) Equals(other PublicKey) bool {
-	return pk.PublicKey.Equals(other.PublicKey)
-}
+type PublicKey = crypto.PublicKey
 
 // A Signer is capable of generating cryptographic signatures.
 type Signer interface {
@@ -167,7 +153,7 @@ func keyGenerationKMACTag(sigAlgo SignatureAlgorithm) []byte {
 func GeneratePrivateKey(sigAlgo SignatureAlgorithm, seed []byte) (PrivateKey, error) {
 	// check the seed has minimum entropy
 	if len(seed) < MinSeedLength {
-		return PrivateKey{}, fmt.Errorf(
+		return nil, fmt.Errorf(
 			"crypto: insufficient seed length %d, must be at least %d bytes for %s",
 			len(seed),
 			MinSeedLength,
@@ -183,7 +169,7 @@ func GeneratePrivateKey(sigAlgo SignatureAlgorithm, seed []byte) (PrivateKey, er
 	case ECDSA_secp256k1:
 		seedLen = crypto.KeyGenSeedMinLenECDSASecp256k1
 	default:
-		return PrivateKey{}, fmt.Errorf(
+		return nil, fmt.Errorf(
 			"crypto: Go SDK does not support key generation for %s algorithm",
 			sigAlgo,
 		)
@@ -193,7 +179,7 @@ func GeneratePrivateKey(sigAlgo SignatureAlgorithm, seed []byte) (PrivateKey, er
 	customizer := []byte("")
 	hasher, err := hash.NewKMAC_128(generationTag, customizer, seedLen)
 	if err != nil {
-		return PrivateKey{}, err
+		return nil, err
 	}
 
 	hashedSeed := hasher.ComputeHash(seed)
@@ -201,53 +187,33 @@ func GeneratePrivateKey(sigAlgo SignatureAlgorithm, seed []byte) (PrivateKey, er
 	// generate the key
 	privKey, err := crypto.GeneratePrivateKey(sigAlgo, hashedSeed)
 	if err != nil {
-		return PrivateKey{}, err
+		return nil, err
 	}
 
-	return PrivateKey{
-		PrivateKey: privKey,
-	}, nil
+	return privKey, nil
 }
 
 // DecodePrivateKey decodes a raw byte encoded private key with the given signature algorithm.
-func DecodePrivateKey(sigAlgo SignatureAlgorithm, b []byte) (PrivateKey, error) {
-	privKey, err := crypto.DecodePrivateKey(sigAlgo, b)
-	if err != nil {
-		return PrivateKey{}, err
-	}
-
-	return PrivateKey{
-		PrivateKey: privKey,
-	}, nil
-}
+var DecodePrivateKey = crypto.DecodePrivateKey
 
 // DecodePrivateKeyHex decodes a raw hex encoded private key with the given signature algorithm.
 func DecodePrivateKeyHex(sigAlgo SignatureAlgorithm, s string) (PrivateKey, error) {
 	b, err := hex.DecodeString(s)
 	if err != nil {
-		return PrivateKey{}, err
+		return nil, err
 	}
 
 	return DecodePrivateKey(sigAlgo, b)
 }
 
 // DecodePublicKey decodes a raw byte encoded public key with the given signature algorithm.
-func DecodePublicKey(sigAlgo SignatureAlgorithm, b []byte) (PublicKey, error) {
-	pubKey, err := crypto.DecodePublicKey(sigAlgo, b)
-	if err != nil {
-		return PublicKey{}, err
-	}
-
-	return PublicKey{
-		PublicKey: pubKey,
-	}, nil
-}
+var DecodePublicKey = crypto.DecodePublicKey
 
 // DecodePublicKeyHex decodes a raw hex encoded public key with the given signature algorithm.
 func DecodePublicKeyHex(sigAlgo SignatureAlgorithm, s string) (PublicKey, error) {
 	b, err := hex.DecodeString(s)
 	if err != nil {
-		return PublicKey{}, err
+		return nil, err
 	}
 
 	return DecodePublicKey(sigAlgo, b)
@@ -259,18 +225,18 @@ func DecodePublicKeyHex(sigAlgo SignatureAlgorithm, s string) (PublicKey, error)
 func DecodePublicKeyPEM(sigAlgo SignatureAlgorithm, s string) (PublicKey, error) {
 
 	if sigAlgo != ECDSA_P256 && sigAlgo != ECDSA_secp256k1 {
-		return PublicKey{}, fmt.Errorf("crypto: only ECDSA algorithms are supported")
+		return nil, fmt.Errorf("crypto: only ECDSA algorithms are supported")
 	}
 
 	block, rest := pem.Decode([]byte(s))
 	if len(rest) > 0 {
-		return PublicKey{}, fmt.Errorf("crypto: failed to parse PEM string, not all bytes in PEM key were decoded: %x", rest)
+		return nil, fmt.Errorf("crypto: failed to parse PEM string, not all bytes in PEM key were decoded: %x", rest)
 	}
 
 	// parse the public key data and extract the raw public key
 	pkBytes, err := x509ParseECDSAPublicKey(block.Bytes)
 	if err != nil {
-		return PublicKey{}, fmt.Errorf("crypto: failed to parse PEM string: %w", err)
+		return nil, fmt.Errorf("crypto: failed to parse PEM string: %w", err)
 	}
 
 	// decode the point and check the resulting key is a valid point on the curve

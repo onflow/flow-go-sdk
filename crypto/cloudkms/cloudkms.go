@@ -113,14 +113,14 @@ func (c *Client) GetPublicKey(ctx context.Context, key Key) (crypto.PublicKey, c
 
 	result, err := c.client.GetPublicKey(ctx, request)
 	if err != nil {
-		return crypto.PublicKey{},
+		return nil,
 			crypto.UnknownHashAlgorithm,
 			fmt.Errorf("cloudkms: failed to fetch public key from KMS API: %v", err)
 	}
 
 	sigAlgo := parseSignatureAlgorithm(result.Algorithm)
 	if sigAlgo == crypto.UnknownSignatureAlgorithm {
-		return crypto.PublicKey{},
+		return nil,
 			crypto.UnknownHashAlgorithm,
 			fmt.Errorf(
 				"cloudkms: unsupported signature algorithm %s",
@@ -130,7 +130,7 @@ func (c *Client) GetPublicKey(ctx context.Context, key Key) (crypto.PublicKey, c
 
 	hashAlgo := parseHashAlgorithm(result.Algorithm)
 	if hashAlgo == crypto.UnknownHashAlgorithm {
-		return crypto.PublicKey{},
+		return nil,
 			crypto.UnknownHashAlgorithm,
 			fmt.Errorf(
 				"cloudkms: unsupported hash algorithm %s",
@@ -140,7 +140,7 @@ func (c *Client) GetPublicKey(ctx context.Context, key Key) (crypto.PublicKey, c
 
 	publicKey, err := crypto.DecodePublicKeyPEM(sigAlgo, result.Pem)
 	if err != nil {
-		return crypto.PublicKey{},
+		return nil,
 			crypto.UnknownHashAlgorithm,
 			fmt.Errorf("cryptokms: failed to parse PEM public key: %w", err)
 	}
