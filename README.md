@@ -17,10 +17,6 @@ Flow is a new blockchain for open worlds. Read more about it [here](https://gith
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-- [Flow Go SDK ![GoDoc](https://godoc.org/github.com/onflow/flow-go-sdk)](#flow-go-sdk-)
-  - [English | [Chinese](/README_zh_CN.md)](#english--chinese)
-  - [What is Flow?](#what-is-flow)
-  - [Table of Contents](#table-of-contents)
 - [Getting Started](#getting-started)
   - [Installing](#installing)
   - [Generating Keys](#generating-keys)
