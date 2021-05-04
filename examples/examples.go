@@ -42,13 +42,21 @@ var (
 	conf config
 )
 
+type key struct {
+	Type    string `json:"type"`
+	Index   int    `json:"index"`
+	Context struct {
+		PrivateKey string `json:"privateKey"`
+	}
+	SignatureAlgorithm string `json:"signatureAlgorithm"`
+	HashAlgorithm      string `json:"hashAlgorithm"`
+}
+
 type config struct {
 	Accounts struct {
 		Service struct {
-			Address    string `json:"address"`
-			PrivateKey string `json:"privateKey"`
-			SigAlgo    string `json:"sigAlgorithm"`
-			HashAlgo   string `json:"hashAlgorithm"`
+			Address string `json:"address"`
+			Keys    []key
 		}
 	}
 	Contracts map[string]string `json:"contracts"`
@@ -86,8 +94,8 @@ func init() {
 }
 
 func ServiceAccount(flowClient *client.Client) (flow.Address, *flow.AccountKey, crypto.Signer) {
-	sigAlgo := crypto.StringToSignatureAlgorithm(conf.Accounts.Service.SigAlgo)
-	privateKey, err := crypto.DecodePrivateKeyHex(sigAlgo, conf.Accounts.Service.PrivateKey)
+	sigAlgo := crypto.StringToSignatureAlgorithm(conf.Accounts.Service.Keys[0].SignatureAlgorithm)
+	privateKey, err := crypto.DecodePrivateKeyHex(sigAlgo, conf.Accounts.Service.Keys[0].Context.PrivateKey)
 	Handle(err)
 
 	addr := flow.HexToAddress(conf.Accounts.Service.Address)
