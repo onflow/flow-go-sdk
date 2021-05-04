@@ -19,6 +19,11 @@
 package crypto_test
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/x509"
+	"encoding/pem"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -130,12 +135,59 @@ func makeSeed(l int) []byte {
 	return seed
 }
 
-const TestPEM = `-----BEGIN PUBLIC KEY-----
+func TestDecodePublicKeyPEM(t *testing.T) {
+
+	const pemECDSAKeySECP256K1 = `-----BEGIN -----
+MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEaN+NInGJauSEx4ErF8GwtlNTjQvjXINA
+wQ86xRvlkcKK2RSaGdKyS4Dy6NAOCucCQOvK09nBhARyqwh3VLooow==
+-----END -----`
+	const pemKeyWithLeadingZero = `-----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAECi6YPHhCRPZWg0sUeNAi7QdpH5E8
 hbOhaN5CWXjw0HQAZeXqjoswiWlVH0baBuwAPwFcdk5fG/KW60QvOYPExA==
 -----END PUBLIC KEY-----`
 
-func TestDecodePublicKeyPEM(t *testing.T) {
-	_, err := crypto.DecodePublicKeyPEM(crypto.ECDSA_P256, TestPEM)
-	assert.NoError(t, err)
+	expected := map[string]string{
+		pemECDSAKeySECP256K1:  "0x68df8d2271896ae484c7812b17c1b0b653538d0be35c8340c10f3ac51be591c28ad9149a19d2b24b80f2e8d00e0ae70240ebcad3d9c1840472ab087754ba28a3",
+		pemKeyWithLeadingZero: "0x0a2e983c784244f656834b1478d022ed07691f913c85b3a168de425978f0d0740065e5ea8e8b308969551f46da06ec003f015c764e5f1bf296eb442f3983c4c4",
+	}
+
+	t.Run("ECDSA_P256", func(t *testing.T) {
+		// generate a random public key
+		sk, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+		require.NoError(t, err)
+		pk, ok := sk.Public().(*ecdsa.PublicKey)
+		require.True(t, ok)
+		// encode the public key
+		pkEncoding, err := x509.MarshalPKIXPublicKey(pk)
+		require.NoError(t, err)
+		block := pem.Block{
+			Bytes: pkEncoding,
+		}
+		pemPkEncoding := pem.EncodeToMemory(&block)
+		require.NotNil(t, pemPkEncoding)
+
+		// decode the public key
+		decodedPk, err := crypto.DecodePublicKeyPEM(crypto.ECDSA_P256, string(pemPkEncoding))
+		require.NoError(t, err)
+		// check the decoded key is the same as the initila key
+		expectedPk := elliptic.Marshal(elliptic.P256(), pk.X, pk.Y)[1:]
+		t.Logf("%x\n", expectedPk)
+		assert.Equal(t, expectedPk, decodedPk.Encode())
+	})
+
+	t.Run("ECDSA_secp256k1", func(t *testing.T) {
+		key := pemECDSAKeySECP256K1
+		pk, err := crypto.DecodePublicKeyPEM(crypto.ECDSA_secp256k1, key)
+		require.NoError(t, err)
+
+		assert.Equal(t, expected[key], pk.String())
+	})
+
+	t.Run("Key with leading zeros", func(t *testing.T) {
+		key := pemKeyWithLeadingZero
+		pk, err := crypto.DecodePublicKeyPEM(crypto.ECDSA_P256, key)
+		require.NoError(t, err)
+
+		assert.Equal(t, expected[key], pk.String())
+	})
 }
