@@ -154,6 +154,7 @@ func parseSignatureAlgorithm(algo kmspb.CryptoKeyVersion_CryptoKeyVersionAlgorit
 	}
 
 	// TODO: update this once Google KMS API supports ECDSA_secp256k1
+	// https://github.com/onflow/flow-go-sdk/issues/193
 	return crypto.ECDSA_secp256k1
 }
 
@@ -163,5 +164,6 @@ func parseHashAlgorithm(algo kmspb.CryptoKeyVersion_CryptoKeyVersionAlgorithm) c
 	}
 
 	// TODO: update this once Google KMS API supports ECDSA_secp256k1
+	// https://github.com/onflow/flow-go-sdk/issues/193
 	return crypto.SHA2_256
 }
