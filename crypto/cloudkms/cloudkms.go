@@ -72,10 +72,10 @@ func KeyFromResourceID(resourceID string) (Key, error) {
 		strings.ReplaceAll(resourceIDFormat, "/", " "), // format
 		&key.ProjectID, &key.LocationID, &key.KeyRingID, &key.KeyID, &key.KeyVersion, // arguments to fill
 	)
-
 	if err != nil {
 		return key, fmt.Errorf("cloudkms: failed to parse resource ID %s, scanf error: %w", resourceID, err)
 	}
+
 	if scanned != resourceIDArgumentCount {
 		return key, fmt.Errorf("cloudkms: failed to parse resource ID %s, found %d arguments but expected %d", resourceID, scanned, resourceIDArgumentCount)
 	}
@@ -149,15 +149,23 @@ func (c *Client) GetPublicKey(ctx context.Context, key Key) (crypto.PublicKey, c
 }
 
 func parseSignatureAlgorithm(algo kmspb.CryptoKeyVersion_CryptoKeyVersionAlgorithm) crypto.SignatureAlgorithm {
-	if algo == kmspb.CryptoKeyVersion_EC_SIGN_P256_SHA256 {
+	switch algo {
+	case kmspb.CryptoKeyVersion_EC_SIGN_P256_SHA256:
 		return crypto.ECDSA_P256
+	case kmspb.CryptoKeyVersion_CRYPTO_KEY_VERSION_ALGORITHM_UNSPECIFIED:
+		// TODO: update this once API supports ECDSA_secp256k1
+		return crypto.ECDSA_secp256k1
 	}
 
 	return crypto.UnknownSignatureAlgorithm
 }
 
 func parseHashAlgorithm(algo kmspb.CryptoKeyVersion_CryptoKeyVersionAlgorithm) crypto.HashAlgorithm {
-	if algo == kmspb.CryptoKeyVersion_EC_SIGN_P256_SHA256 {
+	switch algo {
+	case kmspb.CryptoKeyVersion_EC_SIGN_P256_SHA256:
+		return crypto.SHA2_256
+	case kmspb.CryptoKeyVersion_CRYPTO_KEY_VERSION_ALGORITHM_UNSPECIFIED:
+		// TODO: update this once API supports ECDSA_secp256k1
 		return crypto.SHA2_256
 	}
 
