@@ -72,10 +72,10 @@ func KeyFromResourceID(resourceID string) (Key, error) {
 		strings.ReplaceAll(resourceIDFormat, "/", " "), // format
 		&key.ProjectID, &key.LocationID, &key.KeyRingID, &key.KeyID, &key.KeyVersion, // arguments to fill
 	)
-
 	if err != nil {
 		return key, fmt.Errorf("cloudkms: failed to parse resource ID %s, scanf error: %w", resourceID, err)
 	}
+
 	if scanned != resourceIDArgumentCount {
 		return key, fmt.Errorf("cloudkms: failed to parse resource ID %s, found %d arguments but expected %d", resourceID, scanned, resourceIDArgumentCount)
 	}
@@ -153,7 +153,9 @@ func parseSignatureAlgorithm(algo kmspb.CryptoKeyVersion_CryptoKeyVersionAlgorit
 		return crypto.ECDSA_P256
 	}
 
-	return crypto.UnknownSignatureAlgorithm
+	// TODO: update this once Google KMS API supports ECDSA_secp256k1
+	// https://github.com/onflow/flow-go-sdk/issues/193
+	return crypto.ECDSA_secp256k1
 }
 
 func parseHashAlgorithm(algo kmspb.CryptoKeyVersion_CryptoKeyVersionAlgorithm) crypto.HashAlgorithm {
@@ -161,5 +163,7 @@ func parseHashAlgorithm(algo kmspb.CryptoKeyVersion_CryptoKeyVersionAlgorithm) c
 		return crypto.SHA2_256
 	}
 
-	return crypto.UnknownHashAlgorithm
+	// TODO: update this once Google KMS API supports ECDSA_secp256k1
+	// https://github.com/onflow/flow-go-sdk/issues/193
+	return crypto.SHA2_256
 }
