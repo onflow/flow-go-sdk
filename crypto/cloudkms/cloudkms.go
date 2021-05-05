@@ -149,25 +149,19 @@ func (c *Client) GetPublicKey(ctx context.Context, key Key) (crypto.PublicKey, c
 }
 
 func parseSignatureAlgorithm(algo kmspb.CryptoKeyVersion_CryptoKeyVersionAlgorithm) crypto.SignatureAlgorithm {
-	switch algo {
-	case kmspb.CryptoKeyVersion_EC_SIGN_P256_SHA256:
+	if algo == kmspb.CryptoKeyVersion_EC_SIGN_P256_SHA256 {
 		return crypto.ECDSA_P256
-	case kmspb.CryptoKeyVersion_CRYPTO_KEY_VERSION_ALGORITHM_UNSPECIFIED:
-		// TODO: update this once API supports ECDSA_secp256k1
-		return crypto.ECDSA_secp256k1
 	}
 
-	return crypto.UnknownSignatureAlgorithm
+	// TODO: update this once Google KMS API supports ECDSA_secp256k1
+	return crypto.ECDSA_secp256k1
 }
 
 func parseHashAlgorithm(algo kmspb.CryptoKeyVersion_CryptoKeyVersionAlgorithm) crypto.HashAlgorithm {
-	switch algo {
-	case kmspb.CryptoKeyVersion_EC_SIGN_P256_SHA256:
-		return crypto.SHA2_256
-	case kmspb.CryptoKeyVersion_CRYPTO_KEY_VERSION_ALGORITHM_UNSPECIFIED:
-		// TODO: update this once API supports ECDSA_secp256k1
+	if algo == kmspb.CryptoKeyVersion_EC_SIGN_P256_SHA256 {
 		return crypto.SHA2_256
 	}
 
-	return crypto.UnknownHashAlgorithm
+	// TODO: update this once Google KMS API supports ECDSA_secp256k1
+	return crypto.SHA2_256
 }
