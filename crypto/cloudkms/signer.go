@@ -27,7 +27,6 @@ import (
 	kms "cloud.google.com/go/kms/apiv1"
 	kmspb "google.golang.org/genproto/googleapis/cloud/kms/v1"
 
-	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 )
 
@@ -35,7 +34,6 @@ import (
 type Signer struct {
 	ctx      context.Context
 	client   *kms.KeyManagementClient
-	address  flow.Address
 	key      Key
 	hashAlgo crypto.HashAlgorithm
 	hasher   crypto.Hasher
@@ -44,7 +42,6 @@ type Signer struct {
 // SignerForKey returns a new Google Cloud KMS signer for an asymmetric key version.
 func (c *Client) SignerForKey(
 	ctx context.Context,
-	address flow.Address,
 	key Key,
 ) (*Signer, error) {
 	_, hashAlgo, err := c.GetPublicKey(ctx, key)
@@ -60,7 +57,6 @@ func (c *Client) SignerForKey(
 	return &Signer{
 		ctx:      ctx,
 		client:   c.client,
-		address:  address,
 		key:      key,
 		hashAlgo: hashAlgo,
 		hasher:   hasher,
