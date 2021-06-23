@@ -85,7 +85,7 @@ func GoogleCloudKMSDemo() {
 		SetProposalKey(accountAddress, accountKey.Index, accountKey.SequenceNumber).
 		SetPayer(accountAddress)
 
-	err = tx.AddArgument(cadence.NewString(test.GreetingGenerator().Random()))
+	err = tx.AddArgument(cadence.String(test.GreetingGenerator().Random()))
 	examples.Handle(err)
 
 	err = tx.SignEnvelope(accountAddress, accountKey.Index, accountKMSSigner)
