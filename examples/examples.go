@@ -161,14 +161,20 @@ func CreateAccountWithContracts(flowClient *client.Client, publicKeys []*flow.Ac
 	result := WaitForSeal(ctx, flowClient, createAccountTx.ID())
 	Handle(result.Error)
 
-	accountCreatedEvent := flow.AccountCreatedEvent(result.Events[0])
-	Handle(err)
+	for _, event := range result.Events {
 
-	addr := accountCreatedEvent.Address()
-	account, err := flowClient.GetAccount(ctx, addr)
-	Handle(err)
+		if event.Type != flow.EventAccountCreated {
+			continue
+		}
+		accountCreatedEvent := flow.AccountCreatedEvent(event)
 
-	return account
+		addr := accountCreatedEvent.Address()
+		account, err := flowClient.GetAccount(ctx, addr)
+		Handle(err)
+
+		return account
+	}
+	panic("could not find an AccountCreatedEvent")
 }
 
 /**
