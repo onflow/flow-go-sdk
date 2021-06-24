@@ -53,11 +53,11 @@ pub fun main(
   var i = 0
   for rawPublicKey in rawPublicKeys {
     keyList.add(
-      Crypto.PublicKey(
+      PublicKey(
         publicKey: rawPublicKey.decodeHex(),
-        signatureAlgorithm: Crypto.ECDSA_P256
+        signatureAlgorithm: SignatureAlgorithm.ECDSA_P256
       ),
-      hashAlgorithm: Crypto.SHA3_256,
+      hashAlgorithm: HashAlgorithm.SHA3_256,
       weight: weights[i],
     )
     i = i + 1
@@ -80,7 +80,7 @@ pub fun main(
     .concat(fromAddress.toBytes())
     .concat(amount.toBigEndianBytes())
 
-  return keyList.isValid(
+  return keyList.verify(
     signatureSet: signatureSet,
     signedData: message,
   )
