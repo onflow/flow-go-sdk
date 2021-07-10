@@ -66,6 +66,23 @@ func HashToID(hash []byte) Identifier {
 	return BytesToID(hash)
 }
 
+type StateCommitment Identifier
+
+// BytesToStateCommitment constructs a state commitment from a byte slice.
+func BytesToStateCommitment(b []byte) StateCommitment {
+	return StateCommitment(BytesToID(b))
+}
+
+// HexToStateCommitment constructs a state commitment from a hexadecimal string.
+func HexToStateCommitment(h string) StateCommitment {
+	return StateCommitment(HexToID(h))
+}
+
+// HashToStateCommitment constructs a state commitment from a 32-byte hash.
+func HashToStateCommitment(hash []byte) StateCommitment {
+	return StateCommitment(HashToID(hash))
+}
+
 // A ChainID is a unique identifier for a specific Flow network instance.
 //
 // Chain IDs are used used to prevent replay attacks and to support network-specific address generation.

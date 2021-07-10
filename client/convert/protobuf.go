@@ -23,11 +23,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/flow/protobuf/go/flow/access"
 	"github.com/onflow/flow/protobuf/go/flow/entities"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
@@ -111,10 +111,8 @@ func MessageToAccountKey(m *entities.AccountKey) (*flow.AccountKey, error) {
 }
 
 func BlockToMessage(b flow.Block) (*entities.Block, error) {
-	t, err := ptypes.TimestampProto(b.BlockHeader.Timestamp)
-	if err != nil {
-		return nil, fmt.Errorf("convert: failed to convert block timestamp to message: %w", err)
-	}
+
+	t := timestamppb.New(b.BlockHeader.Timestamp)
 
 	return &entities.Block{
 		Id:                   b.BlockHeader.ID.Bytes(),
@@ -131,10 +129,7 @@ func MessageToBlock(m *entities.Block) (flow.Block, error) {
 	var err error
 
 	if m.GetTimestamp() != nil {
-		timestamp, err = ptypes.Timestamp(m.GetTimestamp())
-		if err != nil {
-			return flow.Block{}, err
-		}
+		timestamp = m.GetTimestamp().AsTime()
 	}
 
 	header := &flow.BlockHeader{
@@ -166,10 +161,7 @@ func MessageToBlock(m *entities.Block) (flow.Block, error) {
 }
 
 func BlockHeaderToMessage(b flow.BlockHeader) (*entities.BlockHeader, error) {
-	t, err := ptypes.TimestampProto(b.Timestamp)
-	if err != nil {
-		return nil, fmt.Errorf("convert: failed to convert message to block timestamp: %w", err)
-	}
+	t := timestamppb.New(b.Timestamp)
 
 	return &entities.BlockHeader{
 		Id:        b.ID.Bytes(),
@@ -185,13 +177,9 @@ func MessageToBlockHeader(m *entities.BlockHeader) (flow.BlockHeader, error) {
 	}
 
 	var timestamp time.Time
-	var err error
 
 	if m.GetTimestamp() != nil {
-		timestamp, err = ptypes.Timestamp(m.GetTimestamp())
-		if err != nil {
-			return flow.BlockHeader{}, err
-		}
+		timestamp = m.GetTimestamp().AsTime()
 	}
 
 	return flow.BlockHeader{

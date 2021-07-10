@@ -23,7 +23,6 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/golang/protobuf/ptypes"
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/flow/protobuf/go/flow/access"
@@ -33,6 +32,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/client"
@@ -667,7 +667,7 @@ func TestClient_GetEventsForHeightRange(t *testing.T) {
 					{
 						BlockId:        ids.New().Bytes(),
 						BlockHeight:    1,
-						BlockTimestamp: ptypes.TimestampNow(),
+						BlockTimestamp: timestamppb.Now(),
 						Events: []*entities.Event{
 							eventAMsg,
 							eventBMsg,
@@ -676,7 +676,7 @@ func TestClient_GetEventsForHeightRange(t *testing.T) {
 					{
 						BlockId:        ids.New().Bytes(),
 						BlockHeight:    2,
-						BlockTimestamp: ptypes.TimestampNow(),
+						BlockTimestamp: timestamppb.Now(),
 						Events: []*entities.Event{
 							eventCMsg,
 							eventDMsg,
@@ -763,7 +763,7 @@ func TestClient_GetEventsForBlockIDs(t *testing.T) {
 					{
 						BlockId:        blockIDA.Bytes(),
 						BlockHeight:    1,
-						BlockTimestamp: ptypes.TimestampNow(),
+						BlockTimestamp: timestamppb.Now(),
 						Events: []*entities.Event{
 							eventAMsg,
 							eventBMsg,
@@ -772,7 +772,7 @@ func TestClient_GetEventsForBlockIDs(t *testing.T) {
 					{
 						BlockId:        blockIDB.Bytes(),
 						BlockHeight:    2,
-						BlockTimestamp: ptypes.TimestampNow(),
+						BlockTimestamp: timestamppb.Now(),
 						Events: []*entities.Event{
 							eventCMsg,
 							eventDMsg,
@@ -827,6 +827,35 @@ func TestClient_GetLatestProtocolStateSnapshot(t *testing.T) {
 		res, err := c.GetLatestProtocolStateSnapshot(ctx)
 		assert.NoError(t, err)
 		assert.Equal(t, expected.SerializedSnapshot, res)
+	}))
+
+	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
+		rpc.On("GetLatestProtocolStateSnapshot", ctx, mock.Anything).
+			Return(nil, errInternal)
+
+		_, err := c.GetLatestProtocolStateSnapshot(ctx)
+		assert.Error(t, err)
+		assert.Equal(t, codes.Internal, status.Code(err))
+	}))
+}
+
+func TestClient_GetExecutionResultForBlockID(t *testing.T) {
+	ids := test.IdentifierGenerator()
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
+		expected := &access.ExecutionResultForBlockIDResponse{
+			ExecutionResult: &entities.ExecutionResult{
+				PreviousResultId: nil,
+				BlockId:          nil,
+				Chunks:           nil,
+				ServiceEvents:    nil,
+			},
+		}
+		blockID := ids.New()
+		rpc.On("GetExecutionResultForBlockID", ctx, blockID).Return(expected, nil)
+
+		res, err := c.GetExecutionResultForBlockID(ctx, blockID)
+		assert.NoError(t, err)
+		assert.Equal(t, expected, res)
 	}))
 
 	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {

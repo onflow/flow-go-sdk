@@ -31,11 +31,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
-	"google.golang.org/grpc"
-
 	"github.com/onflow/cadence"
 	"github.com/onflow/flow/protobuf/go/flow/access"
+	"google.golang.org/grpc"
 
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/client/convert"
@@ -530,10 +528,7 @@ func getEventsResult(res *access.EventsResponse) ([]BlockEvents, error) {
 			events[i] = evt
 		}
 
-		blockTimestamp, err := ptypes.Timestamp(result.BlockTimestamp)
-		if err != nil {
-			return nil, newMessageToEntityError(entityEvent, err)
-		}
+		blockTimestamp := result.BlockTimestamp.AsTime()
 		results[i] = BlockEvents{
 			BlockID:        flow.HashToID(result.GetBlockId()),
 			Height:         result.GetBlockHeight(),
@@ -555,4 +550,43 @@ func (c *Client) GetLatestProtocolStateSnapshot(ctx context.Context, opts ...grp
 	}
 
 	return res.GetSerializedSnapshot(), nil
+}
+
+func (c *Client) GetExecutionResultForBlockID(ctx context.Context, blockID flow.Identifier, opts ...grpc.CallOption) (*flow.ExecutionResult, error) {
+	er, err := c.rpcClient.GetExecutionResultForBlockID(ctx, &access.GetExecutionResultForBlockIDRequest{
+		BlockId: convert.IdentifierToMessage(blockID),
+	}, opts...)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	chunks := make([]*flow.Chunk, len(er.ExecutionResult.Chunks))
+	serviceEvents := make([]*flow.ServiceEvent, len(er.ExecutionResult.ServiceEvents))
+
+	for i, chunk := range er.ExecutionResult.Chunks {
+		chunks[i] = &flow.Chunk{
+			CollectionIndex:      uint(chunk.CollectionIndex),
+			StartState:           flow.BytesToStateCommitment(chunk.StartState),
+			EventCollection:      flow.BytesToID(chunk.EventCollection),
+			BlockID:              flow.BytesToID(chunk.BlockId),
+			TotalComputationUsed: chunk.TotalComputationUsed,
+			NumberOfTransactions: uint16(chunk.NumberOfTransactions),
+			Index:                chunk.Index,
+			EndState:             flow.BytesToStateCommitment(chunk.EndState),
+		}
+	}
+
+	for i, serviceEvent := range er.ExecutionResult.ServiceEvents {
+		serviceEvents[i] = &flow.ServiceEvent{
+			Type:    serviceEvent.Type,
+			Payload: serviceEvent.Payload,
+		}
+	}
+
+	return &flow.ExecutionResult{
+		PreviousResultID: flow.BytesToID(er.ExecutionResult.PreviousResultId),
+		BlockID:          flow.BytesToID(er.ExecutionResult.BlockId),
+		Chunks:           chunks,
+		ServiceEvents:    serviceEvents,
+	}, nil
 }
