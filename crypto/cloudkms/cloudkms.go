@@ -148,6 +148,10 @@ func (c *Client) GetPublicKey(ctx context.Context, key Key) (crypto.PublicKey, c
 	return publicKey, hashAlgo, nil
 }
 
+func (c *Client) GetKMSClient() *kms.KeyManagementClient {
+	return c.client
+}
+
 func parseSignatureAlgorithm(algo kmspb.CryptoKeyVersion_CryptoKeyVersionAlgorithm) crypto.SignatureAlgorithm {
 	if algo == kmspb.CryptoKeyVersion_EC_SIGN_P256_SHA256 {
 		return crypto.ECDSA_P256
@@ -166,4 +170,12 @@ func parseHashAlgorithm(algo kmspb.CryptoKeyVersion_CryptoKeyVersionAlgorithm) c
 	// TODO: update this once Google KMS API supports ECDSA_secp256k1
 	// https://github.com/onflow/flow-go-sdk/issues/193
 	return crypto.SHA2_256
+}
+
+func ParseSignatureAlgorithm(algo kmspb.CryptoKeyVersion_CryptoKeyVersionAlgorithm) crypto.SignatureAlgorithm {
+	return parseSignatureAlgorithm(algo)
+}
+
+func ParseHashAlgorithm(algo kmspb.CryptoKeyVersion_CryptoKeyVersionAlgorithm) crypto.HashAlgorithm {
+	return parseHashAlgorithm(algo)
 }
