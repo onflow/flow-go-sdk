@@ -842,20 +842,73 @@ func TestClient_GetLatestProtocolStateSnapshot(t *testing.T) {
 func TestClient_GetExecutionResultForBlockID(t *testing.T) {
 	ids := test.IdentifierGenerator()
 	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
-		expected := &access.ExecutionResultForBlockIDResponse{
-			ExecutionResult: &entities.ExecutionResult{
-				PreviousResultId: nil,
-				BlockId:          nil,
-				Chunks:           nil,
-				ServiceEvents:    nil,
+		blockID := ids.New()
+		executionResult := &entities.ExecutionResult{
+			PreviousResultId: ids.New().Bytes(),
+			BlockId:          blockID.Bytes(),
+			Chunks: []*entities.Chunk{
+				{
+					CollectionIndex:      0,
+					StartState:           ids.New().Bytes(),
+					EventCollection:      ids.New().Bytes(),
+					BlockId:              blockID.Bytes(),
+					TotalComputationUsed: 22,
+					NumberOfTransactions: 33,
+					Index:                0,
+					EndState:             ids.New().Bytes(),
+				},
+				{
+					CollectionIndex:      1,
+					StartState:           ids.New().Bytes(),
+					EventCollection:      ids.New().Bytes(),
+					BlockId:              blockID.Bytes(),
+					TotalComputationUsed: 222,
+					NumberOfTransactions: 333,
+					Index:                1,
+					EndState:             ids.New().Bytes(),
+				},
+			},
+			ServiceEvents: []*entities.ServiceEvent{
+				{
+					Type:    "serviceEvent",
+					Payload: []byte("{\"whatever\":21}"),
+				},
 			},
 		}
-		blockID := ids.New()
-		rpc.On("GetExecutionResultForBlockID", ctx, blockID).Return(expected, nil)
+		result := &access.ExecutionResultForBlockIDResponse{
+			ExecutionResult: executionResult,
+		}
+		rpc.On("GetExecutionResultForBlockID", ctx, &access.GetExecutionResultForBlockIDRequest{
+			BlockId: blockID.Bytes(),
+		}).Return(result, nil)
 
 		res, err := c.GetExecutionResultForBlockID(ctx, blockID)
 		assert.NoError(t, err)
-		assert.Equal(t, expected, res)
+
+		require.NotNil(t, res)
+
+		require.Len(t, res.Chunks, len(executionResult.Chunks))
+		require.Len(t, res.ServiceEvents, len(executionResult.ServiceEvents))
+
+		assert.Equal(t, res.BlockID.Bytes(), executionResult.BlockId)
+		assert.Equal(t, res.PreviousResultID.Bytes(), executionResult.PreviousResultId)
+
+		for i, chunk := range res.Chunks {
+			assert.Equal(t, chunk.BlockID[:], executionResult.Chunks[i].BlockId)
+			assert.Equal(t, chunk.Index, executionResult.Chunks[i].Index)
+			assert.Equal(t, uint32(chunk.CollectionIndex), executionResult.Chunks[i].CollectionIndex)
+			assert.Equal(t, chunk.StartState[:], executionResult.Chunks[i].StartState)
+			assert.Equal(t, chunk.EventCollection[:], executionResult.Chunks[i].EventCollection)
+			assert.Equal(t, chunk.TotalComputationUsed, executionResult.Chunks[i].TotalComputationUsed)
+			assert.Equal(t, uint32(chunk.NumberOfTransactions), executionResult.Chunks[i].NumberOfTransactions)
+			assert.Equal(t, chunk.EndState[:], executionResult.Chunks[i].EndState)
+		}
+
+		for i, serviceEvent := range res.ServiceEvents {
+			assert.Equal(t, serviceEvent.Type, executionResult.ServiceEvents[i].Type)
+			assert.Equal(t, serviceEvent.Payload, executionResult.ServiceEvents[i].Payload)
+		}
+
 	}))
 
 	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
