@@ -176,16 +176,6 @@ func RemoveAccountKey(address flow.Address, keyIndex int) *flow.Transaction {
 		AddAuthorizer(address)
 }
 
-func bytesToCadenceArray(b []byte) cadence.Array {
-	values := make([]cadence.Value, len(b))
-
-	for i, v := range b {
-		values[i] = cadence.NewUInt8(v)
-	}
-
-	return cadence.NewArray(values)
-}
-
 // RemoveAccountContract generates a transaction that removes a contract with the given name
 func RemoveAccountContract(address flow.Address, contractName string) *flow.Transaction {
 	cadenceName := cadence.String(contractName)

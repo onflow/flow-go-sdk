@@ -60,7 +60,6 @@ func GoogleCloudKMSDemo() {
 
 	accountKMSSigner, err := kmsClient.SignerForKey(
 		ctx,
-		accountAddress,
 		accountKMSKey,
 	)
 	if err != nil {

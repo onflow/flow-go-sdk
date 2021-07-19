@@ -99,7 +99,7 @@ func (a AccountKey) Encode() []byte {
 //
 // An account key can be invalid for the following reasons:
 // - It specifies an incompatible signature/hash algorithm pairing
-// - (TODO) It specifies a negative key weight
+// - It specifies a valid key weight
 func (a AccountKey) Validate() error {
 	if !crypto.CompatibleAlgorithms(a.SigAlgo, a.HashAlgo) {
 		return errors.Errorf(
@@ -108,6 +108,11 @@ func (a AccountKey) Validate() error {
 			a.HashAlgo,
 		)
 	}
+
+	if a.Weight < 0 || a.Weight > AccountKeyWeightThreshold {
+		return errors.Errorf("invalid key weight: %d", a.Weight)
+	}
+
 	return nil
 }
 
