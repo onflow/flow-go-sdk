@@ -15,5 +15,3 @@ require (
 	google.golang.org/genproto v0.0.0-20200831141814-d751682dd103
 	google.golang.org/grpc v1.31.1
 )
-
-replace github.com/onflow/cadence => github.com/dapperlabs/cadence-internal v0.18.0-patch.3
