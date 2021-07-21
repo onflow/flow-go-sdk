@@ -143,7 +143,7 @@ func TestTransaction_AddArgument(t *testing.T) {
 	})
 
 	t.Run("Single argument", func(t *testing.T) {
-		expectedArg := cadence.NewString("foo")
+		expectedArg := cadence.String("foo")
 
 		tx := flow.NewTransaction()
 
@@ -157,7 +157,7 @@ func TestTransaction_AddArgument(t *testing.T) {
 	})
 
 	t.Run("Multiple arguments", func(t *testing.T) {
-		expectedArgA := cadence.NewString("foo")
+		expectedArgA := cadence.String("foo")
 		expectedArgB := cadence.NewInt(42)
 
 		tx := flow.NewTransaction()
@@ -180,7 +180,7 @@ func TestTransaction_AddArgument(t *testing.T) {
 
 func TestTransaction_AddRawArgument(t *testing.T) {
 	t.Run("Single argument", func(t *testing.T) {
-		expectedArg := cadence.NewString("foo")
+		expectedArg := cadence.String("foo")
 
 		encodedArg, err := jsoncdc.Encode(expectedArg)
 		require.NoError(t, err)
@@ -195,7 +195,7 @@ func TestTransaction_AddRawArgument(t *testing.T) {
 	})
 
 	t.Run("Multiple arguments", func(t *testing.T) {
-		expectedArgA := cadence.NewString("foo")
+		expectedArgA := cadence.String("foo")
 		expectedArgB := cadence.NewInt(42)
 
 		encodedArgA, err := jsoncdc.Encode(expectedArgA)
@@ -638,14 +638,14 @@ func TestTransaction_RLPMessages(t *testing.T) {
 		},
 		{
 			name:     "Single argument",
-			tx:       baseTx().AddRawArgument(jsoncdc.MustEncode(cadence.NewString("foo"))),
+			tx:       baseTx().AddRawArgument(jsoncdc.MustEncode(cadence.String("foo"))),
 			payload:  "f893b07472616e73616374696f6e207b2065786563757465207b206c6f67282248656c6c6f2c20576f726c64212229207d207de1a07b2274797065223a22537472696e67222c2276616c7565223a22666f6f227d0aa0f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b2a880000000000000001040a880000000000000001c9880000000000000001",
 			envelope: "f8baf893b07472616e73616374696f6e207b2065786563757465207b206c6f67282248656c6c6f2c20576f726c64212229207d207de1a07b2274797065223a22537472696e67222c2276616c7565223a22666f6f227d0aa0f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b2a880000000000000001040a880000000000000001c9880000000000000001e4e38004a0f7225388c1d69d57e6251c9fda50cbbf9e05131e5adb81e5aa0422402f048162",
 		},
 		{
 			name: "Multiple arguments",
 			tx: baseTx().
-				AddRawArgument(jsoncdc.MustEncode(cadence.NewString("foo"))).
+				AddRawArgument(jsoncdc.MustEncode(cadence.String("foo"))).
 				AddRawArgument(jsoncdc.MustEncode(cadence.NewInt(42))),
 			payload:  "f8b1b07472616e73616374696f6e207b2065786563757465207b206c6f67282248656c6c6f2c20576f726c64212229207d207df83ea07b2274797065223a22537472696e67222c2276616c7565223a22666f6f227d0a9c7b2274797065223a22496e74222c2276616c7565223a223432227d0aa0f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b2a880000000000000001040a880000000000000001c9880000000000000001",
 			envelope: "f8d8f8b1b07472616e73616374696f6e207b2065786563757465207b206c6f67282248656c6c6f2c20576f726c64212229207d207df83ea07b2274797065223a22537472696e67222c2276616c7565223a22666f6f227d0a9c7b2274797065223a22496e74222c2276616c7565223a223432227d0aa0f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b2a880000000000000001040a880000000000000001c9880000000000000001e4e38004a0f7225388c1d69d57e6251c9fda50cbbf9e05131e5adb81e5aa0422402f048162",

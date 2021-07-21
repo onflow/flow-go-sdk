@@ -43,7 +43,7 @@ func TransactionArgumentsDemo() {
 	serviceAcctAddr, serviceAcctKey, serviceSigner := examples.ServiceAccount(flowClient)
 
 	message := test.GreetingGenerator().Random()
-	greeting := cadence.NewString(message)
+	greeting := cadence.String(message)
 
 	referenceBlockID := examples.GetReferenceBlockId(flowClient)
 	tx := flow.NewTransaction().

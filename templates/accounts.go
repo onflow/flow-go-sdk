@@ -77,15 +77,15 @@ func CreateAccount(accountKeys []*flow.AccountKey, contracts []Contract, payer f
 
 	for i, accountKey := range accountKeys {
 		keyHex := hex.EncodeToString(accountKey.Encode())
-		publicKeys[i] = cadence.NewString(keyHex)
+		publicKeys[i] = cadence.String(keyHex)
 	}
 
 	contractKeyPairs := make([]cadence.KeyValuePair, len(contracts))
 
 	for i, contract := range contracts {
 		contractKeyPairs[i] = cadence.KeyValuePair{
-			Key:   cadence.NewString(contract.Name),
-			Value: cadence.NewString(contract.SourceHex()),
+			Key:   cadence.String(contract.Name),
+			Value: cadence.String(contract.SourceHex()),
 		}
 	}
 
@@ -109,8 +109,8 @@ transaction(name: String, code: String) {
 
 // UpdateAccountContract generates a transaction that updates a contract deployed at an account.
 func UpdateAccountContract(address flow.Address, contract Contract) *flow.Transaction {
-	cadenceName := cadence.NewString(contract.Name)
-	cadenceCode := cadence.NewString(contract.SourceHex())
+	cadenceName := cadence.String(contract.Name)
+	cadenceCode := cadence.String(contract.SourceHex())
 
 	return flow.NewTransaction().
 		SetScript([]byte(updateAccountContractTemplate)).
@@ -129,8 +129,8 @@ transaction(name: String, code: String) {
 
 // AddAccountContract generates a transaction that deploys a contract to an account.
 func AddAccountContract(address flow.Address, contract Contract) *flow.Transaction {
-	cadenceName := cadence.NewString(contract.Name)
-	cadenceCode := cadence.NewString(contract.SourceHex())
+	cadenceName := cadence.String(contract.Name)
+	cadenceCode := cadence.String(contract.SourceHex())
 
 	return flow.NewTransaction().
 		SetScript([]byte(addAccountContractTemplate)).
@@ -150,7 +150,7 @@ transaction(publicKey: String) {
 // AddAccountKey generates a transaction that adds a public key to an account.
 func AddAccountKey(address flow.Address, accountKey *flow.AccountKey) *flow.Transaction {
 	keyHex := hex.EncodeToString(accountKey.Encode())
-	cadencePublicKey := cadence.NewString(keyHex)
+	cadencePublicKey := cadence.String(keyHex)
 
 	return flow.NewTransaction().
 		SetScript([]byte(addAccountKeyTemplate)).
@@ -178,7 +178,7 @@ func RemoveAccountKey(address flow.Address, keyIndex int) *flow.Transaction {
 
 // RemoveAccountContract generates a transaction that removes a contract with the given name
 func RemoveAccountContract(address flow.Address, contractName string) *flow.Transaction {
-	cadenceName := cadence.NewString(contractName)
+	cadenceName := cadence.String(contractName)
 
 	return flow.NewTransaction().
 		SetScript([]byte(removeAccountContractTemplate)).

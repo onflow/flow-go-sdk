@@ -266,7 +266,7 @@ func (g *Events) New() flow.Event {
 	testEvent := cadence.NewEvent(
 		[]cadence.Value{
 			cadence.NewInt(g.count),
-			cadence.NewString("foo"),
+			cadence.String("foo"),
 		}).WithType(testEventType)
 
 	typeID := location.TypeID(identifier)
@@ -363,7 +363,7 @@ func (g *Transactions) NewUnsigned() *flow.Transaction {
 		AddAuthorizer(accountA.Address).
 		SetPayer(accountB.Address)
 
-	err := tx.AddArgument(cadence.NewString(g.greetings.New()))
+	err := tx.AddArgument(cadence.String(g.greetings.New()))
 	if err != nil {
 		panic(err)
 	}
