@@ -898,7 +898,7 @@ func TestClient_GetExecutionResultForBlockID(t *testing.T) {
 			assert.Equal(t, chunk.Index, executionResult.Chunks[i].Index)
 			assert.Equal(t, uint32(chunk.CollectionIndex), executionResult.Chunks[i].CollectionIndex)
 			assert.Equal(t, chunk.StartState[:], executionResult.Chunks[i].StartState)
-			assert.Equal(t, chunk.EventCollection[:], executionResult.Chunks[i].EventCollection)
+			assert.Equal(t, []byte(chunk.EventCollection), executionResult.Chunks[i].EventCollection)
 			assert.Equal(t, chunk.TotalComputationUsed, executionResult.Chunks[i].TotalComputationUsed)
 			assert.Equal(t, uint32(chunk.NumberOfTransactions), executionResult.Chunks[i].NumberOfTransactions)
 			assert.Equal(t, chunk.EndState[:], executionResult.Chunks[i].EndState)

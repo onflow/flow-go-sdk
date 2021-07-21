@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/onflow/cadence"
+	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/cadence/runtime/common"
 
 	"github.com/onflow/flow-go-sdk"
@@ -271,12 +272,18 @@ func (g *Events) New() flow.Event {
 
 	typeID := location.TypeID(identifier)
 
+	payload, err := jsoncdc.Encode(testEvent)
+	if err != nil {
+		panic(fmt.Errorf("cannot encode test event: %w", err))
+	}
+
 	event := flow.Event{
 		Type:             string(typeID),
 		TransactionID:    g.ids.New(),
 		TransactionIndex: g.count,
 		EventIndex:       g.count,
 		Value:            testEvent,
+		Payload:          payload,
 	}
 
 	return event
