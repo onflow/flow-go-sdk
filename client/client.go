@@ -32,6 +32,7 @@ import (
 	"time"
 
 	"github.com/onflow/cadence"
+	"github.com/onflow/flow-go/crypto/hash"
 	"github.com/onflow/flow/protobuf/go/flow/access"
 	"google.golang.org/grpc"
 
@@ -567,7 +568,7 @@ func (c *Client) GetExecutionResultForBlockID(ctx context.Context, blockID flow.
 		chunks[i] = &flow.Chunk{
 			CollectionIndex:      uint(chunk.CollectionIndex),
 			StartState:           flow.BytesToStateCommitment(chunk.StartState),
-			EventCollection:      flow.BytesToID(chunk.EventCollection),
+			EventCollection:      hash.BytesToHash(chunk.EventCollection),
 			BlockID:              flow.BytesToID(chunk.BlockId),
 			TotalComputationUsed: chunk.TotalComputationUsed,
 			NumberOfTransactions: uint16(chunk.NumberOfTransactions),

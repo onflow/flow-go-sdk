@@ -357,6 +357,7 @@ func MessageToEvent(m *entities.Event) (flow.Event, error) {
 		TransactionID:    flow.HashToID(m.GetTransactionId()),
 		TransactionIndex: int(m.GetTransactionIndex()),
 		EventIndex:       int(m.GetEventIndex()),
+		Payload:          m.Payload,
 		Value:            eventValue,
 	}, nil
 }

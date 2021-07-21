@@ -7,7 +7,7 @@ require (
 	github.com/ethereum/go-ethereum v1.9.9
 	github.com/onflow/cadence v0.15.0
 	github.com/onflow/flow-go/crypto v0.12.0
-	github.com/onflow/flow/protobuf/go/flow v0.2.0
+	github.com/onflow/flow/protobuf/go/flow v0.2.2
 	github.com/pkg/errors v0.8.1
 	github.com/stretchr/testify v1.7.0
 	google.golang.org/api v0.31.0
@@ -15,6 +15,3 @@ require (
 	google.golang.org/grpc v1.39.0
 	google.golang.org/protobuf v1.27.1
 )
-
-// TODO - remove once proper version of Go protobufs are released
-replace github.com/onflow/flow/protobuf/go/flow => ../flow/protobuf/go/flow
