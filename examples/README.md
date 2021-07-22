@@ -18,7 +18,7 @@ This package contains code samples that interact with the [Flow Emulator](https:
     - [Single Party, Single Signature](#single-party-single-signature)
     - [Single Party, Multiple Signatures](#single-party-multiple-signatures)
     - [Multiple Parties](#multiple-parties)
-    - [Multiple Parties, Two autorizers](#multiple-parties-two-autorizers)
+    - [Multiple Parties, Two authorizers](#multiple-parties-two-authorizers)
     - [Multiple Parties, Multiple Signatures](#multiple-parties-multiple-signatures)
   - [User Signature](#user-signature)
   - [Verify Events](#verify-events)
@@ -114,7 +114,7 @@ make single-party-multisig
 make multi-party
 ```
 
-#### Multiple Parties, Two autorizers
+#### Multiple Parties, Two authorizers
 
 [Sign a transaction with multiple accounts and authorize for both of them.](./transaction_signing/multi_party_two_authorizers/main.go)
 
