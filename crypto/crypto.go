@@ -39,6 +39,8 @@ const (
 	ECDSA_P256 = crypto.ECDSAP256
 	// ECDSA_secp256k1 is ECDSA on secp256k1 curve
 	ECDSA_secp256k1 = crypto.ECDSASecp256k1
+	// PubKeyLenECDSASecp256k1 is the size of uncompressed points on P256
+	PubKeyLenECDSASecp256k1 = 64
 )
 
 // StringToSignatureAlgorithm converts a string to a SignatureAlgorithm.
