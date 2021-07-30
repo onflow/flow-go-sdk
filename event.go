@@ -22,13 +22,15 @@ import (
 	"fmt"
 
 	"github.com/onflow/cadence"
+	"github.com/onflow/flow-go-sdk/crypto"
+	"github.com/onflow/flow-go/crypto/hash"
 )
 
 // List of built-in account event types.
 const (
-	EventAccountCreated     string = "flow.AccountCreated"
-	EventAccountAdded       string = "flow.AccountKeyAdded"
-	EventAccountKeyRemoved  string = "flow.AccountKeyRemoved"
+	EventAccountCreated         string = "flow.AccountCreated"
+	EventAccountAdded           string = "flow.AccountKeyAdded"
+	EventAccountKeyRemoved      string = "flow.AccountKeyRemoved"
 	EventAccountContractAdded   string = "flow.AccountContractAdded"
 	EventAccountContractUpdated string = "flow.AccountContractUpdated"
 	EventAccountContractRemoved string = "flow.AccountContractRemoved"
@@ -45,6 +47,8 @@ type Event struct {
 	EventIndex int
 	// Value contains the event data.
 	Value cadence.Event
+	// Bytes representing event data.
+	Payload []byte
 }
 
 // String returns the string representation of this event.
@@ -67,6 +71,41 @@ func (e Event) Encode() []byte {
 		EventIndex:    uint(e.EventIndex),
 	}
 	return mustRLPEncode(&temp)
+}
+
+// Fingerprint calculates a fingerprint of an event.
+func (e *Event) Fingerprint() []byte {
+
+	return mustRLPEncode(struct {
+		TxID             []byte
+		Index            uint32
+		Type             string
+		TransactionIndex uint32
+		Payload          []byte
+	}{
+		TxID:             e.TransactionID[:],
+		Index:            uint32(e.EventIndex),
+		Type:             string(e.Type),
+		TransactionIndex: uint32(e.TransactionIndex),
+		Payload:          e.Payload[:],
+	})
+}
+
+// CalculateEventsHash calculates hash of the events, in a way compatible with the events hash
+// propagated in Chunk. Providing list of events as emitted by transactions in given chunk,
+// hashes should match
+func CalculateEventsHash(es []Event) (crypto.Hash, error) {
+
+	hasher := hash.NewSHA3_256()
+
+	for _, event := range es {
+		_, err := hasher.Write(event.Fingerprint())
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return hasher.SumHash(), nil
 }
 
 // An AccountCreatedEvent is emitted when a transaction creates a new Flow account.

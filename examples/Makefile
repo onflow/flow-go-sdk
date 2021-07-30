@@ -17,6 +17,10 @@ deploy-contract:
 query-events:
 	go run ./query_events/main.go
 
+.PHONY: verify-events
+verify-events:
+	go run ./verify_events/main.go
+
 .PHONY: storage-usage
 storage-usage:
 	go run ./storage_usage/main.go

@@ -5,7 +5,6 @@ This package contains code samples that interact with the [Flow Emulator](https:
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-
 - [Running the emulator with the Flow CLI](#running-the-emulator-with-the-flow-cli)
   - [Installation](#installation)
   - [Starting the server](#starting-the-server)
@@ -19,9 +18,10 @@ This package contains code samples that interact with the [Flow Emulator](https:
     - [Single Party, Single Signature](#single-party-single-signature)
     - [Single Party, Multiple Signatures](#single-party-multiple-signatures)
     - [Multiple Parties](#multiple-parties)
-    - [Multiple Parties, Two autorizers](#multiple-parties-two-authorizers)
+    - [Multiple Parties, Two authorizers](#multiple-parties-two-authorizers)
     - [Multiple Parties, Multiple Signatures](#multiple-parties-multiple-signatures)
   - [User Signature](#user-signature)
+  - [Verify Events](#verify-events)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -114,7 +114,7 @@ make single-party-multisig
 make multi-party
 ```
 
-#### Multiple Parties, Two autorizers
+#### Multiple Parties, Two authorizers
 
 [Sign a transaction with multiple accounts and authorize for both of them.](./transaction_signing/multi_party_two_authorizers/main.go)
 
@@ -137,4 +137,12 @@ make multi-party-multisig
 
 ```sh
 make user-signature
+```
+
+### Verify Events
+
+[Verify events emitted in a block.](./verify_events/main.go)
+
+```sh
+make verify-events
 ```
