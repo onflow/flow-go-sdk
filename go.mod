@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	cloud.google.com/go v0.65.0
-	github.com/ethereum/go-ethereum v1.9.9
+	github.com/ethereum/go-ethereum v1.9.25
 	github.com/onflow/cadence v0.18.0
 	github.com/onflow/flow-go/crypto v0.12.0
 	github.com/onflow/flow/protobuf/go/flow v0.2.2
