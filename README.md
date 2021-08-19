@@ -294,7 +294,7 @@ err = tx.SignEnvelope(account1.Address, key2.Index, key2Signer)
 
 ---
 
-#### [Multiple parties](https://github.com/onflow/flow/blob/master/docs/accounts-and-keys.md#multiple-parties)
+#### [Multiple parties](https://docs.onflow.org/flow-go-sdk/signing-transactions/#multiple-parties)
 
 - Proposer and authorizer are the same account (`0x01`).
 - Payer is a separate account (`0x02`).
