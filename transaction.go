@@ -110,9 +110,14 @@ type transactionCanonicalForm struct {
 	EnvelopeSignatures []transactionSignatureCanonicalForm
 }
 
+// DefaultTransactionGasLimit should be high enough for small transactions
+const DefaultTransactionGasLimit = 1000
+
 // NewTransaction initializes and returns an empty transaction.
 func NewTransaction() *Transaction {
-	return &Transaction{}
+	return &Transaction{
+		GasLimit: DefaultTransactionGasLimit,
+	}
 }
 
 // ID returns the canonical SHA3-256 hash of this transaction.
