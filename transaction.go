@@ -111,7 +111,7 @@ type transactionCanonicalForm struct {
 }
 
 // DefaultTransactionGasLimit should be high enough for small transactions
-const DefaultTransactionGasLimit = 1000
+const DefaultTransactionGasLimit = 9999
 
 // NewTransaction initializes and returns an empty transaction.
 func NewTransaction() *Transaction {
