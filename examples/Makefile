@@ -1,5 +1,5 @@
 .PHONY: all
-all: create-account add-account-key deploy-contract query-events storage-usage transaction-arguments single-party single-party-multisig multi-party multi-party-multisig user-signature
+all: create-account add-account-key deploy-contract query-events storage-usage transaction-arguments single-party single-party-multisig multi-party multi-party-multisig user-signature user-signature-from-account
 
 .PHONY: create-account
 create-account:
@@ -52,3 +52,7 @@ multi-party-multisig:
 .PHONY: user-signature
 user-signature:
 	go run ./user_signature/main.go
+
+.PHONY: user-signature-from-account
+user-signature-from-account:
+	go run ./user_signature_from_account/main.go

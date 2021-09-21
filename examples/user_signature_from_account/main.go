@@ -29,86 +29,88 @@ import (
 	"github.com/onflow/flow-go-sdk/client"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/examples"
-	"github.com/onflow/flow-go-sdk/test"
 )
 
 func main() {
-	UserSignatureDemo()
+	UserSignatureFromAccountDemo()
 }
 
 var script = []byte(`
 import Crypto
 
 pub fun main(
-  rawPublicKeys: [String],
-  weights: [UFix64],
+  address: Address,
   signatures: [String],
-  toAddress: Address,
-  fromAddress: Address,
-  amount: UFix64,
+  keyIndexes: [Int]
+  message: String,
 ): Bool {
-  let keyList = Crypto.KeyList()
-
-  var i = 0
-  for rawPublicKey in rawPublicKeys {
-    keyList.add(
-      PublicKey(
-        publicKey: rawPublicKey.decodeHex(),
-        signatureAlgorithm: SignatureAlgorithm.ECDSA_P256
-      ),
-      hashAlgorithm: HashAlgorithm.SHA3_256,
-      weight: weights[i],
-    )
-    i = i + 1
-  }
-
-  let signatureSet: [Crypto.KeyListSignature] = []
-
-  var j = 0
-  for signature in signatures {
-    signatureSet.append(
-      Crypto.KeyListSignature(
-        keyIndex: j,
-        signature: signature.decodeHex()
-      )
-    )
-    j = j + 1
-  }
-
-  // assemble the same message in cadence
-  let message = toAddress.toBytes()
-    .concat(fromAddress.toBytes())
-    .concat(amount.toBigEndianBytes())
-
-  return keyList.verify(
-    signatureSet: signatureSet,
-    signedData: message,
-  )
+	let keyList = Crypto.KeyList()
+	
+	let account = getAccount(address)
+	let keys = account.keys
+	
+	var i = 0
+	while true {
+		if let key = keys.get(keyIndex: i) {
+			if key.isRevoked {
+				continue
+			}
+			keyList.add(
+				PublicKey(
+					publicKey: key.publicKey.publicKey,
+					signatureAlgorithm: SignatureAlgorithm.ECDSA_P256
+				),
+				hashAlgorithm: key.hashAlgorithm,
+				weight: key.weight / 1000.0,
+			)
+			i = i + 1
+		} else {
+			break
+		}
+	}
+	
+	let signatureSet: [Crypto.KeyListSignature] = []
+	
+	var j = 0
+	for signature in signatures {
+		signatureSet.append(
+			Crypto.KeyListSignature(
+				keyIndex: keyIndexes[j],
+				signature: signature.decodeHex()
+			)
+		)
+		j = j + 1
+	}
+	
+	return keyList.verify(
+		signatureSet: signatureSet,
+		signedData: message.utf8,
+	)
 }
 `)
 
-func UserSignatureDemo() {
+func UserSignatureFromAccountDemo() {
 	ctx := context.Background()
 	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
 	examples.Handle(err)
 
-	// create the keys
 	privateKeyAlice := examples.RandomPrivateKey()
-	publicKeyAlice := privateKeyAlice.PublicKey()
+	accountKeyAlice := flow.NewAccountKey().
+		FromPrivateKey(privateKeyAlice).
+		SetHashAlgo(crypto.SHA3_256).
+		SetWeight(flow.AccountKeyWeightThreshold / 2)
 
 	privateKeyBob := examples.RandomPrivateKey()
-	publicKeyBob := privateKeyBob.PublicKey()
+	accountKeyBob := flow.NewAccountKey().
+		FromPrivateKey(privateKeyBob).
+		SetHashAlgo(crypto.SHA3_256).
+		SetWeight(flow.AccountKeyWeightThreshold / 2)
+
+	// create the account with two keys
+	account := examples.CreateAccount(flowClient, []*flow.AccountKey{accountKeyAlice, accountKeyBob})
 
 	// create the message that will be signed
-	addresses := test.AddressGenerator()
-
-	toAddress := cadence.Address(addresses.New())
-	fromAddress := cadence.Address(addresses.New())
-	amount, err := cadence.NewUFix64("100.00")
-	examples.Handle(err)
-
-	message := append(toAddress.Bytes(), fromAddress.Bytes()...)
-	message = append(message, amount.ToBigEndianBytes()...)
+	message := []byte("ananas")
 
 	signerAlice := crypto.NewInMemorySigner(privateKeyAlice, crypto.SHA3_256)
 	signerBob := crypto.NewInMemorySigner(privateKeyBob, crypto.SHA3_256)
@@ -120,26 +122,15 @@ func UserSignatureDemo() {
 	signatureBob, err := flow.SignUserMessage(signerBob, message)
 	examples.Handle(err)
 
-	publicKeys := cadence.NewArray([]cadence.Value{
-		cadence.String(hex.EncodeToString(publicKeyAlice.Encode())),
-		cadence.String(hex.EncodeToString(publicKeyBob.Encode())),
-	})
-
-	// each signature has half weight
-	weightAlice, err := cadence.NewUFix64("0.5")
-	examples.Handle(err)
-
-	weightBob, err := cadence.NewUFix64("0.5")
-	examples.Handle(err)
-
-	weights := cadence.NewArray([]cadence.Value{
-		weightAlice,
-		weightBob,
-	})
-
 	signatures := cadence.NewArray([]cadence.Value{
-		cadence.String(hex.EncodeToString(signatureAlice)),
 		cadence.String(hex.EncodeToString(signatureBob)),
+		cadence.String(hex.EncodeToString(signatureAlice)),
+	})
+
+	// the signature indexes correspond to the key indexes on the address
+	signatureIndexes := cadence.NewArray([]cadence.Value{
+		cadence.NewInt(1),
+		cadence.NewInt(0),
 	})
 
 	// call the script to verify the signatures on chain
@@ -147,12 +138,10 @@ func UserSignatureDemo() {
 		ctx,
 		script,
 		[]cadence.Value{
-			publicKeys,
-			weights,
+			cadence.BytesToAddress(account.Address.Bytes()),
 			signatures,
-			toAddress,
-			fromAddress,
-			amount,
+			signatureIndexes,
+			cadence.String(message),
 		},
 	)
 	examples.Handle(err)
