@@ -41,45 +41,46 @@ import Crypto
 pub fun main(
   address: Address,
   signatures: [String],
-  keyIndexes: [Int]
+  keyIndexes: [Int],
   message: String,
 ): Bool {
 	let keyList = Crypto.KeyList()
 	
 	let account = getAccount(address)
 	let keys = account.keys
-	
-	var i = 0
-	while true {
-		if let key = keys.get(keyIndex: i) {
+
+	for keyIndex in keyIndexes {
+		if let key = keys.get(keyIndex: keyIndex) {
 			if key.isRevoked {
-				continue
+				// cannot verify: the key at this index is revoked
+				return false
 			}
 			keyList.add(
 				PublicKey(
 					publicKey: key.publicKey.publicKey,
-					signatureAlgorithm: SignatureAlgorithm.ECDSA_P256
+					signatureAlgorithm: key.publicKey.signatureAlgorithm
 				),
 				hashAlgorithm: key.hashAlgorithm,
 				weight: key.weight / 1000.0,
 			)
-			i = i + 1
 		} else {
-			break
+			// cannot verify: they key at this index doesn't exist
+			log("they key at this index doesn't exist")
+			return false
 		}
 	}
 	
 	let signatureSet: [Crypto.KeyListSignature] = []
 	
-	var j = 0
+	var i = 0
 	for signature in signatures {
 		signatureSet.append(
 			Crypto.KeyListSignature(
-				keyIndex: keyIndexes[j],
+				keyIndex: i,
 				signature: signature.decodeHex()
 			)
 		)
-		j = j + 1
+		i = i + 1
 	}
 	
 	return keyList.verify(
