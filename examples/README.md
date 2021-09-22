@@ -21,6 +21,7 @@ This package contains code samples that interact with the [Flow Emulator](https:
     - [Multiple Parties, Two authorizers](#multiple-parties-two-authorizers)
     - [Multiple Parties, Multiple Signatures](#multiple-parties-multiple-signatures)
   - [User Signature](#user-signature)
+  - [User Signature From Account](#user-signature-from-account)
   - [Verify Events](#verify-events)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -137,6 +138,14 @@ make multi-party-multisig
 
 ```sh
 make user-signature
+```
+
+### User Signature From Account
+
+[Sign an arbitrary user message and verify it by using the public keys on an account.](./user_signature_from_account/main.go)
+
+```sh
+make user-signature-from-account
 ```
 
 ### Verify Events
