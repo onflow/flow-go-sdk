@@ -32,7 +32,7 @@ import (
 )
 
 func main() {
-	UserSignatureFromAccountDemo()
+	UserSignatureValidateAny()
 }
 
 var script = []byte(`
@@ -40,57 +40,51 @@ import Crypto
 
 pub fun main(
   address: Address,
-  signatures: [String],
-  keyIndexes: [Int],
-  message: String,
+  signature: String,
+  message: String
 ): Bool {
 	let keyList = Crypto.KeyList()
 	
 	let account = getAccount(address)
 	let keys = account.keys
 
-	for keyIndex in keyIndexes {
-		if let key = keys.get(keyIndex: keyIndex) {
+	let signatureBytes = signature.decodeHex()
+	let messageBytes = message.utf8
+
+	var i = 0
+	while true {
+		if let key = keys.get(keyIndex: i) {
 			if key.isRevoked {
-				// cannot verify: the key at this index is revoked
-				return false
+				// do not check revoked keys
+				i = i + 1
+				continue
 			}
-			keyList.add(
-				PublicKey(
+			let pk = PublicKey(
 					publicKey: key.publicKey.publicKey,
 					signatureAlgorithm: key.publicKey.signatureAlgorithm
-				),
-				hashAlgorithm: key.hashAlgorithm,
-				weight: key.weight / 1000.0,
 			)
+			if pk.verify(
+				signature: signatureBytes,
+				signedData: messageBytes,
+				domainSeparationTag: "FLOW-V0.0-user",
+				hashAlgorithm: key.hashAlgorithm
+			) {
+				// this key is good
+
+				return true
+			}
 		} else {
-			// cannot verify: they key at this index doesn't exist
-			log("they key at this index doesn't exist")
+			// checked all the keys, none of them match
 			return false
 		}
-	}
-	
-	let signatureSet: [Crypto.KeyListSignature] = []
-	
-	var i = 0
-	for signature in signatures {
-		signatureSet.append(
-			Crypto.KeyListSignature(
-				keyIndex: i,
-				signature: signature.decodeHex()
-			)
-		)
 		i = i + 1
 	}
-	
-	return keyList.verify(
-		signatureSet: signatureSet,
-		signedData: message.utf8,
-	)
+
+	return false
 }
 `)
 
-func UserSignatureFromAccountDemo() {
+func UserSignatureValidateAny() {
 	ctx := context.Background()
 	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
 	examples.Handle(err)
@@ -110,44 +104,28 @@ func UserSignatureFromAccountDemo() {
 	// create the account with two keys
 	account := examples.CreateAccount(flowClient, []*flow.AccountKey{accountKeyAlice, accountKeyBob})
 
-	// create the message that will be signed
+	// create the message that will be signed with one key
 	message := []byte("ananas")
 
 	signerAlice := crypto.NewInMemorySigner(privateKeyAlice, crypto.SHA3_256)
-	signerBob := crypto.NewInMemorySigner(privateKeyBob, crypto.SHA3_256)
 
-	// sign the message with Alice and Bob
+	// sign the message only with Alice
 	signatureAlice, err := flow.SignUserMessage(signerAlice, message)
 	examples.Handle(err)
 
-	signatureBob, err := flow.SignUserMessage(signerBob, message)
-	examples.Handle(err)
-
-	signatures := cadence.NewArray([]cadence.Value{
-		cadence.String(hex.EncodeToString(signatureBob)),
-		cadence.String(hex.EncodeToString(signatureAlice)),
-	})
-
-	// the signature indexes correspond to the key indexes on the address
-	signatureIndexes := cadence.NewArray([]cadence.Value{
-		cadence.NewInt(1),
-		cadence.NewInt(0),
-	})
-
-	// call the script to verify the signatures on chain
+	// call the script to verify the signature on chain
 	value, err := flowClient.ExecuteScriptAtLatestBlock(
 		ctx,
 		script,
 		[]cadence.Value{
 			cadence.BytesToAddress(account.Address.Bytes()),
-			signatures,
-			signatureIndexes,
+			cadence.String(hex.EncodeToString(signatureAlice)),
 			cadence.String(message),
 		},
 	)
 	examples.Handle(err)
 
-	// the signatures should be valid
+	// the signature should be valid
 	if value == cadence.NewBool(true) {
 		fmt.Println("Signature verification succeeded")
 	} else {
