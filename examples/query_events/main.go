@@ -32,14 +32,64 @@ import (
 )
 
 func main() {
-	QueryEventsDemo()
+	deployedContract, runScriptTx := prepareNetwork()
+	demo(deployedContract, runScriptTx)
 }
 
-func QueryEventsDemo() {
+func demo(deployedContract *flow.Account, runScriptTx *flow.Transaction) {
+	ctx := context.Background()
+	flowClient := examples.NewFlowClient()
+
+	// Query for account creation events by type
+	result, err := flowClient.GetEventsForHeightRange(ctx, client.EventRangeQuery{
+		Type:        "flow.AccountCreated",
+		StartHeight: 0,
+		EndHeight:   100,
+	})
+	printEvents(result, err)
+
+	// Query for our custom event by type
+	customType := fmt.Sprintf("AC.%s.EventDemo.EventDemo.Add", deployedContract.Address.Hex())
+	result, err = flowClient.GetEventsForHeightRange(ctx, client.EventRangeQuery{
+		Type:        customType,
+		StartHeight: 0,
+		EndHeight:   10,
+	})
+	printEvents(result, err)
+
+	// Get events directly from transaction result
+	txResult, err := flowClient.GetTransactionResult(ctx, runScriptTx.ID())
+	examples.Handle(err)
+	printEvent(txResult.Events)
+}
+
+func printEvents(result []client.BlockEvents, err error) {
+	examples.Handle(err)
+
+	for _, block := range result {
+		printEvent(block.Events)
+	}
+}
+
+func printEvent(events []flow.Event) {
+	for _, event := range events {
+		fmt.Printf("\n\nType: %s", event.Type)
+		fmt.Printf("\nValues: %v", event.Value)
+		fmt.Printf("\nTransaction ID: %s", event.TransactionID)
+	}
+}
+
+func prepareNetwork() (*flow.Account, *flow.Transaction) {
 	ctx := context.Background()
 
 	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
 	examples.Handle(err)
+	defer func() {
+		err := flowClient.Close()
+		if err != nil {
+			panic(err)
+		}
+	}()
 
 	acctAddr, acctKey, acctSigner := examples.RandomAccount(flowClient)
 
@@ -87,54 +137,5 @@ func QueryEventsDemo() {
 
 	examples.WaitForSeal(ctx, flowClient, runScriptTx.ID())
 
-	// 1
-	// Query for account creation events by type
-	results, err := flowClient.GetEventsForHeightRange(ctx, client.EventRangeQuery{
-		Type:        "flow.AccountCreated",
-		StartHeight: 0,
-		EndHeight:   100,
-	})
-	examples.Handle(err)
-
-	fmt.Println("\nQuery for AccountCreated event:")
-	for _, block := range results {
-		for i, event := range block.Events {
-			fmt.Printf("Found event #%d in block #%d\n", i+1, block.Height)
-			fmt.Printf("Transaction ID: %s\n", event.TransactionID)
-			fmt.Printf("Event ID: %s\n", event.ID())
-			fmt.Println(event.String())
-		}
-	}
-
-	// 2
-	// Query for our custom event by type
-	results, err = flowClient.GetEventsForHeightRange(ctx, client.EventRangeQuery{
-		Type:        fmt.Sprintf("AC.%s.EventDemo.EventDemo.Add", contractAccount.Address.Hex()),
-		StartHeight: 0,
-		EndHeight:   100,
-	})
-	examples.Handle(err)
-
-	fmt.Println("\nQuery for Add event:")
-	for _, block := range results {
-		for i, event := range block.Events {
-			fmt.Printf("Found event #%d in block #%d\n", i+1, block.Height)
-			fmt.Printf("Transaction ID: %s\n", event.TransactionID)
-			fmt.Printf("Event ID: %s\n", event.ID())
-			fmt.Println(event.String())
-		}
-	}
-
-	// 3
-	// Query by transaction
-	result, err := flowClient.GetTransactionResult(ctx, runScriptTx.ID())
-	examples.Handle(err)
-
-	fmt.Println("\nQuery for tx by hash:")
-	for i, event := range result.Events {
-		fmt.Printf("Found event #%d\n", i+1)
-		fmt.Printf("Transaction ID: %s\n", event.TransactionID)
-		fmt.Printf("Event ID: %s\n", event.ID())
-		fmt.Println(event.String())
-	}
+	return contractAccount, runScriptTx
 }
