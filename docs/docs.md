@@ -209,7 +209,7 @@ func demo(deployedContract *flow.Account, runScriptTx *flow.Transaction) {
     
     // Query for our custom event by type
     customType := fmt.Sprintf("AC.%s.EventDemo.EventDemo.Add", deployedContract.Address.Hex())
-        result, err = flowClient.GetEventsForHeightRange(ctx, client.EventRangeQuery{
+    result, err = flowClient.GetEventsForHeightRange(ctx, client.EventRangeQuery{
         Type:        customType,
         StartHeight: 0,
         EndHeight:   10,
