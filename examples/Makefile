@@ -13,10 +13,6 @@ add-account-key:
 deploy-contract:
 	go run ./deploy_contract/main.go
 
-.PHONY: query-events
-query-events:
-	go run ./query_events/main.go
-
 .PHONY: verify-events
 verify-events:
 	go run ./verify_events/main.go
@@ -52,3 +48,15 @@ multi-party-multisig:
 .PHONY: user-signature
 user-signature:
 	go run ./user_signature/main.go
+
+.PHONY: get-blocks
+get-blocks:
+	go run ./get_blocks/main.go
+
+.PHONY: get-accounts
+get-accounts:
+	go run ./get_accounts/main.go
+
+.PHONY: get-events
+get-events:
+	go run ./get_events/main.go
