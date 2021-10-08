@@ -255,3 +255,15 @@ Values: A.eb179c27144f783c.EventDemo.Add(x: 2, y: 3, sum: 5)
 Transaction ID: f3a2e33687ad23b0e02644ebbdcd74a7cd8ea7214065410a8007811d0bcbd353
 ```
 
+### Get Collections
+[![GoDoc](https://godoc.org/github.com/onflow/flow-go-sdk?status.svg)](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#Client.GetCollection)
+
+Retrieve a collection which is a batch of transactions that have been included in the same block. 
+Collections are used to improve consensus throughput by increasing the number of transactions per block and they act as a link between block and a transaction.
+
+**Collection ID** is SHA3-256 hash of the payload.
+
+Example retrieving a collection:
+```go
+
+```

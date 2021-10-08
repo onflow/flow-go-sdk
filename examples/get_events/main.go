@@ -32,7 +32,7 @@ import (
 )
 
 func main() {
-	deployedContract, runScriptTx := prepareNetwork()
+	deployedContract, runScriptTx := preapreDemo()
 	demo(deployedContract, runScriptTx)
 }
 
@@ -79,7 +79,7 @@ func printEvent(events []flow.Event) {
 	}
 }
 
-func prepareNetwork() (*flow.Account, *flow.Transaction) {
+func preapreDemo() (*flow.Account, *flow.Transaction) {
 	ctx := context.Background()
 
 	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
