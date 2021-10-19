@@ -60,3 +60,15 @@ get-accounts:
 .PHONY: get-events
 get-events:
 	go run ./get_events/main.go
+
+.PHONY: get-collection
+get-collection:
+	go run ./get_collection/main.go
+
+.PHONY: get-transactions
+get-transaction:
+	go run ./get_transactions/main.go
+
+.PHONY: execute-script
+execute-script:
+	go run ./execute_script/main.go

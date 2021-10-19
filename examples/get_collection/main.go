@@ -28,8 +28,8 @@ import (
 )
 
 func main() {
-	prepareDemo()
-	demo()
+	id := prepareDemo()
+	demo(id)
 }
 
 func demo(exampleCollectionID flow.Identifier) {
@@ -44,9 +44,11 @@ func demo(exampleCollectionID flow.Identifier) {
 func printCollection(collection *flow.Collection, err error) {
 	examples.Handle(err)
 
+	fmt.Printf("\nID: %s", collection.ID().String())
+	fmt.Printf("\nTransactions: %s", collection.TransactionIDs)
 }
 
-func prepareDemo() {
+func prepareDemo() flow.Identifier {
 	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
 	examples.Handle(err)
 	defer func() {
@@ -56,17 +58,10 @@ func prepareDemo() {
 		}
 	}()
 
-	referenceBlockID := examples.GetReferenceBlockId(flowClient)
-	acctAddr, acctKey, acctSigner := examples.RandomAccount(flowClient)
-	tx := flow.NewTransaction().
-		SetPayer(acctAddr).
-		SetReferenceBlockID(referenceBlockID).
-		SetProposalKey(acctAddr, acctKey.Index, acctKey.SequenceNumber)
+	examples.RandomAccount(flowClient)
 
-	err = tx.SignEnvelope(acctAddr, 0, acctSigner)
+	block, err := flowClient.GetBlockByHeight(context.Background(), 1)
 	examples.Handle(err)
 
-	err = flowClient.SendTransaction(context.Background(), *tx)
-	examples.Handle(err)
-
+	return block.CollectionGuarantees[0].CollectionID
 }

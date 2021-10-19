@@ -109,6 +109,24 @@ func RandomPrivateKey() crypto.PrivateKey {
 	return privateKey
 }
 
+func RandomTransaction(flowClient *client.Client) *flow.Transaction {
+	serviceAcctAddr, serviceAcctKey, serviceSigner := ServiceAccount(flowClient)
+
+	tx := flow.NewTransaction().
+		SetPayer(serviceAcctAddr).
+		SetProposalKey(serviceAcctAddr, serviceAcctKey.Index, serviceAcctKey.SequenceNumber).
+		SetScript([]byte("transaction {}")).
+		SetReferenceBlockID(GetReferenceBlockId(flowClient))
+
+	err := tx.SignEnvelope(serviceAcctAddr, serviceAcctKey.Index, serviceSigner)
+	Handle(err)
+
+	err = flowClient.SendTransaction(context.Background(), *tx)
+	Handle(err)
+
+	return tx
+}
+
 func RandomAccount(flowClient *client.Client) (flow.Address, *flow.AccountKey, crypto.Signer) {
 	privateKey := RandomPrivateKey()
 
