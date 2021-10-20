@@ -188,7 +188,9 @@ Retrieve transactions from the network by providing a transaction ID. After a tr
 
 📖 **Transaction ID** is a hash of the encoded transaction payload and can be calculated before submitting the transaction to the network.
 
-📖 **Transaction Status** represents the state of transaction in the blockchain. Status can change until is finalized.
+⚠️ The transaction ID provided must be from the current spork.
+
+📖 **Transaction status** represents the state of transaction in the blockchain. Status can change until is finalized.
 
 | Status      | Final | Description |
 | ----------- | ----------- | ----------- |
@@ -199,7 +201,6 @@ Retrieve transactions from the network by providing a transaction ID. After a tr
 |   SEALED    |    ✅    |   The transaction has been executed and the result is sealed in a block  |
 |   EXPIRED    |   ✅     |  The transaction reference block is outdated before being executed    |
 
-⚠️ The transactionID provided must be from the current spork.
 
 **[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">]()**
 ```go
@@ -462,7 +463,7 @@ transaction(greeting: String) {
 
 📖 **Arguments**. A transaction can accept zero or more arguments that are passed into the Cadence script. The arguments on the transaction must match the number and order declared in the Cadence script. Sample script from above accepts a single `String` argument.
 
-📖 **[Proposal Key](https://docs.onflow.org/concepts/transaction-signing/#proposal-key)** must be provided to act as a sequence number and prevent reply and other potential attacks.
+📖 **[Proposal key](https://docs.onflow.org/concepts/transaction-signing/#proposal-key)** must be provided to act as a sequence number and prevent reply and other potential attacks.
 
 Each account key maintains a separate transaction sequence counter; the key that lends its sequence number to a transaction is called the proposal key.
 
