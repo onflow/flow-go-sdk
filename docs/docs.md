@@ -1,7 +1,7 @@
 <br />
 <div align="center">
   <a href="https://docs.onflow.org/sdks/">
-    <img src="./sdk-banner.svg" alt="Logo" width="270" height="auto">
+    <img src="./sdk-banner.svg" alt="Logo" width="300" height="auto">
   </a>
   <p align="center"> <br />
     <a href="https://docs.onflow.org/flow-cli/install/"><strong>View on GitHub »</strong></a> <br /><br />
