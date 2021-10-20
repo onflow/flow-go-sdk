@@ -13,7 +13,7 @@
 
 ## Overview 
 
-This reference guide documents all the methods available in the SDK, and explains in detail how these methods work.
+This reference documents all the methods available in the SDK, and explains in detail how these methods work.
 SDKs are open source, and you can use them according to the licence.
 
 The library client specifications can be found here:
@@ -26,12 +26,12 @@ The library client specifications can be found here:
 ### Installing
 The recommended way to install Go Flow SDK is by using Go modules. 
 
-If you already initialized your Go project you can run the following command in your terminal:
+If you already initialized your Go project, you can run the following command in your terminal:
 ```sh
 go get github.com/onflow/flow-go-sdk
 ```
 
-It's usually a good practice to pin your dependencies to a specific version. 
+It's usually good practice to pin your dependencies to a specific version. 
 Refer to the [SDK releases](https://github.com/onflow/flow-go-sdk/tags) page to identify the latest version.
 
 ### Importing the Library
@@ -43,17 +43,13 @@ import "github.com/onflow/flow-go-sdk"
 ## Connect
 [![GoDoc](https://godoc.org/github.com/onflow/flow-go-sdk?status.svg)](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#New)
 
-The library uses gRPC to communicate with the access nodes, and it must be configured with correct access node API URL. 
+The library uses gRPC to communicate with the access nodes and it must be configured with correct access node API URL. 
 
 📖 **Access API URLs** can be found [here](https://docs.onflow.org/access-api/#flow-access-node-endpoints). An error will be returned if the host is unreachable.
 The Access Nodes APIs hosted by DapperLabs are accessible at:
 - Testnet `access.devnet.nodes.onflow.org:9000`
 - Mainnet `access.mainnet.nodes.onflow.org:9000`
-- Canarynet `access.canary.nodes.onflow.org:9000`
 - Local Emulator `127.0.0.1:3569` 
-
-Mainnet is the production Flow network, Canarynet is meant to be a development network where you actively deploy new features, 
-whereas Canarynet is in traditional terms a staging environment.
 
 Example:
 ```go
@@ -69,24 +65,23 @@ if err != nil {
 // TODO (error handling)
 
 
-## Query Flow Network
-After you have established a connection with the access node you can query the 
+## Querying the Flow Network
+After you have established a connection with an access node, you can query the 
 Flow network to retrieve data about blocks, accounts, events and transactions. We will explore 
-how to retrieve each entity in the sections bellow.
+how to retrieve each of these entities in the sections below.
 
 ### Get Blocks
 [![GoDoc](https://godoc.org/github.com/onflow/flow-go-sdk?status.svg)](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#Client.GetBlockByHeight)
 
-Query the network for block by id, height or get the latest block. Blocks can be sealed or unsealed where 
-first expresses finalized block on the network and latter still pending for verification.
+Query the network for block by id, height or get the latest block.
 
-📖 **Block ID** is SHA3-256 hash of the entire block payload, but you can get that value from the block response properties. 
+📖 **Block ID** is SHA3-256 hash of the entire block payload. This hash is stored as an ID field on any block response object (ie. response from `GetLatestBlock`). 
 
-📖 **Block height** expresses the height of the block in the chain, think of it like a sequence number increasing by one for each new block. 
+📖 **Block height** expresses the height of the block on the chain. The latest block height increases by one for every valid block produced.
 
 #### Examples
 
-Example depicts ways to get the latest block, get the block by height and by ID:
+This example depicts ways to get the latest block as well as any other block by height or ID:
 
 **[>> Try this example]()**
 ```go
@@ -134,22 +129,22 @@ height: 0
 timestamp: 2018-12-19 22:32:30.000000042 +0000 UTC
 ```
 
-### Get Accounts
+### Get Account
 [![GoDoc](https://godoc.org/github.com/onflow/flow-go-sdk?status.svg)](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#Client.GetAccount)
 
-Retrieve the account from the network latest's block or explicitly specify the block height from which you want to retrieve the data. 
-Default get account method is actually an alias for the get account at latest block method. 
+Retrieve any account from Flow network's latest block or from a specified block height.
+The `GetAccount` method is actually an alias for the get account at latest block method. 
 
-📖 **Account address** is a unique account identifier, be mindful about the `0x` prefix, you should use the prefix as a default representation but be careful and safely handle user inputs without the prefix.
+📖 **Account address** is a unique account identifier. Be mindful about the `0x` prefix, you should use the prefix as a default representation but be careful and safely handle user inputs without the prefix.
 
-Account includes the following data:
+An account includes the following data:
 - Address: the account address.
 - Balance: balance of the account.
 - Contracts: list of contracts deployed to the account.
 - Keys: list of keys associated with the account.
 
 #### Examples
-Example depicts ways to get account at latest block and specific block height:
+Example depicts ways to get an account at the latest block and at a specific block height:
 
 **[>> Try this example]()**
 ```go
@@ -193,7 +188,7 @@ Keys: 1
 ### Get Transactions
 [![GoDoc](https://godoc.org/github.com/onflow/flow-go-sdk?status.svg)](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#Client.GetTransaction)
 
-Retrieve transactions from the network by provided transaction ID. After a transaction has been submitted, you can also get the transaction result to check the status.
+Retrieve transactions from the network by providing a transaction ID. After a transaction has been submitted, you can also get the transaction result to check the status.
 
 📖 **Transaction ID** is a hash of the encoded transaction payload and can be calculated before submitting the transaction to the network.
 
@@ -253,7 +248,7 @@ Error: <nil>
 ### Get Events
 [![GoDoc](https://godoc.org/github.com/onflow/flow-go-sdk?status.svg)](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#Client.GetEventsForBlockIDs)
 
-Retrieve events by a given type and in a specified block height range or list of block IDs.
+Retrieve events by a given type in a specified block height range or through a list of block IDs.
 
 📖 **Event type** is a string that follow a standard format:
 ```
@@ -263,7 +258,7 @@ A.{contract address}.{contract name}.{event name}
 Please read more about [events in the documentation](https://docs.onflow.org/core-contracts/flow-token/). The exception to this standard are 
 core events, and you should read more about them in [this document]().
 
-📖 **Block height range** expresses the height of the start and end block in the chain, think of it like a sequence number increasing by one for each new block.
+📖 **Block height range** expresses the height of the start and end block in the chain.
 
 #### Examples
 Example depicts ways to get events within block range or by block IDs:
@@ -333,10 +328,10 @@ Transaction ID: f3a2e33687ad23b0e02644ebbdcd74a7cd8ea7214065410a8007811d0bcbd353
 ### Get Collections
 [![GoDoc](https://godoc.org/github.com/onflow/flow-go-sdk?status.svg)](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#Client.GetCollection)
 
-Retrieve a collection which is a batch of transactions that have been included in the same block. 
-Collections are used to improve consensus throughput by increasing the number of transactions per block and they act as a link between block and a transaction.
+Retrieve a batch of transactions that have been included in the same block, known as ***collections***. 
+Collections are used to improve consensus throughput by increasing the number of transactions per block and they act as a link between a block and a transaction.
 
-📖 **Collection ID** is SHA3-256 hash of the payload.
+📖 **Collection ID** is SHA3-256 hash of the collection payload.
 
 Example retrieving a collection:
 ```go
@@ -365,13 +360,13 @@ Transactions: [cf1184e3de4bd9a7232ca3d0b9dd2cfbf96c97888298b81a05c086451fa52ec1]
 ### Execute Scripts
 [![GoDoc](https://godoc.org/github.com/onflow/flow-go-sdk?status.svg)](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#Client.ExecuteScriptAtLatestBlock)
 
-Executing scripts lets you run non-permanent Cadence scripts on the Flow blockchain and return data. You can learn more about [Cadence and scripts here](https://docs.onflow.org/cadence/language/), but we are now only interested in executing a script code and getting back the data which is then deserialized.
+Scripts allow you to write arbitrary non-mutating Cadence code on the Flow blockchain and return data. You can learn more about [Cadence and scripts here](https://docs.onflow.org/cadence/language/), but we are now only interested in executing the script code and getting back the data.
 
-We can execute a script using the latest state of the Flow blockchain or we can choose to execute the script at a specific time in history defined with block height or block ID. 
+We can execute a script using the latest state of the Flow blockchain or we can choose to execute the script at a specific time in history defined by a block height or block ID.
 
 📖 **Block ID** is SHA3-256 hash of the entire block payload, but you can get that value from the block response properties.
 
-📖 **Block height** expresses the height of the block in the chain, think of it like a sequence number increasing by one for each new block.
+📖 **Block height** expresses the height of the block in the chain.
 
 **[>> Try this example]()**
 ```go
@@ -450,7 +445,7 @@ Balance: 1000000000
 ## Mutate Flow Network
 Flow, like most blockchains, allows anybody to submit a transaction that mutates the shared global chain state. A transaction is an object that holds a payload, which describes the state mutation, and one or more authorizations that permit the transaction to mutate the state owned by specific accounts.
 
-Transaction data is composed and signed with help of the SDK, signed payload of transaction then gets submitted to the access node API. If transaction is invalid or signatures are not sufficient it gets rejected. 
+Transaction data is composed and signed with help of the SDK. The signed payload of transaction then gets submitted to the access node API. If a transaction is invalid or the correct number of authorizing signatures are not provided, it gets rejected. 
 
 Executing a transaction requires couple of steps:
 - [Building transaction](##build-transactions).
@@ -459,7 +454,7 @@ Executing a transaction requires couple of steps:
 
 ### Build Transactions
 [![GoDoc](https://godoc.org/github.com/onflow/flow-go-sdk?status.svg)](https://pkg.go.dev/github.com/onflow/flow-go-sdk#Transaction)
-Building a transaction involves setting the transaction script, passing arguments, setting payer, proposers and authorizers. We will describe each of these properties. 
+Building a transaction involves setting the transaction script, passing arguments, setting the payer, the proposers and the authorizers. We will describe each of these properties. 
 
 📖 **Script** field is the portion of the transaction that describes the state mutation logic. On Flow, transaction logic is written in [Cadence](https://docs.onflow.org/cadence/). Here is an example transaction script:
 ```
