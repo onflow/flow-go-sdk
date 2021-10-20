@@ -72,3 +72,7 @@ get-transaction:
 .PHONY: execute-script
 execute-script:
 	go run ./execute_script/main.go
+
+.PHONY: send-transaction
+send-transaction:
+	go run ./send_transactions/main.go

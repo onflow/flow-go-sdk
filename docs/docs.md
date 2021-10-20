@@ -18,7 +18,7 @@ SDKs are open source, and you can use them according to the licence.
 
 The library client specifications can be found here:
 
-[![GoDoc](https://godoc.org/github.com/onflow/flow-go-sdk?status.svg)](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client)
+[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130">](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client)
 
 
 ## Getting Started
@@ -41,7 +41,7 @@ import "github.com/onflow/flow-go-sdk"
 ```
 
 ## Connect
-[![GoDoc](https://godoc.org/github.com/onflow/flow-go-sdk?status.svg)](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#New)
+[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130">](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#New)
 
 The library uses gRPC to communicate with the access nodes, and it must be configured with correct access node API URL. 
 
@@ -64,10 +64,6 @@ if err != nil {
 	panic("failed to establish connection with the Access API")
 }
 ```
-// retrying requests
-
-// TODO (error handling)
-
 
 ## Query Flow Network
 After you have established a connection with the access node you can query the 
@@ -75,7 +71,7 @@ Flow network to retrieve data about blocks, accounts, events and transactions. W
 how to retrieve each entity in the sections bellow.
 
 ### Get Blocks
-[![GoDoc](https://godoc.org/github.com/onflow/flow-go-sdk?status.svg)](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#Client.GetBlockByHeight)
+[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130">](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#Client.GetBlockByHeight)
 
 Query the network for block by id, height or get the latest block. Blocks can be sealed or unsealed where 
 first expresses finalized block on the network and latter still pending for verification.
@@ -88,7 +84,7 @@ first expresses finalized block on the network and latter still pending for veri
 
 Example depicts ways to get the latest block, get the block by height and by ID:
 
-**[>> Try this example]()**
+**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">]()**
 ```go
 func demo() {
     ctx := context.Background()
@@ -135,7 +131,7 @@ timestamp: 2018-12-19 22:32:30.000000042 +0000 UTC
 ```
 
 ### Get Accounts
-[![GoDoc](https://godoc.org/github.com/onflow/flow-go-sdk?status.svg)](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#Client.GetAccount)
+[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130">](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#Client.GetAccount)
 
 Retrieve the account from the network latest's block or explicitly specify the block height from which you want to retrieve the data. 
 Default get account method is actually an alias for the get account at latest block method. 
@@ -151,7 +147,7 @@ Account includes the following data:
 #### Examples
 Example depicts ways to get account at latest block and specific block height:
 
-**[>> Try this example]()**
+**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">]()**
 ```go
 func demo() {
     ctx := context.Background()
@@ -191,7 +187,7 @@ Keys: 1
 
 
 ### Get Transactions
-[![GoDoc](https://godoc.org/github.com/onflow/flow-go-sdk?status.svg)](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#Client.GetTransaction)
+[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130">](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#Client.GetTransaction)
 
 Retrieve transactions from the network by provided transaction ID. After a transaction has been submitted, you can also get the transaction result to check the status.
 
@@ -210,7 +206,7 @@ Retrieve transactions from the network by provided transaction ID. After a trans
 
 ⚠️ The transactionID provided must be from the current spork.
 
-**[>> Try this example]()**
+**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">]()**
 ```go
 func demo(txID flow.Identifier) {
     ctx := context.Background()
@@ -251,7 +247,7 @@ Error: <nil>
 
 
 ### Get Events
-[![GoDoc](https://godoc.org/github.com/onflow/flow-go-sdk?status.svg)](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#Client.GetEventsForBlockIDs)
+[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130">](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#Client.GetEventsForBlockIDs)
 
 Retrieve events by a given type and in a specified block height range or list of block IDs.
 
@@ -268,7 +264,7 @@ core events, and you should read more about them in [this document]().
 #### Examples
 Example depicts ways to get events within block range or by block IDs:
 
-**[>> Try this example]()**
+**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">]()**
 ```go
 func demo(deployedContract *flow.Account, runScriptTx *flow.Transaction) {
     ctx := context.Background()
@@ -331,7 +327,7 @@ Transaction ID: f3a2e33687ad23b0e02644ebbdcd74a7cd8ea7214065410a8007811d0bcbd353
 ```
 
 ### Get Collections
-[![GoDoc](https://godoc.org/github.com/onflow/flow-go-sdk?status.svg)](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#Client.GetCollection)
+[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130">](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#Client.GetCollection)
 
 Retrieve a collection which is a batch of transactions that have been included in the same block. 
 Collections are used to improve consensus throughput by increasing the number of transactions per block and they act as a link between block and a transaction.
@@ -363,7 +359,7 @@ Transactions: [cf1184e3de4bd9a7232ca3d0b9dd2cfbf96c97888298b81a05c086451fa52ec1]
 ```
 
 ### Execute Scripts
-[![GoDoc](https://godoc.org/github.com/onflow/flow-go-sdk?status.svg)](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#Client.ExecuteScriptAtLatestBlock)
+[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130">](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#Client.ExecuteScriptAtLatestBlock)
 
 Executing scripts lets you run non-permanent Cadence scripts on the Flow blockchain and return data. You can learn more about [Cadence and scripts here](https://docs.onflow.org/cadence/language/), but we are now only interested in executing a script code and getting back the data which is then deserialized.
 
@@ -373,7 +369,7 @@ We can execute a script using the latest state of the Flow blockchain or we can 
 
 📖 **Block height** expresses the height of the block in the chain, think of it like a sequence number increasing by one for each new block.
 
-**[>> Try this example]()**
+**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">]()**
 ```go
 func demo() {
     ctx := context.Background()
@@ -457,9 +453,8 @@ Executing a transaction requires couple of steps:
 - Signing transaction.
 - Sending transaction.
 
-### Build Transactions
-[![GoDoc](https://godoc.org/github.com/onflow/flow-go-sdk?status.svg)](https://pkg.go.dev/github.com/onflow/flow-go-sdk#Transaction)
-Building a transaction involves setting the transaction script, passing arguments, setting payer, proposers and authorizers. We will describe each of these properties. 
+## Transactions
+A transaction is nothing more than a signed set of data that includes script code which are instructions on how to mutate the network state and properties that define and limit it's execution. All these properties are explained bellow. 
 
 📖 **Script** field is the portion of the transaction that describes the state mutation logic. On Flow, transaction logic is written in [Cadence](https://docs.onflow.org/cadence/). Here is an example transaction script:
 ```
@@ -496,7 +491,22 @@ transaction {
 }
 ```
 
-**[>> Try this example]()**
+📖 **Gas limit** is the limit on the amount of computation a transaction requires, and it will abort if it exceeds its gas limit.
+Cadence uses metering to measure the number of operations per transaction. You can read more about it in the [Cadence documentation](/cadence).
+
+The gas limit depends on the complexity of the transaction script. Until dedicated gas estimation tooling exists, it's best to use the emulator to test complex transactions and determine a safe limit.
+
+📖 **Reference block** specifies an expiration window (measured in blocks) during which a transaction is considered valid by the network.
+A transaction will be rejected if it is submitted past its expiry block. Flow calculates transaction expiry using the _reference block_ field on a transaction.
+A transaction expires after `600` blocks are committed on top of the reference block, which takes about 10 minutes at average Mainnet block rates.
+
+### Build Transactions
+[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130">](https://pkg.go.dev/github.com/onflow/flow-go-sdk#Transaction)
+
+Building a transaction involves setting the required properties explained above and producing a transaction object. 
+
+Here we define a simple transaction script that will be used to execute on the network and serve as a good learning example.
+
 ```
 transaction(greeting: String) {
 
@@ -512,6 +522,7 @@ transaction(greeting: String) {
 }
 ```
 
+**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">]()**
 ```go
 import (
   "context"
@@ -575,8 +586,424 @@ func main() {
 }
 ```
 
+After you have successfully [built a transaction](#build-transactions) the next step in the process is to sign it.
+
 ### Sign Transactions
+[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130">](https://pkg.go.dev/github.com/onflow/flow-go-sdk#Transaction.SignEnvelope)
+
+Flow introduces new concepts that allow for more flexibility when creating and signing transactions.
+Before trying the examples below, we recommend that you read through the [transaction signature documentation](https://docs.onflow.org/concepts/accounts-and-keys/).
+
+After you have successfully [built a transaction](#build-transactions) the next step in the process is to sign it. Flow transactions have envelope and payload signatures, and you should learn about each in the [signature documentation](https://docs.onflow.org/concepts/accounts-and-keys/#anatomy-of-a-transaction).
+
+Quick example of building a transaction:
+```go
+import (
+    "github.com/onflow/flow-go-sdk"
+    "github.com/onflow/flow-go-sdk/crypto"
+)
+
+var (
+    myAddress    flow.Address
+    myAccountKey flow.AccountKey
+    myPrivateKey crypto.PrivateKey
+)
+
+tx := flow.NewTransaction().
+    SetScript([]byte("transaction { execute { log(\"Hello, World!\") } }")).
+    SetGasLimit(100).
+    SetProposalKey(myAddress, myAccountKey.Index, myAccountKey.SequenceNumber).
+    SetPayer(myAddress)
+```
+
+Transaction signing is done through the `crypto.Signer` interface. The simplest (and least secure) implementation of `crypto.Signer` is `crypto.InMemorySigner`.
+
+Signatures can be generated more securely using keys stored in a hardware device such as an [HSM](https://en.wikipedia.org/wiki/Hardware_security_module). The `crypto.Signer` interface is intended to be flexible enough to support a variety of signer implementations and is not limited to in-memory implementations.
+
+Simple signature example:
+```go
+// construct a signer from your private key and configured hash algorithm
+mySigner := crypto.NewInMemorySigner(myPrivateKey, myAccountKey.HashAlgo)
+
+err := tx.SignEnvelope(myAddress, myAccountKey.Index, mySigner)
+if err != nil {
+    panic("failed to sign transaction")
+}
+```
+
+Flow supports great flexibility when it comes to transaction signing, we can define multiple authorizers (multi-sig transactions) and have different payer account than proposer. We will explore advanced signing scenarios bellow.
+
+### [Single party, single signature](https://docs.onflow.org/concepts/transaction-signing/#single-party-single-signature)
+
+- Proposer, payer and authorizer are the same account (`0x01`).
+- Only the envelope must be signed.
+- Proposal key must have full signing weight.
+
+| Account | Key ID | Weight |
+| ------- | ------ | ------ |
+| `0x01`  | 1      | 1.0    |
+
+**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">](https://github.com/onflow/flow-go-sdk/tree/master/examples#single-party-single-signature)**
+```go
+account1, _ := c.GetAccount(ctx, flow.HexToAddress("01"))
+
+key1 := account1.Keys[0]
+
+// create signer from securely-stored private key
+key1Signer := getSignerForKey1()
+
+referenceBlock, _ := flow.GetLatestBlock(ctx, true)
+tx := flow.NewTransaction().
+    SetScript([]byte(`
+        transaction {
+            prepare(signer: AuthAccount) { log(signer.address) }
+        }
+    `)).
+    SetGasLimit(100).
+    SetProposalKey(account1.Address, key1.Index, key1.SequenceNumber).
+    SetReferenceBlockID(referenceBlock.ID).
+    SetPayer(account1.Address).
+    AddAuthorizer(account1.Address)
+
+// account 1 signs the envelope with key 1
+err := tx.SignEnvelope(account1.Address, key1.Index, key1Signer)
+```
+
+
+### [Single party, multiple signatures](https://docs.onflow.org/concepts/transaction-signing/#single-party-multiple-signatures)
+
+- Proposer, payer and authorizer are the same account (`0x01`).
+- Only the envelope must be signed.
+- Each key has weight 0.5, so two signatures are required.
+
+| Account | Key ID | Weight |
+| ------- | ------ | ------ |
+| `0x01`  | 1      | 0.5    |
+| `0x01`  | 2      | 0.5    |
+
+**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">](https://github.com/onflow/flow-go-sdk/tree/master/examples#single-party-multiple-signatures)**
+```go
+account1, _ := c.GetAccount(ctx, flow.HexToAddress("01"))
+
+key1 := account1.Keys[0]
+key2 := account1.Keys[1]
+
+// create signers from securely-stored private keys
+key1Signer := getSignerForKey1()
+key2Signer := getSignerForKey2()
+
+referenceBlock, _ := flow.GetLatestBlock(ctx, true)
+tx := flow.NewTransaction().
+    SetScript([]byte(`
+        transaction {
+            prepare(signer: AuthAccount) { log(signer.address) }
+        }
+    `)).
+    SetGasLimit(100).
+    SetProposalKey(account1.Address, key1.Index, key1.SequenceNumber).
+    SetReferenceBlockID(referenceBlock.ID).
+    SetPayer(account1.Address).
+    AddAuthorizer(account1.Address)
+
+// account 1 signs the envelope with key 1
+err := tx.SignEnvelope(account1.Address, key1.Index, key1Signer)
+
+// account 1 signs the envelope with key 2
+err = tx.SignEnvelope(account1.Address, key2.Index, key2Signer)
+```
+
+### [Multiple parties](https://docs.onflow.org/concepts/transaction-signing/#multiple-parties)
+
+- Proposer and authorizer are the same account (`0x01`).
+- Payer is a separate account (`0x02`).
+- Account `0x01` signs the payload.
+- Account `0x02` signs the envelope.
+    - Account `0x02` must sign last since it is the payer.
+
+| Account | Key ID | Weight |
+| ------- | ------ | ------ |
+| `0x01`  | 1      | 1.0    |
+| `0x02`  | 3      | 1.0    |
+
+**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">](https://github.com/onflow/flow-go-sdk/tree/master/examples#multiple-parties)**
+```go
+account1, _ := c.GetAccount(ctx, flow.HexToAddress("01"))
+account2, _ := c.GetAccount(ctx, flow.HexToAddress("02"))
+
+key1 := account1.Keys[0]
+key3 := account2.Keys[0]
+
+// create signers from securely-stored private keys
+key1Signer := getSignerForKey1()
+key3Signer := getSignerForKey3()
+
+referenceBlock, _ := flow.GetLatestBlock(ctx, true)
+tx := flow.NewTransaction().
+    SetScript([]byte(`
+        transaction {
+            prepare(signer: AuthAccount) { log(signer.address) }
+        }
+    `)).
+    SetGasLimit(100).
+    SetProposalKey(account1.Address, key1.Index, key1.SequenceNumber).
+    SetReferenceBlockID(referenceBlock.ID).
+    SetPayer(account2.Address).
+    AddAuthorizer(account1.Address)
+
+// account 1 signs the payload with key 1
+err := tx.SignPayload(account1.Address, key1.Index, key1Signer)
+
+// account 2 signs the envelope with key 3
+// note: payer always signs last
+err = tx.SignEnvelope(account2.Address, key3.Index, key3Signer)
+```
+
+### [Multiple parties, two authorizers](https://docs.onflow.org/concepts/transaction-signing/#multiple-parties)
+
+- Proposer and authorizer are the same account (`0x01`).
+- Payer is a separate account (`0x02`).
+- Account `0x01` signs the payload.
+- Account `0x02` signs the envelope.
+    - Account `0x02` must sign last since it is the payer.
+- Account `0x02` is also an authorizer to show how to include two AuthAccounts into an transaction
+
+| Account | Key ID | Weight |
+| ------- | ------ | ------ |
+| `0x01`  | 1      | 1.0    |
+| `0x02`  | 3      | 1.0    |
+
+**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">](https://github.com/onflow/flow-go-sdk/tree/master/examples#multiple-parties-two-authorizers)**
+```go
+account1, _ := c.GetAccount(ctx, flow.HexToAddress("01"))
+account2, _ := c.GetAccount(ctx, flow.HexToAddress("02"))
+
+key1 := account1.Keys[0]
+key3 := account2.Keys[0]
+
+// create signers from securely-stored private keys
+key1Signer := getSignerForKey1()
+key3Signer := getSignerForKey3()
+
+referenceBlock, _ := flow.GetLatestBlock(ctx, true)
+tx := flow.NewTransaction().
+    SetScript([]byte(`
+        transaction {
+            prepare(signer1: AuthAccount, signer2: AuthAccount) {
+              log(signer.address)
+              log(signer2.address)
+          }
+        }
+    `)).
+    SetGasLimit(100).
+    SetProposalKey(account1.Address, key1.Index, key1.SequenceNumber).
+    SetReferenceBlockID(referenceBlock.ID).
+    SetPayer(account2.Address).
+    AddAuthorizer(account1.Address).
+    AddAuthorizer(account2.Address)
+
+// account 1 signs the payload with key 1
+err := tx.SignPayload(account1.Address, key1.Index, key1Signer)
+
+// account 2 signs the envelope with key 3
+// note: payer always signs last
+err = tx.SignEnvelope(account2.Address, key3.Index, key3Signer)
+```
+
+### [Multiple parties, multiple signatures](https://docs.onflow.org/concepts/transaction-signing/#multiple-parties)
+
+- Proposer and authorizer are the same account (`0x01`).
+- Payer is a separate account (`0x02`).
+- Account `0x01` signs the payload.
+- Account `0x02` signs the envelope.
+    - Account `0x02` must sign last since it is the payer.
+- Both accounts must sign twice (once with each of their keys).
+
+| Account | Key ID | Weight |
+| ------- | ------ | ------ |
+| `0x01`  | 1      | 0.5    |
+| `0x01`  | 2      | 0.5    |
+| `0x02`  | 3      | 0.5    |
+| `0x02`  | 4      | 0.5    |
+
+**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">](https://github.com/onflow/flow-go-sdk/tree/master/examples#multiple-parties-multiple-signatures)**
+```go
+account1, _ := c.GetAccount(ctx, flow.HexToAddress("01"))
+account2, _ := c.GetAccount(ctx, flow.HexToAddress("02"))
+
+key1 := account1.Keys[0]
+key2 := account1.Keys[1]
+key3 := account2.Keys[0]
+key4 := account2.Keys[1]
+
+// create signers from securely-stored private keys
+key1Signer := getSignerForKey1()
+key2Signer := getSignerForKey1()
+key3Signer := getSignerForKey3()
+key4Signer := getSignerForKey4()
+
+referenceBlock, _ := flow.GetLatestBlock(ctx, true)
+tx := flow.NewTransaction().
+    SetScript([]byte(`
+        transaction {
+            prepare(signer: AuthAccount) { log(signer.address) }
+        }
+    `)).
+    SetGasLimit(100).
+    SetProposalKey(account1.Address, key1.Index, key1.SequenceNumber).
+    SetReferenceBlockID(referenceBlock.ID).
+    SetPayer(account2.Address).
+    AddAuthorizer(account1.Address)
+
+// account 1 signs the payload with key 1
+err := tx.SignPayload(account1.Address, key1.Index, key1Signer)
+
+// account 1 signs the payload with key 2
+err = tx.SignPayload(account1.Address, key2.Index, key2Signer)
+
+// account 2 signs the envelope with key 3
+// note: payer always signs last
+err = tx.SignEnvelope(account2.Address, key3.Index, key3Signer)
+
+// account 2 signs the envelope with key 4
+// note: payer always signs last
+err = tx.SignEnvelope(account2.Address, key4.Index, key4Signer)
+```
+
 
 ### Send Transactions
+[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130">](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#Client.SendTransaction)
 
-[![GoDoc](https://godoc.org/github.com/onflow/flow-go-sdk?status.svg)](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#Client.SendTransaction)
+After a transaction has been [built](#build-transactions) and [signed](#sign-transactions), it can be sent to the Flow blockchain where it will be executed. If sending was successful you can then [retrieve the transaction result](#get-transactions).
+
+
+**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">]()**
+```go
+func demo(tx *flow.Transaction) {
+    ctx := context.Background()
+    flowClient := examples.NewFlowClient()
+    
+    err := flowClient.SendTransaction(ctx, *tx)
+    if err != nil {
+        panic(err)
+    }
+}
+```
+
+
+### Create Accounts
+[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130">](https://pkg.go.dev/github.com/onflow/flow-go-sdk/templates#CreateAccount)
+
+On Flow, account creation happens inside a transaction. Because the network allows for a many-to-many relationship between public keys and accounts, it's not possible to derive a new account address from a public key offline. 
+
+The Flow VM uses a deterministic address generation algorithm to assign account addresses on chain. You can find more details about address generation in the [accounts & keys documentation](https://docs.onflow.org/concepts/accounts-and-keys/).
+
+#### Public Key
+Flow uses ECDSA key pairs to control access to user accounts. Each key pair can be used in combination with the SHA2-256 or SHA3-256 hashing algorithms.
+
+⚠️ You'll need to authorize at least one public key to control your new account.
+
+Flow represents ECDSA public keys in raw form without additional metadata. Each key is a single byte slice containing a concatenation of its X and Y components in big-endian byte form.
+
+A Flow account can contain zero (not possible to control) or more public keys, referred to as account keys. Read more about [accounts in the documentation](https://docs.onflow.org/concepts/accounts-and-keys/#accounts).
+
+An account key contains the following data:
+- Raw public key (described above)
+- Signature algorithm
+- Hash algorithm
+- Weight (integer between 0-1000)
+
+Account creation happens inside a transaction, which means that somebody must pay to submit that transaction to the network. We'll call this person the account creator. Make sure you have read [sending a transaction section](#send-transactions) first. 
+
+```go
+var (
+  creatorAddress    flow.Address
+  creatorAccountKey *flow.AccountKey
+  creatorSigner     crypto.Signer
+)
+
+var accessAPIHost string
+
+// Establish a connection with an access node
+flowClient, err := client.New(accessAPIHost)
+if err != nil {
+    panic("failed to establish connection with Access API")
+}
+
+// Use the templates package to create a new account creation transaction
+tx := templates.CreateAccount([]*flow.AccountKey{accountKey}, nil, creatorAddress)
+
+// Set the transaction payer and proposal key
+tx.SetPayer(creatorAddress)
+tx.SetProposalKey(
+    creatorAddress,
+    creatorAccountKey.Index,
+    creatorAccountKey.SequenceNumber,
+)
+
+// Get the latest sealed block to use as a reference block
+latestBlock, err := flowClient.GetLatestBlockHeader(context.Background(), true)
+if err != nil {
+    panic("failed to fetch latest block")
+}
+
+tx.SetReferenceBlockID(latestBlock.ID)
+
+// Sign and submit the transaction
+err = tx.SignEnvelope(creatorAddress, creatorAccountKey.Index, creatorSigner)
+if err != nil {
+    panic("failed to sign transaction envelope")
+}
+
+err = flowClient.SendTransaction(context.Background(), *tx)
+if err != nil {
+    panic("failed to send transaction to network")
+}
+```
+
+After the account creation transaction has been submitted you can retrieve the new account address by [getting the transaction result](#get-transactions). 
+
+The new account address will be emitted in a system-level `flow.AccountCreated` event.
+
+```go
+result, err := flowClient.GetTransactionResult(ctx, tx.ID())
+if err != nil {
+    panic("failed to get transaction result")
+}
+
+var newAddress flow.Address
+
+if result.Status != flow.TransactionStatusSealed {
+    panic("address not known until transaction is sealed")
+}
+
+for _, event := range result.Events {
+    if event.Type == flow.EventAccountCreated {
+        newAddress = flow.AccountCreatedEvent(event).Address()
+        break
+    }
+}
+```
+
+### Generate Keys
+[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130">](https://docs.onflow.org/concepts/accounts-and-keys/#supported-signature--hash-algorithms)
+
+Flow uses [ECDSA](https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm) signatures to control access to user accounts. Each key pair can be used in combination with the `SHA2-256` or `SHA3-256` hashing algorithms.
+
+Here's how to generate an ECDSA private key for the P-256 (secp256r1) curve.
+
+```go
+import "github.com/onflow/flow-go-sdk/crypto"
+
+// deterministic seed phrase
+// note: this is only an example, please use a secure random generator for the key seed
+seed := []byte("elephant ears space cowboy octopus rodeo potato cannon pineapple")
+
+privateKey, err := crypto.GeneratePrivateKey(crypto.ECDSA_P256, seed)
+
+// the private key can then be encoded as bytes (i.e. for storage) 
+encPrivateKey := privateKey.Encode()
+// the private key has an accompanying public key
+publicKey := privateKey.PublicKey()
+```
+
+The example above uses an ECDSA key pair on the P-256 (secp256r1) elliptic curve. Flow also supports the secp256k1 curve used by Bitcoin and Ethereum. Read more about [supported algorithms here](https://docs.onflow.org/concepts/accounts-and-keys/#supported-signature--hash-algorithms).
