@@ -1,5 +1,5 @@
 .PHONY: all
-all: create-account add-account-key deploy-contract query-events storage-usage transaction-arguments single-party single-party-multisig multi-party multi-party-multisig user-signature
+all: create-account add-account-key deploy-contract query-events storage-usage transaction-arguments single-party single-party-multisig multi-party multi-party-multisig user-signature user-signature-validate-all user-signature-validate-any
 
 .PHONY: create-account
 create-account:
@@ -76,3 +76,11 @@ execute-script:
 .PHONY: send-transaction
 send-transaction:
 	go run ./send_transactions/main.go
+
+.PHONY: user-signature-validate-all
+user-signature-validate-all:
+	go run ./verify_signature/user_signature_validate_all/main.go
+
+.PHONY: user-signature-validate-any
+user-signature-validate-any:
+	go run ./verify_signature/user_signature_validate_any/main.go

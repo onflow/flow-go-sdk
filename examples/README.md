@@ -6,8 +6,8 @@ This package contains code samples that interact with the [Flow Emulator](https:
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 - [Running the emulator with the Flow CLI](#running-the-emulator-with-the-flow-cli)
-  - [Installation](#installation)
-  - [Starting the server](#starting-the-server)
+    - [Installation](#installation)
+    - [Starting the server](#starting-the-server)
 - [Running the examples](#running-the-examples)
   - [Get Blocks](#get-blocks)
   - [Get Accounts](#get-accounts)
@@ -22,8 +22,22 @@ This package contains code samples that interact with the [Flow Emulator](https:
     - [Multiple Parties](#multiple-parties)
     - [Multiple Parties, Two authorizers](#multiple-parties-two-authorizers)
     - [Multiple Parties, Multiple Signatures](#multiple-parties-multiple-signatures)
-  - [User Signature](#user-signature)
-  - [Verify Events](#verify-events)
+    - [Verify Signature](#verify-signature)
+        - [User Signature](#user-signature)
+        - [User Signature Verify All](#user-signature-verify-all)
+        - [User Signature Verify Any](#user-signature-verify-any)
+    - [Verify Events](#verify-events)
+    - [Create Account](#create-account)
+    - [Add Account Key](#add-account-key)
+    - [Deploy Contract](#deploy-contract)
+    - [Query Events](#query-events)
+    - [Transaction Arguments](#transaction-arguments)
+    - [Transaction Signing](#transaction-signing)
+        - [Single Party, Single Signature](#single-party-single-signature)
+        - [Single Party, Multiple Signatures](#single-party-multiple-signatures)
+        - [Multiple Parties](#multiple-parties)
+        - [Multiple Parties, Two authorizers](#multiple-parties-two-authorizers)
+        - [Multiple Parties, Multiple Signatures](#multiple-parties-multiple-signatures)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -138,7 +152,6 @@ make multi-party
 make multi-party-two-authorizers
 ```
 
-
 #### Multiple Parties, Multiple Signatures
 
 [Sign a transaction with multiple accounts using multiple signatures.](./transaction_signing/multi_party_multisig/main.go)
@@ -147,12 +160,30 @@ make multi-party-two-authorizers
 make multi-party-multisig
 ```
 
-### User Signature
+### Verify Signature
 
-[Sign an arbitrary user message.](./user_signature/main.go)
+#### User Signature
+
+[Sign an arbitrary user message.](verify_signature/user_signature/main.go)
 
 ```sh
 make user-signature
+```
+
+#### User Signature Verify all
+
+[Sign an arbitrary user message and verify it by using the public keys on an account respecting the weights of each key.](verify_signature/user_signature_validate_all/main.go)
+
+```sh
+make user-signature-verify-all
+```
+
+#### User Signature Verify any
+
+[Sign an arbitrary user message and verify it by using the public keys on an account. Return success if any public key on the account can sign the message.](verify_signature/user_signature_validate_all/main.go)
+
+```sh
+make user-signature-verify-all
 ```
 
 ### Verify Events
