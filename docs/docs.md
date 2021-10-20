@@ -253,7 +253,7 @@ A.{contract address}.{contract name}.{event name}
 ```
 
 Please read more about [events in the documentation](https://docs.onflow.org/core-contracts/flow-token/). The exception to this standard are 
-core events, and you should read more about them in [this document]().
+core events, and you should read more about them in [this document](https://docs.onflow.org/cadence/language/core-events/).
 
 📖 **Block height range** expresses the height of the start and end block in the chain.
 
