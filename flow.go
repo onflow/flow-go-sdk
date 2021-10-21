@@ -66,6 +66,13 @@ func HashToID(hash []byte) Identifier {
 	return BytesToID(hash)
 }
 
+// BytesToHash constructs a crypto hash from byte slice.
+func BytesToHash(hash []byte) crypto.Hash {
+	h := make(crypto.Hash, len(hash))
+	copy(h, hash)
+	return h
+}
+
 type StateCommitment Identifier
 
 // BytesToStateCommitment constructs a state commitment from a byte slice.

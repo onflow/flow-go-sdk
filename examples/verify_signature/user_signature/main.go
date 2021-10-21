@@ -22,7 +22,6 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
-
 	"github.com/onflow/cadence"
 	"google.golang.org/grpc"
 
@@ -76,6 +75,7 @@ pub fun main(
     j = j + 1
   }
 
+  // assemble the same message in cadence
   let message = toAddress.toBytes()
     .concat(fromAddress.toBytes())
     .concat(amount.toBigEndianBytes())
@@ -87,26 +87,19 @@ pub fun main(
 }
 `)
 
-func bytesToCadenceArray(b []byte) cadence.Array {
-	values := make([]cadence.Value, len(b))
-	for i, b := range b {
-		values[i] = cadence.NewUInt8(b)
-	}
-
-	return cadence.NewArray(values)
-}
-
 func UserSignatureDemo() {
 	ctx := context.Background()
 	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
 	examples.Handle(err)
 
-	privateKeyA := examples.RandomPrivateKey()
-	publicKeyA := privateKeyA.PublicKey()
+	// create the keys
+	privateKeyAlice := examples.RandomPrivateKey()
+	publicKeyAlice := privateKeyAlice.PublicKey()
 
-	privateKeyB := examples.RandomPrivateKey()
-	publicKeyB := privateKeyB.PublicKey()
+	privateKeyBob := examples.RandomPrivateKey()
+	publicKeyBob := privateKeyBob.PublicKey()
 
+	// create the message that will be signed
 	addresses := test.AddressGenerator()
 
 	toAddress := cadence.Address(addresses.New())
@@ -117,36 +110,39 @@ func UserSignatureDemo() {
 	message := append(toAddress.Bytes(), fromAddress.Bytes()...)
 	message = append(message, amount.ToBigEndianBytes()...)
 
-	signerA := crypto.NewInMemorySigner(privateKeyA, crypto.SHA3_256)
-	signerB := crypto.NewInMemorySigner(privateKeyB, crypto.SHA3_256)
+	signerAlice := crypto.NewInMemorySigner(privateKeyAlice, crypto.SHA3_256)
+	signerBob := crypto.NewInMemorySigner(privateKeyBob, crypto.SHA3_256)
 
-	signatureA, err := flow.SignUserMessage(signerA, message)
+	// sign the message with Alice and Bob
+	signatureAlice, err := flow.SignUserMessage(signerAlice, message)
 	examples.Handle(err)
 
-	signatureB, err := flow.SignUserMessage(signerB, message)
+	signatureBob, err := flow.SignUserMessage(signerBob, message)
 	examples.Handle(err)
 
 	publicKeys := cadence.NewArray([]cadence.Value{
-		cadence.String(hex.EncodeToString(publicKeyA.Encode())),
-		cadence.String(hex.EncodeToString(publicKeyB.Encode())),
+		cadence.String(hex.EncodeToString(publicKeyAlice.Encode())),
+		cadence.String(hex.EncodeToString(publicKeyBob.Encode())),
 	})
 
-	weightA, err := cadence.NewUFix64("0.5")
+	// each signature has half weight
+	weightAlice, err := cadence.NewUFix64("0.5")
 	examples.Handle(err)
 
-	weightB, err := cadence.NewUFix64("0.5")
+	weightBob, err := cadence.NewUFix64("0.5")
 	examples.Handle(err)
 
 	weights := cadence.NewArray([]cadence.Value{
-		weightA,
-		weightB,
+		weightAlice,
+		weightBob,
 	})
 
 	signatures := cadence.NewArray([]cadence.Value{
-		cadence.String(hex.EncodeToString(signatureA)),
-		cadence.String(hex.EncodeToString(signatureB)),
+		cadence.String(hex.EncodeToString(signatureAlice)),
+		cadence.String(hex.EncodeToString(signatureBob)),
 	})
 
+	// call the script to verify the signatures on chain
 	value, err := flowClient.ExecuteScriptAtLatestBlock(
 		ctx,
 		script,
@@ -161,6 +157,7 @@ func UserSignatureDemo() {
 	)
 	examples.Handle(err)
 
+	// the signatures should be valid
 	if value == cadence.NewBool(true) {
 		fmt.Println("Signature verification succeeded")
 	} else {
