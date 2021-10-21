@@ -67,7 +67,7 @@ func demo() {
 			)
 		}
 	`)
-	args = []cadence.Value{cadence.NewString("Dete")}
+	args = []cadence.Value{cadence.String("Dete")}
 	value, err = flowClient.ExecuteScriptAtLatestBlock(ctx, complexScript, args)
 	printComplexScript(value, err)
 }
