@@ -1,6 +1,6 @@
 # Emulator Examples
 
-This package contains code samples that interact with the [Flow Emulator](https://github.com/onflow/flow/blob/master/docs/emulator.md).
+This package contains code samples that interact with the [Flow Emulator](https://github.com/onflow/flow/blob/master/docs/content/emulator/index.md).
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
@@ -43,11 +43,11 @@ This package contains code samples that interact with the [Flow Emulator](https:
 
 ## Running the emulator with the Flow CLI
 
-The emulator is bundled with the [Flow CLI](https://github.com/onflow/flow/blob/master/docs/cli.md), a command-line interface for working with Flow.
+The emulator is bundled with the [Flow CLI](https://github.com/onflow/flow-cli/blob/master/docs/index.md), a command-line interface for working with Flow.
 
 ### Installation
 
-Follow [these steps](https://github.com/onflow/flow/blob/master/docs/cli.md) to install the Flow CLI.
+Follow [these steps](https://github.com/onflow/flow-cli/blob/master/docs/index.md) to install the Flow CLI.
 
 ### Starting the server
 
