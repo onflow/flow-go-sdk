@@ -86,7 +86,7 @@ Query the network for block by id, height or get the latest block.
 
 This example depicts ways to get the latest block as well as any other block by height or ID:
 
-**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">]()**
+**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">](https://github.com/onflow/flow-go-sdk/blob/master/examples/get_blocks/main.go)**
 ```go
 func demo() {
     ctx := context.Background()
@@ -149,7 +149,7 @@ An account includes the following data:
 #### Examples
 Example depicts ways to get an account at the latest block and at a specific block height:
 
-**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">]()**
+**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">](https://github.com/onflow/flow-go-sdk/blob/master/examples/get_accounts/main.go)**
 ```go
 func demo() {
     ctx := context.Background()
@@ -209,7 +209,7 @@ Retrieve transactions from the network by providing a transaction ID. After a tr
 |   EXPIRED    |   ✅     |  The transaction reference block is outdated before being executed    |
 
 
-**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">]()**
+**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">](https://github.com/onflow/flow-go-sdk/blob/master/examples/get_transactions/main.go)**
 ```go
 func demo(txID flow.Identifier) {
     ctx := context.Background()
@@ -260,14 +260,14 @@ A.{contract address}.{contract name}.{event name}
 ```
 
 Please read more about [events in the documentation](https://docs.onflow.org/core-contracts/flow-token/). The exception to this standard are
-core events, and you should read more about them in [this document]().
+core events, and you should read more about them in [this document](https://docs.onflow.org/cadence/language/core-events/).
 
 📖 **Block height range** expresses the height of the start and end block in the chain.
 
 #### Examples
 Example depicts ways to get events within block range or by block IDs:
 
-**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">]()**
+**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">](https://github.com/onflow/flow-go-sdk/blob/master/examples/get_events/main.go)**
 ```go
 func demo(deployedContract *flow.Account, runScriptTx *flow.Transaction) {
     ctx := context.Background()
@@ -372,7 +372,7 @@ We can execute a script using the latest state of the Flow blockchain or we can 
 
 📖 **Block height** expresses the height of the block in the chain.
 
-**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">]()**
+**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">](https://github.com/onflow/flow-go-sdk/blob/master/examples/execute_script/main.go)**
 ```go
 func demo() {
     ctx := context.Background()
@@ -452,9 +452,9 @@ Flow, like most blockchains, allows anybody to submit a transaction that mutates
 Transaction data is composed and signed with help of the SDK. The signed payload of transaction then gets submitted to the access node API. If a transaction is invalid or the correct number of authorizing signatures are not provided, it gets rejected.
 
 Executing a transaction requires couple of steps:
-- [Building transaction](##build-transactions).
-- Signing transaction.
-- Sending transaction.
+- [Building transaction](#build-transactions).
+- [Signing transaction](#sign-transactions).
+- [Sending transaction](#send-transactions).
 
 ## Transactions
 A transaction is nothing more than a signed set of data that includes script code which are instructions on how to mutate the network state and properties that define and limit it's execution. All these properties are explained bellow.
@@ -495,7 +495,7 @@ transaction {
 ```
 
 📖 **Gas limit** is the limit on the amount of computation a transaction requires, and it will abort if it exceeds its gas limit.
-Cadence uses metering to measure the number of operations per transaction. You can read more about it in the [Cadence documentation](/cadence).
+Cadence uses metering to measure the number of operations per transaction. You can read more about it in the [Cadence documentation](https://docs.onflow.org/cadence/).
 
 The gas limit depends on the complexity of the transaction script. Until dedicated gas estimation tooling exists, it's best to use the emulator to test complex transactions and determine a safe limit.
 
@@ -879,7 +879,7 @@ err = tx.SignEnvelope(account2.Address, key4.Index, key4Signer)
 After a transaction has been [built](#build-transactions) and [signed](#sign-transactions), it can be sent to the Flow blockchain where it will be executed. If sending was successful you can then [retrieve the transaction result](#get-transactions).
 
 
-**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">]()**
+**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">](https://github.com/onflow/flow-go-sdk/blob/master/examples/send_transactions/main.go)**
 ```go
 func demo(tx *flow.Transaction) {
     ctx := context.Background()
@@ -1014,91 +1014,89 @@ The example above uses an ECDSA key pair on the P-256 (secp256r1) elliptic curve
 
 ### Transfering Flow
 
+This is an example of how to construct a FLOW token transfer transaction
+with the Flow Go SDK.
 
-    This is an example of how to construct a FLOW token transfer transaction
-    with the Flow Go SDK.
+Before using this example, read the [Build a Transaction guide](../building-transactions)
+for a general overview of how Flow transactions are constructed.
 
-    Before using this example, read the [Build a Transaction guide](../building-transactions)
-    for a general overview of how Flow transactions are constructed.
+## Cadence Script
 
-    ## Cadence Script
+The following Cadence script will transfer FLOW tokens from a sender
+to a recipient.
 
-    The following Cadence script will transfer FLOW tokens from a sender
-    to a recipient.
-
-    _Note: this transaction is only compatible with Flow Mainnet._
+_Note: this transaction is only compatible with Flow Mainnet._
 
 ```cadence
-    import FungibleToken from 0xf233dcee88fe0abe
-    import FlowToken from 0x1654653399040a61
+import FungibleToken from 0xf233dcee88fe0abe
+import FlowToken from 0x1654653399040a61
 
-    transaction(amount: UFix64, recipient: Address) {
-    let sentVault: @FungibleToken.Vault
-    prepare(signer: AuthAccount) {
+transaction(amount: UFix64, recipient: Address) {
+  let sentVault: @FungibleToken.Vault
+  prepare(signer: AuthAccount) {
     let vaultRef = signer.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)
-    ?? panic("failed to borrow reference to sender vault")
+      ?? panic("failed to borrow reference to sender vault")
 
     self.sentVault <- vaultRef.withdraw(amount: amount)
-}
+  }
 
-    execute {
+  execute {
     let receiverRef =  getAccount(recipient)
-    .getCapability(/public/flowTokenReceiver)
-    .borrow<&{FungibleToken.Receiver}>()
-    ?? panic("failed to borrow reference to recipient vault")
+      .getCapability(/public/flowTokenReceiver)
+      .borrow<&{FungibleToken.Receiver}>()
+        ?? panic("failed to borrow reference to recipient vault")
 
     receiverRef.deposit(from: <-self.sentVault)
+  }
 }
-}
-    ```
+```
 
-    ## Build the Transaction
+## Build the Transaction
 
 ```go
-    import (
+import (
     "github.com/onflow/cadence"
     "github.com/onflow/flow-go-sdk"
-    )
+)
 
 // Replace with script above
-    const transferScript string = TOKEN_TRANSFER_CADENCE_SCRIPT
+const transferScript string = TOKEN_TRANSFER_CADENCE_SCRIPT
 
-    var (
+var (
     senderAddress    flow.Address
     senderAccountKey flow.AccountKey
     senderPrivateKey crypto.PrivateKey
-    )
+)
 
-    func main() {
+func main() {
     tx := flow.NewTransaction().
-    SetScript([]byte(transferScript)).
-    SetGasLimit(100).
-    SetPayer(senderAddress).
-    SetAuthorizer(senderAddress).
-    SetProposalKey(senderAddress, senderAccountKey.Index, senderAccountKey.SequenceNumber)
+        SetScript([]byte(transferScript)).
+        SetGasLimit(100).
+        SetPayer(senderAddress).
+        SetAuthorizer(senderAddress).
+        SetProposalKey(senderAddress, senderAccountKey.Index, senderAccountKey.SequenceNumber)
 
     amount, err := cadence.NewUFix64("123.4")
     if err != nil {
-    panic(err)
-}
+        panic(err)
+    }
 
     recipient := cadence.NewAddress(flow.HexToAddress("0xabc..."))
 
     err = tx.AddArgument(amount)
     if err != nil {
-    panic(err)
-}
+        panic(err)
+    }
 
     err = tx.AddArgument(recipient)
     if err != nil {
-    panic(err)
+        panic(err)
+    }
 }
-}
-    ```
+```
 
-    ## Sign and Send the Transaction
+## Sign and Send the Transaction
+Read the following guides to learn how to sign and send the transfer transaction:
 
-    Read the following guides to learn how to sign and send the transfer transaction:
-
-    - [Sign a Flow Transaction](../signing-transactions)
-    - [Send a Flow Transaction](../sending-transactions)
+- [Sign a Flow Transaction](../signing-transactions)
+- [Send a Flow Transaction](../sending-transactions)
