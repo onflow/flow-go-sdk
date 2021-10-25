@@ -12,6 +12,9 @@ This package contains code samples that interact with the [Flow Emulator](https:
   - [Get Blocks](#get-blocks)
   - [Get Accounts](#get-accounts)
   - [Get Events](#query-events)
+  - [Get Collection](#get-collection)
+  - [Execute Script](#execute-script)
+  - [Send Transaction](#send-transaction)
   - [Create Account](#create-account)
   - [Add Account Key](#add-account-key)
   - [Deploy Contract](#deploy-contract)
@@ -84,6 +87,30 @@ make get-accounts
 
 ```sh
 make get-events
+```
+
+### Get Collection
+
+[Get collections by ID.](get_collection/main.go)
+
+```sh
+make get-collection
+```
+
+### Execute Script
+
+[Execute cadence script.](./execute_script/main.go)
+
+```sh
+make send-transactions
+```
+
+### Send Transaction
+
+[Send a transaction.](./send_transactions/main.go)
+
+```sh
+make send-transactions
 ```
 
 ### Create Account

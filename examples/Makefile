@@ -1,5 +1,5 @@
 .PHONY: all
-all: create-account add-account-key deploy-contract query-events storage-usage transaction-arguments single-party single-party-multisig multi-party multi-party-multisig user-signature user-signature-validate-all user-signature-validate-any
+all: get-blocks get-accounts get-events get-collection get-transactions execute-script send-transaction create-account add-account-key deploy-contract query-events storage-usage transaction-arguments single-party single-party-multisig multi-party multi-party-multisig user-signature user-signature-validate-all user-signature-validate-any
 
 .PHONY: create-account
 create-account:
@@ -66,7 +66,7 @@ get-collection:
 	go run ./get_collection/main.go
 
 .PHONY: get-transactions
-get-transaction:
+get-transactions:
 	go run ./get_transactions/main.go
 
 .PHONY: execute-script
