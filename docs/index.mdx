@@ -24,7 +24,7 @@ SDKs are open source, and you can use them according to the licence.
 
 The library client specifications can be found here:
 
-[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130">](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client)
+[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130" />](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client)
 
 
 ## Getting Started
@@ -47,7 +47,7 @@ import "github.com/onflow/flow-go-sdk"
 ```
 
 ## Connect
-[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130">](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#New)
+[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130" />](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#New)
 
 The library uses gRPC to communicate with the access nodes and it must be configured with correct access node API URL.
 
@@ -74,7 +74,7 @@ Flow network to retrieve data about blocks, accounts, events and transactions. W
 how to retrieve each of these entities in the sections below.
 
 ### Get Blocks
-[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130">](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#Client.GetBlockByHeight)
+[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130" />](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#Client.GetBlockByHeight)
 
 Query the network for block by id, height or get the latest block.
 
@@ -86,7 +86,7 @@ Query the network for block by id, height or get the latest block.
 
 This example depicts ways to get the latest block as well as any other block by height or ID:
 
-**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">](https://github.com/onflow/flow-go-sdk/blob/master/examples/get_blocks/main.go)**
+**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130" />](https://github.com/onflow/flow-go-sdk/blob/master/examples/get_blocks/main.go)**
 ```go
 func demo() {
     ctx := context.Background()
@@ -133,7 +133,7 @@ timestamp: 2018-12-19 22:32:30.000000042 +0000 UTC
 ```
 
 ### Get Account
-[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130">](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#Client.GetAccount)
+[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130" />](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#Client.GetAccount)
 
 Retrieve any account from Flow network's latest block or from a specified block height.
 The `GetAccount` method is actually an alias for the get account at latest block method.
@@ -149,7 +149,7 @@ An account includes the following data:
 #### Examples
 Example depicts ways to get an account at the latest block and at a specific block height:
 
-**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">](https://github.com/onflow/flow-go-sdk/blob/master/examples/get_accounts/main.go)**
+**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130" />](https://github.com/onflow/flow-go-sdk/blob/master/examples/get_accounts/main.go)**
 ```go
 func demo() {
     ctx := context.Background()
@@ -189,7 +189,7 @@ Keys: 1
 
 
 ### Get Transactions
-[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130">](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#Client.GetTransaction)
+[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130" />](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#Client.GetTransaction)
 
 Retrieve transactions from the network by providing a transaction ID. After a transaction has been submitted, you can also get the transaction result to check the status.
 
@@ -209,7 +209,7 @@ Retrieve transactions from the network by providing a transaction ID. After a tr
 |   EXPIRED    |   ✅     |  The transaction reference block is outdated before being executed    |
 
 
-**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">](https://github.com/onflow/flow-go-sdk/blob/master/examples/get_transactions/main.go)**
+**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130" />](https://github.com/onflow/flow-go-sdk/blob/master/examples/get_transactions/main.go)**
 ```go
 func demo(txID flow.Identifier) {
     ctx := context.Background()
@@ -250,7 +250,7 @@ Error: <nil>
 
 
 ### Get Events
-[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130">](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#Client.GetEventsForBlockIDs)
+[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130" />](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#Client.GetEventsForBlockIDs)
 
 Retrieve events by a given type in a specified block height range or through a list of block IDs.
 
@@ -267,7 +267,7 @@ core events, and you should read more about them in [this document](https://docs
 #### Examples
 Example depicts ways to get events within block range or by block IDs:
 
-**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">](https://github.com/onflow/flow-go-sdk/blob/master/examples/get_events/main.go)**
+**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130" />](https://github.com/onflow/flow-go-sdk/blob/master/examples/get_events/main.go)**
 ```go
 func demo(deployedContract *flow.Account, runScriptTx *flow.Transaction) {
     ctx := context.Background()
@@ -330,7 +330,7 @@ Transaction ID: f3a2e33687ad23b0e02644ebbdcd74a7cd8ea7214065410a8007811d0bcbd353
 ```
 
 ### Get Collections
-[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130">](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#Client.GetCollection)
+[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130" />](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#Client.GetCollection)
 
 Retrieve a batch of transactions that have been included in the same block, known as ***collections***.
 Collections are used to improve consensus throughput by increasing the number of transactions per block and they act as a link between a block and a transaction.
@@ -362,7 +362,7 @@ Transactions: [cf1184e3de4bd9a7232ca3d0b9dd2cfbf96c97888298b81a05c086451fa52ec1]
 ```
 
 ### Execute Scripts
-[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130">](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#Client.ExecuteScriptAtLatestBlock)
+[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130" />](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#Client.ExecuteScriptAtLatestBlock)
 
 Scripts allow you to write arbitrary non-mutating Cadence code on the Flow blockchain and return data. You can learn more about [Cadence and scripts here](https://docs.onflow.org/cadence/language/), but we are now only interested in executing the script code and getting back the data.
 
@@ -372,7 +372,7 @@ We can execute a script using the latest state of the Flow blockchain or we can 
 
 📖 **Block height** expresses the height of the block in the chain.
 
-**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">](https://github.com/onflow/flow-go-sdk/blob/master/examples/execute_script/main.go)**
+**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130" />](https://github.com/onflow/flow-go-sdk/blob/master/examples/execute_script/main.go)**
 ```go
 func demo() {
     ctx := context.Background()
@@ -504,7 +504,7 @@ A transaction will be rejected if it is submitted past its expiry block. Flow ca
 A transaction expires after `600` blocks are committed on top of the reference block, which takes about 10 minutes at average Mainnet block rates.
 
 ### Build Transactions
-[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130">](https://pkg.go.dev/github.com/onflow/flow-go-sdk#Transaction)
+[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130" />](https://pkg.go.dev/github.com/onflow/flow-go-sdk#Transaction)
 
 Building a transaction involves setting the required properties explained above and producing a transaction object.
 
@@ -525,7 +525,7 @@ transaction(greeting: String) {
 }
 ```
 
-**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">]()**
+**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130" />]()**
 ```go
 import (
   "context"
@@ -592,7 +592,7 @@ func main() {
 After you have successfully [built a transaction](#build-transactions) the next step in the process is to sign it.
 
 ### Sign Transactions
-[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130">](https://pkg.go.dev/github.com/onflow/flow-go-sdk#Transaction.SignEnvelope)
+[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130" />](https://pkg.go.dev/github.com/onflow/flow-go-sdk#Transaction.SignEnvelope)
 
 Flow introduces new concepts that allow for more flexibility when creating and signing transactions.
 Before trying the examples below, we recommend that you read through the [transaction signature documentation](https://docs.onflow.org/concepts/accounts-and-keys/).
@@ -646,7 +646,7 @@ Flow supports great flexibility when it comes to transaction signing, we can def
 | ------- | ------ | ------ |
 | `0x01`  | 1      | 1.0    |
 
-**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">](https://github.com/onflow/flow-go-sdk/tree/master/examples#single-party-single-signature)**
+**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130" />](https://github.com/onflow/flow-go-sdk/tree/master/examples#single-party-single-signature)**
 ```go
 account1, _ := c.GetAccount(ctx, flow.HexToAddress("01"))
 
@@ -684,7 +684,7 @@ err := tx.SignEnvelope(account1.Address, key1.Index, key1Signer)
 | `0x01`  | 1      | 0.5    |
 | `0x01`  | 2      | 0.5    |
 
-**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">](https://github.com/onflow/flow-go-sdk/tree/master/examples#single-party-multiple-signatures)**
+**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130" />](https://github.com/onflow/flow-go-sdk/tree/master/examples#single-party-multiple-signatures)**
 ```go
 account1, _ := c.GetAccount(ctx, flow.HexToAddress("01"))
 
@@ -728,7 +728,7 @@ err = tx.SignEnvelope(account1.Address, key2.Index, key2Signer)
 | `0x01`  | 1      | 1.0    |
 | `0x02`  | 3      | 1.0    |
 
-**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">](https://github.com/onflow/flow-go-sdk/tree/master/examples#multiple-parties)**
+**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130" />](https://github.com/onflow/flow-go-sdk/tree/master/examples#multiple-parties)**
 ```go
 account1, _ := c.GetAccount(ctx, flow.HexToAddress("01"))
 account2, _ := c.GetAccount(ctx, flow.HexToAddress("02"))
@@ -775,7 +775,7 @@ err = tx.SignEnvelope(account2.Address, key3.Index, key3Signer)
 | `0x01`  | 1      | 1.0    |
 | `0x02`  | 3      | 1.0    |
 
-**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">](https://github.com/onflow/flow-go-sdk/tree/master/examples#multiple-parties-two-authorizers)**
+**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130" />](https://github.com/onflow/flow-go-sdk/tree/master/examples#multiple-parties-two-authorizers)**
 ```go
 account1, _ := c.GetAccount(ctx, flow.HexToAddress("01"))
 account2, _ := c.GetAccount(ctx, flow.HexToAddress("02"))
@@ -828,7 +828,7 @@ err = tx.SignEnvelope(account2.Address, key3.Index, key3Signer)
 | `0x02`  | 3      | 0.5    |
 | `0x02`  | 4      | 0.5    |
 
-**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">](https://github.com/onflow/flow-go-sdk/tree/master/examples#multiple-parties-multiple-signatures)**
+**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130" />](https://github.com/onflow/flow-go-sdk/tree/master/examples#multiple-parties-multiple-signatures)**
 ```go
 account1, _ := c.GetAccount(ctx, flow.HexToAddress("01"))
 account2, _ := c.GetAccount(ctx, flow.HexToAddress("02"))
@@ -874,12 +874,12 @@ err = tx.SignEnvelope(account2.Address, key4.Index, key4Signer)
 
 
 ### Send Transactions
-[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130">](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#Client.SendTransaction)
+[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130" />](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#Client.SendTransaction)
 
 After a transaction has been [built](#build-transactions) and [signed](#sign-transactions), it can be sent to the Flow blockchain where it will be executed. If sending was successful you can then [retrieve the transaction result](#get-transactions).
 
 
-**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130">](https://github.com/onflow/flow-go-sdk/blob/master/examples/send_transactions/main.go)**
+**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130" />](https://github.com/onflow/flow-go-sdk/blob/master/examples/send_transactions/main.go)**
 ```go
 func demo(tx *flow.Transaction) {
     ctx := context.Background()
@@ -894,7 +894,7 @@ func demo(tx *flow.Transaction) {
 
 
 ### Create Accounts
-[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130">](https://pkg.go.dev/github.com/onflow/flow-go-sdk/templates#CreateAccount)
+[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130" />](https://pkg.go.dev/github.com/onflow/flow-go-sdk/templates#CreateAccount)
 
 On Flow, account creation happens inside a transaction. Because the network allows for a many-to-many relationship between public keys and accounts, it's not possible to derive a new account address from a public key offline.
 
@@ -988,7 +988,7 @@ for _, event := range result.Events {
 ```
 
 ### Generate Keys
-[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130">](https://docs.onflow.org/concepts/accounts-and-keys/#supported-signature--hash-algorithms)
+[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130" />](https://docs.onflow.org/concepts/accounts-and-keys/#supported-signature--hash-algorithms)
 
 Flow uses [ECDSA](https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm) signatures to control access to user accounts. Each key pair can be used in combination with the `SHA2-256` or `SHA3-256` hashing algorithms.
 
