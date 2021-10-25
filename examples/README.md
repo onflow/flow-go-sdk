@@ -9,6 +9,27 @@ This package contains code samples that interact with the [Flow Emulator](https:
     - [Installation](#installation)
     - [Starting the server](#starting-the-server)
 - [Running the examples](#running-the-examples)
+  - [Get Blocks](#get-blocks)
+  - [Get Accounts](#get-accounts)
+  - [Get Events](#query-events)
+  - [Get Collection](#get-collection)
+  - [Execute Script](#execute-script)
+  - [Send Transaction](#send-transaction)
+  - [Create Account](#create-account)
+  - [Add Account Key](#add-account-key)
+  - [Deploy Contract](#deploy-contract)
+  - [Transaction Arguments](#transaction-arguments)
+  - [Transaction Signing](#transaction-signing)
+    - [Single Party, Single Signature](#single-party-single-signature)
+    - [Single Party, Multiple Signatures](#single-party-multiple-signatures)
+    - [Multiple Parties](#multiple-parties)
+    - [Multiple Parties, Two authorizers](#multiple-parties-two-authorizers)
+    - [Multiple Parties, Multiple Signatures](#multiple-parties-multiple-signatures)
+    - [Verify Signature](#verify-signature)
+        - [User Signature](#user-signature)
+        - [User Signature Verify All](#user-signature-verify-all)
+        - [User Signature Verify Any](#user-signature-verify-any)
+    - [Verify Events](#verify-events)
     - [Create Account](#create-account)
     - [Add Account Key](#add-account-key)
     - [Deploy Contract](#deploy-contract)
@@ -20,11 +41,6 @@ This package contains code samples that interact with the [Flow Emulator](https:
         - [Multiple Parties](#multiple-parties)
         - [Multiple Parties, Two authorizers](#multiple-parties-two-authorizers)
         - [Multiple Parties, Multiple Signatures](#multiple-parties-multiple-signatures)
-    - [Verify Signature](#verify-signature)
-        - [User Signature](#user-signature)
-        - [User Signature Verify All](#user-signature-verify-all)
-        - [User Signature Verify Any](#user-signature-verify-any)
-    - [Verify Events](#verify-events)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -51,6 +67,52 @@ flow emulator start -v
 In a separate process, run any of the example programs below.
 Watch the emulator logs to see transaction output.
 
+### Get Blocks
+
+[Get blocks by ID, height or latest on Flow.](get_blocks/main.go)
+```sh
+make get-blocks
+```
+
+### Get Accounts
+[Get accounts by address in specific block on Flow](get_accounts/main.go)
+
+```sh
+make get-accounts
+```
+
+### Get Events
+
+[Get events emitted by transactions.](get_events/main.go)
+
+```sh
+make get-events
+```
+
+### Get Collection
+
+[Get collections by ID.](get_collection/main.go)
+
+```sh
+make get-collection
+```
+
+### Execute Script
+
+[Execute cadence script.](./execute_script/main.go)
+
+```sh
+make send-transactions
+```
+
+### Send Transaction
+
+[Send a transaction.](./send_transactions/main.go)
+
+```sh
+make send-transactions
+```
+
 ### Create Account
 
 [Create a new account on Flow.](./create_account/main.go)
@@ -73,14 +135,6 @@ make add-account-key
 
 ```sh
 make deploy-contract
-```
-
-### Query Events
-
-[Query events emitted by transactions.](./query_events/main.go)
-
-```sh
-make query-events
 ```
 
 ### Transaction Arguments

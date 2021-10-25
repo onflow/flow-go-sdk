@@ -1,5 +1,5 @@
 .PHONY: all
-all: create-account add-account-key deploy-contract query-events storage-usage transaction-arguments single-party single-party-multisig multi-party multi-party-multisig user-signature user-signature-validate-all user-signature-validate-any
+all: get-blocks get-accounts get-events get-collection get-transactions execute-script send-transaction create-account add-account-key deploy-contract query-events storage-usage transaction-arguments single-party single-party-multisig multi-party multi-party-multisig user-signature user-signature-validate-all user-signature-validate-any
 
 .PHONY: create-account
 create-account:
@@ -12,10 +12,6 @@ add-account-key:
 .PHONY: deploy-contract
 deploy-contract:
 	go run ./deploy_contract/main.go
-
-.PHONY: query-events
-query-events:
-	go run ./query_events/main.go
 
 .PHONY: verify-events
 verify-events:
@@ -51,7 +47,35 @@ multi-party-multisig:
 
 .PHONY: user-signature
 user-signature:
-	go run ./verify_signature/user_signature/main.go
+	go run ./user_signature/main.go
+
+.PHONY: get-blocks
+get-blocks:
+	go run ./get_blocks/main.go
+
+.PHONY: get-accounts
+get-accounts:
+	go run ./get_accounts/main.go
+
+.PHONY: get-events
+get-events:
+	go run ./get_events/main.go
+
+.PHONY: get-collection
+get-collection:
+	go run ./get_collection/main.go
+
+.PHONY: get-transactions
+get-transactions:
+	go run ./get_transactions/main.go
+
+.PHONY: execute-script
+execute-script:
+	go run ./execute_script/main.go
+
+.PHONY: send-transaction
+send-transaction:
+	go run ./send_transactions/main.go
 
 .PHONY: user-signature-validate-all
 user-signature-validate-all:

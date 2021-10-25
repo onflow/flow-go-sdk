@@ -7,18 +7,13 @@
   "accounts": {
     "service": {
       "address": "f8d6e0586b0a20c7",
-      "keys": [
-        {
-          "type": "hex",
-          "index": 0,
-          "signatureAlgorithm": "ECDSA_P256",
-          "hashAlgorithm": "SHA3_256",
-          "context": {
-            "privateKey": "68ee617d9bf67a4677af80aaca5a090fcda80ff2f4dbc340e0e36201fa1f1d8c"
-          }
-        }
-      ]
+      "key": "68ee617d9bf67a4677af80aaca5a090fcda80ff2f4dbc340e0e36201fa1f1d8c"
     }
+  },
+  "networks": {
+    "emulator": "127.0.0.1:3569",
+    "mainnet": "access.mainnet.nodes.onflow.org:9000",
+    "testnet": "access.devnet.nodes.onflow.org:9000"
   },
   "contracts": {
     "FlowServiceAccount": "f8d6e0586b0a20c7",
