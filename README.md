@@ -222,7 +222,7 @@ Before trying the examples below, we recommend that you read through the [transa
 
 | Account   | Key ID | Weight |
 |-----------|--------|--------|
-| `0x01`    | 1      | 1.0    |
+| `0x01`    | 1      | 1000   |
 
 ```go
 account1, _ := c.GetAccount(ctx, flow.HexToAddress("01"))
@@ -255,12 +255,12 @@ err := tx.SignEnvelope(account1.Address, key1.Index, key1Signer)
 
 - Proposer, payer and authorizer are the same account (`0x01`).
 - Only the envelope must be signed.
-- Each key has weight 0.5, so two signatures are required.
+- Each key has weight 500, so two signatures are required.
 
 | Account   | Key ID | Weight |
 |-----------|--------|--------|
-| `0x01`    | 1      | 0.5    |
-| `0x01`    | 2      | 0.5    |
+| `0x01`    | 1      | 500    |
+| `0x01`    | 2      | 500    |
 
 ```go
 account1, _ := c.GetAccount(ctx, flow.HexToAddress("01"))
@@ -304,8 +304,8 @@ err = tx.SignEnvelope(account1.Address, key2.Index, key2Signer)
 
 | Account   | Key ID | Weight |
 |-----------|--------|--------|
-| `0x01`    | 1      | 1.0    |
-| `0x02`    | 3      | 1.0    |
+| `0x01`    | 1      | 1000   |
+| `0x02`    | 3      | 1000   |
 
 ```go
 account1, _ := c.GetAccount(ctx, flow.HexToAddress("01"))
@@ -351,8 +351,8 @@ err = tx.SignEnvelope(account2.Address, key3.Index, key3Signer)
 
 | Account   | Key ID | Weight |
 |-----------|--------|--------|
-| `0x01`    | 1      | 1.0    |
-| `0x02`    | 3      | 1.0    |
+| `0x01`    | 1      | 1000   |
+| `0x02`    | 3      | 1000   |
 
 ```go
 account1, _ := c.GetAccount(ctx, flow.HexToAddress("01"))
@@ -403,10 +403,10 @@ err = tx.SignEnvelope(account2.Address, key3.Index, key3Signer)
 
 | Account   | Key ID | Weight |
 |-----------|--------|--------|
-| `0x01`    | 1      | 0.5    |
-| `0x01`    | 2      | 0.5    |
-| `0x02`    | 3      | 0.5    |
-| `0x02`    | 4      | 0.5    |
+| `0x01`    | 1      | 500    |
+| `0x01`    | 2      | 500    |
+| `0x02`    | 3      | 500    |
+| `0x02`    | 4      | 500    |
 
 ```go
 account1, _ := c.GetAccount(ctx, flow.HexToAddress("01"))
