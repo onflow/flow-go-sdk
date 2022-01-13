@@ -148,6 +148,12 @@ func (c *Client) GetPublicKey(ctx context.Context, key Key) (crypto.PublicKey, c
 	return publicKey, hashAlgo, nil
 }
 
+// KMSClient gives access to the KeyManagementClient,
+// e.g. for closing the connection to the Google KMS API
+func (c *Client) KMSClient() *kms.KeyManagementClient {
+	return c.client
+}
+
 func ParseSignatureAlgorithm(algo kmspb.CryptoKeyVersion_CryptoKeyVersionAlgorithm) crypto.SignatureAlgorithm {
 	if algo == kmspb.CryptoKeyVersion_EC_SIGN_P256_SHA256 {
 		return crypto.ECDSA_P256
