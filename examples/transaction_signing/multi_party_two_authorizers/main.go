@@ -69,7 +69,7 @@ func MultiPartySingleSignatureDemo() {
 		SetScript([]byte(`
 		transaction { 
 			prepare(signer1: AuthAccount, signer2: AuthAccount) { 
-				log(signer.address) 
+				log(signer1.address) 
 				log(signer2.address)
 			}
 		}`)).
