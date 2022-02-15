@@ -95,6 +95,8 @@ func StorageUsageDemo() {
 
 	// Add some flow to increase storage capacity
 	examples.FundAccountInEmulator(flowClient, demoAccount.Address, 1.0)
+	
+	serviceAcctKey.SequenceNumber++
 
 	// try to save a very large resource again. This time it should work.
 	txId = sendSaveLargeResourceTransaction(
