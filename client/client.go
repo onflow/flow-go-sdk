@@ -588,6 +588,6 @@ func (c *Client) GetExecutionResultForBlockID(ctx context.Context, blockID flow.
 		BlockID:          flow.BytesToID(er.ExecutionResult.BlockId),
 		Chunks:           chunks,
 		ServiceEvents:    serviceEvents,
-		ExecutionDataId:  flow.BytesToID(er.ExecutionDataId.ExecutionDataID),
+		ExecutionDataId:  flow.BytesToID(er.ExecutionResult.ExecutionDataId),
 	}, nil
 }
