@@ -1,32 +1,29 @@
 package flow
 
 import (
-	"encoding/hex"
 	"fmt"
 
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
-type canonicalAcctProofWithoutTag struct {
+type canonicalAccountProofWithoutTag struct {
 	Addr      []byte
 	Timestamp uint64
 }
 
-type canonicalAcctProofWithTag struct {
+type canonicalAccountProofWithTag struct {
 	DomainTag []byte
 	Addr      []byte
 	Timestamp uint64
 }
 
-// NewAccountProofMsg creates a new account proof message for singing. The appDomainTag is optional and can be left
+// NewAccountProofMessage creates a new account proof message for singing. The appDomainTag is optional and can be left
 // empty. Note that the resulting byte slice does not contain the user domain tag.
-func NewAccountProofMsg(addr string, timestamp int64, appDomainTag string) ([]byte, error) {
-	decodedAddr, err := hex.DecodeString(addr)
-	if err != nil {
-		return nil, fmt.Errorf("error hex decoding address: %w", err)
-	}
-
-	var encodedMsg []byte
+func NewAccountProofMessage(address Address, timestamp int64, appDomainTag string) ([]byte, error) {
+	var (
+		encodedMsg []byte
+		err        error
+	)
 
 	if appDomainTag != "" {
 		paddedTag, err := NewDomainTag(appDomainTag)
@@ -34,14 +31,14 @@ func NewAccountProofMsg(addr string, timestamp int64, appDomainTag string) ([]by
 			return nil, fmt.Errorf("error encoding domain tag: %w", err)
 		}
 
-		encodedMsg, err = rlp.EncodeToBytes(&canonicalAcctProofWithTag{
-			Addr:      decodedAddr,
+		encodedMsg, err = rlp.EncodeToBytes(&canonicalAccountProofWithTag{
+			DomainTag: paddedTag[:],
+			Addr:      address.Bytes(),
 			Timestamp: uint64(timestamp),
-			DomainTag: []byte(hex.EncodeToString(paddedTag[:])),
 		})
 	} else {
-		encodedMsg, err = rlp.EncodeToBytes(&canonicalAcctProofWithoutTag{
-			Addr:      decodedAddr,
+		encodedMsg, err = rlp.EncodeToBytes(&canonicalAccountProofWithoutTag{
+			Addr:      address.Bytes(),
 			Timestamp: uint64(timestamp),
 		})
 	}
