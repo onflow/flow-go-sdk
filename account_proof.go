@@ -44,7 +44,7 @@ func NewAccountProofMessage(address Address, timestamp int64, appDomainTag strin
 	)
 
 	if appDomainTag != "" {
-		paddedTag, err := NewDomainTag(appDomainTag)
+		paddedTag, err := padDomainTag(appDomainTag)
 		if err != nil {
 			return nil, fmt.Errorf("error encoding domain tag: %w", err)
 		}
@@ -66,14 +66,4 @@ func NewAccountProofMessage(address Address, timestamp int64, appDomainTag strin
 	}
 
 	return encodedMessage, nil
-}
-
-// NewDomainTag returns a new padded domain tag from the given string. This function returns an error if the domain
-// tag is too long.
-func NewDomainTag(tag string) (paddedTag [domainTagLength]byte, err error) {
-	if len(tag) > domainTagLength {
-		return paddedTag, fmt.Errorf("domain tag %s cannot be longer than %d characters", tag, domainTagLength)
-	}
-
-	return paddedDomainTag(tag), nil
 }
