@@ -25,13 +25,13 @@ import (
 )
 
 type canonicalAccountProofWithoutTag struct {
-	Addr      []byte
+	Address   []byte
 	Timestamp uint64
 }
 
 type canonicalAccountProofWithTag struct {
 	DomainTag []byte
-	Addr      []byte
+	Address   []byte
 	Timestamp uint64
 }
 
@@ -39,8 +39,8 @@ type canonicalAccountProofWithTag struct {
 // empty. Note that the resulting byte slice does not contain the user domain tag.
 func NewAccountProofMessage(address Address, timestamp int64, appDomainTag string) ([]byte, error) {
 	var (
-		encodedMsg []byte
-		err        error
+		encodedMessage []byte
+		err            error
 	)
 
 	if appDomainTag != "" {
@@ -49,14 +49,14 @@ func NewAccountProofMessage(address Address, timestamp int64, appDomainTag strin
 			return nil, fmt.Errorf("error encoding domain tag: %w", err)
 		}
 
-		encodedMsg, err = rlp.EncodeToBytes(&canonicalAccountProofWithTag{
+		encodedMessage, err = rlp.EncodeToBytes(&canonicalAccountProofWithTag{
 			DomainTag: paddedTag[:],
-			Addr:      address.Bytes(),
+			Address:   address.Bytes(),
 			Timestamp: uint64(timestamp),
 		})
 	} else {
-		encodedMsg, err = rlp.EncodeToBytes(&canonicalAccountProofWithoutTag{
-			Addr:      address.Bytes(),
+		encodedMessage, err = rlp.EncodeToBytes(&canonicalAccountProofWithoutTag{
+			Address:   address.Bytes(),
 			Timestamp: uint64(timestamp),
 		})
 	}
@@ -65,7 +65,7 @@ func NewAccountProofMessage(address Address, timestamp int64, appDomainTag strin
 		return nil, fmt.Errorf("error encoding account proof message: %w", err)
 	}
 
-	return encodedMsg, nil
+	return encodedMessage, nil
 }
 
 // NewDomainTag returns a new padded domain tag from the given string. This function returns an error if the domain
