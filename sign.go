@@ -37,15 +37,12 @@ var TransactionDomainTag = mustPadDomainTag("FLOW-V0.0-transaction")
 var UserDomainTag = mustPadDomainTag("FLOW-V0.0-user")
 
 func mustPadDomainTag(s string) [domainTagLength]byte {
-	var tag [domainTagLength]byte
-
-	if len(s) > domainTagLength {
-		panic(fmt.Sprintf("domain tag %s cannot be longer than %d characters", s, domainTagLength))
+	paddedTag, err := padDomainTag(s)
+	if err != nil {
+		panic(err)
 	}
 
-	copy(tag[:], s)
-
-	return tag
+	return paddedTag
 }
 
 // padDomainTag returns a new padded domain tag from the given string. This function returns an error if the domain
@@ -55,7 +52,9 @@ func padDomainTag(tag string) (paddedTag [domainTagLength]byte, err error) {
 		return paddedTag, fmt.Errorf("domain tag %s cannot be longer than %d characters", tag, domainTagLength)
 	}
 
-	return mustPadDomainTag(tag), nil
+	copy(paddedTag[:], tag)
+
+	return paddedTag, nil
 }
 
 // SignUserMessage signs a message in the user domain.
