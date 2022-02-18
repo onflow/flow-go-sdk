@@ -121,7 +121,7 @@ func BlockToMessage(b flow.Block) (*entities.Block, error) {
 		Timestamp:            t,
 		CollectionGuarantees: CollectionGuaranteesToMessages(b.BlockPayload.CollectionGuarantees),
 		BlockSeals:           BlockSealsToMessages(b.BlockPayload.Seals),
-		Signatures: b.Signatures,
+		Signatures:           b.Signatures,
 	}, nil
 }
 
@@ -158,7 +158,7 @@ func MessageToBlock(m *entities.Block) (flow.Block, error) {
 	return flow.Block{
 		BlockHeader:  *header,
 		BlockPayload: *payload,
-		Signatures: m.Signatures,
+		Signatures:   m.Signatures,
 	}, nil
 }
 

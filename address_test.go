@@ -37,7 +37,7 @@ func TestHexToAddress(t *testing.T) {
 
 	type testCase struct {
 		literal string
-		value []byte
+		value   []byte
 	}
 
 	for _, test := range []testCase{

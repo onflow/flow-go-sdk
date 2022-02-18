@@ -149,7 +149,7 @@ func (g *Blocks) New() *flow.Block {
 	return &flow.Block{
 		BlockHeader:  header,
 		BlockPayload: payload,
-		Signatures: signiture,
+		Signatures:   signiture,
 	}
 }
 
