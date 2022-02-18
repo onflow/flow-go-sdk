@@ -21,6 +21,7 @@ package main
 import (
 	"context"
 	"fmt"
+
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/client"
 	"github.com/onflow/flow-go-sdk/examples"
@@ -57,7 +58,7 @@ func printBlock(block *flow.Block, err error) {
 	fmt.Printf("\nID: %s\n", block.ID)
 	fmt.Printf("height: %d\n", block.Height)
 	fmt.Printf("timestamp: %s\n\n", block.Timestamp)
-	fmt.Printf("Signatures: %s\n",block.Signatures)
+	fmt.Printf("Signatures: %s\n", block.Signatures)
 }
 
 func prepareDemo() {

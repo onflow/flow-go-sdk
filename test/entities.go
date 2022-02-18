@@ -130,7 +130,7 @@ func BlockGenerator() *Blocks {
 
 func (g *Blocks) New() *flow.Block {
 	header := g.headers.New()
-	signiture := g.signatures.New()
+	signatures := g.signatures.New()
 
 	guarantees := []*flow.CollectionGuarantee{
 		g.guarantees.New(),
@@ -150,7 +150,7 @@ func (g *Blocks) New() *flow.Block {
 	return &flow.Block{
 		BlockHeader:  header,
 		BlockPayload: payload,
-		Signatures:   signiture,
+		Signatures:   signatures,
 	}
 }
 
@@ -294,7 +294,7 @@ func (g *Events) New() flow.Event {
 	return event
 }
 
-type Signatures struct{
+type Signatures struct {
 	count int
 }
 
@@ -311,7 +311,7 @@ func (g *Signatures) New() [][]byte {
 
 func newSignatures(count int) Signatures {
 	return Signatures{
-		count:count,
+		count: count,
 	}
 }
 
