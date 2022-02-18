@@ -31,7 +31,6 @@ func TestNewAccountProofMsg(t *testing.T) {
 		timestamp      int64
 		appDomainTag   string
 		expectedResult string
-		expectedErr    error
 	}
 
 	for name, tc := range map[string]testCase{
