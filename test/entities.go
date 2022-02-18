@@ -127,6 +127,9 @@ func BlockGenerator() *Blocks {
 
 func (g *Blocks) New() *flow.Block {
 	header := g.headers.New()
+	signiture := [][]byte{
+		[]byte("+G+LAAAAAAAAAAAAAACwsi2TU6K+7xMryGWvqb5Sl370rDllm5mLnzLNGq4GDrGLNjuvJwqsH9+qav3xuTDAgLCh+uxmA8iQHQC+WnASA3ewAl+nnOYRVEPJlmLxwVVKCGnklpTV532/ZJ4t7DnpGMs="))
+	}
 
 	guarantees := []*flow.CollectionGuarantee{
 		g.guarantees.New(),
@@ -146,6 +149,7 @@ func (g *Blocks) New() *flow.Block {
 	return &flow.Block{
 		BlockHeader:  header,
 		BlockPayload: payload,
+		Signatures: signiture,
 	}
 }
 
