@@ -20,6 +20,8 @@ package flow
 
 import (
 	"fmt"
+	jsoncdc "github.com/onflow/cadence/encoding/json"
+	"github.com/onflow/flow-go/model/flow"
 
 	"github.com/onflow/cadence"
 	"github.com/onflow/flow-go-sdk/crypto"
@@ -95,17 +97,47 @@ func (e *Event) Fingerprint() []byte {
 // propagated in Chunk. Providing list of events as emitted by transactions in given chunk,
 // hashes should match
 func CalculateEventsHash(es []Event) (crypto.Hash, error) {
+	events, err := sdkEventsToFlow(es)
+	if err != nil {
+		return nil, err
+	}
 
-	hasher := hash.NewSHA3_256()
+	id, err := flow.EventsMerkleRootHash(events)
+	if err != nil {
+		return nil, err
+	}
 
-	for _, event := range es {
-		_, err := hasher.Write(event.Fingerprint())
+	return hash.Hash(id.String()), nil
+}
+
+func sdkEventToFlow(event Event) (flow.Event, error) {
+	payload, err := jsoncdc.Encode(event.Value)
+	if err != nil {
+		return flow.Event{}, err
+	}
+
+	return flow.Event{
+		Type:             flow.EventType(event.Type),
+		TransactionID:    flow.Identifier(event.TransactionID),
+		TransactionIndex: uint32(event.TransactionIndex),
+		EventIndex:       uint32(event.EventIndex),
+		Payload:          payload,
+	}, nil
+}
+
+func sdkEventsToFlow(events []Event) ([]flow.Event, error) {
+	flowEvents := make([]flow.Event, len(events))
+
+	for i, event := range events {
+		flowEvent, err := sdkEventToFlow(event)
 		if err != nil {
 			return nil, err
 		}
+
+		flowEvents[i] = flowEvent
 	}
 
-	return hasher.SumHash(), nil
+	return flowEvents, nil
 }
 
 // An AccountCreatedEvent is emitted when a transaction creates a new Flow account.
