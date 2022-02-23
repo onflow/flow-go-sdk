@@ -19,13 +19,13 @@
 package flow
 
 import (
+	"encoding/hex"
 	"fmt"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/flow-go/model/flow"
 
 	"github.com/onflow/cadence"
 	"github.com/onflow/flow-go-sdk/crypto"
-	"github.com/onflow/flow-go/crypto/hash"
 )
 
 // List of built-in account event types.
@@ -107,7 +107,12 @@ func CalculateEventsHash(es []Event) (crypto.Hash, error) {
 		return nil, err
 	}
 
-	return hash.Hash(id.String()), nil
+	hash, err := hex.DecodeString(id.String())
+	if err != nil {
+		return nil, err
+	}
+
+	return hash, nil
 }
 
 func sdkEventToFlow(event Event) (flow.Event, error) {
