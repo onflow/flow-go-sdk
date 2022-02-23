@@ -20,9 +20,10 @@ package flow
 
 import (
 	"crypto/rand"
+	"testing"
+
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func generateKey() crypto.PrivateKey {
