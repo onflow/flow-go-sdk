@@ -19,7 +19,6 @@
 package flow
 
 import (
-	"encoding/hex"
 	"fmt"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/flow-go/model/flow"
@@ -107,12 +106,7 @@ func CalculateEventsHash(es []Event) (crypto.Hash, error) {
 		return nil, err
 	}
 
-	hash, err := hex.DecodeString(id.String())
-	if err != nil {
-		return nil, err
-	}
-
-	return hash, nil
+	return id[:], nil
 }
 
 func sdkEventToFlow(event Event) (flow.Event, error) {
