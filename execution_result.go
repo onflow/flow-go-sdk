@@ -7,7 +7,7 @@ type ExecutionResult struct {
 	BlockID          Identifier // commit of the current block
 	Chunks           []*Chunk
 	ServiceEvents    []*ServiceEvent
-	ExecutionDataId  Identifier
+	ExecutionDataID  Identifier
 }
 
 type Chunk struct {
