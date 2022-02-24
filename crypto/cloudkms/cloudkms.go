@@ -118,7 +118,7 @@ func (c *Client) GetPublicKey(ctx context.Context, key Key) (crypto.PublicKey, c
 			fmt.Errorf("cloudkms: failed to fetch public key from KMS API: %v", err)
 	}
 
-	sigAlgo := parseSignatureAlgorithm(result.Algorithm)
+	sigAlgo := ParseSignatureAlgorithm(result.Algorithm)
 	if sigAlgo == crypto.UnknownSignatureAlgorithm {
 		return nil,
 			crypto.UnknownHashAlgorithm,
@@ -128,7 +128,7 @@ func (c *Client) GetPublicKey(ctx context.Context, key Key) (crypto.PublicKey, c
 			)
 	}
 
-	hashAlgo := parseHashAlgorithm(result.Algorithm)
+	hashAlgo := ParseHashAlgorithm(result.Algorithm)
 	if hashAlgo == crypto.UnknownHashAlgorithm {
 		return nil,
 			crypto.UnknownHashAlgorithm,
@@ -148,7 +148,13 @@ func (c *Client) GetPublicKey(ctx context.Context, key Key) (crypto.PublicKey, c
 	return publicKey, hashAlgo, nil
 }
 
-func parseSignatureAlgorithm(algo kmspb.CryptoKeyVersion_CryptoKeyVersionAlgorithm) crypto.SignatureAlgorithm {
+// KMSClient gives access to the KeyManagementClient,
+// e.g. for closing the connection to the Google KMS API
+func (c *Client) KMSClient() *kms.KeyManagementClient {
+	return c.client
+}
+
+func ParseSignatureAlgorithm(algo kmspb.CryptoKeyVersion_CryptoKeyVersionAlgorithm) crypto.SignatureAlgorithm {
 	if algo == kmspb.CryptoKeyVersion_EC_SIGN_P256_SHA256 {
 		return crypto.ECDSA_P256
 	}
@@ -158,7 +164,7 @@ func parseSignatureAlgorithm(algo kmspb.CryptoKeyVersion_CryptoKeyVersionAlgorit
 	return crypto.ECDSA_secp256k1
 }
 
-func parseHashAlgorithm(algo kmspb.CryptoKeyVersion_CryptoKeyVersionAlgorithm) crypto.HashAlgorithm {
+func ParseHashAlgorithm(algo kmspb.CryptoKeyVersion_CryptoKeyVersionAlgorithm) crypto.HashAlgorithm {
 	if algo == kmspb.CryptoKeyVersion_EC_SIGN_P256_SHA256 {
 		return crypto.SHA2_256
 	}
