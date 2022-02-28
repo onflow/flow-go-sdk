@@ -20,9 +20,10 @@ package templates
 
 import (
 	"encoding/hex"
-
 	"github.com/onflow/cadence"
+
 	jsoncdc "github.com/onflow/cadence/encoding/json"
+	templates "github.com/onflow/sdks"
 
 	"github.com/onflow/flow-go-sdk"
 )
@@ -46,22 +47,6 @@ func (c Contract) SourceBytes() []byte {
 func (c Contract) SourceHex() string {
 	return hex.EncodeToString(c.SourceBytes())
 }
-
-const createAccountTemplate = `
-transaction(publicKeys: [String], contracts: {String: String}) {
-	prepare(signer: AuthAccount) {
-		let acct = AuthAccount(payer: signer)
-
-		for key in publicKeys {
-			acct.addPublicKey(key.decodeHex())
-		}
-
-		for contract in contracts.keys {
-			acct.contracts.add(name: contract, code: contracts[contract]!.decodeHex())
-		}
-	}
-}
-`
 
 // CreateAccount generates a transactions that creates a new account.
 //
@@ -93,19 +78,11 @@ func CreateAccount(accountKeys []*flow.AccountKey, contracts []Contract, payer f
 	cadenceContracts := cadence.NewDictionary(contractKeyPairs)
 
 	return flow.NewTransaction().
-		SetScript([]byte(createAccountTemplate)).
+		SetScript([]byte(templates.CreateAccount)).
 		AddAuthorizer(payer).
 		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
 		AddRawArgument(jsoncdc.MustEncode(cadenceContracts))
 }
-
-const updateAccountContractTemplate = `
-transaction(name: String, code: String) {
-	prepare(signer: AuthAccount) {
-		signer.contracts.update__experimental(name: name, code: code.decodeHex())
-	}
-}
-`
 
 // UpdateAccountContract generates a transaction that updates a contract deployed at an account.
 func UpdateAccountContract(address flow.Address, contract Contract) *flow.Transaction {
@@ -113,19 +90,11 @@ func UpdateAccountContract(address flow.Address, contract Contract) *flow.Transa
 	cadenceCode := cadence.String(contract.SourceHex())
 
 	return flow.NewTransaction().
-		SetScript([]byte(updateAccountContractTemplate)).
+		SetScript([]byte(templates.UpdateContract)).
 		AddRawArgument(jsoncdc.MustEncode(cadenceName)).
 		AddRawArgument(jsoncdc.MustEncode(cadenceCode)).
 		AddAuthorizer(address)
 }
-
-const addAccountContractTemplate = `
-transaction(name: String, code: String) {
-	prepare(signer: AuthAccount) {
-		signer.contracts.add(name: name, code: code.decodeHex())
-	}
-}
-`
 
 // AddAccountContract generates a transaction that deploys a contract to an account.
 func AddAccountContract(address flow.Address, contract Contract) *flow.Transaction {
@@ -133,19 +102,11 @@ func AddAccountContract(address flow.Address, contract Contract) *flow.Transacti
 	cadenceCode := cadence.String(contract.SourceHex())
 
 	return flow.NewTransaction().
-		SetScript([]byte(addAccountContractTemplate)).
+		SetScript([]byte(templates.AddContract)).
 		AddRawArgument(jsoncdc.MustEncode(cadenceName)).
 		AddRawArgument(jsoncdc.MustEncode(cadenceCode)).
 		AddAuthorizer(address)
 }
-
-const addAccountKeyTemplate = `
-transaction(publicKey: String) {
-	prepare(signer: AuthAccount) {
-		signer.addPublicKey(publicKey.decodeHex())
-	}
-}
-`
 
 // AddAccountKey generates a transaction that adds a public key to an account.
 func AddAccountKey(address flow.Address, accountKey *flow.AccountKey) *flow.Transaction {
@@ -153,25 +114,17 @@ func AddAccountKey(address flow.Address, accountKey *flow.AccountKey) *flow.Tran
 	cadencePublicKey := cadence.String(keyHex)
 
 	return flow.NewTransaction().
-		SetScript([]byte(addAccountKeyTemplate)).
+		SetScript([]byte(templates.AddAccountKey)).
 		AddRawArgument(jsoncdc.MustEncode(cadencePublicKey)).
 		AddAuthorizer(address)
 }
-
-const removeAccountKeyTemplate = `
-transaction(keyIndex: Int) {
-	prepare(signer: AuthAccount) {
-		signer.removePublicKey(keyIndex)
-	}
-}
-`
 
 // RemoveAccountKey generates a transaction that removes a key from an account.
 func RemoveAccountKey(address flow.Address, keyIndex int) *flow.Transaction {
 	cadenceKeyIndex := cadence.NewInt(keyIndex)
 
 	return flow.NewTransaction().
-		SetScript([]byte(removeAccountKeyTemplate)).
+		SetScript([]byte(templates.RemoveAccountKey)).
 		AddRawArgument(jsoncdc.MustEncode(cadenceKeyIndex)).
 		AddAuthorizer(address)
 }
@@ -181,15 +134,7 @@ func RemoveAccountContract(address flow.Address, contractName string) *flow.Tran
 	cadenceName := cadence.String(contractName)
 
 	return flow.NewTransaction().
-		SetScript([]byte(removeAccountContractTemplate)).
+		SetScript([]byte(templates.RemoveContract)).
 		AddRawArgument(jsoncdc.MustEncode(cadenceName)).
 		AddAuthorizer(address)
 }
-
-const removeAccountContractTemplate = `
-transaction(name: String) {
-	prepare(signer: AuthAccount) {
-		signer.contracts.remove(name: name)
-	}
-}
-`
