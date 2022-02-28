@@ -9,7 +9,7 @@ require (
 	github.com/onflow/cadence v0.20.1
 	github.com/onflow/flow-go/crypto v0.21.3
 	github.com/onflow/flow/protobuf/go/flow v0.2.2
-	github.com/onflow/sdks v0.2.0 // indirect
+	github.com/onflow/sdks v0.3.0 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.7.0
 	google.golang.org/api v0.58.0
