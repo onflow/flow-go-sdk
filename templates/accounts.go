@@ -20,9 +20,12 @@ package templates
 
 import (
 	"encoding/hex"
+	"fmt"
 	"github.com/onflow/cadence"
-
 	jsoncdc "github.com/onflow/cadence/encoding/json"
+	"github.com/onflow/cadence/runtime"
+	"github.com/onflow/cadence/runtime/sema"
+	"github.com/onflow/flow-go-sdk/crypto"
 	templates "github.com/onflow/sdks"
 
 	"github.com/onflow/flow-go-sdk"
@@ -48,6 +51,67 @@ func (c Contract) SourceHex() string {
 	return hex.EncodeToString(c.SourceBytes())
 }
 
+func exportType(t sema.Type) cadence.Type {
+	return runtime.ExportType(t, map[sema.TypeID]cadence.Type{})
+}
+
+func newSignAlgoValue(sigAlgo crypto.SignatureAlgorithm) cadence.Enum {
+	sigAlgoCadence := sema.SignatureAlgorithmECDSA_P256
+	if sigAlgo == crypto.ECDSA_secp256k1 {
+		sigAlgoCadence = sema.SignatureAlgorithmECDSA_secp256k1
+	}
+
+	return cadence.NewEnum([]cadence.Value{
+		cadence.NewUInt8(sigAlgoCadence.RawValue()),
+	}).WithType(
+		exportType(sema.SignatureAlgorithmType).(*cadence.EnumType),
+	)
+}
+
+func newHashAlgoValue(hashAlgo crypto.HashAlgorithm) cadence.Enum {
+	hashAlgoCadence := sema.HashAlgorithmSHA3_256
+	if hashAlgo == crypto.SHA2_256 {
+		hashAlgoCadence = sema.HashAlgorithmSHA2_256
+	}
+
+	return cadence.NewEnum([]cadence.Value{
+		cadence.NewUInt8(hashAlgoCadence.RawValue()),
+	}).WithType(
+		exportType(sema.HashAlgorithmType).(*cadence.EnumType),
+	)
+}
+
+func newPublicKeyValue(pubKey crypto.PublicKey) cadence.Struct {
+	pubKeyCadence := make([]cadence.Value, len(pubKey.Encode()))
+	for i, k := range pubKey.Encode() {
+		pubKeyCadence[i] = cadence.NewUInt8(k)
+	}
+
+	return cadence.NewStruct(
+		[]cadence.Value{
+			cadence.NewArray(pubKeyCadence),
+			newSignAlgoValue(pubKey.Algorithm()),
+			cadence.NewBool(true),
+		},
+	).WithType(
+		exportType(sema.PublicKeyType).(*cadence.StructType),
+	)
+}
+
+func newAccountKeyValue(key *flow.AccountKey) cadence.Struct {
+	weight, _ := cadence.NewUFix64(fmt.Sprintf("%d", key.Weight)) // ignore err as it shouldn't fail due to validation in acc key
+	return cadence.Struct{
+		StructType: exportType(sema.AccountKeyType).(*cadence.StructType),
+		Fields: []cadence.Value{
+			cadence.NewInt(key.Index),
+			newPublicKeyValue(key.PublicKey),
+			newHashAlgoValue(key.HashAlgo),
+			weight,
+			cadence.NewBool(key.Revoked),
+		},
+	}
+}
+
 // CreateAccount generates a transactions that creates a new account.
 //
 // This template accepts a list of public keys and a contracts argument, both of which are optional.
@@ -61,8 +125,7 @@ func CreateAccount(accountKeys []*flow.AccountKey, contracts []Contract, payer f
 	publicKeys := make([]cadence.Value, len(accountKeys))
 
 	for i, accountKey := range accountKeys {
-		keyHex := hex.EncodeToString(accountKey.Encode())
-		publicKeys[i] = cadence.String(keyHex)
+		publicKeys[i] = newAccountKeyValue(accountKey)
 	}
 
 	contractKeyPairs := make([]cadence.KeyValuePair, len(contracts))
@@ -110,7 +173,7 @@ func AddAccountContract(address flow.Address, contract Contract) *flow.Transacti
 
 // AddAccountKey generates a transaction that adds a public key to an account.
 func AddAccountKey(address flow.Address, accountKey *flow.AccountKey) *flow.Transaction {
-	keyHex := hex.EncodeToString(accountKey.Encode())
+	keyHex := hex.EncodeToString(accountKey.PublicKey.Encode())
 	cadencePublicKey := cadence.String(keyHex)
 
 	return flow.NewTransaction().
