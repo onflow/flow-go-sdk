@@ -98,18 +98,34 @@ func newPublicKeyValue(pubKey crypto.PublicKey) cadence.Struct {
 	)
 }
 
-func newAccountKeyValue(key *flow.AccountKey) cadence.Struct {
-	weight, _ := cadence.NewUFix64(fmt.Sprintf("%d", key.Weight)) // ignore err as it shouldn't fail due to validation in acc key
-	return cadence.Struct{
-		StructType: exportType(sema.AccountKeyType).(*cadence.StructType),
-		Fields: []cadence.Value{
-			cadence.NewInt(key.Index),
-			newPublicKeyValue(key.PublicKey),
-			newHashAlgoValue(key.HashAlgo),
-			weight,
-			cadence.NewBool(key.Revoked),
-		},
-	}
+func newKeyListValue(key *flow.AccountKey) cadence.Struct {
+	weight, _ := cadence.NewUFix64(fmt.Sprintf("%d", key.Weight))
+	return cadence.NewStruct([]cadence.Value{
+		cadence.NewInt(0),
+		newPublicKeyValue(key.PublicKey),
+		newHashAlgoValue(key.HashAlgo),
+		weight,
+		cadence.NewBool(false),
+	}).WithType(&cadence.StructType{
+		Location:            nil,
+		QualifiedIdentifier: "KeyListEntry",
+		Fields: []cadence.Field{{
+			Identifier: "keyIndex",
+			Type:       cadence.IntType{},
+		}, {
+			Identifier: "publicKey",
+			Type:       exportType(sema.PublicKeyType).(*cadence.StructType),
+		}, {
+			Identifier: "hashAlgorithm",
+			Type:       exportType(sema.HashAlgorithmType).(*cadence.EnumType),
+		}, {
+			Identifier: "weight",
+			Type:       cadence.UFix64Type{},
+		}, {
+			Identifier: "isRevoked",
+			Type:       cadence.BoolType{},
+		}},
+	})
 }
 
 // CreateAccount generates a transactions that creates a new account.
@@ -122,13 +138,13 @@ func newAccountKeyValue(key *flow.AccountKey) cadence.Struct {
 // The final argument is the address of the account that will pay the account creation fee.
 // This account is added as a transaction authorizer and therefore must sign the resulting transaction.
 func CreateAccount(accountKeys []*flow.AccountKey, contracts []Contract, payer flow.Address) *flow.Transaction {
-	publicKeys := make([]cadence.Value, len(accountKeys))
-
-	for i, accountKey := range accountKeys {
-		publicKeys[i] = newAccountKeyValue(accountKey)
-	}
+	keyList := make([]cadence.Value, len(accountKeys))
 
 	contractKeyPairs := make([]cadence.KeyValuePair, len(contracts))
+
+	for i, key := range accountKeys {
+		keyList[i] = newKeyListValue(key)
+	}
 
 	for i, contract := range contracts {
 		contractKeyPairs[i] = cadence.KeyValuePair{
@@ -137,7 +153,7 @@ func CreateAccount(accountKeys []*flow.AccountKey, contracts []Contract, payer f
 		}
 	}
 
-	cadencePublicKeys := cadence.NewArray(publicKeys)
+	cadencePublicKeys := cadence.NewArray(keyList)
 	cadenceContracts := cadence.NewDictionary(contractKeyPairs)
 
 	return flow.NewTransaction().
