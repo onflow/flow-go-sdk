@@ -29,7 +29,6 @@ package grpc
 
 import (
 	"context"
-	"time"
 
 	"github.com/onflow/cadence"
 	"github.com/onflow/flow/protobuf/go/flow/access"
@@ -461,21 +460,13 @@ type EventRangeQuery struct {
 	EndHeight uint64
 }
 
-// BlockEvents are the events that occurred in a specific block.
-type BlockEvents struct {
-	BlockID        flow.Identifier
-	Height         uint64
-	BlockTimestamp time.Time
-	Events         []flow.Event
-}
-
 // GetEventsForHeightRange retrieves events for all sealed blocks between the start and end block
 // heights (inclusive) with the given type.
 func (c *Client) GetEventsForHeightRange(
 	ctx context.Context,
 	query EventRangeQuery,
 	opts ...grpc.CallOption,
-) ([]BlockEvents, error) {
+) ([]flow.BlockEvents, error) {
 	req := &access.GetEventsForHeightRangeRequest{
 		Type:        query.Type,
 		StartHeight: query.StartHeight,
@@ -496,7 +487,7 @@ func (c *Client) GetEventsForBlockIDs(
 	eventType string,
 	blockIDs []flow.Identifier,
 	opts ...grpc.CallOption,
-) ([]BlockEvents, error) {
+) ([]flow.BlockEvents, error) {
 	req := &access.GetEventsForBlockIDsRequest{
 		Type:     eventType,
 		BlockIds: convert.IdentifiersToMessages(blockIDs),
@@ -510,10 +501,10 @@ func (c *Client) GetEventsForBlockIDs(
 	return getEventsResult(res)
 }
 
-func getEventsResult(res *access.EventsResponse) ([]BlockEvents, error) {
+func getEventsResult(res *access.EventsResponse) ([]flow.BlockEvents, error) {
 	resultMessages := res.GetResults()
 
-	results := make([]BlockEvents, len(resultMessages))
+	results := make([]flow.BlockEvents, len(resultMessages))
 	for i, result := range resultMessages {
 		eventMessages := result.GetEvents()
 
@@ -529,7 +520,7 @@ func getEventsResult(res *access.EventsResponse) ([]BlockEvents, error) {
 		}
 
 		blockTimestamp := result.BlockTimestamp.AsTime()
-		results[i] = BlockEvents{
+		results[i] = flow.BlockEvents{
 			BlockID:        flow.HashToID(result.GetBlockId()),
 			Height:         result.GetBlockHeight(),
 			BlockTimestamp: blockTimestamp,
