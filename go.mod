@@ -18,3 +18,4 @@ require (
 )
 
 replace github.com/onflow/cadence => github.com/onflow/cadence v0.21.3-0.20220419065337-d5202c162010
+replace github.com/onflow/sdks => /Users/dapper/Dev/sdks
