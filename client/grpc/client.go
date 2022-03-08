@@ -23,7 +23,7 @@
 // Access Node role, as well as the mock Access API exposed by the Flow Emulator.
 //
 // The full Access API specification is here: https://docs.onflow.org/access-api/
-package client
+package grpc
 
 //go:generate go run github.com/vektra/mockery/cmd/mockery -name RPCClient -filename=mock_client_test.go -structname=MockRPCClient -output=. -outpkg=client_test
 

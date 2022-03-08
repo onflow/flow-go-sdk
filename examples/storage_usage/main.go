@@ -24,8 +24,9 @@ import (
 	"encoding/base64"
 	"fmt"
 
+	grpc2 "github.com/onflow/flow-go-sdk/client/grpc"
+
 	"github.com/onflow/flow-go-sdk"
-	"github.com/onflow/flow-go-sdk/client"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/examples"
 	"github.com/onflow/flow-go-sdk/templates"
@@ -38,7 +39,7 @@ func main() {
 
 func StorageUsageDemo() {
 	ctx := context.Background()
-	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
+	flowClient, err := grpc2.New("127.0.0.1:3569", grpc.WithInsecure())
 	examples.Handle(err)
 
 	serviceAcctAddr, serviceAcctKey, serviceSigner := examples.ServiceAccount(flowClient)
@@ -96,7 +97,7 @@ func StorageUsageDemo() {
 
 	// Add some flow to increase storage capacity
 	examples.FundAccountInEmulator(flowClient, demoAccount.Address, 1.0)
-	
+
 	serviceAcctKey.SequenceNumber++
 
 	// try to save a very large resource again. This time it should work.
@@ -117,7 +118,7 @@ func StorageUsageDemo() {
 
 func sendSaveLargeResourceTransaction(
 	ctx context.Context,
-	flowClient *client.Client,
+	flowClient *grpc2.Client,
 	serviceAcctAddr flow.Address,
 	serviceAcctKey *flow.AccountKey,
 	serviceSigner crypto.Signer,

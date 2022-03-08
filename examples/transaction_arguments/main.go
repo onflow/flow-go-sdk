@@ -22,11 +22,12 @@ import (
 	"context"
 	"fmt"
 
+	grpc2 "github.com/onflow/flow-go-sdk/client/grpc"
+
 	"github.com/onflow/cadence"
 	"google.golang.org/grpc"
 
 	"github.com/onflow/flow-go-sdk"
-	"github.com/onflow/flow-go-sdk/client"
 	"github.com/onflow/flow-go-sdk/examples"
 	"github.com/onflow/flow-go-sdk/test"
 )
@@ -37,7 +38,7 @@ func main() {
 
 func TransactionArgumentsDemo() {
 	ctx := context.Background()
-	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
+	flowClient, err := grpc2.New("127.0.0.1:3569", grpc.WithInsecure())
 	examples.Handle(err)
 
 	serviceAcctAddr, serviceAcctKey, serviceSigner := examples.ServiceAccount(flowClient)

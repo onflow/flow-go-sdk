@@ -22,10 +22,11 @@ import (
 	"context"
 	"fmt"
 
+	grpc2 "github.com/onflow/flow-go-sdk/client/grpc"
+
 	"github.com/onflow/flow-go-sdk"
 	"google.golang.org/grpc"
 
-	"github.com/onflow/flow-go-sdk/client"
 	"github.com/onflow/flow-go-sdk/examples"
 )
 
@@ -41,7 +42,7 @@ func main() {
 func VerifyEventsDemo() {
 	ctx := context.Background()
 
-	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
+	flowClient, err := grpc2.New("127.0.0.1:3569", grpc.WithInsecure())
 	examples.Handle(err)
 
 	latestBlockHeader, err := flowClient.GetLatestBlockHeader(ctx, true)

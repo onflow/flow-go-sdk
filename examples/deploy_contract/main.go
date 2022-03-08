@@ -22,12 +22,13 @@ import (
 	"context"
 	"fmt"
 
+	grpc2 "github.com/onflow/flow-go-sdk/client/grpc"
+
 	"google.golang.org/grpc"
 
 	"github.com/onflow/cadence"
 
 	"github.com/onflow/flow-go-sdk"
-	"github.com/onflow/flow-go-sdk/client"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/examples"
 	"github.com/onflow/flow-go-sdk/templates"
@@ -42,7 +43,7 @@ func main() {
 func DeployContractDemo() {
 	// Connect to an emulator running locally
 	ctx := context.Background()
-	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
+	flowClient, err := grpc2.New("127.0.0.1:3569", grpc.WithInsecure())
 	examples.Handle(err)
 
 	serviceAcctAddr, serviceAcctKey, serviceSigner := examples.ServiceAccount(flowClient)

@@ -22,12 +22,13 @@ import (
 	"context"
 	"fmt"
 
+	grpc2 "github.com/onflow/flow-go-sdk/client/grpc"
+
 	"github.com/onflow/flow-go-sdk/templates"
 
 	"google.golang.org/grpc"
 
 	"github.com/onflow/flow-go-sdk"
-	"github.com/onflow/flow-go-sdk/client"
 	"github.com/onflow/flow-go-sdk/examples"
 )
 
@@ -41,7 +42,7 @@ func demo(deployedContract *flow.Account, runScriptTx *flow.Transaction) {
 	flowClient := examples.NewFlowClient()
 
 	// Query for account creation events by type
-	result, err := flowClient.GetEventsForHeightRange(ctx, client.EventRangeQuery{
+	result, err := flowClient.GetEventsForHeightRange(ctx, grpc2.EventRangeQuery{
 		Type:        "flow.AccountCreated",
 		StartHeight: 0,
 		EndHeight:   100,
@@ -50,7 +51,7 @@ func demo(deployedContract *flow.Account, runScriptTx *flow.Transaction) {
 
 	// Query for our custom event by type
 	customType := fmt.Sprintf("AC.%s.EventDemo.EventDemo.Add", deployedContract.Address.Hex())
-	result, err = flowClient.GetEventsForHeightRange(ctx, client.EventRangeQuery{
+	result, err = flowClient.GetEventsForHeightRange(ctx, grpc2.EventRangeQuery{
 		Type:        customType,
 		StartHeight: 0,
 		EndHeight:   10,
@@ -63,7 +64,7 @@ func demo(deployedContract *flow.Account, runScriptTx *flow.Transaction) {
 	printEvent(txResult.Events)
 }
 
-func printEvents(result []client.BlockEvents, err error) {
+func printEvents(result []grpc2.BlockEvents, err error) {
 	examples.Handle(err)
 
 	for _, block := range result {
@@ -82,7 +83,7 @@ func printEvent(events []flow.Event) {
 func preapreDemo() (*flow.Account, *flow.Transaction) {
 	ctx := context.Background()
 
-	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
+	flowClient, err := grpc2.New("127.0.0.1:3569", grpc.WithInsecure())
 	examples.Handle(err)
 	defer func() {
 		err := flowClient.Close()
