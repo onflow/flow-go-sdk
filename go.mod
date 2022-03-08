@@ -17,3 +17,5 @@ require (
 	google.golang.org/grpc v1.40.0
 	google.golang.org/protobuf v1.27.1
 )
+
+replace github.com/onflow/sdks => /Users/dapper/Dev/sdks
