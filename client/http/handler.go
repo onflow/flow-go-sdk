@@ -4,8 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
+
+	"github.com/onflow/cadence"
 
 	"github.com/pkg/errors"
 
@@ -17,6 +20,7 @@ type handler struct {
 	accounts    *endpoint
 	blocks      *endpoint
 	collections *endpoint
+	scripts     *endpoint
 }
 
 func newHandler(baseUrl string) *handler {
@@ -27,13 +31,29 @@ func newHandler(baseUrl string) *handler {
 		accounts:    newEndpoint("/accounts/%s"),
 		blocks:      newEndpoint("/blocks"),
 		collections: newEndpoint("/collections/%s"),
+		scripts:     newEndpoint("/scripts"),
 	}
 }
 
 func (h *handler) get(ctx context.Context, url *url.URL, model interface{}) error {
 	res, err := h.client.Get(url.String())
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("HTTP GET %s failed", url))
+		return errors.Wrap(err, fmt.Sprintf("HTTP GET %s failed", url.String()))
+	}
+	defer res.Body.Close()
+
+	err = json.NewDecoder(res.Body).Decode(model)
+	if err != nil {
+		return errors.Wrap(err, "JSON decoding failed")
+	}
+
+	return nil
+}
+
+func (h *handler) post(ctx context.Context, url *url.URL, body io.Reader, model interface{}) error {
+	res, err := h.client.Post(url.String(), "application/json", body)
+	if err != nil {
+		return errors.Wrap(err, fmt.Sprintf("HTTP POST %s failed", url.String()))
 	}
 	defer res.Body.Close()
 
@@ -61,17 +81,14 @@ func (h *handler) getBlockByID(ctx context.Context, ID string) (*models.Block, e
 }
 
 func (h *handler) getBlockByHeight(ctx context.Context, height string) ([]*models.Block, error) {
-	u, err := h.blocks.buildURL()
-	if err != nil {
-		return nil, err
-	}
+	u, _ := h.blocks.buildURL()
 
 	q := u.Query()
 	q.Add("height", height)
 	u.RawQuery = q.Encode()
 
 	var blocks []*models.Block
-	err = h.get(ctx, u, blocks)
+	err := h.get(ctx, u, blocks)
 	if err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf("get block by height %s failed", height))
 	}
@@ -111,4 +128,13 @@ func (h *handler) getCollection(ctx context.Context, ID string) (*models.Collect
 	}
 
 	return &collection, nil
+}
+
+func (h *handler) ExecuteScriptAtBlockHeight(ctx context.Context, height string, script []byte, arguments []cadence.Value) (cadence.Value, error) {
+	u, _ := h.scripts.buildURL()
+
+	q := u.Query()
+	q.Add("height", height)
+	u.RawQuery = q.Encode()
+
 }
