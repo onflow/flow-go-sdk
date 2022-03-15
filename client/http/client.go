@@ -138,7 +138,17 @@ func (c *Client) ExecuteScriptAtBlockID(ctx context.Context, blockID flow.Identi
 }
 
 func (c *Client) ExecuteScriptAtBlockHeight(ctx context.Context, height uint64, script []byte, arguments []cadence.Value) (cadence.Value, error) {
-	panic("implement me")
+	result, err := c.handler.executeScriptAtBlockHeight(
+		ctx,
+		fmt.Sprintf("%d", height),
+		convert.ScriptToHTTP(script),
+		convert.CadenceArgsToHTTP(arguments),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return cadence.NewString(result)
 }
 
 func (c *Client) GetEventsForHeightRange(ctx context.Context, eventType string, startHeight uint64, endHeight uint64) ([]flow.BlockEvents, error) {

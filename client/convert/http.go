@@ -1,7 +1,10 @@
 package convert
 
 import (
+	"encoding/base64"
 	"strconv"
+
+	"github.com/onflow/cadence"
 
 	"github.com/onflow/flow-go-sdk/crypto"
 
@@ -113,4 +116,18 @@ func HTTPToCollection(collection *models.Collection) *flow.Collection {
 		IDs[i] = flow.HexToID(tx.Id)
 	}
 	return &flow.Collection{TransactionIDs: IDs}
+}
+
+func ScriptToHTTP(script []byte) string {
+	return base64.StdEncoding.EncodeToString(script)
+}
+
+func CadenceArgsToHTTP(args []cadence.Value) []string {
+	encArgs := make([]string, len(args))
+
+	for i, a := range args {
+		encArgs[i] = base64.StdEncoding.EncodeToString([]byte(a.String()))
+	}
+
+	return encArgs
 }
