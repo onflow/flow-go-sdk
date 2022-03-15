@@ -1,14 +1,12 @@
 package http
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
-
-	"github.com/onflow/cadence"
 
 	"github.com/pkg/errors"
 
@@ -50,8 +48,12 @@ func (h *handler) get(ctx context.Context, url *url.URL, model interface{}) erro
 	return nil
 }
 
-func (h *handler) post(ctx context.Context, url *url.URL, body io.Reader, model interface{}) error {
-	res, err := h.client.Post(url.String(), "application/json", body)
+func (h *handler) post(ctx context.Context, url *url.URL, body []byte, model interface{}) error {
+	res, err := h.client.Post(
+		url.String(),
+		"application/json",
+		bytes.NewReader(body),
+	)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("HTTP POST %s failed", url.String()))
 	}
@@ -130,11 +132,33 @@ func (h *handler) getCollection(ctx context.Context, ID string) (*models.Collect
 	return &collection, nil
 }
 
-func (h *handler) ExecuteScriptAtBlockHeight(ctx context.Context, height string, script []byte, arguments []cadence.Value) (cadence.Value, error) {
+func (h *handler) executeScriptAtBlockHeight(
+	ctx context.Context,
+	height string,
+	script string,
+	arguments []string,
+) (string, error) {
 	u, _ := h.scripts.buildURL()
 
 	q := u.Query()
 	q.Add("height", height)
 	u.RawQuery = q.Encode()
 
+	body, err := json.Marshal(
+		models.ScriptsBody{
+			Script:    script,
+			Arguments: arguments,
+		},
+	)
+	if err != nil {
+		return "", err
+	}
+
+	var result string
+	err = h.post(ctx, u, body, &result)
+	if err != nil {
+		return "", err
+	}
+
+	return result, nil
 }
