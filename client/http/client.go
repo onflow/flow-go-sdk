@@ -48,26 +48,18 @@ func (c *Client) GetBlockHeaderByID(ctx context.Context, blockID flow.Identifier
 }
 
 func (c *Client) GetBlockHeaderByHeight(ctx context.Context, height uint64) (*flow.BlockHeader, error) {
-	blocks, err := c.handler.getBlockByHeight(ctx, fmt.Sprintf("%d", height))
+	block, err := c.GetBlockByHeight(ctx, height)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(blocks) != 1 {
-		return nil, fmt.Errorf("block with height %d not found", height)
-	}
-
-	return convert.HTTPToBlockHeader(blocks[0].Header), nil
+	return &block.BlockHeader, nil
 }
 
 func (c *Client) GetLatestBlock(ctx context.Context, isSealed bool) (*flow.Block, error) {
 	blocks, err := c.handler.getBlockByHeight(ctx, convert.SealedToHTTP(isSealed))
 	if err != nil {
 		return nil, err
-	}
-
-	if len(blocks) != 1 {
-		return nil, fmt.Errorf("block not found")
 	}
 
 	return convert.HTTPToBlock(blocks[0]), nil
@@ -77,10 +69,6 @@ func (c *Client) GetBlockByHeight(ctx context.Context, height uint64) (*flow.Blo
 	blocks, err := c.handler.getBlockByHeight(ctx, fmt.Sprintf("%d", height))
 	if err != nil {
 		return nil, err
-	}
-
-	if len(blocks) == 0 {
-		return nil, fmt.Errorf("block not found") // todo: check if this error is ok for not found
 	}
 
 	return convert.HTTPToBlock(blocks[0]), nil
@@ -130,7 +118,7 @@ func (c *Client) GetAccountAtBlockHeight(ctx context.Context, address flow.Addre
 }
 
 func (c *Client) ExecuteScriptAtLatestBlock(ctx context.Context, script []byte, arguments []cadence.Value) (cadence.Value, error) {
-	panic("implement me")
+	return c.ExecuteScriptAtBlockHeight(ctx, script, arguments, SEALED_HEIGHT)
 }
 
 func (c *Client) ExecuteScriptAtBlockID(ctx context.Context, blockID flow.Identifier, script []byte, arguments []cadence.Value) (cadence.Value, error) {
