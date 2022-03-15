@@ -13,18 +13,20 @@ import (
 )
 
 type handler struct {
-	client   *http.Client
-	accounts *endpoint
-	blocks   *endpoint
+	client      *http.Client
+	accounts    *endpoint
+	blocks      *endpoint
+	collections *endpoint
 }
 
 func newHandler(baseUrl string) *handler {
 	newEndpoint := newBaseEndpoint(baseUrl)
 
 	return &handler{
-		client:   http.DefaultClient,
-		accounts: newEndpoint("/accounts/%s"),
-		blocks:   newEndpoint("/blocks"),
+		client:      http.DefaultClient,
+		accounts:    newEndpoint("/accounts/%s"),
+		blocks:      newEndpoint("/blocks"),
+		collections: newEndpoint("/collections/%s"),
 	}
 }
 
@@ -97,5 +99,16 @@ func (h *handler) getAccount(ctx context.Context, address string, height string)
 }
 
 func (h *handler) getCollection(ctx context.Context, ID string) (*models.Collection, error) {
+	u, err := h.collections.buildURL(ID)
+	if err != nil {
+		return nil, err
+	}
 
+	var collection models.Collection
+	err = h.get(ctx, u, &collection)
+	if err != nil {
+		return nil, err
+	}
+
+	return &collection, nil
 }

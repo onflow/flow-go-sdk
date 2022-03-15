@@ -106,3 +106,11 @@ func SealedToHTTP(isSealed bool) string {
 	}
 	return "final"
 }
+
+func HTTPToCollection(collection *models.Collection) *flow.Collection {
+	IDs := make([]flow.Identifier, len(collection.Transactions))
+	for i, tx := range collection.Transactions {
+		IDs[i] = flow.HexToID(tx.Id)
+	}
+	return &flow.Collection{TransactionIDs: IDs}
+}

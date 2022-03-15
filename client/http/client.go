@@ -86,8 +86,13 @@ func (c *Client) GetBlockByHeight(ctx context.Context, height uint64) (*flow.Blo
 	return convert.HTTPToBlock(blocks[0]), nil
 }
 
-func (c *Client) GetCollection(ctx context.Context, colID flow.Identifier) (*flow.Collection, error) {
-	panic("implement me")
+func (c *Client) GetCollection(ctx context.Context, ID flow.Identifier) (*flow.Collection, error) {
+	collection, err := c.handler.getCollection(ctx, ID.String())
+	if err != nil {
+		return nil, err
+	}
+
+	return convert.HTTPToCollection(collection), nil
 }
 
 func (c *Client) SendTransaction(ctx context.Context, tx flow.Transaction) error {
@@ -112,11 +117,16 @@ func (c *Client) GetAccount(ctx context.Context, address flow.Address) (*flow.Ac
 }
 
 func (c *Client) GetAccountAtLatestBlock(ctx context.Context, address flow.Address) (*flow.Account, error) {
-	panic("implement me")
+	return c.GetAccount(ctx, address)
 }
 
 func (c *Client) GetAccountAtBlockHeight(ctx context.Context, address flow.Address, blockHeight uint64) (*flow.Account, error) {
-	panic("implement me")
+	account, err := c.handler.getAccount(ctx, address.String(), fmt.Sprintf("%d", blockHeight))
+	if err != nil {
+		return nil, err
+	}
+
+	return convert.HTTPToAccount(account), nil
 }
 
 func (c *Client) ExecuteScriptAtLatestBlock(ctx context.Context, script []byte, arguments []cadence.Value) (cadence.Value, error) {
