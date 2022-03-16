@@ -27,6 +27,10 @@ import (
 	"os"
 	"time"
 
+	"github.com/onflow/flow-go-sdk/client"
+
+	"github.com/onflow/flow-go-sdk/client/http"
+
 	grpc2 "github.com/onflow/flow-go-sdk/client/grpc"
 
 	"github.com/onflow/cadence"
@@ -86,7 +90,7 @@ func init() {
 	conf = readConfig()
 }
 
-func ServiceAccount(flowClient *grpc2.Handler) (flow.Address, *flow.AccountKey, crypto.Signer) {
+func ServiceAccount(flowClient client.Client) (flow.Address, *flow.AccountKey, crypto.Signer) {
 	privateKey, err := crypto.DecodePrivateKeyHex(crypto.ECDSA_P256, conf.Accounts.Service.Key)
 	Handle(err)
 
@@ -94,6 +98,7 @@ func ServiceAccount(flowClient *grpc2.Handler) (flow.Address, *flow.AccountKey, 
 	acc, err := flowClient.GetAccount(context.Background(), addr)
 	Handle(err)
 
+	fmt.Println(acc, acc.Keys)
 	accountKey := acc.Keys[0]
 	signer := crypto.NewInMemorySigner(privateKey, accountKey.HashAlgo)
 	return addr, accountKey, signer
@@ -111,7 +116,7 @@ func RandomPrivateKey() crypto.PrivateKey {
 	return privateKey
 }
 
-func RandomTransaction(flowClient *grpc2.Handler) *flow.Transaction {
+func RandomTransaction(flowClient client.Client) *flow.Transaction {
 	serviceAcctAddr, serviceAcctKey, serviceSigner := ServiceAccount(flowClient)
 
 	tx := flow.NewTransaction().
@@ -129,7 +134,7 @@ func RandomTransaction(flowClient *grpc2.Handler) *flow.Transaction {
 	return tx
 }
 
-func RandomAccount(flowClient *grpc2.Handler) (flow.Address, *flow.AccountKey, crypto.Signer) {
+func RandomAccount(flowClient client.Client) (flow.Address, *flow.AccountKey, crypto.Signer) {
 	privateKey := RandomPrivateKey()
 
 	accountKey := flow.NewAccountKey().
@@ -143,14 +148,14 @@ func RandomAccount(flowClient *grpc2.Handler) (flow.Address, *flow.AccountKey, c
 	return account.Address, account.Keys[0], signer
 }
 
-func GetReferenceBlockId(flowClient *grpc2.Handler) flow.Identifier {
+func GetReferenceBlockId(flowClient client.Client) flow.Identifier {
 	block, err := flowClient.GetLatestBlock(context.Background(), true)
 	Handle(err)
 
 	return block.ID
 }
 
-func CreateAccountWithContracts(flowClient *grpc2.Handler, publicKeys []*flow.AccountKey, contracts []templates.Contract) *flow.Account {
+func CreateAccountWithContracts(flowClient client.Client, publicKeys []*flow.AccountKey, contracts []templates.Contract) *flow.Account {
 	serviceAcctAddr, serviceAcctKey, serviceSigner := ServiceAccount(flowClient)
 
 	referenceBlockID := GetReferenceBlockId(flowClient)
@@ -222,7 +227,7 @@ transaction(recipient: Address, amount: UFix64) {
 `
 
 // FundAccountInEmulator Mints FLOW to an account. Minting only works in an emulator environment.
-func FundAccountInEmulator(flowClient *grpc2.Handler, address flow.Address, amount float64) {
+func FundAccountInEmulator(flowClient client.Client, address flow.Address, amount float64) {
 	serviceAcctAddr, serviceAcctKey, serviceSigner := ServiceAccount(flowClient)
 
 	referenceBlockID := GetReferenceBlockId(flowClient)
@@ -255,7 +260,7 @@ func FundAccountInEmulator(flowClient *grpc2.Handler, address flow.Address, amou
 	Handle(result.Error)
 }
 
-func CreateAccount(flowClient *grpc2.Handler, publicKeys []*flow.AccountKey) *flow.Account {
+func CreateAccount(flowClient client.Client, publicKeys []*flow.AccountKey) *flow.Account {
 	return CreateAccountWithContracts(flowClient, publicKeys, nil)
 }
 
@@ -266,15 +271,19 @@ func Handle(err error) {
 	}
 }
 
-func NewFlowGRPCClient() *grpc2.Handler {
+func NewFlowGRPCClient() *grpc2.Client {
 	accessAPI := "127.0.0.1:3569"
-	flowClient, err := grpc2.New(accessAPI, grpc.WithInsecure())
+	handler, err := grpc2.New(accessAPI, grpc.WithInsecure())
 	Handle(err)
 
-	return flowClient
+	return grpc2.NewClient(handler)
 }
 
-func WaitForSeal(ctx context.Context, c *grpc2.Handler, id flow.Identifier) *flow.TransactionResult {
+func NewFlowHTTPClient() *http.Client {
+	return http.NewClient(http.NewDefaultEmulatorHandler())
+}
+
+func WaitForSeal(ctx context.Context, c client.Client, id flow.Identifier) *flow.TransactionResult {
 	result, err := c.GetTransactionResult(ctx, id)
 	Handle(err)
 
