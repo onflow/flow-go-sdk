@@ -13,7 +13,7 @@ import (
 	"github.com/onflow/flow-go/engine/access/rest/models"
 )
 
-type handler struct {
+type Handler struct {
 	client       *http.Client
 	account      *endpoint
 	blocks       *endpoint
@@ -23,10 +23,10 @@ type handler struct {
 	transaction  *endpoint
 }
 
-func newHandler(baseUrl string) *handler {
+func NewHandler(baseUrl string) *Handler {
 	newEndpoint := newBaseEndpoint(baseUrl)
 
-	return &handler{
+	return &Handler{
 		client:       http.DefaultClient,
 		account:      newEndpoint("/accounts/%s"),
 		blocks:       newEndpoint("/blocks"),
@@ -37,7 +37,7 @@ func newHandler(baseUrl string) *handler {
 	}
 }
 
-func (h *handler) get(_ context.Context, url *url.URL, model interface{}) error {
+func (h *Handler) get(_ context.Context, url *url.URL, model interface{}) error {
 	res, err := h.client.Get(url.String())
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("HTTP GET %s failed", url.String()))
@@ -52,7 +52,7 @@ func (h *handler) get(_ context.Context, url *url.URL, model interface{}) error 
 	return nil
 }
 
-func (h *handler) post(_ context.Context, url *url.URL, body []byte, model interface{}) error {
+func (h *Handler) post(_ context.Context, url *url.URL, body []byte, model interface{}) error {
 	res, err := h.client.Post(
 		url.String(),
 		"application/json",
@@ -71,7 +71,7 @@ func (h *handler) post(_ context.Context, url *url.URL, body []byte, model inter
 	return nil
 }
 
-func (h *handler) getBlockByID(ctx context.Context, ID string) (*models.Block, error) {
+func (h *Handler) getBlockByID(ctx context.Context, ID string) (*models.Block, error) {
 	u, err := h.blocks.buildURL(ID)
 	if err != nil {
 		return nil, err
@@ -86,7 +86,7 @@ func (h *handler) getBlockByID(ctx context.Context, ID string) (*models.Block, e
 	return &block, nil
 }
 
-func (h *handler) getBlockByHeight(ctx context.Context, height string) ([]*models.Block, error) {
+func (h *Handler) getBlockByHeight(ctx context.Context, height string) ([]*models.Block, error) {
 	u, _ := h.blocks.buildURL()
 
 	q := u.Query()
@@ -106,7 +106,7 @@ func (h *handler) getBlockByHeight(ctx context.Context, height string) ([]*model
 	return blocks, nil
 }
 
-func (h *handler) getAccount(ctx context.Context, address string, height string) (*models.Account, error) {
+func (h *Handler) getAccount(ctx context.Context, address string, height string) (*models.Account, error) {
 	u, err := h.account.buildURL(address)
 	if err != nil {
 		return nil, err
@@ -125,7 +125,7 @@ func (h *handler) getAccount(ctx context.Context, address string, height string)
 	return &account, nil
 }
 
-func (h *handler) getCollection(ctx context.Context, ID string) (*models.Collection, error) {
+func (h *Handler) getCollection(ctx context.Context, ID string) (*models.Collection, error) {
 	u, err := h.collection.buildURL(ID)
 	if err != nil {
 		return nil, err
@@ -140,7 +140,7 @@ func (h *handler) getCollection(ctx context.Context, ID string) (*models.Collect
 	return &collection, nil
 }
 
-func (h *handler) executeScriptAt(
+func (h *Handler) executeScriptAt(
 	ctx context.Context,
 	query map[string]string,
 	script string,
@@ -173,7 +173,7 @@ func (h *handler) executeScriptAt(
 	return result, nil
 }
 
-func (h *handler) executeScriptAtBlockHeight(
+func (h *Handler) executeScriptAtBlockHeight(
 	ctx context.Context,
 	height string,
 	script string,
@@ -187,7 +187,7 @@ func (h *handler) executeScriptAtBlockHeight(
 	)
 }
 
-func (h *handler) executeScriptAtBlockID(
+func (h *Handler) executeScriptAtBlockID(
 	ctx context.Context,
 	ID string,
 	script string,
@@ -201,7 +201,7 @@ func (h *handler) executeScriptAtBlockID(
 	)
 }
 
-func (h *handler) getTransaction(ctx context.Context, ID string, includeResult bool) (*models.Transaction, error) {
+func (h *Handler) getTransaction(ctx context.Context, ID string, includeResult bool) (*models.Transaction, error) {
 	var transaction models.Transaction
 	u, err := h.transaction.buildURL(ID)
 	if err != nil {
@@ -222,7 +222,7 @@ func (h *handler) getTransaction(ctx context.Context, ID string, includeResult b
 	return &transaction, nil
 }
 
-func (h *handler) sendTransaction(ctx context.Context, transaction []byte) error {
+func (h *Handler) sendTransaction(ctx context.Context, transaction []byte) error {
 	u, _ := h.transactions.buildURL()
 	var tx models.Transaction
 
