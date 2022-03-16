@@ -120,7 +120,7 @@ func (c *Client) GetAccount(ctx context.Context, address flow.Address) (*flow.Ac
 		return nil, err
 	}
 
-	return convert.HTTPToAccount(account), nil
+	return convert.HTTPToAccount(account)
 }
 
 func (c *Client) GetAccountAtLatestBlock(ctx context.Context, address flow.Address) (*flow.Account, error) {
@@ -133,7 +133,7 @@ func (c *Client) GetAccountAtBlockHeight(ctx context.Context, address flow.Addre
 		return nil, err
 	}
 
-	return convert.HTTPToAccount(account), nil
+	return convert.HTTPToAccount(account)
 }
 
 func (c *Client) ExecuteScriptAtLatestBlock(ctx context.Context, script []byte, arguments []cadence.Value) (cadence.Value, error) {
