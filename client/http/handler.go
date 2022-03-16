@@ -68,6 +68,7 @@ func (h *Handler) get(_ context.Context, url *url.URL, model interface{}) error 
 	if res.StatusCode >= http.StatusBadRequest {
 		return fmt.Errorf("HTTP GET %s failed, status code: %d, response :%s", url.String(), res.StatusCode, body)
 	}
+	fmt.Println("-->", string(body))
 
 	err = json.Unmarshal(body, &model)
 	if err != nil {
@@ -106,12 +107,13 @@ func (h *Handler) post(_ context.Context, url *url.URL, body []byte, model inter
 }
 
 func (h *Handler) getBlockByID(ctx context.Context, ID string) (*models.Block, error) {
+	u := h.mustBuildURL(fmt.Sprintf("/blocks/%s", ID))
+
+	q := u.Query()
+	q.Add("expand", `["payload"]`)
+
 	var block models.Block
-	err := h.get(
-		ctx,
-		h.mustBuildURL(fmt.Sprintf("/blocks/%s", ID)),
-		&block,
-	)
+	err := h.get(ctx, u, &block)
 	if err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf("get block ID %s failed", ID))
 	}
@@ -124,6 +126,7 @@ func (h *Handler) getBlockByHeight(ctx context.Context, height string) ([]*model
 
 	q := u.Query()
 	q.Add("height", height)
+	q.Add("expand", `["payload"]`)
 	u.RawQuery = q.Encode()
 
 	var blocks []*models.Block
@@ -144,6 +147,7 @@ func (h *Handler) getAccount(ctx context.Context, address string, height string)
 
 	q := u.Query()
 	q.Add("height", height)
+	q.Add("expand", `["keys", "contracts"]`)
 	u.RawQuery = q.Encode()
 
 	var account models.Account
@@ -235,7 +239,7 @@ func (h *Handler) getTransaction(ctx context.Context, ID string, includeResult b
 
 	if includeResult {
 		q := u.Query()
-		q.Add("expand", "result")
+		q.Add("expand", `["result"]`)
 		u.RawQuery = q.Encode()
 	}
 
