@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 
+	"github.com/onflow/flow-go-sdk/client"
+
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/examples"
 )
@@ -14,7 +16,8 @@ func main() {
 
 func demo(tx *flow.Transaction) {
 	ctx := context.Background()
-	flowClient := examples.NewFlowClient()
+	var flowClient client.Client
+	flowClient = examples.NewFlowGRPCClient()
 
 	err := flowClient.SendTransaction(ctx, *tx)
 	if err != nil {
@@ -23,7 +26,7 @@ func demo(tx *flow.Transaction) {
 }
 
 func prepareDemo() *flow.Transaction {
-	flowClient := examples.NewFlowClient()
+	flowClient := examples.NewFlowGRPCClient()
 	defer func() {
 		err := flowClient.Close()
 		if err != nil {

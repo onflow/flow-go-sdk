@@ -39,7 +39,7 @@ func main() {
 
 func demo(deployedContract *flow.Account, runScriptTx *flow.Transaction) {
 	ctx := context.Background()
-	flowClient := examples.NewFlowClient()
+	flowClient := examples.NewFlowGRPCClient()
 
 	// Query for account creation events by type
 	result, err := flowClient.GetEventsForHeightRange(ctx, grpc2.EventRangeQuery{

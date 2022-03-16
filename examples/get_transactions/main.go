@@ -18,7 +18,7 @@ func main() {
 
 func demo(txID flow.Identifier) {
 	ctx := context.Background()
-	flowClient := examples.NewFlowClient()
+	flowClient := examples.NewFlowGRPCClient()
 
 	tx, err := flowClient.GetTransaction(ctx, txID)
 	printTransaction(tx, err)

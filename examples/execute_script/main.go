@@ -34,7 +34,7 @@ func main() {
 
 func demo() {
 	ctx := context.Background()
-	flowClient := examples.NewFlowClient()
+	flowClient := examples.NewFlowGRPCClient()
 
 	script := []byte(`
 		pub fun main(a: Int): Int {

@@ -36,7 +36,7 @@ func main() {
 
 func demo(exampleCollectionID flow.Identifier) {
 	ctx := context.Background()
-	flowClient := examples.NewFlowClient()
+	flowClient := examples.NewFlowGRPCClient()
 
 	// get collection by ID
 	collection, err := flowClient.GetCollection(ctx, exampleCollectionID)

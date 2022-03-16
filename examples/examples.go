@@ -86,7 +86,7 @@ func init() {
 	conf = readConfig()
 }
 
-func ServiceAccount(flowClient *grpc2.Client) (flow.Address, *flow.AccountKey, crypto.Signer) {
+func ServiceAccount(flowClient *grpc2.Handler) (flow.Address, *flow.AccountKey, crypto.Signer) {
 	privateKey, err := crypto.DecodePrivateKeyHex(crypto.ECDSA_P256, conf.Accounts.Service.Key)
 	Handle(err)
 
@@ -111,7 +111,7 @@ func RandomPrivateKey() crypto.PrivateKey {
 	return privateKey
 }
 
-func RandomTransaction(flowClient *grpc2.Client) *flow.Transaction {
+func RandomTransaction(flowClient *grpc2.Handler) *flow.Transaction {
 	serviceAcctAddr, serviceAcctKey, serviceSigner := ServiceAccount(flowClient)
 
 	tx := flow.NewTransaction().
@@ -129,7 +129,7 @@ func RandomTransaction(flowClient *grpc2.Client) *flow.Transaction {
 	return tx
 }
 
-func RandomAccount(flowClient *grpc2.Client) (flow.Address, *flow.AccountKey, crypto.Signer) {
+func RandomAccount(flowClient *grpc2.Handler) (flow.Address, *flow.AccountKey, crypto.Signer) {
 	privateKey := RandomPrivateKey()
 
 	accountKey := flow.NewAccountKey().
@@ -143,14 +143,14 @@ func RandomAccount(flowClient *grpc2.Client) (flow.Address, *flow.AccountKey, cr
 	return account.Address, account.Keys[0], signer
 }
 
-func GetReferenceBlockId(flowClient *grpc2.Client) flow.Identifier {
+func GetReferenceBlockId(flowClient *grpc2.Handler) flow.Identifier {
 	block, err := flowClient.GetLatestBlock(context.Background(), true)
 	Handle(err)
 
 	return block.ID
 }
 
-func CreateAccountWithContracts(flowClient *grpc2.Client, publicKeys []*flow.AccountKey, contracts []templates.Contract) *flow.Account {
+func CreateAccountWithContracts(flowClient *grpc2.Handler, publicKeys []*flow.AccountKey, contracts []templates.Contract) *flow.Account {
 	serviceAcctAddr, serviceAcctKey, serviceSigner := ServiceAccount(flowClient)
 
 	referenceBlockID := GetReferenceBlockId(flowClient)
@@ -222,7 +222,7 @@ transaction(recipient: Address, amount: UFix64) {
 `
 
 // FundAccountInEmulator Mints FLOW to an account. Minting only works in an emulator environment.
-func FundAccountInEmulator(flowClient *grpc2.Client, address flow.Address, amount float64) {
+func FundAccountInEmulator(flowClient *grpc2.Handler, address flow.Address, amount float64) {
 	serviceAcctAddr, serviceAcctKey, serviceSigner := ServiceAccount(flowClient)
 
 	referenceBlockID := GetReferenceBlockId(flowClient)
@@ -255,7 +255,7 @@ func FundAccountInEmulator(flowClient *grpc2.Client, address flow.Address, amoun
 	Handle(result.Error)
 }
 
-func CreateAccount(flowClient *grpc2.Client, publicKeys []*flow.AccountKey) *flow.Account {
+func CreateAccount(flowClient *grpc2.Handler, publicKeys []*flow.AccountKey) *flow.Account {
 	return CreateAccountWithContracts(flowClient, publicKeys, nil)
 }
 
@@ -266,7 +266,7 @@ func Handle(err error) {
 	}
 }
 
-func NewFlowClient() *grpc2.Client {
+func NewFlowGRPCClient() *grpc2.Handler {
 	accessAPI := "127.0.0.1:3569"
 	flowClient, err := grpc2.New(accessAPI, grpc.WithInsecure())
 	Handle(err)
@@ -274,7 +274,7 @@ func NewFlowClient() *grpc2.Client {
 	return flowClient
 }
 
-func WaitForSeal(ctx context.Context, c *grpc2.Client, id flow.Identifier) *flow.TransactionResult {
+func WaitForSeal(ctx context.Context, c *grpc2.Handler, id flow.Identifier) *flow.TransactionResult {
 	result, err := c.GetTransactionResult(ctx, id)
 	Handle(err)
 

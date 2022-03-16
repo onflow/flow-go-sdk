@@ -36,7 +36,7 @@ func main() {
 
 func demo() {
 	ctx := context.Background()
-	flowClient := examples.NewFlowClient()
+	flowClient := examples.NewFlowGRPCClient()
 
 	// get the latest sealed block
 	isSealed := true

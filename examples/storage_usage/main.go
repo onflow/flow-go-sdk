@@ -118,7 +118,7 @@ func StorageUsageDemo() {
 
 func sendSaveLargeResourceTransaction(
 	ctx context.Context,
-	flowClient *grpc2.Client,
+	flowClient *grpc2.Handler,
 	serviceAcctAddr flow.Address,
 	serviceAcctKey *flow.AccountKey,
 	serviceSigner crypto.Signer,

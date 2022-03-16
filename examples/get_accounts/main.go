@@ -36,7 +36,7 @@ func main() {
 
 func demo() {
 	ctx := context.Background()
-	flowClient := examples.NewFlowClient()
+	flowClient := examples.NewFlowGRPCClient()
 
 	// get account from the latest block
 	address := flow.HexToAddress("f8d6e0586b0a20c7")
