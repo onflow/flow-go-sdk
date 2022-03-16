@@ -118,11 +118,31 @@ func (c *Client) GetAccountAtBlockHeight(ctx context.Context, address flow.Addre
 }
 
 func (c *Client) ExecuteScriptAtLatestBlock(ctx context.Context, script []byte, arguments []cadence.Value) (cadence.Value, error) {
-	return c.ExecuteScriptAtBlockHeight(ctx, script, arguments, SEALED_HEIGHT)
+	result, err := c.handler.executeScriptAtBlockHeight(
+		ctx,
+		SEALED_HEIGHT,
+		convert.ScriptToHTTP(script),
+		convert.CadenceArgsToHTTP(arguments),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return cadence.NewString(result)
 }
 
 func (c *Client) ExecuteScriptAtBlockID(ctx context.Context, blockID flow.Identifier, script []byte, arguments []cadence.Value) (cadence.Value, error) {
-	panic("implement me")
+	result, err := c.handler.executeScriptAtBlockID(
+		ctx,
+		blockID.String(),
+		convert.ScriptToHTTP(script),
+		convert.CadenceArgsToHTTP(arguments),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return cadence.NewString(result)
 }
 
 func (c *Client) ExecuteScriptAtBlockHeight(ctx context.Context, height uint64, script []byte, arguments []cadence.Value) (cadence.Value, error) {

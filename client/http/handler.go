@@ -95,6 +95,10 @@ func (h *handler) getBlockByHeight(ctx context.Context, height string) ([]*model
 		return nil, errors.Wrap(err, fmt.Sprintf("get block by height %s failed", height))
 	}
 
+	if len(blocks) == 0 {
+		return nil, fmt.Errorf("blocks not found")
+	}
+
 	return blocks, nil
 }
 
@@ -132,16 +136,18 @@ func (h *handler) getCollection(ctx context.Context, ID string) (*models.Collect
 	return &collection, nil
 }
 
-func (h *handler) executeScriptAtBlockHeight(
+func (h *handler) executeScriptAt(
 	ctx context.Context,
-	height string,
+	query map[string]string,
 	script string,
 	arguments []string,
 ) (string, error) {
 	u, _ := h.scripts.buildURL()
 
 	q := u.Query()
-	q.Add("height", height)
+	for k, v := range query {
+		q.Add(k, v)
+	}
 	u.RawQuery = q.Encode()
 
 	body, err := json.Marshal(
@@ -161,4 +167,32 @@ func (h *handler) executeScriptAtBlockHeight(
 	}
 
 	return result, nil
+}
+
+func (h *handler) executeScriptAtBlockHeight(
+	ctx context.Context,
+	height string,
+	script string,
+	arguments []string,
+) (string, error) {
+	return h.executeScriptAt(
+		ctx,
+		map[string]string{"block_height": height},
+		script,
+		arguments,
+	)
+}
+
+func (h *handler) executeScriptAtBlockID(
+	ctx context.Context,
+	ID string,
+	script string,
+	arguments []string,
+) (string, error) {
+	return h.executeScriptAt(
+		ctx,
+		map[string]string{"block_id": ID},
+		script,
+		arguments,
+	)
 }
