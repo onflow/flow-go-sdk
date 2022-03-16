@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 
@@ -19,10 +20,32 @@ type Handler struct {
 }
 
 func NewHandler(baseUrl string) (*Handler, error) {
+	// todo validate url
 	return &Handler{
 		client: http.DefaultClient,
 		base:   baseUrl,
 	}, nil
+}
+
+func NewDefaultEmulatorHandler() *Handler {
+	return &Handler{
+		client: http.DefaultClient,
+		base:   "http:127.0.0.1:8888/v1",
+	}
+}
+
+func NewDefaultTestnetHandler() *Handler {
+	return &Handler{
+		client: http.DefaultClient,
+		base:   "https://rest-testnet.onflow.org/v1/",
+	}
+}
+
+func NewDefaultMainnetHandler() *Handler {
+	return &Handler{
+		client: http.DefaultClient,
+		base:   "https://rest-mainnet.onflow.org/v1/",
+	}
 }
 
 func (h *Handler) mustBuildURL(path string) *url.URL {
@@ -37,7 +60,16 @@ func (h *Handler) get(_ context.Context, url *url.URL, model interface{}) error 
 	}
 	defer res.Body.Close()
 
-	err = json.NewDecoder(res.Body).Decode(model)
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return err
+	}
+
+	if res.StatusCode >= 400 {
+		return fmt.Errorf("HTTP GET %s failed, status code: %d, response :%s", url.String(), res.StatusCode, body)
+	}
+
+	err = json.Unmarshal(body, &model)
 	if err != nil {
 		return errors.Wrap(err, "JSON decoding failed")
 	}
@@ -56,7 +88,16 @@ func (h *Handler) post(_ context.Context, url *url.URL, body []byte, model inter
 	}
 	defer res.Body.Close()
 
-	err = json.NewDecoder(res.Body).Decode(model)
+	responseBody, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return err
+	}
+
+	if res.StatusCode >= 400 {
+		return fmt.Errorf("HTTP POST %s failed, status code: %d, response :%s", url.String(), res.StatusCode, responseBody)
+	}
+
+	err = json.Unmarshal(responseBody, &model)
 	if err != nil {
 		return errors.Wrap(err, "JSON decoding failed")
 	}
