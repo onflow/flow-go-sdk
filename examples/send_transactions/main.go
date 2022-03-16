@@ -10,36 +10,25 @@ import (
 )
 
 func main() {
-	tx := prepareDemo()
-	demo(tx)
+	flowClient := examples.NewFlowHTTPClient()
+	tx := prepareDemo(flowClient)
+	demo(flowClient, tx)
 }
 
-func demo(tx *flow.Transaction) {
+func demo(flowClient client.Client, tx *flow.Transaction) {
 	ctx := context.Background()
-	var flowClient client.Client
-	flowClient = examples.NewFlowGRPCClient()
-
 	err := flowClient.SendTransaction(ctx, *tx)
-	if err != nil {
-		panic(err)
-	}
+	examples.Handle(err)
 }
 
-func prepareDemo() *flow.Transaction {
-	flowClient := examples.NewFlowGRPCClient()
-	defer func() {
-		err := flowClient.Close()
-		if err != nil {
-			panic(err)
-		}
-	}()
-
+func prepareDemo(flowClient client.Client) *flow.Transaction {
 	serviceAcctAddr, serviceAcctKey, serviceSigner := examples.ServiceAccount(flowClient)
 
 	tx := flow.NewTransaction().
 		SetPayer(serviceAcctAddr).
 		SetProposalKey(serviceAcctAddr, serviceAcctKey.Index, serviceAcctKey.SequenceNumber).
-		SetScript([]byte("transaction {}")).
+		SetScript([]byte("transaction { prepare(acct: AuthAccount) {} }")).
+		AddAuthorizer(serviceAcctAddr).
 		SetReferenceBlockID(examples.GetReferenceBlockId(flowClient))
 
 	err := tx.SignEnvelope(serviceAcctAddr, serviceAcctKey.Index, serviceSigner)
