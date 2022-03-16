@@ -26,7 +26,7 @@ func NewHandler(baseUrl string) (*Handler, error) {
 }
 
 func (h *Handler) mustBuildURL(path string) *url.URL {
-	u, _ := url.ParseRequestURI(path) // we ignore error because the values are always valid
+	u, _ := url.ParseRequestURI(fmt.Sprintf("%s%s", h.base, path)) // we ignore error because the values are always valid
 	return u
 }
 
