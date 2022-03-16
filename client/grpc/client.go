@@ -80,8 +80,8 @@ func (c *Client) Close() error {
 }
 
 // Ping is used to check if the access node is alive and healthy.
-func (c *Client) Ping(ctx context.Context, opts ...grpc.CallOption) error {
-	_, err := c.rpcClient.Ping(ctx, &access.PingRequest{}, opts...)
+func (c *Client) Ping(ctx context.Context) error {
+	_, err := c.rpcClient.Ping(ctx, &access.PingRequest{})
 	return err
 }
 
