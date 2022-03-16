@@ -14,27 +14,20 @@ import (
 )
 
 type Handler struct {
-	client       *http.Client
-	account      *endpoint
-	blocks       *endpoint
-	collection   *endpoint
-	scripts      *endpoint
-	transactions *endpoint
-	transaction  *endpoint
+	client *http.Client
+	base   string
 }
 
-func NewHandler(baseUrl string) *Handler {
-	newEndpoint := newBaseEndpoint(baseUrl)
-
+func NewHandler(baseUrl string) (*Handler, error) {
 	return &Handler{
-		client:       http.DefaultClient,
-		account:      newEndpoint("/accounts/%s"),
-		blocks:       newEndpoint("/blocks"),
-		collection:   newEndpoint("/collections/%s"),
-		scripts:      newEndpoint("/scripts"),
-		transactions: newEndpoint("/transactions"),
-		transaction:  newEndpoint("/transactions/%s"),
-	}
+		client: http.DefaultClient,
+		base:   baseUrl,
+	}, nil
+}
+
+func (h *Handler) mustBuildURL(path string) *url.URL {
+	u, _ := url.ParseRequestURI(path) // we ignore error because the values are always valid
+	return u
 }
 
 func (h *Handler) get(_ context.Context, url *url.URL, model interface{}) error {
@@ -72,13 +65,12 @@ func (h *Handler) post(_ context.Context, url *url.URL, body []byte, model inter
 }
 
 func (h *Handler) getBlockByID(ctx context.Context, ID string) (*models.Block, error) {
-	u, err := h.blocks.buildURL(ID)
-	if err != nil {
-		return nil, err
-	}
-
 	var block models.Block
-	err = h.get(ctx, u, &block)
+	err := h.get(
+		ctx,
+		h.mustBuildURL(fmt.Sprintf("/blocks/%s", ID)),
+		&block,
+	)
 	if err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf("get block ID %s failed", ID))
 	}
@@ -87,7 +79,7 @@ func (h *Handler) getBlockByID(ctx context.Context, ID string) (*models.Block, e
 }
 
 func (h *Handler) getBlockByHeight(ctx context.Context, height string) ([]*models.Block, error) {
-	u, _ := h.blocks.buildURL()
+	u := h.mustBuildURL("/blocks")
 
 	q := u.Query()
 	q.Add("height", height)
@@ -107,17 +99,14 @@ func (h *Handler) getBlockByHeight(ctx context.Context, height string) ([]*model
 }
 
 func (h *Handler) getAccount(ctx context.Context, address string, height string) (*models.Account, error) {
-	u, err := h.account.buildURL(address)
-	if err != nil {
-		return nil, err
-	}
+	u := h.mustBuildURL(fmt.Sprintf("/accounts/%s", address))
 
 	q := u.Query()
 	q.Add("height", height)
 	u.RawQuery = q.Encode()
 
 	var account models.Account
-	err = h.get(ctx, u, &account)
+	err := h.get(ctx, u, &account)
 	if err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf("get account %s failed", address))
 	}
@@ -126,13 +115,11 @@ func (h *Handler) getAccount(ctx context.Context, address string, height string)
 }
 
 func (h *Handler) getCollection(ctx context.Context, ID string) (*models.Collection, error) {
-	u, err := h.collection.buildURL(ID)
-	if err != nil {
-		return nil, err
-	}
-
 	var collection models.Collection
-	err = h.get(ctx, u, &collection)
+	err := h.get(
+		ctx, h.mustBuildURL(fmt.Sprintf("/collections/%s", ID)),
+		&collection,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +133,7 @@ func (h *Handler) executeScriptAt(
 	script string,
 	arguments []string,
 ) (string, error) {
-	u, _ := h.scripts.buildURL()
+	u := h.mustBuildURL("/scripts")
 
 	q := u.Query()
 	for k, v := range query {
@@ -203,10 +190,7 @@ func (h *Handler) executeScriptAtBlockID(
 
 func (h *Handler) getTransaction(ctx context.Context, ID string, includeResult bool) (*models.Transaction, error) {
 	var transaction models.Transaction
-	u, err := h.transaction.buildURL(ID)
-	if err != nil {
-		return nil, err
-	}
+	u := h.mustBuildURL(fmt.Sprintf("/transactions/%s", ID))
 
 	if includeResult {
 		q := u.Query()
@@ -214,7 +198,7 @@ func (h *Handler) getTransaction(ctx context.Context, ID string, includeResult b
 		u.RawQuery = q.Encode()
 	}
 
-	err = h.get(ctx, u, &transaction)
+	err := h.get(ctx, u, &transaction)
 	if err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf("get transaction %s failed", ID))
 	}
@@ -223,8 +207,6 @@ func (h *Handler) getTransaction(ctx context.Context, ID string, includeResult b
 }
 
 func (h *Handler) sendTransaction(ctx context.Context, transaction []byte) error {
-	u, _ := h.transactions.buildURL()
 	var tx models.Transaction
-
-	return h.post(ctx, u, transaction, &tx)
+	return h.post(ctx, h.mustBuildURL("/transactions"), transaction, &tx)
 }
