@@ -12,8 +12,12 @@ import (
 
 const SEALED_HEIGHT = "sealed"
 
+func NewClient(handler *Handler) *Client {
+	return &Client{handler}
+}
+
 type Client struct {
-	handler *handler
+	handler *Handler
 }
 
 func (c *Client) Ping(ctx context.Context) error {
