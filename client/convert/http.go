@@ -41,14 +41,32 @@ func HTTPToKeys(keys models.AccountPublicKeys) []*flow.AccountKey {
 	return accountKeys
 }
 
-func HTTPToAccount(account *models.Account) *flow.Account {
+func HTTPToContracts(contracts map[string]string) (map[string][]byte, error) {
+	decoded := make(map[string][]byte, len(contracts))
+	for name, code := range contracts {
+		dec, err := base64.StdEncoding.DecodeString(code)
+		if err != nil {
+			return nil, err
+		}
+
+		decoded[name] = dec
+	}
+
+	return decoded, nil
+}
+
+func HTTPToAccount(account *models.Account) (*flow.Account, error) {
+	contracts, err := HTTPToContracts(account.Contracts)
+	if err != nil {
+		return nil, err
+	}
+
 	return &flow.Account{
 		Address:   HTTPToAddress(account.Address),
 		Balance:   MustHTTPToUint(account.Balance),
-		Code:      nil,
 		Keys:      HTTPToKeys(account.Keys),
-		Contracts: nil,
-	}
+		Contracts: contracts,
+	}, nil
 }
 
 func HTTPToBlockHeader(header *models.BlockHeader) *flow.BlockHeader {
