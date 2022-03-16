@@ -17,13 +17,15 @@ import (
 type Handler struct {
 	client *http.Client
 	base   string
+	debug  bool
 }
 
-func NewHandler(baseUrl string) (*Handler, error) {
+func NewHandler(baseUrl string, debug bool) (*Handler, error) {
 	// todo validate url
 	return &Handler{
 		client: http.DefaultClient,
 		base:   baseUrl,
+		debug:  debug,
 	}, nil
 }
 
@@ -31,6 +33,7 @@ func NewDefaultEmulatorHandler() *Handler {
 	return &Handler{
 		client: http.DefaultClient,
 		base:   "http://127.0.0.1:8888/v1",
+		debug:  true,
 	}
 }
 
@@ -38,6 +41,7 @@ func NewDefaultTestnetHandler() *Handler {
 	return &Handler{
 		client: http.DefaultClient,
 		base:   "https://rest-testnet.onflow.org/v1/",
+		debug:  false,
 	}
 }
 
@@ -45,6 +49,7 @@ func NewDefaultMainnetHandler() *Handler {
 	return &Handler{
 		client: http.DefaultClient,
 		base:   "https://rest-mainnet.onflow.org/v1/",
+		debug:  false,
 	}
 }
 
@@ -54,6 +59,10 @@ func (h *Handler) mustBuildURL(path string) *url.URL {
 }
 
 func (h *Handler) get(_ context.Context, url *url.URL, model interface{}) error {
+	if h.debug {
+		fmt.Printf("\n-> GET %s\n", url.String())
+	}
+
 	res, err := h.client.Get(url.String())
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("HTTP GET %s failed", url.String()))
@@ -68,7 +77,10 @@ func (h *Handler) get(_ context.Context, url *url.URL, model interface{}) error 
 	if res.StatusCode >= http.StatusBadRequest {
 		return fmt.Errorf("HTTP GET %s failed, status code: %d, response :%s", url.String(), res.StatusCode, body)
 	}
-	fmt.Println("-->", string(body))
+
+	if h.debug {
+		fmt.Printf("\n<- GET %s - %s\n", url.String(), string(body))
+	}
 
 	err = json.Unmarshal(body, &model)
 	if err != nil {
@@ -79,6 +91,10 @@ func (h *Handler) get(_ context.Context, url *url.URL, model interface{}) error 
 }
 
 func (h *Handler) post(_ context.Context, url *url.URL, body []byte, model interface{}) error {
+	if h.debug {
+		fmt.Printf("\n-> POST %s - %s\n", url.String(), string(body))
+	}
+
 	res, err := h.client.Post(
 		url.String(),
 		"application/json",
@@ -96,6 +112,10 @@ func (h *Handler) post(_ context.Context, url *url.URL, body []byte, model inter
 
 	if res.StatusCode >= http.StatusBadRequest {
 		return fmt.Errorf("HTTP POST %s failed, status code: %d, response :%s", url.String(), res.StatusCode, responseBody)
+	}
+
+	if h.debug {
+		fmt.Printf("\n<- POST %s - %s\n", url.String(), string(body))
 	}
 
 	err = json.Unmarshal(responseBody, &model)
