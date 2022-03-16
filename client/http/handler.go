@@ -37,7 +37,7 @@ func newHandler(baseUrl string) *handler {
 	}
 }
 
-func (h *handler) get(ctx context.Context, url *url.URL, model interface{}) error {
+func (h *handler) get(_ context.Context, url *url.URL, model interface{}) error {
 	res, err := h.client.Get(url.String())
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("HTTP GET %s failed", url.String()))
@@ -52,7 +52,7 @@ func (h *handler) get(ctx context.Context, url *url.URL, model interface{}) erro
 	return nil
 }
 
-func (h *handler) post(ctx context.Context, url *url.URL, body []byte, model interface{}) error {
+func (h *handler) post(_ context.Context, url *url.URL, body []byte, model interface{}) error {
 	res, err := h.client.Post(
 		url.String(),
 		"application/json",
@@ -220,4 +220,11 @@ func (h *handler) getTransaction(ctx context.Context, ID string, includeResult b
 	}
 
 	return &transaction, nil
+}
+
+func (h *handler) sendTransaction(ctx context.Context, transaction []byte) error {
+	u, _ := h.transactions.buildURL()
+	var tx models.Transaction
+
+	return h.post(ctx, u, transaction, &tx)
 }

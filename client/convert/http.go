@@ -2,6 +2,7 @@ package convert
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"strconv"
 
@@ -124,6 +125,14 @@ func HTTPToScript(script string) ([]byte, error) {
 	return base64.StdEncoding.DecodeString(script)
 }
 
+func ArgumentsToHTTP(args [][]byte) []string {
+	encodedArgs := make([]string, len(args))
+	for i, a := range args {
+		encodedArgs[i] = base64.StdEncoding.EncodeToString(a)
+	}
+	return encodedArgs
+}
+
 func HTTPToArguments(arguments []string) ([][]byte, error) {
 	args := make([][]byte, len(arguments))
 	for i, arg := range arguments {
@@ -226,4 +235,40 @@ func HTTPToTransactionResult(txr *models.TransactionResult) *flow.TransactionRes
 		Error:  fmt.Errorf(txr.ErrorMessage),
 		Events: events,
 	}
+}
+
+func SignaturesToHTTP(signatures []flow.TransactionSignature) models.TransactionSignatures {
+	sigs := make(models.TransactionSignatures, len(signatures))
+	for i, sig := range signatures {
+		sigs[i] = models.TransactionSignature{
+			Address:   sig.Address.String(),
+			KeyIndex:  fmt.Sprintf("%d", sig.KeyIndex),
+			Signature: base64.StdEncoding.EncodeToString(sig.Signature),
+		}
+	}
+
+	return sigs
+}
+
+func TransactionToHTTP(tx flow.Transaction) ([]byte, error) {
+	auths := make([]string, len(tx.Authorizers))
+	for i, address := range tx.Authorizers {
+		auths[i] = address.String()
+	}
+
+	return json.Marshal(models.TransactionsBody{
+		Script:           ScriptToHTTP(tx.Script),
+		Arguments:        ArgumentsToHTTP(tx.Arguments),
+		ReferenceBlockId: tx.ReferenceBlockID.String(),
+		GasLimit:         fmt.Sprintf("%d", tx.GasLimit),
+		Payer:            tx.Payer.String(),
+		ProposalKey: &models.ProposalKey{
+			Address:        tx.ProposalKey.Address.String(),
+			KeyIndex:       fmt.Sprintf("%d", tx.ProposalKey.KeyIndex),
+			SequenceNumber: fmt.Sprintf("%d", tx.ProposalKey.SequenceNumber),
+		},
+		Authorizers:        auths,
+		PayloadSignatures:  SignaturesToHTTP(tx.PayloadSignatures),
+		EnvelopeSignatures: SignaturesToHTTP(tx.EnvelopeSignatures),
+	})
 }

@@ -84,7 +84,12 @@ func (c *Client) GetCollection(ctx context.Context, ID flow.Identifier) (*flow.C
 }
 
 func (c *Client) SendTransaction(ctx context.Context, tx flow.Transaction) error {
-	panic("implement me")
+	convertedTx, err := convert.TransactionToHTTP(tx)
+	if err != nil {
+		return err
+	}
+
+	return c.handler.sendTransaction(ctx, convertedTx)
 }
 
 func (c *Client) GetTransaction(ctx context.Context, ID flow.Identifier) (*flow.Transaction, error) {
