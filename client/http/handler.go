@@ -30,7 +30,7 @@ func NewHandler(baseUrl string) (*Handler, error) {
 func NewDefaultEmulatorHandler() *Handler {
 	return &Handler{
 		client: http.DefaultClient,
-		base:   "http:127.0.0.1:8888/v1",
+		base:   "http://127.0.0.1:8888/v1",
 	}
 }
 
