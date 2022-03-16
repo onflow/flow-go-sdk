@@ -2,7 +2,10 @@ package convert
 
 import (
 	"encoding/base64"
+	"fmt"
 	"strconv"
+
+	"github.com/pkg/errors"
 
 	"github.com/onflow/cadence"
 
@@ -20,17 +23,16 @@ func HTTPToKeys(keys models.AccountPublicKeys) []*flow.AccountKey {
 	accountKeys := make([]*flow.AccountKey, len(keys))
 
 	for i, key := range keys {
-		index, _ := strconv.Atoi(key.Index)
-		weight, _ := strconv.Atoi(key.Weight)
-		seqNumber, _ := strconv.ParseUint(key.SequenceNumber, 10, 64)
+		sigAlgo := crypto.StringToSignatureAlgorithm(string(*key.SigningAlgorithm))
+		pkey, _ := crypto.DecodePublicKeyHex(sigAlgo, key.PublicKey) // validation is done on AN
 
 		accountKeys[i] = &flow.AccountKey{
-			Index:          index,
-			PublicKey:      nil,
-			SigAlgo:        crypto.StringToSignatureAlgorithm(string(*key.SigningAlgorithm)),
+			Index:          MustHTTPToInt(key.Index),
+			PublicKey:      pkey,
+			SigAlgo:        sigAlgo,
 			HashAlgo:       crypto.StringToHashAlgorithm(string(*key.HashingAlgorithm)),
-			Weight:         weight,
-			SequenceNumber: seqNumber,
+			Weight:         MustHTTPToInt(key.Weight),
+			SequenceNumber: MustHTTPToUint(key.SequenceNumber),
 			Revoked:        key.Revoked,
 		}
 	}
@@ -39,11 +41,9 @@ func HTTPToKeys(keys models.AccountPublicKeys) []*flow.AccountKey {
 }
 
 func HTTPToAccount(account *models.Account) *flow.Account {
-	balance, _ := strconv.ParseUint(account.Balance, 10, 64)
-
 	return &flow.Account{
 		Address:   HTTPToAddress(account.Address),
-		Balance:   balance,
+		Balance:   MustHTTPToUint(account.Balance),
 		Code:      nil,
 		Keys:      HTTPToKeys(account.Keys),
 		Contracts: nil,
@@ -51,12 +51,10 @@ func HTTPToAccount(account *models.Account) *flow.Account {
 }
 
 func HTTPToBlockHeader(header *models.BlockHeader) *flow.BlockHeader {
-	height, _ := strconv.ParseUint(header.Height, 10, 64)
-
 	return &flow.BlockHeader{
 		ID:        flow.HexToID(header.Id),
 		ParentID:  flow.HexToID(header.ParentId),
-		Height:    height,
+		Height:    MustHTTPToUint(header.Height),
 		Timestamp: header.Timestamp,
 	}
 }
@@ -122,6 +120,33 @@ func ScriptToHTTP(script []byte) string {
 	return base64.StdEncoding.EncodeToString(script)
 }
 
+func HTTPToScript(script string) ([]byte, error) {
+	return base64.StdEncoding.DecodeString(script)
+}
+
+func HTTPToArguments(arguments []string) ([][]byte, error) {
+	args := make([][]byte, len(arguments))
+	for i, arg := range arguments {
+		a, err := base64.StdEncoding.DecodeString(arg)
+		if err != nil {
+			return nil, err
+		}
+		args[i] = a
+	}
+
+	return args, nil
+}
+
+func MustHTTPToUint(value string) uint64 {
+	parsed, _ := strconv.ParseUint(value, 10, 64) // we can ignore error since this values are validated before returned
+	return parsed
+}
+
+func MustHTTPToInt(value string) int {
+	parsed, _ := strconv.Atoi(value) // we can ignore error since this values are validated before returned
+	return parsed
+}
+
 func CadenceArgsToHTTP(args []cadence.Value) []string {
 	encArgs := make([]string, len(args))
 
@@ -130,4 +155,54 @@ func CadenceArgsToHTTP(args []cadence.Value) []string {
 	}
 
 	return encArgs
+}
+
+func HTTPToProposalKey(key *models.ProposalKey) flow.ProposalKey {
+	return flow.ProposalKey{
+		Address:        flow.HexToAddress(key.Address),
+		KeyIndex:       MustHTTPToInt(key.KeyIndex),
+		SequenceNumber: MustHTTPToUint(key.SequenceNumber),
+	}
+}
+
+func HTTPToSignatures(signatures models.TransactionSignatures) []flow.TransactionSignature {
+	sigs := make([]flow.TransactionSignature, len(signatures))
+	for i, sig := range signatures {
+		signature, _ := base64.StdEncoding.DecodeString(sig.Signature)
+		sigs[i] = flow.TransactionSignature{
+			Address:     flow.HexToAddress(sig.Address),
+			SignerIndex: 0, // todo check why is this value present
+			KeyIndex:    MustHTTPToInt(sig.KeyIndex),
+			Signature:   signature,
+		}
+	}
+	return sigs
+}
+
+func HTTPToTransaction(tx *models.Transaction) (*flow.Transaction, error) {
+	script, err := HTTPToScript(tx.Script)
+	if err != nil {
+		return nil, errors.Wrap(err, fmt.Sprintf("failed to decode script of transaction with ID %s", tx.Id))
+	}
+	args, err := HTTPToArguments(tx.Arguments)
+	if err != nil {
+		return nil, errors.Wrap(err, fmt.Sprintf("failed to decode arguments of transaction with ID %s", tx.Id))
+	}
+
+	auths := make([]flow.Address, len(tx.Authorizers))
+	for i, a := range tx.Authorizers {
+		auths[i] = flow.HexToAddress(a)
+	}
+
+	return &flow.Transaction{
+		Script:             script,
+		Arguments:          args,
+		ReferenceBlockID:   flow.HexToID(tx.ReferenceBlockId),
+		GasLimit:           MustHTTPToUint(tx.GasLimit),
+		ProposalKey:        HTTPToProposalKey(tx.ProposalKey),
+		Payer:              flow.HexToAddress(tx.Payer),
+		Authorizers:        auths,
+		PayloadSignatures:  HTTPToSignatures(tx.PayloadSignatures),
+		EnvelopeSignatures: HTTPToSignatures(tx.EnvelopeSignatures),
+	}, nil
 }
