@@ -87,12 +87,22 @@ func (c *Client) SendTransaction(ctx context.Context, tx flow.Transaction) error
 	panic("implement me")
 }
 
-func (c *Client) GetTransaction(ctx context.Context, txID flow.Identifier) (*flow.Transaction, error) {
-	panic("implement me")
+func (c *Client) GetTransaction(ctx context.Context, ID flow.Identifier) (*flow.Transaction, error) {
+	tx, err := c.handler.getTransaction(ctx, ID.String(), false)
+	if err != nil {
+		return nil, err
+	}
+
+	return convert.HTTPToTransaction(tx)
 }
 
-func (c *Client) GetTransactionResult(ctx context.Context, txID flow.Identifier) (*flow.TransactionResult, error) {
-	panic("implement me")
+func (c *Client) GetTransactionResult(ctx context.Context, ID flow.Identifier) (*flow.TransactionResult, error) {
+	tx, err := c.handler.getTransaction(ctx, ID.String(), true)
+	if err != nil {
+		return nil, err
+	}
+
+	return convert.HTTPToTransactionResult(tx.Result), nil
 }
 
 func (c *Client) GetAccount(ctx context.Context, address flow.Address) (*flow.Account, error) {

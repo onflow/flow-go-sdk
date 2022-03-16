@@ -14,22 +14,26 @@ import (
 )
 
 type handler struct {
-	client      *http.Client
-	accounts    *endpoint
-	blocks      *endpoint
-	collections *endpoint
-	scripts     *endpoint
+	client       *http.Client
+	account      *endpoint
+	blocks       *endpoint
+	collection   *endpoint
+	scripts      *endpoint
+	transactions *endpoint
+	transaction  *endpoint
 }
 
 func newHandler(baseUrl string) *handler {
 	newEndpoint := newBaseEndpoint(baseUrl)
 
 	return &handler{
-		client:      http.DefaultClient,
-		accounts:    newEndpoint("/accounts/%s"),
-		blocks:      newEndpoint("/blocks"),
-		collections: newEndpoint("/collections/%s"),
-		scripts:     newEndpoint("/scripts"),
+		client:       http.DefaultClient,
+		account:      newEndpoint("/accounts/%s"),
+		blocks:       newEndpoint("/blocks"),
+		collection:   newEndpoint("/collections/%s"),
+		scripts:      newEndpoint("/scripts"),
+		transactions: newEndpoint("/transactions"),
+		transaction:  newEndpoint("/transactions/%s"),
 	}
 }
 
@@ -103,7 +107,7 @@ func (h *handler) getBlockByHeight(ctx context.Context, height string) ([]*model
 }
 
 func (h *handler) getAccount(ctx context.Context, address string, height string) (*models.Account, error) {
-	u, err := h.accounts.buildURL(address)
+	u, err := h.account.buildURL(address)
 	if err != nil {
 		return nil, err
 	}
@@ -115,14 +119,14 @@ func (h *handler) getAccount(ctx context.Context, address string, height string)
 	var account models.Account
 	err = h.get(ctx, u, &account)
 	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("Get account %s failed", address))
+		return nil, errors.Wrap(err, fmt.Sprintf("get account %s failed", address))
 	}
 
 	return &account, nil
 }
 
 func (h *handler) getCollection(ctx context.Context, ID string) (*models.Collection, error) {
-	u, err := h.collections.buildURL(ID)
+	u, err := h.collection.buildURL(ID)
 	if err != nil {
 		return nil, err
 	}
@@ -195,4 +199,25 @@ func (h *handler) executeScriptAtBlockID(
 		script,
 		arguments,
 	)
+}
+
+func (h *handler) getTransaction(ctx context.Context, ID string, includeResult bool) (*models.Transaction, error) {
+	var transaction models.Transaction
+	u, err := h.transaction.buildURL(ID)
+	if err != nil {
+		return nil, err
+	}
+
+	if includeResult {
+		q := u.Query()
+		q.Add("expand", "result")
+		u.RawQuery = q.Encode()
+	}
+
+	err = h.get(ctx, u, &transaction)
+	if err != nil {
+		return nil, errors.Wrap(err, fmt.Sprintf("get transaction %s failed", ID))
+	}
+
+	return &transaction, nil
 }

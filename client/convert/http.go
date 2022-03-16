@@ -206,3 +206,24 @@ func HTTPToTransaction(tx *models.Transaction) (*flow.Transaction, error) {
 		EnvelopeSignatures: HTTPToSignatures(tx.EnvelopeSignatures),
 	}, nil
 }
+
+func HTTPToTransactionResult(txr *models.TransactionResult) *flow.TransactionResult {
+	events := make([]flow.Event, len(txr.Events))
+	for i, e := range txr.Events {
+		payload, _ := base64.StdEncoding.DecodeString(e.Payload)
+		events[i] = flow.Event{
+			Type:             e.Type_,
+			TransactionID:    flow.HexToID(e.TransactionId),
+			TransactionIndex: MustHTTPToInt(e.TransactionIndex),
+			EventIndex:       MustHTTPToInt(e.EventIndex),
+			Value:            cadence.Event{}, // todo check the value here
+			Payload:          payload,
+		}
+	}
+
+	return &flow.TransactionResult{
+		Status: flow.TransactionStatus(txr.StatusCode),
+		Error:  fmt.Errorf(txr.ErrorMessage),
+		Events: events,
+	}
+}
