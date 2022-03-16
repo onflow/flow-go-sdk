@@ -65,7 +65,7 @@ func (h *Handler) get(_ context.Context, url *url.URL, model interface{}) error 
 		return err
 	}
 
-	if res.StatusCode >= 400 {
+	if res.StatusCode >= http.StatusBadRequest {
 		return fmt.Errorf("HTTP GET %s failed, status code: %d, response :%s", url.String(), res.StatusCode, body)
 	}
 
@@ -93,7 +93,7 @@ func (h *Handler) post(_ context.Context, url *url.URL, body []byte, model inter
 		return err
 	}
 
-	if res.StatusCode >= 400 {
+	if res.StatusCode >= http.StatusBadRequest {
 		return fmt.Errorf("HTTP POST %s failed, status code: %d, response :%s", url.String(), res.StatusCode, responseBody)
 	}
 
