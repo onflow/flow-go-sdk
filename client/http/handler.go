@@ -8,11 +8,16 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/pkg/errors"
 
 	"github.com/onflow/flow-go/engine/access/rest/models"
 )
+
+const EMULATOR_API = "http://127.0.0.1:8888/v1"
+const TESTNET_API = "https://rest-testnet.onflow.org/v1/"
+const MAINNET_API = "https://rest-mainnet.onflow.org/v1/"
 
 type Handler struct {
 	client *http.Client
@@ -32,7 +37,7 @@ func NewHandler(baseUrl string, debug bool) (*Handler, error) {
 func NewDefaultEmulatorHandler() *Handler {
 	return &Handler{
 		client: http.DefaultClient,
-		base:   "http://127.0.0.1:8888/v1",
+		base:   EMULATOR_API,
 		debug:  true,
 	}
 }
@@ -40,7 +45,7 @@ func NewDefaultEmulatorHandler() *Handler {
 func NewDefaultTestnetHandler() *Handler {
 	return &Handler{
 		client: http.DefaultClient,
-		base:   "https://rest-testnet.onflow.org/v1/",
+		base:   TESTNET_API,
 		debug:  false,
 	}
 }
@@ -48,7 +53,7 @@ func NewDefaultTestnetHandler() *Handler {
 func NewDefaultMainnetHandler() *Handler {
 	return &Handler{
 		client: http.DefaultClient,
-		base:   "https://rest-mainnet.onflow.org/v1/",
+		base:   MAINNET_API,
 		debug:  false,
 	}
 }
@@ -60,7 +65,7 @@ func (h *Handler) mustBuildURL(path string) *url.URL {
 
 func (h *Handler) get(_ context.Context, url *url.URL, model interface{}) error {
 	if h.debug {
-		fmt.Printf("\n-> GET %s\n", url.String())
+		fmt.Printf("\n-> GET %s t=%d", url.String(), time.Now().Unix())
 	}
 
 	res, err := h.client.Get(url.String())
@@ -79,7 +84,7 @@ func (h *Handler) get(_ context.Context, url *url.URL, model interface{}) error 
 	}
 
 	if h.debug {
-		fmt.Printf("\n<- GET %s - %s\n", url.String(), string(body))
+		fmt.Printf("\n<- GET %s t=%d - %s", url.String(), time.Now().Unix(), body)
 	}
 
 	err = json.Unmarshal(body, &model)
@@ -92,7 +97,7 @@ func (h *Handler) get(_ context.Context, url *url.URL, model interface{}) error 
 
 func (h *Handler) post(_ context.Context, url *url.URL, body []byte, model interface{}) error {
 	if h.debug {
-		fmt.Printf("\n-> POST %s - %s\n", url.String(), string(body))
+		fmt.Printf("\n-> POST %s t=%d - %s", url.String(), time.Now().Unix(), string(body))
 	}
 
 	res, err := h.client.Post(
@@ -115,7 +120,7 @@ func (h *Handler) post(_ context.Context, url *url.URL, body []byte, model inter
 	}
 
 	if h.debug {
-		fmt.Printf("\n<- POST %s - %s\n", url.String(), string(body))
+		fmt.Printf("\n<- POST %s t=%d - %s", url.String(), time.Now().Unix(), string(body))
 	}
 
 	err = json.Unmarshal(responseBody, &model)
@@ -130,7 +135,7 @@ func (h *Handler) getBlockByID(ctx context.Context, ID string) (*models.Block, e
 	u := h.mustBuildURL(fmt.Sprintf("/blocks/%s", ID))
 
 	q := u.Query()
-	q.Add("expand", `["payload"]`)
+	q.Add("expand", "payload")
 
 	var block models.Block
 	err := h.get(ctx, u, &block)
@@ -146,11 +151,11 @@ func (h *Handler) getBlockByHeight(ctx context.Context, height string) ([]*model
 
 	q := u.Query()
 	q.Add("height", height)
-	q.Add("expand", `["payload"]`)
+	q.Add("expand", "payload")
 	u.RawQuery = q.Encode()
 
 	var blocks []*models.Block
-	err := h.get(ctx, u, blocks)
+	err := h.get(ctx, u, &blocks)
 	if err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf("get block by height %s failed", height))
 	}
@@ -167,7 +172,7 @@ func (h *Handler) getAccount(ctx context.Context, address string, height string)
 
 	q := u.Query()
 	q.Add("height", height)
-	q.Add("expand", `["keys", "contracts"]`)
+	q.Add("expand", "keys,contracts")
 	u.RawQuery = q.Encode()
 
 	var account models.Account
@@ -259,7 +264,7 @@ func (h *Handler) getTransaction(ctx context.Context, ID string, includeResult b
 
 	if includeResult {
 		q := u.Query()
-		q.Add("expand", `["result"]`)
+		q.Add("expand", "result")
 		u.RawQuery = q.Encode()
 	}
 
