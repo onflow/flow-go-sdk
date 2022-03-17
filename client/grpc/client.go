@@ -7,6 +7,11 @@ import (
 	"github.com/onflow/flow-go-sdk"
 )
 
+const EMULATOR_API = "127.0.0.1:3569"
+const TESTNET_API = "access.devnet.nodes.onflow.org:9000"
+const CANARYNET_API = "access.canary.nodes.onflow.org:9000"
+const MAINNET_API = "access.mainnet.nodes.onflow.org:9000"
+
 func NewClient(handler *Handler) *Client {
 	return &Client{
 		handler: handler,
@@ -15,6 +20,42 @@ func NewClient(handler *Handler) *Client {
 
 type Client struct {
 	handler *Handler
+}
+
+func NewDefaultEmulatorClient() (*Client, error) {
+	handler, err := New(EMULATOR_API)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewClient(handler), nil
+}
+
+func NewDefaultTestnetClient() (*Client, error) {
+	handler, err := New(TESTNET_API)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewClient(handler), nil
+}
+
+func NewDefaultCanaryClient() (*Client, error) {
+	handler, err := New(CANARYNET_API)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewClient(handler), nil
+}
+
+func NewDefaultMainnetClient() (*Client, error) {
+	handler, err := New(MAINNET_API)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewClient(handler), nil
 }
 
 func (c *Client) Ping(ctx context.Context) error {

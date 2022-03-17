@@ -1,3 +1,21 @@
+/*
+ * Flow Go SDK
+ *
+ * Copyright 2019-2022 Dapper Labs, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package http
 
 import (
@@ -14,21 +32,46 @@ const SEALED_HEIGHT = "sealed"
 const EMULATOR_API = "http://127.0.0.1:8888/v1"
 const TESTNET_API = "https://rest-testnet.onflow.org/v1/"
 const MAINNET_API = "https://rest-mainnet.onflow.org/v1/"
+const CANARYNET_API = ""
 
 func NewClient(handler *handler) *Client {
 	return &Client{handler}
 }
 
-func NewDefaultEmulatorClient() *Client {
-	return NewClient(newHandler(EMULATOR_API, true))
+func NewDefaultEmulatorClient() (*Client, error) {
+	handler, err := newHandler(EMULATOR_API, true)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewClient(handler), nil
 }
 
-func NewDefaultTestnetClient() *Client {
-	return NewClient(newHandler(TESTNET_API, false))
+func NewDefaultTestnetClient() (*Client, error) {
+	handler, err := newHandler(TESTNET_API, false)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewClient(handler), nil
 }
 
-func NewDefaultMainnetClient() *Client {
-	return NewClient(newHandler(MAINNET_API, false))
+func NewDefaultCanaryClient() (*Client, error) {
+	handler, err := newHandler(CANARYNET_API, false)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewClient(handler), nil
+}
+
+func NewDefaultMainnetClient() (*Client, error) {
+	handler, err := newHandler(MAINNET_API, false)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewClient(handler), nil
 }
 
 type Client struct {
