@@ -234,6 +234,23 @@ func HTTPToTransaction(tx *models.Transaction) (*flow.Transaction, error) {
 	}, nil
 }
 
+func HTTPToTransactionStatus(status *models.TransactionStatus) flow.TransactionStatus {
+	switch *status {
+	case models.PENDING:
+		return flow.TransactionStatusPending
+	case models.SEALED:
+		return flow.TransactionStatusSealed
+	case models.FINALIZED:
+		return flow.TransactionStatusFinalized
+	case models.EXECUTED:
+		return flow.TransactionStatusExecuted
+	case models.EXPIRED:
+		return flow.TransactionStatusExpired
+	default:
+		return flow.TransactionStatusUnknown
+	}
+}
+
 func HTTPToTransactionResult(txr *models.TransactionResult) *flow.TransactionResult {
 	events := make([]flow.Event, len(txr.Events))
 	for i, e := range txr.Events {
@@ -249,7 +266,7 @@ func HTTPToTransactionResult(txr *models.TransactionResult) *flow.TransactionRes
 	}
 
 	return &flow.TransactionResult{
-		Status: flow.TransactionStatus(txr.StatusCode),
+		Status: HTTPToTransactionStatus(txr.Status),
 		Error:  fmt.Errorf(txr.ErrorMessage),
 		Events: events,
 	}

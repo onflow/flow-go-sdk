@@ -38,8 +38,8 @@ func NewClient(handler *handler) *Client {
 	return &Client{handler}
 }
 
-func NewDefaultEmulatorClient() (*Client, error) {
-	handler, err := newHandler(EMULATOR_API, true)
+func NewDefaultEmulatorClient(debug bool) (*Client, error) {
+	handler, err := newHandler(EMULATOR_API, debug)
 	if err != nil {
 		return nil, err
 	}
@@ -168,6 +168,9 @@ func (c *Client) GetTransactionResult(ctx context.Context, ID flow.Identifier) (
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Println("#1", tx.Result.StatusCode, tx.Result.Status, tx.Result.ErrorMessage, len(tx.Result.Events))
+	fmt.Println("#2", convert.HTTPToTransactionResult(tx.Result).Status, convert.HTTPToTransactionResult(tx.Result).Error)
 
 	return convert.HTTPToTransactionResult(tx.Result), nil
 }

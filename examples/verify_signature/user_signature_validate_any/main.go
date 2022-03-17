@@ -87,7 +87,7 @@ pub fun main(
 
 func UserSignatureValidateAny() {
 	ctx := context.Background()
-	flowClient, err := http.NewDefaultEmulatorClient()
+	flowClient, err := http.NewDefaultEmulatorClient(false)
 	examples.Handle(err)
 
 	privateKeyAlice := examples.RandomPrivateKey()

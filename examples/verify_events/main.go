@@ -40,7 +40,7 @@ func main() {
 // For users, its possible to get all the events for chunk, calculate and compare the resulting hash
 func VerifyEventsDemo() {
 	ctx := context.Background()
-	flowClient, err := http.NewDefaultEmulatorClient()
+	flowClient, err := http.NewDefaultEmulatorClient(false)
 	examples.Handle(err)
 
 	latestBlockHeader, err := flowClient.GetLatestBlockHeader(ctx, true)

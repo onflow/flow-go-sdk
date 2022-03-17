@@ -39,7 +39,7 @@ func main() {
 
 func StorageUsageDemo() {
 	ctx := context.Background()
-	flowClient, err := http.NewDefaultEmulatorClient()
+	flowClient, err := http.NewDefaultEmulatorClient(false)
 	examples.Handle(err)
 
 	serviceAcctAddr, serviceAcctKey, serviceSigner := examples.ServiceAccount(flowClient)

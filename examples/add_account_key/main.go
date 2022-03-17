@@ -37,7 +37,7 @@ func main() {
 func AddAccountKeyDemo() {
 	ctx := context.Background()
 
-	flowClient, err := http.NewDefaultEmulatorClient()
+	flowClient, err := http.NewDefaultEmulatorClient(false)
 	examples.Handle(err)
 
 	acctAddr, acctKey, acctSigner := examples.RandomAccount(flowClient)

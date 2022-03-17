@@ -34,7 +34,7 @@ func main() {
 
 func SinglePartyMultiSignatureDemo() {
 	ctx := context.Background()
-	flowClient, err := http.NewDefaultEmulatorClient()
+	flowClient, err := http.NewDefaultEmulatorClient(false)
 	examples.Handle(err)
 
 	privateKey1 := examples.RandomPrivateKey()

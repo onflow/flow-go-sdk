@@ -38,7 +38,7 @@ func main() {
 func GoogleCloudKMSDemo() {
 	ctx := context.Background()
 
-	flowClient, err := http.NewDefaultEmulatorClient()
+	flowClient, err := http.NewDefaultEmulatorClient(false)
 	examples.Handle(err)
 
 	accountAddress := test.AddressGenerator().New()

@@ -16,7 +16,7 @@ func main() {
 
 func demo() {
 	ctx := context.Background()
-	flowClient, err := http.NewDefaultEmulatorClient()
+	flowClient, err := http.NewDefaultEmulatorClient(false)
 	examples.Handle(err)
 
 	txID := examples.RandomTransaction(flowClient).ID()
