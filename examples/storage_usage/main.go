@@ -24,13 +24,13 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	grpc2 "github.com/onflow/flow-go-sdk/client/grpc"
+	"github.com/onflow/flow-go-sdk/client"
+	"github.com/onflow/flow-go-sdk/client/http"
 
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/examples"
 	"github.com/onflow/flow-go-sdk/templates"
-	"google.golang.org/grpc"
 )
 
 func main() {
@@ -39,7 +39,7 @@ func main() {
 
 func StorageUsageDemo() {
 	ctx := context.Background()
-	flowClient, err := grpc2.New("127.0.0.1:3569", grpc.WithInsecure())
+	flowClient, err := http.NewDefaultEmulatorClient()
 	examples.Handle(err)
 
 	serviceAcctAddr, serviceAcctKey, serviceSigner := examples.ServiceAccount(flowClient)
@@ -118,7 +118,7 @@ func StorageUsageDemo() {
 
 func sendSaveLargeResourceTransaction(
 	ctx context.Context,
-	flowClient *grpc2.Handler,
+	flowClient client.Client,
 	serviceAcctAddr flow.Address,
 	serviceAcctKey *flow.AccountKey,
 	serviceSigner crypto.Signer,

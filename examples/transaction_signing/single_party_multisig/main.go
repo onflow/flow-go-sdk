@@ -22,11 +22,8 @@ import (
 	"context"
 	"fmt"
 
-	grpc2 "github.com/onflow/flow-go-sdk/client/grpc"
-
-	"google.golang.org/grpc"
-
 	"github.com/onflow/flow-go-sdk"
+	"github.com/onflow/flow-go-sdk/client/http"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/examples"
 )
@@ -37,8 +34,7 @@ func main() {
 
 func SinglePartyMultiSignatureDemo() {
 	ctx := context.Background()
-
-	flowClient, err := grpc2.New("127.0.0.1:3569", grpc.WithInsecure())
+	flowClient, err := http.NewDefaultEmulatorClient()
 	examples.Handle(err)
 
 	privateKey1 := examples.RandomPrivateKey()

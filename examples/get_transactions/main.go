@@ -4,21 +4,22 @@ import (
 	"context"
 	"fmt"
 
-	grpc2 "github.com/onflow/flow-go-sdk/client/grpc"
+	"github.com/onflow/flow-go-sdk/client/http"
 
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/examples"
-	"google.golang.org/grpc"
 )
 
 func main() {
-	txID := prepareDemo()
-	demo(txID)
+	demo()
 }
 
-func demo(txID flow.Identifier) {
+func demo() {
 	ctx := context.Background()
-	flowClient := examples.NewFlowGRPCClient()
+	flowClient, err := http.NewDefaultEmulatorClient()
+	examples.Handle(err)
+
+	txID := examples.RandomTransaction(flowClient).ID()
 
 	tx, err := flowClient.GetTransaction(ctx, txID)
 	printTransaction(tx, err)
@@ -41,17 +42,4 @@ func printTransactionResult(txr *flow.TransactionResult, err error) {
 
 	fmt.Printf("\nStatus: %s", txr.Status.String())
 	fmt.Printf("\nError: %v", txr.Error)
-}
-
-func prepareDemo() flow.Identifier {
-	flowClient, err := grpc2.New("127.0.0.1:3569", grpc.WithInsecure())
-	examples.Handle(err)
-	defer func() {
-		err := flowClient.Close()
-		if err != nil {
-			panic(err)
-		}
-	}()
-
-	return examples.RandomTransaction(flowClient).ID()
 }

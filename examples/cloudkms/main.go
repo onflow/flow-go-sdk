@@ -22,11 +22,9 @@ import (
 	"context"
 	"fmt"
 
-	grpc2 "github.com/onflow/flow-go-sdk/client/grpc"
+	"github.com/onflow/flow-go-sdk/client/http"
 
 	"github.com/onflow/cadence"
-	"google.golang.org/grpc"
-
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto/cloudkms"
 	"github.com/onflow/flow-go-sdk/examples"
@@ -40,7 +38,7 @@ func main() {
 func GoogleCloudKMSDemo() {
 	ctx := context.Background()
 
-	flowClient, err := grpc2.New("127.0.0.1:3569", grpc.WithInsecure())
+	flowClient, err := http.NewDefaultEmulatorClient()
 	examples.Handle(err)
 
 	accountAddress := test.AddressGenerator().New()

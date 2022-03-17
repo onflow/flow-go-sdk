@@ -22,10 +22,9 @@ import (
 	"context"
 	"fmt"
 
-	grpc2 "github.com/onflow/flow-go-sdk/client/grpc"
+	"github.com/onflow/flow-go-sdk/client/http"
 
 	"github.com/onflow/flow-go-sdk"
-	"google.golang.org/grpc"
 
 	"github.com/onflow/flow-go-sdk/examples"
 )
@@ -41,8 +40,7 @@ func main() {
 // For users, its possible to get all the events for chunk, calculate and compare the resulting hash
 func VerifyEventsDemo() {
 	ctx := context.Background()
-
-	flowClient, err := grpc2.New("127.0.0.1:3569", grpc.WithInsecure())
+	flowClient, err := http.NewDefaultEmulatorClient()
 	examples.Handle(err)
 
 	latestBlockHeader, err := flowClient.GetLatestBlockHeader(ctx, true)

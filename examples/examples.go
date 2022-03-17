@@ -29,8 +29,6 @@ import (
 
 	"github.com/onflow/flow-go-sdk/client"
 
-	"github.com/onflow/flow-go-sdk/client/http"
-
 	grpc2 "github.com/onflow/flow-go-sdk/client/grpc"
 
 	"github.com/onflow/cadence"
@@ -54,7 +52,7 @@ type config struct {
 		Service struct {
 			Address string `json:"address"`
 			Key     string `json:"key"`
-		}
+		} `json:"emulator-account"`
 	}
 	Contracts map[string]string `json:"contracts"`
 }
@@ -91,6 +89,7 @@ func init() {
 }
 
 func ServiceAccount(flowClient client.Client) (flow.Address, *flow.AccountKey, crypto.Signer) {
+	fmt.Println("###", conf.Accounts.Service.Key)
 	privateKey, err := crypto.DecodePrivateKeyHex(crypto.ECDSA_P256, conf.Accounts.Service.Key)
 	Handle(err)
 
@@ -277,10 +276,6 @@ func NewFlowGRPCClient() *grpc2.Client {
 	Handle(err)
 
 	return grpc2.NewClient(handler)
-}
-
-func NewFlowHTTPClient() *http.Client {
-	return http.NewClient(http.NewDefaultEmulatorHandler())
 }
 
 func WaitForSeal(ctx context.Context, c client.Client, id flow.Identifier) *flow.TransactionResult {

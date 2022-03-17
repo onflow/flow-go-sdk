@@ -23,11 +23,9 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	grpc2 "github.com/onflow/flow-go-sdk/client/grpc"
+	"github.com/onflow/flow-go-sdk/client/http"
 
 	"github.com/onflow/cadence"
-	"google.golang.org/grpc"
-
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/examples"
@@ -91,7 +89,7 @@ pub fun main(
 
 func UserSignatureDemo() {
 	ctx := context.Background()
-	flowClient, err := grpc2.New("127.0.0.1:3569", grpc.WithInsecure())
+	flowClient, err := http.NewDefaultEmulatorClient()
 	examples.Handle(err)
 
 	// create the keys

@@ -58,6 +58,7 @@ func (h *handler) get(_ context.Context, url *url.URL, model interface{}) error 
 		fmt.Printf("\n-> GET %s t=%d", url.String(), time.Now().Unix())
 	}
 
+	// todo use a .Do() method and use the context
 	res, err := h.client.Get(url.String())
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("HTTP GET %s failed", url.String()))
