@@ -11,13 +11,28 @@ import (
 )
 
 const SEALED_HEIGHT = "sealed"
+const EMULATOR_API = "http://127.0.0.1:8888/v1"
+const TESTNET_API = "https://rest-testnet.onflow.org/v1/"
+const MAINNET_API = "https://rest-mainnet.onflow.org/v1/"
 
-func NewClient(handler *Handler) *Client {
+func NewClient(handler *handler) *Client {
 	return &Client{handler}
 }
 
+func NewDefaultEmulatorClient() *Client {
+	return NewClient(newHandler(EMULATOR_API, true))
+}
+
+func NewDefaultTestnetClient() *Client {
+	return NewClient(newHandler(TESTNET_API, false))
+}
+
+func NewDefaultMainnetClient() *Client {
+	return NewClient(newHandler(MAINNET_API, false))
+}
+
 type Client struct {
-	handler *Handler
+	handler *handler
 }
 
 func (c *Client) Ping(ctx context.Context) error {
