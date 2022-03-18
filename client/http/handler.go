@@ -128,13 +128,17 @@ func (h *handler) getBlockByID(ctx context.Context, ID string) (*models.Block, e
 	q := u.Query()
 	q.Add("expand", "payload")
 
-	var block models.Block
-	err := h.get(ctx, u, &block)
+	var blocks []*models.Block
+	err := h.get(ctx, u, &blocks)
 	if err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf("get block ID %s failed", ID))
 	}
 
-	return &block, nil
+	if len(blocks) == 0 {
+		return nil, fmt.Errorf("block ID %s not found", ID)
+	}
+
+	return blocks[0], nil
 }
 
 func (h *handler) getBlockByHeight(ctx context.Context, height string) ([]*models.Block, error) {

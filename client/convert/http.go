@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/onflow/cadence"
+	cadenceJSON "github.com/onflow/cadence/encoding/json"
 
 	"github.com/onflow/flow-go-sdk/crypto"
 
@@ -251,25 +252,39 @@ func HTTPToTransactionStatus(status *models.TransactionStatus) flow.TransactionS
 	}
 }
 
-func HTTPToTransactionResult(txr *models.TransactionResult) *flow.TransactionResult {
+func HTTPToTransactionResult(txr *models.TransactionResult) (*flow.TransactionResult, error) {
 	events := make([]flow.Event, len(txr.Events))
 	for i, e := range txr.Events {
-		payload, _ := base64.StdEncoding.DecodeString(e.Payload)
+		payload, err := base64.StdEncoding.DecodeString(e.Payload)
+		if err != nil {
+			return nil, err
+		}
+
+		event, err := cadenceJSON.Decode(payload)
+		if err != nil {
+			return nil, err
+		}
+
 		events[i] = flow.Event{
 			Type:             e.Type_,
 			TransactionID:    flow.HexToID(e.TransactionId),
 			TransactionIndex: MustHTTPToInt(e.TransactionIndex),
 			EventIndex:       MustHTTPToInt(e.EventIndex),
-			Value:            cadence.Event{}, // todo check the value here
+			Value:            event.(cadence.Event),
 			Payload:          payload,
 		}
 	}
 
+	var txErr error
+	if txr.ErrorMessage != "" {
+		txErr = fmt.Errorf(txr.ErrorMessage)
+	}
+
 	return &flow.TransactionResult{
 		Status: HTTPToTransactionStatus(txr.Status),
-		Error:  fmt.Errorf(txr.ErrorMessage),
+		Error:  txErr,
 		Events: events,
-	}
+	}, nil
 }
 
 func SignaturesToHTTP(signatures []flow.TransactionSignature) models.TransactionSignatures {
