@@ -175,14 +175,28 @@ func MustHTTPToInt(value string) int {
 	return parsed
 }
 
-func CadenceArgsToHTTP(args []cadence.Value) []string {
+func CadenceArgsToHTTP(args []cadence.Value) ([]string, error) {
 	encArgs := make([]string, len(args))
 
 	for i, a := range args {
-		encArgs[i] = base64.StdEncoding.EncodeToString([]byte(a.String()))
+		jsonArg, err := cadenceJSON.Encode(a)
+		if err != nil {
+			return nil, err
+		}
+
+		encArgs[i] = base64.StdEncoding.EncodeToString(jsonArg)
 	}
 
-	return encArgs
+	return encArgs, nil
+}
+
+func HTTPToCadenceValue(value string) (cadence.Value, error) {
+	decoded, err := base64.StdEncoding.DecodeString(value)
+	if err != nil {
+		return nil, err
+	}
+
+	return cadenceJSON.Decode(decoded)
 }
 
 func HTTPToProposalKey(key *models.ProposalKey) flow.ProposalKey {

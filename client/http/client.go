@@ -185,7 +185,11 @@ func (c *Client) GetAccountAtLatestBlock(ctx context.Context, address flow.Addre
 	return c.GetAccount(ctx, address)
 }
 
-func (c *Client) GetAccountAtBlockHeight(ctx context.Context, address flow.Address, blockHeight uint64) (*flow.Account, error) {
+func (c *Client) GetAccountAtBlockHeight(
+	ctx context.Context,
+	address flow.Address,
+	blockHeight uint64,
+) (*flow.Account, error) {
 	account, err := c.handler.getAccount(ctx, address.String(), fmt.Sprintf("%d", blockHeight))
 	if err != nil {
 		return nil, err
@@ -194,49 +198,68 @@ func (c *Client) GetAccountAtBlockHeight(ctx context.Context, address flow.Addre
 	return convert.HTTPToAccount(account)
 }
 
-func (c *Client) ExecuteScriptAtLatestBlock(ctx context.Context, script []byte, arguments []cadence.Value) (cadence.Value, error) {
-	result, err := c.handler.executeScriptAtBlockHeight(
-		ctx,
-		SEALED_HEIGHT,
-		convert.ScriptToHTTP(script),
-		convert.CadenceArgsToHTTP(arguments),
-	)
+func (c *Client) ExecuteScriptAtLatestBlock(
+	ctx context.Context,
+	script []byte,
+	arguments []cadence.Value,
+) (cadence.Value, error) {
+	args, err := convert.CadenceArgsToHTTP(arguments)
 	if err != nil {
 		return nil, err
 	}
 
-	return cadence.NewString(result)
-}
-
-func (c *Client) ExecuteScriptAtBlockID(ctx context.Context, blockID flow.Identifier, script []byte, arguments []cadence.Value) (cadence.Value, error) {
-	result, err := c.handler.executeScriptAtBlockID(
-		ctx,
-		blockID.String(),
-		convert.ScriptToHTTP(script),
-		convert.CadenceArgsToHTTP(arguments),
-	)
+	result, err := c.handler.executeScriptAtBlockHeight(ctx, SEALED_HEIGHT, convert.ScriptToHTTP(script), args)
 	if err != nil {
 		return nil, err
 	}
 
-	return cadence.NewString(result)
+	return convert.HTTPToCadenceValue(result)
 }
 
-func (c *Client) ExecuteScriptAtBlockHeight(ctx context.Context, height uint64, script []byte, arguments []cadence.Value) (cadence.Value, error) {
-	result, err := c.handler.executeScriptAtBlockHeight(
-		ctx,
-		fmt.Sprintf("%d", height),
-		convert.ScriptToHTTP(script),
-		convert.CadenceArgsToHTTP(arguments),
-	)
+func (c *Client) ExecuteScriptAtBlockID(
+	ctx context.Context,
+	blockID flow.Identifier,
+	script []byte,
+	arguments []cadence.Value,
+) (cadence.Value, error) {
+	args, err := convert.CadenceArgsToHTTP(arguments)
 	if err != nil {
 		return nil, err
 	}
 
-	return cadence.NewString(result)
+	result, err := c.handler.executeScriptAtBlockID(ctx, blockID.String(), convert.ScriptToHTTP(script), args)
+	if err != nil {
+		return nil, err
+	}
+
+	return convert.HTTPToCadenceValue(result)
 }
 
-func (c *Client) GetEventsForHeightRange(ctx context.Context, eventType string, startHeight uint64, endHeight uint64) ([]flow.BlockEvents, error) {
+func (c *Client) ExecuteScriptAtBlockHeight(
+	ctx context.Context,
+	height uint64,
+	script []byte,
+	arguments []cadence.Value,
+) (cadence.Value, error) {
+	args, err := convert.CadenceArgsToHTTP(arguments)
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := c.handler.executeScriptAtBlockHeight(ctx, fmt.Sprintf("%d", height), convert.ScriptToHTTP(script), args)
+	if err != nil {
+		return nil, err
+	}
+
+	return convert.HTTPToCadenceValue(result)
+}
+
+func (c *Client) GetEventsForHeightRange(
+	ctx context.Context,
+	eventType string,
+	startHeight uint64,
+	endHeight uint64,
+) ([]flow.BlockEvents, error) {
 	events, err := c.handler.getEvents(
 		ctx,
 		eventType,
@@ -251,7 +274,11 @@ func (c *Client) GetEventsForHeightRange(ctx context.Context, eventType string, 
 	return convert.HTTPToBlockEvents(events)
 }
 
-func (c *Client) GetEventsForBlockIDs(ctx context.Context, eventType string, blockIDs []flow.Identifier) ([]flow.BlockEvents, error) {
+func (c *Client) GetEventsForBlockIDs(
+	ctx context.Context,
+	eventType string,
+	blockIDs []flow.Identifier,
+) ([]flow.BlockEvents, error) {
 	ids := make([]string, len(blockIDs))
 	for i, id := range blockIDs {
 		ids[i] = id.String()
