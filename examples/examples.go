@@ -89,7 +89,6 @@ func init() {
 }
 
 func ServiceAccount(flowClient client.Client) (flow.Address, *flow.AccountKey, crypto.Signer) {
-	fmt.Println("###", conf.Accounts.Service.Key)
 	privateKey, err := crypto.DecodePrivateKeyHex(crypto.ECDSA_P256, conf.Accounts.Service.Key)
 	Handle(err)
 
@@ -97,7 +96,6 @@ func ServiceAccount(flowClient client.Client) (flow.Address, *flow.AccountKey, c
 	acc, err := flowClient.GetAccount(context.Background(), addr)
 	Handle(err)
 
-	fmt.Println(acc, acc.Keys)
 	accountKey := acc.Keys[0]
 	signer := crypto.NewInMemorySigner(privateKey, accountKey.HashAlgo)
 	return addr, accountKey, signer
@@ -176,7 +174,6 @@ func CreateAccountWithContracts(flowClient client.Client, publicKeys []*flow.Acc
 	Handle(result.Error)
 
 	for _, event := range result.Events {
-
 		if event.Type != flow.EventAccountCreated {
 			continue
 		}

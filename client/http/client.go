@@ -169,7 +169,7 @@ func (c *Client) GetTransactionResult(ctx context.Context, ID flow.Identifier) (
 		return nil, err
 	}
 
-	return convert.HTTPToTransactionResult(tx.Result), nil
+	return convert.HTTPToTransactionResult(tx.Result)
 }
 
 func (c *Client) GetAccount(ctx context.Context, address flow.Address) (*flow.Account, error) {
