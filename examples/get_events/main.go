@@ -41,7 +41,7 @@ func demo(deployedContract *flow.Account, runScriptTx *flow.Transaction) {
 	examples.Handle(err)
 
 	// Query for account creation events by type
-	result, err := flowClient.GetEventsForHeightRange(ctx, "flow.AccountCreated", 0, 100)
+	result, err := flowClient.GetEventsForHeightRange(ctx, "flow.AccountCreated", 0, 30)
 	printEvents(result, err)
 
 	// Query for our custom event by type
