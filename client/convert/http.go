@@ -252,9 +252,9 @@ func HTTPToTransactionStatus(status *models.TransactionStatus) flow.TransactionS
 	}
 }
 
-func HTTPToTransactionResult(txr *models.TransactionResult) (*flow.TransactionResult, error) {
-	events := make([]flow.Event, len(txr.Events))
-	for i, e := range txr.Events {
+func HTTPToEvents(events []models.Event) ([]flow.Event, error) {
+	flowEvents := make([]flow.Event, len(events))
+	for i, e := range events {
 		payload, err := base64.StdEncoding.DecodeString(e.Payload)
 		if err != nil {
 			return nil, err
@@ -265,7 +265,7 @@ func HTTPToTransactionResult(txr *models.TransactionResult) (*flow.TransactionRe
 			return nil, err
 		}
 
-		events[i] = flow.Event{
+		flowEvents[i] = flow.Event{
 			Type:             e.Type_,
 			TransactionID:    flow.HexToID(e.TransactionId),
 			TransactionIndex: MustHTTPToInt(e.TransactionIndex),
@@ -273,6 +273,32 @@ func HTTPToTransactionResult(txr *models.TransactionResult) (*flow.TransactionRe
 			Value:            event.(cadence.Event),
 			Payload:          payload,
 		}
+	}
+	return flowEvents, nil
+}
+
+func HTTPToBlockEvents(blockEvents []models.BlockEvents) ([]flow.BlockEvents, error) {
+	blocks := make([]flow.BlockEvents, len(blockEvents))
+	for i, block := range blockEvents {
+		events, err := HTTPToEvents(block.Events)
+		if err != nil {
+			return nil, err
+		}
+
+		blocks[i] = flow.BlockEvents{
+			BlockID:        flow.HexToID(block.BlockId),
+			Height:         MustHTTPToUint(block.BlockHeight),
+			BlockTimestamp: block.BlockTimestamp,
+			Events:         events,
+		}
+	}
+	return blocks, nil
+}
+
+func HTTPToTransactionResult(txr *models.TransactionResult) (*flow.TransactionResult, error) {
+	events, err := HTTPToEvents(txr.Events)
+	if err != nil {
+		return nil, err
 	}
 
 	var txErr error

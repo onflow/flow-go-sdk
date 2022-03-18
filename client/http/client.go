@@ -237,11 +237,32 @@ func (c *Client) ExecuteScriptAtBlockHeight(ctx context.Context, height uint64, 
 }
 
 func (c *Client) GetEventsForHeightRange(ctx context.Context, eventType string, startHeight uint64, endHeight uint64) ([]flow.BlockEvents, error) {
-	panic("implement me")
+	events, err := c.handler.getEvents(
+		ctx,
+		eventType,
+		fmt.Sprintf("%d", startHeight),
+		fmt.Sprintf("%d", endHeight),
+		nil,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return convert.HTTPToBlockEvents(events)
 }
 
 func (c *Client) GetEventsForBlockIDs(ctx context.Context, eventType string, blockIDs []flow.Identifier) ([]flow.BlockEvents, error) {
-	panic("implement me")
+	ids := make([]string, len(blockIDs))
+	for i, id := range blockIDs {
+		ids[i] = id.String()
+	}
+
+	events, err := c.handler.getEvents(ctx, eventType, "", "", ids)
+	if err != nil {
+		return nil, err
+	}
+
+	return convert.HTTPToBlockEvents(events)
 }
 
 func (c *Client) GetLatestProtocolStateSnapshot(ctx context.Context) ([]byte, error) {

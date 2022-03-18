@@ -26,6 +26,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -275,4 +276,35 @@ func (h *handler) getTransaction(ctx context.Context, ID string, includeResult b
 func (h *handler) sendTransaction(ctx context.Context, transaction []byte) error {
 	var tx models.Transaction
 	return h.post(ctx, h.mustBuildURL("/transactions"), transaction, &tx)
+}
+
+func (h *handler) getEvents(
+	ctx context.Context,
+	eventType string,
+	start string,
+	end string,
+	blockIDs []string,
+) ([]models.BlockEvents, error) {
+	u := h.mustBuildURL("/events")
+
+	q := u.Query()
+	if start != "" && end != "" {
+		q.Add("start_height", start)
+		q.Add("end_height", end)
+	} else if len(blockIDs) != 0 {
+		q.Add("block_ids", strings.Join(blockIDs, ","))
+	} else {
+		return nil, fmt.Errorf("must either provide start and end height or block IDs")
+	}
+
+	q.Add("type", eventType)
+	u.RawQuery = q.Encode()
+
+	var events []models.BlockEvents
+	err := h.get(ctx, u, &events)
+	if err != nil {
+		return nil, err
+	}
+
+	return events, nil
 }
