@@ -97,9 +97,9 @@ func HTTPToBlockSeals(seals []models.BlockSeal) []*flow.BlockSeal {
 	for i, seal := range seals {
 		flowSeal[i] = &flow.BlockSeal{
 			BlockID:                    flow.HexToID(seal.BlockId),
-			ExecutionReceiptID:         flow.Identifier{}, // todo: assign values
-			ExecutionReceiptSignatures: nil,
-			ResultApprovalSignatures:   nil,
+			ExecutionReceiptID:         flow.HexToID(seal.ResultId),
+			ExecutionReceiptSignatures: nil, // todo how to build this
+			ResultApprovalSignatures:   nil, // todo how to build this
 		}
 	}
 
@@ -117,7 +117,7 @@ func HTTPToBlock(block *models.Block) *flow.Block {
 	return &flow.Block{
 		BlockHeader:  *HTTPToBlockHeader(block.Header),
 		BlockPayload: HTTPToBlockPayload(block.Payload),
-		Signatures:   nil, // todo: assign value
+		Signatures:   nil, // todo how to build this
 	}
 }
 
