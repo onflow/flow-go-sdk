@@ -127,6 +127,7 @@ func (h *handler) getBlockByID(ctx context.Context, ID string) (*models.Block, e
 
 	q := u.Query()
 	q.Add("expand", "payload")
+	u.RawQuery = q.Encode()
 
 	var blocks []*models.Block
 	err := h.get(ctx, u, &blocks)

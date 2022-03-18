@@ -101,6 +101,7 @@ func preapreDemo() (*flow.Account, *flow.Transaction) {
 		import EventDemo from 0x%s
 
 		transaction {
+			prepare(auth: AuthAccount) {}
 			execute {
 				EventDemo.add(x: 2, y: 3)
 			}
@@ -111,6 +112,7 @@ func preapreDemo() (*flow.Account, *flow.Transaction) {
 	runScriptTx := flow.NewTransaction().
 		SetScript([]byte(script)).
 		SetPayer(acctAddr).
+		AddAuthorizer(acctAddr).
 		SetReferenceBlockID(referenceBlockID).
 		SetProposalKey(acctAddr, acctKey.Index, acctKey.SequenceNumber)
 
