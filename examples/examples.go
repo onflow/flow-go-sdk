@@ -119,7 +119,8 @@ func RandomTransaction(flowClient client.Client) *flow.Transaction {
 	tx := flow.NewTransaction().
 		SetPayer(serviceAcctAddr).
 		SetProposalKey(serviceAcctAddr, serviceAcctKey.Index, serviceAcctKey.SequenceNumber).
-		SetScript([]byte("transaction {}")).
+		SetScript([]byte("transaction { prepare(auth: AuthAccount) {} }")).
+		AddAuthorizer(serviceAcctAddr).
 		SetReferenceBlockID(GetReferenceBlockId(flowClient))
 
 	err := tx.SignEnvelope(serviceAcctAddr, serviceAcctKey.Index, serviceSigner)
