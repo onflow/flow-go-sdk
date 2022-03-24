@@ -168,6 +168,25 @@ func (c *Client) GetLatestBlock(
 	return getBlockResult(res)
 }
 
+// GetLatestFullBlock gets the full payload of the latest sealed or unsealed block.
+func (c *Client) GetLatestFullBlock(
+	ctx context.Context,
+	isSealed bool,
+	opts ...grpc.CallOption,
+) (*flow.Block, error) {
+	req := &access.GetLatestBlockRequest{
+		IsSealed:          isSealed,
+		FullBlockResponse: true,
+	}
+
+	res, err := c.rpcClient.GetLatestBlock(ctx, req, opts...)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	return getBlockResult(res)
+}
+
 // GetBlockByID gets a full block by ID.
 func (c *Client) GetBlockByID(
 	ctx context.Context,
@@ -186,6 +205,25 @@ func (c *Client) GetBlockByID(
 	return getBlockResult(res)
 }
 
+// GetFullBlockByID gets a full block by ID.
+func (c *Client) GetFullBlockByID(
+	ctx context.Context,
+	blockID flow.Identifier,
+	opts ...grpc.CallOption,
+) (*flow.Block, error) {
+	req := &access.GetBlockByIDRequest{
+		Id:                blockID.Bytes(),
+		FullBlockResponse: true,
+	}
+
+	res, err := c.rpcClient.GetBlockByID(ctx, req, opts...)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	return getBlockResult(res)
+}
+
 // GetBlockByHeight gets a full block by height.
 func (c *Client) GetBlockByHeight(
 	ctx context.Context,
@@ -194,6 +232,25 @@ func (c *Client) GetBlockByHeight(
 ) (*flow.Block, error) {
 	req := &access.GetBlockByHeightRequest{
 		Height: height,
+	}
+
+	res, err := c.rpcClient.GetBlockByHeight(ctx, req, opts...)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	return getBlockResult(res)
+}
+
+// GetFullBlockByHeight gets a full block by height.
+func (c *Client) GetFullBlockByHeight(
+	ctx context.Context,
+	height uint64,
+	opts ...grpc.CallOption,
+) (*flow.Block, error) {
+	req := &access.GetBlockByHeightRequest{
+		Height:            height,
+		FullBlockResponse: true,
 	}
 
 	res, err := c.rpcClient.GetBlockByHeight(ctx, req, opts...)
@@ -293,6 +350,31 @@ func (c *Client) GetTransactionResult(
 	}
 
 	res, err := c.rpcClient.GetTransactionResult(ctx, req, opts...)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	result, err := convert.MessageToTransactionResult(res)
+	if err != nil {
+		return nil, newMessageToEntityError(entityTransactionResult, err)
+	}
+
+	return &result, nil
+}
+
+// GetTransactionResultByIndex gets the result of an executed transaction in the index of a sealed block
+func (c *Client) GetTransactionResultByIndex(
+	ctx context.Context,
+	blockId flow.Identifier,
+	index uint32,
+	opts ...grpc.CallOption,
+) (*flow.TransactionResult, error) {
+	req := &access.GetTransactionByIndexRequest{
+		BlockId: blockId[:],
+		Index:   index,
+	}
+
+	res, err := c.rpcClient.GetTransactionResultByIndex(ctx, req, opts...)
 	if err != nil {
 		return nil, newRPCError(err)
 	}

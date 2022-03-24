@@ -279,8 +279,8 @@ github.com/onflow/cadence v0.20.1 h1:SwUuFzIz9sepzbE3yOfjhifKRCxwTnCr+Kdh4BmXoiY
 github.com/onflow/cadence v0.20.1/go.mod h1:7mzUvPZUIJztIbr9eTvs+fQjWWHTF8veC+yk4ihcNIA=
 github.com/onflow/flow-go/crypto v0.24.3 h1:5puosmiy853m1GPmBLJr4PiLVcCzE4n5o60hRPo9kYA=
 github.com/onflow/flow-go/crypto v0.24.3/go.mod h1:dkVL98P6GHR48iD9zCB6XlnkJX8IQd00FKgt1reV90w=
-github.com/onflow/flow/protobuf/go/flow v0.2.2 h1:EVhA0w3lu+BG7RK39ojIJVghLH998iP7YC0V/Op0KnU=
-github.com/onflow/flow/protobuf/go/flow v0.2.2/go.mod h1:gQxYqCfkI8lpnKsmIjwtN2mV/N2PIwc1I+RUK4HPIc8=
+github.com/onflow/flow/protobuf/go/flow v0.2.4 h1:4+/JBD8SKh/6o+LeFgOeI3snnYYpsgdZdyhZ6UXj3xw=
+github.com/onflow/flow/protobuf/go/flow v0.2.4/go.mod h1:gQxYqCfkI8lpnKsmIjwtN2mV/N2PIwc1I+RUK4HPIc8=
 github.com/onsi/ginkgo v1.6.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
 github.com/onsi/ginkgo v1.7.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
 github.com/onsi/gomega v1.4.3/go.mod h1:ex+gbHU/CVuBBDIJjb2X0qEXbFg53c61hWP/1CpauHY=

@@ -404,6 +404,39 @@ func TestClient_GetTransactionResult(t *testing.T) {
 	}))
 }
 
+func TestClient_GetTransactionResultByIndex(t *testing.T) {
+	results := test.TransactionResultGenerator()
+	ids := test.IdentifierGenerator()
+
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
+		blockId := ids.New()
+		index := uint32(0)
+		expectedResult := results.New()
+		response, _ := convert.TransactionResultToMessage(expectedResult)
+
+		rpc.On("GetTransactionResultByIndex", ctx, mock.Anything).Return(response, nil)
+
+		result, err := c.GetTransactionResultByIndex(ctx, blockId, index)
+		require.NoError(t, err)
+
+		assert.Equal(t, expectedResult, *result)
+
+	}))
+
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *client.Client) {
+		blockId := ids.New()
+		index := uint32(0)
+
+		rpc.On("GetTransactionResultByIndex", ctx, mock.Anything).
+			Return(nil, errNotFound)
+
+		result, err := c.GetTransactionResultByIndex(ctx, blockId, index)
+		assert.Error(t, err)
+		assert.Equal(t, codes.NotFound, status.Code(err))
+		assert.Nil(t, result)
+	}))
+}
+
 func TestClient_GetAccountAtLatestBlock(t *testing.T) {
 	accounts := test.AccountGenerator()
 	addresses := test.AddressGenerator()
