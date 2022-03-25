@@ -36,7 +36,6 @@ type Signer struct {
 	client   *kms.KeyManagementClient
 	key      Key
 	hashAlgo crypto.HashAlgorithm
-	hasher   crypto.Hasher
 }
 
 // SignerForKey returns a new Google Cloud KMS signer for an asymmetric key version.
@@ -49,17 +48,11 @@ func (c *Client) SignerForKey(
 		return nil, err
 	}
 
-	hasher, err := crypto.NewHasher(hashAlgo)
-	if err != nil {
-		return nil, fmt.Errorf("cloudkms: failed to instantiate hasher: %w", err)
-	}
-
 	return &Signer{
 		ctx:      ctx,
 		client:   c.client,
 		key:      key,
 		hashAlgo: hashAlgo,
-		hasher:   hasher,
 	}, nil
 }
 
@@ -67,7 +60,11 @@ func (c *Client) SignerForKey(
 //
 // Reference: https://cloud.google.com/kms/docs/create-validate-signatures
 func (s *Signer) Sign(message []byte) ([]byte, error) {
-	digest := s.hasher.ComputeHash(message)
+	hasher, err := crypto.NewHasher(s.hashAlgo)
+	if err != nil {
+		return nil, fmt.Errorf("cloudkms: failed to instantiate hasher: %w", err)
+	}
+	digest := hasher.ComputeHash(message)
 
 	digestMessage, err := makeDigest(s.hashAlgo, digest)
 	if err != nil {
