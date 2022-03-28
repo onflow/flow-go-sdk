@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/pkg/errors"
 
@@ -26,7 +27,7 @@ func HTTPToKeys(keys models.AccountPublicKeys) []*flow.AccountKey {
 
 	for i, key := range keys {
 		sigAlgo := crypto.StringToSignatureAlgorithm(string(*key.SigningAlgorithm))
-		pkey, _ := crypto.DecodePublicKeyHex(sigAlgo, key.PublicKey) // validation is done on AN
+		pkey, _ := crypto.DecodePublicKeyHex(sigAlgo, strings.TrimPrefix(key.PublicKey, "0x")) // validation is done on AN
 
 		accountKeys[i] = &flow.AccountKey{
 			Index:          MustHTTPToInt(key.Index),
