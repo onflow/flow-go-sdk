@@ -22,6 +22,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/onflow/flow-go/engine/access/rest/models"
+
 	"github.com/onflow/cadence"
 	"github.com/onflow/flow-go-sdk/client/convert"
 
@@ -35,56 +37,65 @@ const MAINNET_API = "https://rest-mainnet.onflow.org/v1/"
 const CANARYNET_API = ""
 
 type handler interface {
+	getBlockByID(ctx context.Context, ID string) (*models.Block, error)
+	getBlockByHeight(ctx context.Context, height string) ([]*models.Block, error)
+	getAccount(ctx context.Context, address string, height string) (*models.Account, error)
+	getCollection(ctx context.Context, ID string) (*models.Collection, error)
+	executeScriptAtBlockHeight(ctx context.Context, height string, script string, arguments []string) (string, error)
+	executeScriptAtBlockID(ctx context.Context, ID string, script string, arguments []string) (string, error)
+	getTransaction(ctx context.Context, ID string, includeResult bool) (*models.Transaction, error)
+	sendTransaction(ctx context.Context, transaction []byte) error
+	getEvents(ctx context.Context, eventType string, start string, end string, blockIDs []string) ([]models.BlockEvents, error)
 }
 
 // NewClient creates an instance of the client with the provided http handler.
-func NewClient(handler *handler) *Client {
+func NewClient(handler handler) *Client {
 	return &Client{handler}
 }
 
 // NewDefaultEmulatorClient creates a new client for connecting to the emulator AN API.
 func NewDefaultEmulatorClient(debug bool) (*Client, error) {
-	handler, err := newHandler(EMULATOR_API, debug)
+	httpHandler, err := newHandler(EMULATOR_API, debug)
 	if err != nil {
 		return nil, err
 	}
 
-	return NewClient(handler), nil
+	return NewClient(httpHandler), nil
 }
 
 // NewDefaultTestnetClient creates a new client for connecting to the testnet AN API.
 func NewDefaultTestnetClient() (*Client, error) {
-	handler, err := newHandler(TESTNET_API, false)
+	httpHandler, err := newHandler(TESTNET_API, false)
 	if err != nil {
 		return nil, err
 	}
 
-	return NewClient(handler), nil
+	return NewClient(httpHandler), nil
 }
 
 // NewDefaultCanaryClient creates a new client for connecting to the canary AN API.
 func NewDefaultCanaryClient() (*Client, error) {
-	handler, err := newHandler(CANARYNET_API, false)
+	httpHandler, err := newHandler(CANARYNET_API, false)
 	if err != nil {
 		return nil, err
 	}
 
-	return NewClient(handler), nil
+	return NewClient(httpHandler), nil
 }
 
 // NewDefaultMainnetClient creates a new client for connecting to the mainnet AN API.
 func NewDefaultMainnetClient() (*Client, error) {
-	handler, err := newHandler(MAINNET_API, false)
+	httpHandler, err := newHandler(MAINNET_API, false)
 	if err != nil {
 		return nil, err
 	}
 
-	return NewClient(handler), nil
+	return NewClient(httpHandler), nil
 }
 
 // Client implementing all the network interactions according to the client interface.
 type Client struct {
-	handler *handler
+	handler handler
 }
 
 func (c *Client) Ping(ctx context.Context) error {
