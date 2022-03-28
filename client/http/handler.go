@@ -34,27 +34,27 @@ import (
 	"github.com/onflow/flow-go/engine/access/rest/models"
 )
 
-type handler struct {
+type httpHandler struct {
 	client *http.Client
 	base   string
 	debug  bool
 }
 
-func newHandler(baseUrl string, debug bool) (*handler, error) {
+func newHandler(baseUrl string, debug bool) (*httpHandler, error) {
 	// todo validate url and return err
-	return &handler{
+	return &httpHandler{
 		client: http.DefaultClient,
 		base:   baseUrl,
 		debug:  debug,
 	}, nil
 }
 
-func (h *handler) mustBuildURL(path string) *url.URL {
+func (h *httpHandler) mustBuildURL(path string) *url.URL {
 	u, _ := url.ParseRequestURI(fmt.Sprintf("%s%s", h.base, path)) // we ignore error because the values are always valid
 	return u
 }
 
-func (h *handler) get(_ context.Context, url *url.URL, model interface{}) error {
+func (h *httpHandler) get(_ context.Context, url *url.URL, model interface{}) error {
 	if h.debug {
 		fmt.Printf("\n-> GET %s t=%d", url.String(), time.Now().Unix())
 	}
@@ -87,7 +87,7 @@ func (h *handler) get(_ context.Context, url *url.URL, model interface{}) error 
 	return nil
 }
 
-func (h *handler) post(_ context.Context, url *url.URL, body []byte, model interface{}) error {
+func (h *httpHandler) post(_ context.Context, url *url.URL, body []byte, model interface{}) error {
 	if h.debug {
 		fmt.Printf("\n-> POST %s t=%d - %s", url.String(), time.Now().Unix(), string(body))
 	}
@@ -123,7 +123,7 @@ func (h *handler) post(_ context.Context, url *url.URL, body []byte, model inter
 	return nil
 }
 
-func (h *handler) getBlockByID(ctx context.Context, ID string) (*models.Block, error) {
+func (h *httpHandler) getBlockByID(ctx context.Context, ID string) (*models.Block, error) {
 	u := h.mustBuildURL(fmt.Sprintf("/blocks/%s", ID))
 
 	q := u.Query()
@@ -143,7 +143,7 @@ func (h *handler) getBlockByID(ctx context.Context, ID string) (*models.Block, e
 	return blocks[0], nil
 }
 
-func (h *handler) getBlockByHeight(ctx context.Context, height string) ([]*models.Block, error) {
+func (h *httpHandler) getBlockByHeight(ctx context.Context, height string) ([]*models.Block, error) {
 	u := h.mustBuildURL("/blocks")
 
 	q := u.Query()
@@ -164,7 +164,7 @@ func (h *handler) getBlockByHeight(ctx context.Context, height string) ([]*model
 	return blocks, nil
 }
 
-func (h *handler) getAccount(ctx context.Context, address string, height string) (*models.Account, error) {
+func (h *httpHandler) getAccount(ctx context.Context, address string, height string) (*models.Account, error) {
 	u := h.mustBuildURL(fmt.Sprintf("/accounts/%s", address))
 
 	q := u.Query()
@@ -181,7 +181,7 @@ func (h *handler) getAccount(ctx context.Context, address string, height string)
 	return &account, nil
 }
 
-func (h *handler) getCollection(ctx context.Context, ID string) (*models.Collection, error) {
+func (h *httpHandler) getCollection(ctx context.Context, ID string) (*models.Collection, error) {
 	var collection models.Collection
 	err := h.get(
 		ctx, h.mustBuildURL(fmt.Sprintf("/collections/%s", ID)),
@@ -194,7 +194,7 @@ func (h *handler) getCollection(ctx context.Context, ID string) (*models.Collect
 	return &collection, nil
 }
 
-func (h *handler) executeScriptAt(
+func (h *httpHandler) executeScriptAt(
 	ctx context.Context,
 	query map[string]string,
 	script string,
@@ -227,7 +227,7 @@ func (h *handler) executeScriptAt(
 	return result, nil
 }
 
-func (h *handler) executeScriptAtBlockHeight(
+func (h *httpHandler) executeScriptAtBlockHeight(
 	ctx context.Context,
 	height string,
 	script string,
@@ -241,7 +241,7 @@ func (h *handler) executeScriptAtBlockHeight(
 	)
 }
 
-func (h *handler) executeScriptAtBlockID(
+func (h *httpHandler) executeScriptAtBlockID(
 	ctx context.Context,
 	ID string,
 	script string,
@@ -255,7 +255,7 @@ func (h *handler) executeScriptAtBlockID(
 	)
 }
 
-func (h *handler) getTransaction(ctx context.Context, ID string, includeResult bool) (*models.Transaction, error) {
+func (h *httpHandler) getTransaction(ctx context.Context, ID string, includeResult bool) (*models.Transaction, error) {
 	var transaction models.Transaction
 	u := h.mustBuildURL(fmt.Sprintf("/transactions/%s", ID))
 
@@ -273,12 +273,12 @@ func (h *handler) getTransaction(ctx context.Context, ID string, includeResult b
 	return &transaction, nil
 }
 
-func (h *handler) sendTransaction(ctx context.Context, transaction []byte) error {
+func (h *httpHandler) sendTransaction(ctx context.Context, transaction []byte) error {
 	var tx models.Transaction
 	return h.post(ctx, h.mustBuildURL("/transactions"), transaction, &tx)
 }
 
-func (h *handler) getEvents(
+func (h *httpHandler) getEvents(
 	ctx context.Context,
 	eventType string,
 	start string,
