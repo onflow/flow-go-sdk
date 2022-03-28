@@ -91,34 +91,60 @@ func HTTPToCollectionGuarantees(guarantees []models.CollectionGuarantee) []*flow
 	return flowGuarantees
 }
 
-func HTTPToBlockSeals(seals []models.BlockSeal) []*flow.BlockSeal {
+func HTTPToBlockSeals(seals []models.BlockSeal) ([]*flow.BlockSeal, error) {
 	flowSeal := make([]*flow.BlockSeal, len(seals))
 
 	for i, seal := range seals {
+		signatures := make([][]byte, 0)
+		for _, sig := range seal.AggregatedApprovalSignatures {
+			for _, ver := range sig.VerifierSignatures {
+				dec, err := base64.StdEncoding.DecodeString(ver)
+				if err != nil {
+					return nil, err
+				}
+				signatures = append(signatures, dec)
+			}
+		}
+
 		flowSeal[i] = &flow.BlockSeal{
 			BlockID:                    flow.HexToID(seal.BlockId),
-			ExecutionReceiptID:         flow.HexToID(seal.ResultId),
-			ExecutionReceiptSignatures: nil, // todo how to build this
-			ResultApprovalSignatures:   nil, // todo how to build this
+			ExecutionReceiptID:         flow.HexToID(seal.ResultId), // todo this needs to be changed to resultID https://github.com/onflow/flow-go/blob/3683183977f2ea769836d8a31997701b3dbced83/model/flow/seal.go#L42
+			ExecutionReceiptSignatures: nil,                         // todo this is deprecated, should be removed
+			ResultApprovalSignatures:   signatures,
 		}
 	}
 
-	return flowSeal
+	return flowSeal, nil
 }
 
-func HTTPToBlockPayload(payload *models.BlockPayload) flow.BlockPayload {
-	return flow.BlockPayload{
-		CollectionGuarantees: HTTPToCollectionGuarantees(payload.CollectionGuarantees),
-		Seals:                HTTPToBlockSeals(payload.BlockSeals),
+func HTTPToBlockPayload(payload *models.BlockPayload) (*flow.BlockPayload, error) {
+	seals, err := HTTPToBlockSeals(payload.BlockSeals)
+	if err != nil {
+		return nil, err
 	}
+
+	return &flow.BlockPayload{
+		CollectionGuarantees: HTTPToCollectionGuarantees(payload.CollectionGuarantees),
+		Seals:                seals,
+	}, nil
 }
 
-func HTTPToBlock(block *models.Block) *flow.Block {
+func HTTPToBlock(block *models.Block) (*flow.Block, error) {
+	payload, err := HTTPToBlockPayload(block.Payload)
+	if err != nil {
+		return nil, err
+	}
+
+	signature, err := base64.StdEncoding.DecodeString(block.Header.ParentVoterSignature)
+	if err != nil {
+		return nil, err
+	}
+
 	return &flow.Block{
 		BlockHeader:  *HTTPToBlockHeader(block.Header),
-		BlockPayload: HTTPToBlockPayload(block.Payload),
-		Signatures:   nil, // todo how to build this
-	}
+		BlockPayload: *payload,
+		Signatures:   [][]byte{signature},
+	}, nil
 }
 
 func SealedToHTTP(isSealed bool) string {

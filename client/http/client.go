@@ -88,7 +88,7 @@ func (c *Client) GetBlockByID(ctx context.Context, blockID flow.Identifier) (*fl
 		return nil, err
 	}
 
-	return convert.HTTPToBlock(block), nil
+	return convert.HTTPToBlock(block)
 }
 
 func (c *Client) GetLatestBlockHeader(ctx context.Context, isSealed bool) (*flow.BlockHeader, error) {
@@ -124,7 +124,7 @@ func (c *Client) GetLatestBlock(ctx context.Context, isSealed bool) (*flow.Block
 		return nil, err
 	}
 
-	return convert.HTTPToBlock(blocks[0]), nil
+	return convert.HTTPToBlock(blocks[0])
 }
 
 func (c *Client) GetBlockByHeight(ctx context.Context, height uint64) (*flow.Block, error) {
@@ -133,7 +133,7 @@ func (c *Client) GetBlockByHeight(ctx context.Context, height uint64) (*flow.Blo
 		return nil, err
 	}
 
-	return convert.HTTPToBlock(blocks[0]), nil
+	return convert.HTTPToBlock(blocks[0])
 }
 
 func (c *Client) GetCollection(ctx context.Context, ID flow.Identifier) (*flow.Collection, error) {
