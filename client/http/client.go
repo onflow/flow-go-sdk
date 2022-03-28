@@ -34,10 +34,15 @@ const TESTNET_API = "https://rest-testnet.onflow.org/v1/"
 const MAINNET_API = "https://rest-mainnet.onflow.org/v1/"
 const CANARYNET_API = ""
 
+type handler interface {
+}
+
+// NewClient creates an instance of the client with the provided http handler.
 func NewClient(handler *handler) *Client {
 	return &Client{handler}
 }
 
+// NewDefaultEmulatorClient creates a new client for connecting to the emulator AN API.
 func NewDefaultEmulatorClient(debug bool) (*Client, error) {
 	handler, err := newHandler(EMULATOR_API, debug)
 	if err != nil {
@@ -47,6 +52,7 @@ func NewDefaultEmulatorClient(debug bool) (*Client, error) {
 	return NewClient(handler), nil
 }
 
+// NewDefaultTestnetClient creates a new client for connecting to the testnet AN API.
 func NewDefaultTestnetClient() (*Client, error) {
 	handler, err := newHandler(TESTNET_API, false)
 	if err != nil {
@@ -56,6 +62,7 @@ func NewDefaultTestnetClient() (*Client, error) {
 	return NewClient(handler), nil
 }
 
+// NewDefaultCanaryClient creates a new client for connecting to the canary AN API.
 func NewDefaultCanaryClient() (*Client, error) {
 	handler, err := newHandler(CANARYNET_API, false)
 	if err != nil {
@@ -65,6 +72,7 @@ func NewDefaultCanaryClient() (*Client, error) {
 	return NewClient(handler), nil
 }
 
+// NewDefaultMainnetClient creates a new client for connecting to the mainnet AN API.
 func NewDefaultMainnetClient() (*Client, error) {
 	handler, err := newHandler(MAINNET_API, false)
 	if err != nil {
@@ -74,6 +82,7 @@ func NewDefaultMainnetClient() (*Client, error) {
 	return NewClient(handler), nil
 }
 
+// Client implementing all the network interactions according to the client interface.
 type Client struct {
 	handler *handler
 }
