@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+//go:generate go run github.com/vektra/mockery/cmd/mockery --dir ./client/http --name handler --output ./client/http --filename handler_mock.go --inpackage
+
 package http
 
 import (
