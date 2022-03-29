@@ -241,8 +241,7 @@ func HTTPToSignatures(signatures models.TransactionSignatures) []flow.Transactio
 	for i, sig := range signatures {
 		signature, _ := base64.StdEncoding.DecodeString(sig.Signature) // signatures are validated and must be valid
 		sigs[i] = flow.TransactionSignature{
-			Address: flow.HexToAddress(sig.Address),
-			// SignerIndex: 0, // todo check why is this value present
+			Address:   flow.HexToAddress(sig.Address),
 			KeyIndex:  MustHTTPToInt(sig.KeyIndex),
 			Signature: signature,
 		}
