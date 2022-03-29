@@ -160,7 +160,9 @@ func HTTPToCollection(collection *models.Collection) *flow.Collection {
 	for i, tx := range collection.Transactions {
 		IDs[i] = flow.HexToID(tx.Id)
 	}
-	return &flow.Collection{TransactionIDs: IDs}
+	return &flow.Collection{
+		TransactionIDs: IDs,
+	}
 }
 
 func ScriptToHTTP(script []byte) string {
@@ -237,12 +239,12 @@ func HTTPToProposalKey(key *models.ProposalKey) flow.ProposalKey {
 func HTTPToSignatures(signatures models.TransactionSignatures) []flow.TransactionSignature {
 	sigs := make([]flow.TransactionSignature, len(signatures))
 	for i, sig := range signatures {
-		signature, _ := base64.StdEncoding.DecodeString(sig.Signature)
+		signature, _ := base64.StdEncoding.DecodeString(sig.Signature) // signatures are validated and must be valid
 		sigs[i] = flow.TransactionSignature{
-			Address:     flow.HexToAddress(sig.Address),
-			SignerIndex: 0, // todo check why is this value present
-			KeyIndex:    MustHTTPToInt(sig.KeyIndex),
-			Signature:   signature,
+			Address: flow.HexToAddress(sig.Address),
+			// SignerIndex: 0, // todo check why is this value present
+			KeyIndex:  MustHTTPToInt(sig.KeyIndex),
+			Signature: signature,
 		}
 	}
 	return sigs
