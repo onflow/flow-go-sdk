@@ -42,9 +42,7 @@ type Handler struct {
 	close     func() error
 }
 
-// New initializes a Flow client with the default gRPC provider.
-//
-// An error will be returned if the host is unreachable.
+// New creates a new gRPC handler for network communication.
 func New(addr string, opts ...grpc.DialOption) (*Handler, error) {
 	conn, err := grpc.Dial(addr, opts...)
 	if err != nil {
@@ -72,13 +70,11 @@ func (c *Handler) Close() error {
 	return c.close()
 }
 
-// Ping is used to check if the access node is alive and healthy.
 func (c *Handler) Ping(ctx context.Context, opts ...grpc.CallOption) error {
 	_, err := c.rpcClient.Ping(ctx, &access.PingRequest{}, opts...)
 	return err
 }
 
-// GetLatestBlockHeader gets the latest sealed or unsealed block header.
 func (c *Handler) GetLatestBlockHeader(
 	ctx context.Context,
 	isSealed bool,
@@ -97,7 +93,6 @@ func (c *Handler) GetLatestBlockHeader(
 	return getBlockHeaderResult(res)
 }
 
-// GetBlockHeaderByID gets a block header by ID.
 func (c *Handler) GetBlockHeaderByID(
 	ctx context.Context,
 	blockID flow.Identifier,
@@ -115,7 +110,6 @@ func (c *Handler) GetBlockHeaderByID(
 	return getBlockHeaderResult(res)
 }
 
-// GetBlockHeaderByHeight gets a block header by height.
 func (c *Handler) GetBlockHeaderByHeight(
 	ctx context.Context,
 	height uint64,
@@ -142,7 +136,6 @@ func getBlockHeaderResult(res *access.BlockHeaderResponse) (*flow.BlockHeader, e
 	return &header, nil
 }
 
-// GetLatestBlock gets the full payload of the latest sealed or unsealed block.
 func (c *Handler) GetLatestBlock(
 	ctx context.Context,
 	isSealed bool,
@@ -160,7 +153,6 @@ func (c *Handler) GetLatestBlock(
 	return getBlockResult(res)
 }
 
-// GetBlockByID gets a full block by ID.
 func (c *Handler) GetBlockByID(
 	ctx context.Context,
 	blockID flow.Identifier,
@@ -178,7 +170,6 @@ func (c *Handler) GetBlockByID(
 	return getBlockResult(res)
 }
 
-// GetBlockByHeight gets a full block by height.
 func (c *Handler) GetBlockByHeight(
 	ctx context.Context,
 	height uint64,
@@ -205,7 +196,6 @@ func getBlockResult(res *access.BlockResponse) (*flow.Block, error) {
 	return &block, nil
 }
 
-// GetCollection gets a collection by ID.
 func (c *Handler) GetCollection(
 	ctx context.Context,
 	colID flow.Identifier,
@@ -228,7 +218,6 @@ func (c *Handler) GetCollection(
 	return &result, nil
 }
 
-// SendTransaction submits a transaction to the network.
 func (c *Handler) SendTransaction(
 	ctx context.Context,
 	tx flow.Transaction,
@@ -251,7 +240,6 @@ func (c *Handler) SendTransaction(
 	return nil
 }
 
-// GetTransaction gets a transaction by ID.
 func (c *Handler) GetTransaction(
 	ctx context.Context,
 	txID flow.Identifier,
@@ -274,7 +262,6 @@ func (c *Handler) GetTransaction(
 	return &result, nil
 }
 
-// GetTransactionResult gets the result of a transaction.
 func (c *Handler) GetTransactionResult(
 	ctx context.Context,
 	txID flow.Identifier,
@@ -297,12 +284,10 @@ func (c *Handler) GetTransactionResult(
 	return &result, nil
 }
 
-// GetAccount is an alias for GetAccountAtLatestBlock.
 func (c *Handler) GetAccount(ctx context.Context, address flow.Address, opts ...grpc.CallOption) (*flow.Account, error) {
 	return c.GetAccountAtLatestBlock(ctx, address, opts...)
 }
 
-// GetAccountAtLatestBlock gets an account by address at the latest sealed block.
 func (c *Handler) GetAccountAtLatestBlock(
 	ctx context.Context,
 	address flow.Address,
@@ -325,7 +310,6 @@ func (c *Handler) GetAccountAtLatestBlock(
 	return &account, nil
 }
 
-// GetAccountAtBlockHeight gets an account by address at the given block height
 func (c *Handler) GetAccountAtBlockHeight(
 	ctx context.Context,
 	address flow.Address,
@@ -350,7 +334,6 @@ func (c *Handler) GetAccountAtBlockHeight(
 	return &account, nil
 }
 
-// ExecuteScriptAtLatestBlock executes a read-only Cadence script against the latest sealed execution state.
 func (c *Handler) ExecuteScriptAtLatestBlock(
 	ctx context.Context,
 	script []byte,
@@ -376,8 +359,6 @@ func (c *Handler) ExecuteScriptAtLatestBlock(
 	return executeScriptResult(res)
 }
 
-// ExecuteScriptAtBlockID executes a ready-only Cadence script against the execution state
-// at the block with the given ID.
 func (c *Handler) ExecuteScriptAtBlockID(
 	ctx context.Context,
 	blockID flow.Identifier,
@@ -405,8 +386,6 @@ func (c *Handler) ExecuteScriptAtBlockID(
 	return executeScriptResult(res)
 }
 
-// ExecuteScriptAtBlockHeight executes a ready-only Cadence script against the execution state
-// at the given block height.
 func (c *Handler) ExecuteScriptAtBlockHeight(
 	ctx context.Context,
 	height uint64,
@@ -453,8 +432,6 @@ type EventRangeQuery struct {
 	EndHeight uint64
 }
 
-// GetEventsForHeightRange retrieves events for all sealed blocks between the start and end block
-// heights (inclusive) with the given type.
 func (c *Handler) GetEventsForHeightRange(
 	ctx context.Context,
 	query EventRangeQuery,
@@ -474,7 +451,6 @@ func (c *Handler) GetEventsForHeightRange(
 	return getEventsResult(res)
 }
 
-// GetEventsForBlockIDs retrieves events with the given type from the specified block IDs.
 func (c *Handler) GetEventsForBlockIDs(
 	ctx context.Context,
 	eventType string,
@@ -524,9 +500,6 @@ func getEventsResult(res *access.EventsResponse) ([]flow.BlockEvents, error) {
 	return results, nil
 }
 
-// GetLatestProtocolStateSnapshot retrieves the latest snapshot of the protocol
-// state in serialized form. This is used to generate a root snapshot file
-// used by Flow nodes to bootstrap their local protocol state database.
 func (c *Handler) GetLatestProtocolStateSnapshot(ctx context.Context, opts ...grpc.CallOption) ([]byte, error) {
 	res, err := c.rpcClient.GetLatestProtocolStateSnapshot(ctx, &access.GetLatestProtocolStateSnapshotRequest{}, opts...)
 	if err != nil {

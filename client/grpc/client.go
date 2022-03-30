@@ -43,10 +43,12 @@ func NewClient(handler *Handler) *BaseClient {
 	}
 }
 
+// BaseClient complies with the client interface and hides any gRPC specific options.
 type BaseClient struct {
 	handler *Handler
 }
 
+// NewDefaultEmulatorClient creates a client for accessing default local emulator network using gRPC.
 func NewDefaultEmulatorClient() (*BaseClient, error) {
 	handler, err := New(EMULATOR_API)
 	if err != nil {
@@ -56,6 +58,7 @@ func NewDefaultEmulatorClient() (*BaseClient, error) {
 	return NewClient(handler), nil
 }
 
+// NewDefaultTestnetClient creates a client for accessing default testnet AN using gRPC.
 func NewDefaultTestnetClient() (*BaseClient, error) {
 	handler, err := New(TESTNET_API)
 	if err != nil {
@@ -65,6 +68,7 @@ func NewDefaultTestnetClient() (*BaseClient, error) {
 	return NewClient(handler), nil
 }
 
+// NewDefaultCanaryClient creates a client for accessing default canary AN using gRPC.
 func NewDefaultCanaryClient() (*BaseClient, error) {
 	handler, err := New(CANARYNET_API)
 	if err != nil {
@@ -74,6 +78,7 @@ func NewDefaultCanaryClient() (*BaseClient, error) {
 	return NewClient(handler), nil
 }
 
+// NewDefaultMainnetClient creates a client for accessing default mainnet AN using gRPC.
 func NewDefaultMainnetClient() (*BaseClient, error) {
 	handler, err := New(MAINNET_API)
 	if err != nil {
