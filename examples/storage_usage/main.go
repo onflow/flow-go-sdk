@@ -23,6 +23,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/client"
 	"github.com/onflow/flow-go-sdk/crypto"
@@ -95,6 +96,8 @@ func StorageUsageDemo() {
 
 	// Add some flow to increase storage capacity
 	examples.FundAccountInEmulator(flowClient, demoAccount.Address, 1.0)
+	
+	serviceAcctKey.SequenceNumber++
 
 	// try to save a very large resource again. This time it should work.
 	txId = sendSaveLargeResourceTransaction(

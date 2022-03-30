@@ -21,6 +21,7 @@ package test
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/onflow/cadence"
@@ -115,6 +116,7 @@ type Blocks struct {
 	headers    *BlockHeaders
 	guarantees *CollectionGuarantees
 	seals      *BlockSeals
+	signatures *Signatures
 }
 
 func BlockGenerator() *Blocks {
@@ -122,11 +124,13 @@ func BlockGenerator() *Blocks {
 		headers:    BlockHeaderGenerator(),
 		guarantees: CollectionGuaranteeGenerator(),
 		seals:      BlockSealGenerator(),
+		signatures: SignaturesGenerator(),
 	}
 }
 
 func (g *Blocks) New() *flow.Block {
 	header := g.headers.New()
+	signatures := g.signatures.New()
 
 	guarantees := []*flow.CollectionGuarantee{
 		g.guarantees.New(),
@@ -146,6 +150,7 @@ func (g *Blocks) New() *flow.Block {
 	return &flow.Block{
 		BlockHeader:  header,
 		BlockPayload: payload,
+		Signatures:   signatures,
 	}
 }
 
@@ -287,6 +292,27 @@ func (g *Events) New() flow.Event {
 	}
 
 	return event
+}
+
+type Signatures struct {
+	count int
+}
+
+func SignaturesGenerator() *Signatures {
+	return &Signatures{1}
+}
+
+func (g *Signatures) New() [][]byte {
+	defer func() { g.count++ }()
+	return [][]byte{
+		[]byte(strconv.Itoa(g.count + 1)),
+	}
+}
+
+func newSignatures(count int) Signatures {
+	return Signatures{
+		count: count,
+	}
 }
 
 type Identifiers struct {
