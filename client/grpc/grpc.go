@@ -37,13 +37,13 @@ type RPCClient interface {
 }
 
 // A Handler is a gRPC Handler for the Flow Access API.
-type Handler struct {
+type GRPCClient struct {
 	rpcClient RPCClient
 	close     func() error
 }
 
 // New creates a new gRPC handler for network communication.
-func New(addr string, opts ...grpc.DialOption) (*Handler, error) {
+func New(addr string, opts ...grpc.DialOption) (*GRPCClient, error) {
 	conn, err := grpc.Dial(addr, opts...)
 	if err != nil {
 		return nil, err
@@ -51,31 +51,31 @@ func New(addr string, opts ...grpc.DialOption) (*Handler, error) {
 
 	grpcClient := access.NewAccessAPIClient(conn)
 
-	return &Handler{
+	return &GRPCClient{
 		rpcClient: grpcClient,
 		close:     func() error { return conn.Close() },
 	}, nil
 }
 
 // NewFromRPCClient initializes a Flow client using a pre-configured gRPC provider.
-func NewFromRPCClient(rpcClient RPCClient) *Handler {
-	return &Handler{
+func NewFromRPCClient(rpcClient RPCClient) *GRPCClient {
+	return &GRPCClient{
 		rpcClient: rpcClient,
 		close:     func() error { return nil },
 	}
 }
 
 // Close closes the client connection.
-func (c *Handler) Close() error {
+func (c *GRPCClient) Close() error {
 	return c.close()
 }
 
-func (c *Handler) Ping(ctx context.Context, opts ...grpc.CallOption) error {
+func (c *GRPCClient) Ping(ctx context.Context, opts ...grpc.CallOption) error {
 	_, err := c.rpcClient.Ping(ctx, &access.PingRequest{}, opts...)
 	return err
 }
 
-func (c *Handler) GetLatestBlockHeader(
+func (c *GRPCClient) GetLatestBlockHeader(
 	ctx context.Context,
 	isSealed bool,
 	opts ...grpc.CallOption,
@@ -93,7 +93,7 @@ func (c *Handler) GetLatestBlockHeader(
 	return getBlockHeaderResult(res)
 }
 
-func (c *Handler) GetBlockHeaderByID(
+func (c *GRPCClient) GetBlockHeaderByID(
 	ctx context.Context,
 	blockID flow.Identifier,
 	opts ...grpc.CallOption,
@@ -110,7 +110,7 @@ func (c *Handler) GetBlockHeaderByID(
 	return getBlockHeaderResult(res)
 }
 
-func (c *Handler) GetBlockHeaderByHeight(
+func (c *GRPCClient) GetBlockHeaderByHeight(
 	ctx context.Context,
 	height uint64,
 	opts ...grpc.CallOption,
@@ -136,7 +136,7 @@ func getBlockHeaderResult(res *access.BlockHeaderResponse) (*flow.BlockHeader, e
 	return &header, nil
 }
 
-func (c *Handler) GetLatestBlock(
+func (c *GRPCClient) GetLatestBlock(
 	ctx context.Context,
 	isSealed bool,
 	opts ...grpc.CallOption,
@@ -153,7 +153,7 @@ func (c *Handler) GetLatestBlock(
 	return getBlockResult(res)
 }
 
-func (c *Handler) GetBlockByID(
+func (c *GRPCClient) GetBlockByID(
 	ctx context.Context,
 	blockID flow.Identifier,
 	opts ...grpc.CallOption,
@@ -170,7 +170,7 @@ func (c *Handler) GetBlockByID(
 	return getBlockResult(res)
 }
 
-func (c *Handler) GetBlockByHeight(
+func (c *GRPCClient) GetBlockByHeight(
 	ctx context.Context,
 	height uint64,
 	opts ...grpc.CallOption,
@@ -196,7 +196,7 @@ func getBlockResult(res *access.BlockResponse) (*flow.Block, error) {
 	return &block, nil
 }
 
-func (c *Handler) GetCollection(
+func (c *GRPCClient) GetCollection(
 	ctx context.Context,
 	colID flow.Identifier,
 	opts ...grpc.CallOption,
@@ -218,7 +218,7 @@ func (c *Handler) GetCollection(
 	return &result, nil
 }
 
-func (c *Handler) SendTransaction(
+func (c *GRPCClient) SendTransaction(
 	ctx context.Context,
 	tx flow.Transaction,
 	opts ...grpc.CallOption,
@@ -240,7 +240,7 @@ func (c *Handler) SendTransaction(
 	return nil
 }
 
-func (c *Handler) GetTransaction(
+func (c *GRPCClient) GetTransaction(
 	ctx context.Context,
 	txID flow.Identifier,
 	opts ...grpc.CallOption,
@@ -262,7 +262,7 @@ func (c *Handler) GetTransaction(
 	return &result, nil
 }
 
-func (c *Handler) GetTransactionResult(
+func (c *GRPCClient) GetTransactionResult(
 	ctx context.Context,
 	txID flow.Identifier,
 	opts ...grpc.CallOption,
@@ -284,11 +284,11 @@ func (c *Handler) GetTransactionResult(
 	return &result, nil
 }
 
-func (c *Handler) GetAccount(ctx context.Context, address flow.Address, opts ...grpc.CallOption) (*flow.Account, error) {
+func (c *GRPCClient) GetAccount(ctx context.Context, address flow.Address, opts ...grpc.CallOption) (*flow.Account, error) {
 	return c.GetAccountAtLatestBlock(ctx, address, opts...)
 }
 
-func (c *Handler) GetAccountAtLatestBlock(
+func (c *GRPCClient) GetAccountAtLatestBlock(
 	ctx context.Context,
 	address flow.Address,
 	opts ...grpc.CallOption,
@@ -310,7 +310,7 @@ func (c *Handler) GetAccountAtLatestBlock(
 	return &account, nil
 }
 
-func (c *Handler) GetAccountAtBlockHeight(
+func (c *GRPCClient) GetAccountAtBlockHeight(
 	ctx context.Context,
 	address flow.Address,
 	blockHeight uint64,
@@ -334,7 +334,7 @@ func (c *Handler) GetAccountAtBlockHeight(
 	return &account, nil
 }
 
-func (c *Handler) ExecuteScriptAtLatestBlock(
+func (c *GRPCClient) ExecuteScriptAtLatestBlock(
 	ctx context.Context,
 	script []byte,
 	arguments []cadence.Value,
@@ -359,7 +359,7 @@ func (c *Handler) ExecuteScriptAtLatestBlock(
 	return executeScriptResult(res)
 }
 
-func (c *Handler) ExecuteScriptAtBlockID(
+func (c *GRPCClient) ExecuteScriptAtBlockID(
 	ctx context.Context,
 	blockID flow.Identifier,
 	script []byte,
@@ -386,7 +386,7 @@ func (c *Handler) ExecuteScriptAtBlockID(
 	return executeScriptResult(res)
 }
 
-func (c *Handler) ExecuteScriptAtBlockHeight(
+func (c *GRPCClient) ExecuteScriptAtBlockHeight(
 	ctx context.Context,
 	height uint64,
 	script []byte,
@@ -432,7 +432,7 @@ type EventRangeQuery struct {
 	EndHeight uint64
 }
 
-func (c *Handler) GetEventsForHeightRange(
+func (c *GRPCClient) GetEventsForHeightRange(
 	ctx context.Context,
 	query EventRangeQuery,
 	opts ...grpc.CallOption,
@@ -451,7 +451,7 @@ func (c *Handler) GetEventsForHeightRange(
 	return getEventsResult(res)
 }
 
-func (c *Handler) GetEventsForBlockIDs(
+func (c *GRPCClient) GetEventsForBlockIDs(
 	ctx context.Context,
 	eventType string,
 	blockIDs []flow.Identifier,
@@ -500,7 +500,7 @@ func getEventsResult(res *access.EventsResponse) ([]flow.BlockEvents, error) {
 	return results, nil
 }
 
-func (c *Handler) GetLatestProtocolStateSnapshot(ctx context.Context, opts ...grpc.CallOption) ([]byte, error) {
+func (c *GRPCClient) GetLatestProtocolStateSnapshot(ctx context.Context, opts ...grpc.CallOption) ([]byte, error) {
 	res, err := c.rpcClient.GetLatestProtocolStateSnapshot(ctx, &access.GetLatestProtocolStateSnapshotRequest{}, opts...)
 	if err != nil {
 		return nil, newRPCError(err)
@@ -509,7 +509,7 @@ func (c *Handler) GetLatestProtocolStateSnapshot(ctx context.Context, opts ...gr
 	return res.GetSerializedSnapshot(), nil
 }
 
-func (c *Handler) GetExecutionResultForBlockID(ctx context.Context, blockID flow.Identifier, opts ...grpc.CallOption) (*flow.ExecutionResult, error) {
+func (c *GRPCClient) GetExecutionResultForBlockID(ctx context.Context, blockID flow.Identifier, opts ...grpc.CallOption) (*flow.ExecutionResult, error) {
 	er, err := c.rpcClient.GetExecutionResultForBlockID(ctx, &access.GetExecutionResultForBlockIDRequest{
 		BlockId: convert.IdentifierToMessage(blockID),
 	}, opts...)

@@ -37,15 +37,16 @@ const TESTNET_API = "access.devnet.nodes.onflow.org:9000"
 const CANARYNET_API = "access.canary.nodes.onflow.org:9000"
 const MAINNET_API = "access.mainnet.nodes.onflow.org:9000"
 
-func NewClient(handler *Handler) *BaseClient {
+// NewClient create a client by passing the gRPC handler.
+func NewClient(handler *GRPCClient) *BaseClient {
 	return &BaseClient{
-		handler: handler,
+		grpc: handler,
 	}
 }
 
 // BaseClient complies with the client interface and hides any gRPC specific options.
 type BaseClient struct {
-	handler *Handler
+	grpc *GRPCClient
 }
 
 // NewDefaultEmulatorClient creates a client for accessing default local emulator network using gRPC.
@@ -89,75 +90,75 @@ func NewDefaultMainnetClient() (*BaseClient, error) {
 }
 
 func (c *BaseClient) Ping(ctx context.Context) error {
-	return c.handler.Ping(ctx)
+	return c.grpc.Ping(ctx)
 }
 
 func (c *BaseClient) GetLatestBlockHeader(ctx context.Context, isSealed bool) (*flow.BlockHeader, error) {
-	return c.handler.GetLatestBlockHeader(ctx, isSealed)
+	return c.grpc.GetLatestBlockHeader(ctx, isSealed)
 }
 
 func (c *BaseClient) GetBlockHeaderByID(ctx context.Context, blockID flow.Identifier) (*flow.BlockHeader, error) {
-	return c.handler.GetBlockHeaderByID(ctx, blockID)
+	return c.grpc.GetBlockHeaderByID(ctx, blockID)
 }
 
 func (c *BaseClient) GetBlockHeaderByHeight(ctx context.Context, height uint64) (*flow.BlockHeader, error) {
-	return c.handler.GetBlockHeaderByHeight(ctx, height)
+	return c.grpc.GetBlockHeaderByHeight(ctx, height)
 }
 
 func (c *BaseClient) GetLatestBlock(ctx context.Context, isSealed bool) (*flow.Block, error) {
-	return c.handler.GetLatestBlock(ctx, isSealed)
+	return c.grpc.GetLatestBlock(ctx, isSealed)
 }
 
 func (c *BaseClient) GetBlockByID(ctx context.Context, blockID flow.Identifier) (*flow.Block, error) {
-	return c.handler.GetBlockByID(ctx, blockID)
+	return c.grpc.GetBlockByID(ctx, blockID)
 }
 
 func (c *BaseClient) GetBlockByHeight(ctx context.Context, height uint64) (*flow.Block, error) {
-	return c.handler.GetBlockByHeight(ctx, height)
+	return c.grpc.GetBlockByHeight(ctx, height)
 }
 
 func (c *BaseClient) GetCollection(ctx context.Context, colID flow.Identifier) (*flow.Collection, error) {
-	return c.handler.GetCollection(ctx, colID)
+	return c.grpc.GetCollection(ctx, colID)
 }
 
 func (c *BaseClient) SendTransaction(ctx context.Context, tx flow.Transaction) error {
-	return c.handler.SendTransaction(ctx, tx)
+	return c.grpc.SendTransaction(ctx, tx)
 }
 
 func (c *BaseClient) GetTransaction(ctx context.Context, txID flow.Identifier) (*flow.Transaction, error) {
-	return c.handler.GetTransaction(ctx, txID)
+	return c.grpc.GetTransaction(ctx, txID)
 }
 
 func (c *BaseClient) GetTransactionResult(ctx context.Context, txID flow.Identifier) (*flow.TransactionResult, error) {
-	return c.handler.GetTransactionResult(ctx, txID)
+	return c.grpc.GetTransactionResult(ctx, txID)
 }
 
 func (c *BaseClient) GetAccount(ctx context.Context, address flow.Address) (*flow.Account, error) {
-	return c.handler.GetAccount(ctx, address)
+	return c.grpc.GetAccount(ctx, address)
 }
 
 func (c *BaseClient) GetAccountAtLatestBlock(ctx context.Context, address flow.Address) (*flow.Account, error) {
-	return c.handler.GetAccountAtLatestBlock(ctx, address)
+	return c.grpc.GetAccountAtLatestBlock(ctx, address)
 }
 
 func (c *BaseClient) GetAccountAtBlockHeight(ctx context.Context, address flow.Address, blockHeight uint64) (*flow.Account, error) {
-	return c.handler.GetAccountAtBlockHeight(ctx, address, blockHeight)
+	return c.grpc.GetAccountAtBlockHeight(ctx, address, blockHeight)
 }
 
 func (c *BaseClient) ExecuteScriptAtLatestBlock(ctx context.Context, script []byte, arguments []cadence.Value) (cadence.Value, error) {
-	return c.handler.ExecuteScriptAtLatestBlock(ctx, script, arguments)
+	return c.grpc.ExecuteScriptAtLatestBlock(ctx, script, arguments)
 }
 
 func (c *BaseClient) ExecuteScriptAtBlockID(ctx context.Context, blockID flow.Identifier, script []byte, arguments []cadence.Value) (cadence.Value, error) {
-	return c.handler.ExecuteScriptAtBlockID(ctx, blockID, script, arguments)
+	return c.grpc.ExecuteScriptAtBlockID(ctx, blockID, script, arguments)
 }
 
 func (c *BaseClient) ExecuteScriptAtBlockHeight(ctx context.Context, height uint64, script []byte, arguments []cadence.Value) (cadence.Value, error) {
-	return c.handler.ExecuteScriptAtBlockHeight(ctx, height, script, arguments)
+	return c.grpc.ExecuteScriptAtBlockHeight(ctx, height, script, arguments)
 }
 
 func (c *BaseClient) GetEventsForHeightRange(ctx context.Context, eventType string, startHeight uint64, endHeight uint64) ([]flow.BlockEvents, error) {
-	return c.handler.GetEventsForHeightRange(ctx, EventRangeQuery{
+	return c.grpc.GetEventsForHeightRange(ctx, EventRangeQuery{
 		Type:        eventType,
 		StartHeight: startHeight,
 		EndHeight:   endHeight,
@@ -165,13 +166,13 @@ func (c *BaseClient) GetEventsForHeightRange(ctx context.Context, eventType stri
 }
 
 func (c *BaseClient) GetEventsForBlockIDs(ctx context.Context, eventType string, blockIDs []flow.Identifier) ([]flow.BlockEvents, error) {
-	return c.handler.GetEventsForBlockIDs(ctx, eventType, blockIDs)
+	return c.grpc.GetEventsForBlockIDs(ctx, eventType, blockIDs)
 }
 
 func (c *BaseClient) GetLatestProtocolStateSnapshot(ctx context.Context) ([]byte, error) {
-	return c.handler.GetLatestProtocolStateSnapshot(ctx)
+	return c.grpc.GetLatestProtocolStateSnapshot(ctx)
 }
 
 func (c *BaseClient) GetExecutionResultForBlockID(ctx context.Context, blockID flow.Identifier) (*flow.ExecutionResult, error) {
-	return c.handler.GetExecutionResultForBlockID(ctx, blockID)
+	return c.grpc.GetExecutionResultForBlockID(ctx, blockID)
 }
