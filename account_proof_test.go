@@ -26,7 +26,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewAccountProofMessage(t *testing.T) {
+func TestEncodeAccountProofMessage(t *testing.T) {
 	type testCase struct {
 		address        Address
 		nonce          string
