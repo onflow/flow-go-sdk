@@ -30,10 +30,8 @@ import (
 // AccountProofNonceMinLenBytes is the minimum length of account proof nonces in bytes.
 const AccountProofNonceMinLenBytes = 32
 
-var (
-	// ErrInvalidNonce is returned when the account proof nonce passed to a function is invalid.
-	ErrInvalidNonce = errors.New("invalid nonce")
-)
+// ErrInvalidNonce is returned when the account proof nonce passed to a function is invalid.
+var ErrInvalidNonce = errors.New("invalid nonce")
 
 type canonicalAccountProof struct {
 	AppID   string
