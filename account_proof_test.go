@@ -55,10 +55,16 @@ func TestNewAccountProofMessage(t *testing.T) {
 			appID:       "AWESOME-APP-ID",
 			expectedErr: ErrInvalidNonce,
 		},
+		"empty app ID": {
+			address:     HexToAddress("ABC123DEF456"),
+			nonce:       "222222",
+			appID:       "",
+			expectedErr: ErrInvalidAppID,
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			// Check the output of NewAccountProofMessage against a pre-generated message from the flow-js-sdk
-			msg, err := NewAccountProofMessage(tc.address, tc.appID, tc.nonce)
+			// Check the output of EncodeAccountProofMessage against a pre-generated message from the flow-js-sdk
+			msg, err := EncodeAccountProofMessage(tc.address, tc.appID, tc.nonce)
 			if tc.expectedErr != nil {
 				assert.True(t, errors.Is(err, tc.expectedErr))
 			} else {

@@ -30,8 +30,12 @@ import (
 // AccountProofNonceMinLenBytes is the minimum length of account proof nonces in bytes.
 const AccountProofNonceMinLenBytes = 32
 
-// ErrInvalidNonce is returned when the account proof nonce passed to a function is invalid.
-var ErrInvalidNonce = errors.New("invalid nonce")
+var (
+	// ErrInvalidNonce is returned when the account proof nonce passed to a function is invalid.
+	ErrInvalidNonce = errors.New("invalid nonce")
+	// ErrInvalidAppID is returned when the account proof app ID passed to a function is invalid.
+	ErrInvalidAppID = errors.New("invalid app ID")
+)
 
 type canonicalAccountProof struct {
 	AppID   string
@@ -39,9 +43,13 @@ type canonicalAccountProof struct {
 	Nonce   []byte
 }
 
-// NewAccountProofMessage creates a new account proof message for singing. The appID is optional and can be left
-// empty. The encoded message returned does not include the user domain tag.
-func NewAccountProofMessage(address Address, appID, nonceHex string) ([]byte, error) {
+// EncodeAccountProofMessage creates a new account proof message for singing. The encoded message returned does not include
+// the user domain tag.
+func EncodeAccountProofMessage(address Address, appID, nonceHex string) ([]byte, error) {
+	if appID == "" {
+		return nil, fmt.Errorf("%w: appID can't be empty", ErrInvalidAppID)
+	}
+
 	nonceBytes, err := hex.DecodeString(strings.TrimPrefix(nonceHex, "0x"))
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", ErrInvalidNonce, err)
