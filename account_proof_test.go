@@ -68,26 +68,21 @@ func TestNewAccountProofMessageV2(t *testing.T) {
 	for name, tc := range map[string]testCase{
 		"valid inputs": {
 			address: HexToAddress("ABC123DEF456"),
-			// nolint: lll
-			nonce: "3037366134636339643564623330316636626239323161663465346131393662",
-			appID: "AWESOME-APP-ID",
+			nonce:   "3037366134636339643564623330316636626239323161663465346131393662",
+			appID:   "AWESOME-APP-ID",
 			// nolint: lll
 			expectedResult: "f8398e415745534f4d452d4150502d4944880000abc123def456a03037366134636339643564623330316636626239323161663465346131393662",
 		},
 		"nonce invalid hex": {
-			address: HexToAddress("ABC123DEF456"),
-			// nolint: lll
-			nonce: "asdf",
-			appID: "AWESOME-APP-ID",
-			// nolint: lll
+			address:     HexToAddress("ABC123DEF456"),
+			nonce:       "asdf",
+			appID:       "AWESOME-APP-ID",
 			expectedErr: ErrInvalidNonce,
 		},
 		"nonce too short": {
-			address: HexToAddress("ABC123DEF456"),
-			// nolint: lll
-			nonce: "222222",
-			appID: "AWESOME-APP-ID",
-			// nolint: lll
+			address:     HexToAddress("ABC123DEF456"),
+			nonce:       "222222",
+			appID:       "AWESOME-APP-ID",
 			expectedErr: ErrInvalidNonce,
 		},
 	} {
