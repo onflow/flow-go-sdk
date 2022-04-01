@@ -35,7 +35,7 @@ var (
 	ErrInvalidNonce = errors.New("invalid nonce")
 )
 
-type canonicalAccountProofV2 struct {
+type canonicalAccountProof struct {
 	AppID   string
 	Address []byte
 	Nonce   []byte
@@ -53,7 +53,7 @@ func NewAccountProofMessage(address Address, appID, nonceHex string) ([]byte, er
 		return nil, fmt.Errorf("%w: nonce must be at least %d bytes", ErrInvalidNonce, AccountProofNonceMinLenBytes)
 	}
 
-	msg, err := rlp.EncodeToBytes(&canonicalAccountProofV2{
+	msg, err := rlp.EncodeToBytes(&canonicalAccountProof{
 		AppID:   appID,
 		Address: address.Bytes(),
 		Nonce:   nonceBytes,
