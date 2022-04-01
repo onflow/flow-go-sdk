@@ -41,55 +41,9 @@ type canonicalAccountProofV2 struct {
 	Nonce   []byte
 }
 
-type canonicalAccountProofWithoutTag struct {
-	Address   []byte
-	Timestamp uint64
-}
-
-type canonicalAccountProofWithTag struct {
-	DomainTag []byte
-	Address   []byte
-	Timestamp uint64
-}
-
-// NewAccountProofMessage creates a new account proof message for singing. The appDomainTag is optional and can be left
-// empty. Note that the resulting byte slice does not contain the user domain tag.
-// Deprecated: This function implements an old version of the account proof encoding scheme. Use
-// NewAccountProofMessageV2 for the latest version.
-func NewAccountProofMessage(address Address, timestamp int64, appDomainTag string) ([]byte, error) {
-	var (
-		encodedMessage []byte
-		err            error
-	)
-
-	if appDomainTag != "" {
-		paddedTag, err := padDomainTag(appDomainTag)
-		if err != nil {
-			return nil, fmt.Errorf("error encoding domain tag: %w", err)
-		}
-
-		encodedMessage, err = rlp.EncodeToBytes(&canonicalAccountProofWithTag{
-			DomainTag: paddedTag[:],
-			Address:   address.Bytes(),
-			Timestamp: uint64(timestamp),
-		})
-	} else {
-		encodedMessage, err = rlp.EncodeToBytes(&canonicalAccountProofWithoutTag{
-			Address:   address.Bytes(),
-			Timestamp: uint64(timestamp),
-		})
-	}
-
-	if err != nil {
-		return nil, fmt.Errorf("error encoding account proof message: %w", err)
-	}
-
-	return encodedMessage, nil
-}
-
-// NewAccountProofMessageV2 creates a new account proof message for singing. The appID is optional and can be left
+// NewAccountProofMessage creates a new account proof message for singing. The appID is optional and can be left
 // empty. The encoded message returned does not include the user domain tag.
-func NewAccountProofMessageV2(address Address, appID, nonceHex string) ([]byte, error) {
+func NewAccountProofMessage(address Address, appID, nonceHex string) ([]byte, error) {
 	nonceBytes, err := hex.DecodeString(strings.TrimPrefix(nonceHex, "0x"))
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", ErrInvalidNonce, err)
