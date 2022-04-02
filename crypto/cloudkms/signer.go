@@ -22,11 +22,13 @@ import (
 	"context"
 	"encoding/asn1"
 	"fmt"
+	"hash/crc32"
 	"math/big"
 
 	kms "cloud.google.com/go/kms/apiv1"
 	"github.com/onflow/flow-go-sdk/crypto"
 	kmspb "google.golang.org/genproto/googleapis/cloud/kms/v1"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 var _ crypto.Signer = (*Signer)(nil)
@@ -50,6 +52,11 @@ func (c *Client) SignerForKey(
 		return nil, err
 	}
 
+	pk, _, err := c.GetPublicKey(ctx, key)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Signer{
 		ctx:       ctx,
 		client:    c.client,
@@ -63,10 +70,11 @@ func (c *Client) SignerForKey(
 //
 // Reference: https://cloud.google.com/kms/docs/create-validate-signatures
 func (s *Signer) Sign(message []byte) ([]byte, error) {
+
 	request := &kmspb.AsymmetricSignRequest{
-		Name: s.key.ResourceID(),
-		// TODO: add a CRC32
-		Data: message,
+		Name:       s.key.ResourceID(),
+		Data:       message,
+		DataCrc32C: getChecksum(message),
 	}
 
 	result, err := s.client.AsymmetricSign(s.ctx, request)
@@ -74,7 +82,7 @@ func (s *Signer) Sign(message []byte) ([]byte, error) {
 		return nil, fmt.Errorf("cloudkms: failed to sign: %w", err)
 	}
 
-	sig, err := parseSignature(result.Signature)
+	sig, err := parseSignature(result.Signature, s.curve)
 	if err != nil {
 		return nil, fmt.Errorf("cloudkms: failed to parse signature: %w", err)
 	}
@@ -82,37 +90,44 @@ func (s *Signer) Sign(message []byte) ([]byte, error) {
 	return sig, nil
 }
 
-// ecCoupleComponentSize is size of a component in either (r,s) couple for an elliptical curve signature
-// or (x,y) identifying a public key. Component size is needed for encoding couples comprised of variable length
-// numbers to []byte encoding. They are not always the same length, so occasionally padding is required.
-// Here's how one calculates the required length of each component:
-// 		ECDSA_CurveBits = 256
-// 		ecCoupleComponentSize := ECDSA_CurveBits / 8
-// 		if ECDSA_CurveBits % 8 > 0 {
-//			ecCoupleComponentSize++
-// 		}
-const ecCoupleComponentSize = 32
+func getChecksum(data []byte) *wrapperspb.Int64Value {
+	// compute the checksum
+	checksum := crc32.ChecksumIEEE(data)
+	val := wrapperspb.Int64(int64(checksum))
+	return val
+}
 
-func parseSignature(signature []byte) ([]byte, error) {
+// parseSignature parses an asn1 stucture (R,S) into a slice of bytes as required by the `Siger.Sign` method.
+func parseSignature(kmsSignature []byte, curve crypto.SignatureAlgorithm) ([]byte, error) {
 	var parsedSig struct{ R, S *big.Int }
-	if _, err := asn1.Unmarshal(signature, &parsedSig); err != nil {
+	if _, err := asn1.Unmarshal(kmsSignature, &parsedSig); err != nil {
 		return nil, fmt.Errorf("asn1.Unmarshal: %w", err)
 	}
 
+	curveOrderLen := curveOrder(curve)
+	signature := make([]byte, 2*curveOrderLen)
+
+	// left pad R and S with zeroes
 	rBytes := parsedSig.R.Bytes()
-	rBytesPadded := rightPad(rBytes, ecCoupleComponentSize)
-
 	sBytes := parsedSig.S.Bytes()
-	sBytesPadded := rightPad(sBytes, ecCoupleComponentSize)
+	copy(signature[curveOrderLen-len(rBytes):], rBytes)
+	copy(signature[2*curveOrderLen-len(sBytes):], sBytes)
 
-	return append(rBytesPadded, sBytesPadded...), nil
+	return signature, nil
 }
 
-// rightPad pads a byte slice with empty bytes (0x00) to the given length.
-func rightPad(b []byte, length int) []byte {
-	padded := make([]byte, length)
-	copy(padded[length-len(b):], b)
-	return padded
+// returns the curve order size in bytes (used to padd R and S of the ECDSA signature)
+// Only P-256 and secp256k1 are supported. The calling function must make sure only
+// the function is called with one of the 2 curves.
+func curveOrder(curve crypto.SignatureAlgorithm) int {
+	switch curve {
+	case crypto.ECDSA_P256:
+		return 32
+	case crypto.ECDSA_secp256k1:
+		return 32
+	default:
+		return 0 // or panic?
+	}
 }
 
 func (s *Signer) PublicKey() crypto.PublicKey {
