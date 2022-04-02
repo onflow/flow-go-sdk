@@ -26,16 +26,14 @@ import (
 
 	kms "cloud.google.com/go/kms/apiv1"
 	kmspb "google.golang.org/genproto/googleapis/cloud/kms/v1"
-
-	"github.com/onflow/flow-go-sdk/crypto"
 )
 
 // Signer is a Google Cloud KMS implementation of crypto.Signer.
 type Signer struct {
-	ctx      context.Context
-	client   *kms.KeyManagementClient
-	key      Key
-	hashAlgo crypto.HashAlgorithm
+	ctx    context.Context
+	client *kms.KeyManagementClient
+	key    Key
+	// TODO: cache crypto.PublicKey for an easy access?
 }
 
 // SignerForKey returns a new Google Cloud KMS signer for an asymmetric key version.
@@ -43,16 +41,11 @@ func (c *Client) SignerForKey(
 	ctx context.Context,
 	key Key,
 ) (*Signer, error) {
-	_, hashAlgo, err := c.GetPublicKey(ctx, key)
-	if err != nil {
-		return nil, err
-	}
 
 	return &Signer{
-		ctx:      ctx,
-		client:   c.client,
-		key:      key,
-		hashAlgo: hashAlgo,
+		ctx:    ctx,
+		client: c.client,
+		key:    key,
 	}, nil
 }
 
@@ -60,20 +53,10 @@ func (c *Client) SignerForKey(
 //
 // Reference: https://cloud.google.com/kms/docs/create-validate-signatures
 func (s *Signer) Sign(message []byte) ([]byte, error) {
-	hasher, err := crypto.NewHasher(s.hashAlgo)
-	if err != nil {
-		return nil, fmt.Errorf("cloudkms: failed to instantiate hasher: %w", err)
-	}
-	digest := hasher.ComputeHash(message)
-
-	digestMessage, err := makeDigest(s.hashAlgo, digest)
-	if err != nil {
-		return nil, fmt.Errorf("cloudkms: failed to construct digest: %w", err)
-	}
-
 	request := &kmspb.AsymmetricSignRequest{
-		Name:   s.key.ResourceID(),
-		Digest: digestMessage,
+		Name: s.key.ResourceID(),
+		// TODO: add a CRC32
+		Data: message,
 	}
 
 	result, err := s.client.AsymmetricSign(s.ctx, request)
@@ -87,17 +70,6 @@ func (s *Signer) Sign(message []byte) ([]byte, error) {
 	}
 
 	return sig, nil
-}
-
-func makeDigest(hashAlgo crypto.HashAlgorithm, digest []byte) (*kmspb.Digest, error) {
-	switch hashAlgo {
-	case crypto.SHA2_256:
-		return &kmspb.Digest{Digest: &kmspb.Digest_Sha256{Sha256: digest}}, nil
-	case crypto.SHA2_384:
-		return &kmspb.Digest{Digest: &kmspb.Digest_Sha384{Sha384: digest}}, nil
-	}
-
-	return nil, fmt.Errorf("unsupported hash algorithm %s", hashAlgo)
 }
 
 // ecCoupleComponentSize is size of a component in either (r,s) couple for an elliptical curve signature
