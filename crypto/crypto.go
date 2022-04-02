@@ -53,30 +53,6 @@ func StringToSignatureAlgorithm(s string) SignatureAlgorithm {
 	}
 }
 
-// HashAlgorithm is an identifier for a hash algorithm.
-type HashAlgorithm = hash.HashingAlgorithm
-
-const (
-	UnknownHashAlgorithm HashAlgorithm = hash.UnknownHashingAlgorithm
-	SHA2_256                           = hash.SHA2_256
-	SHA2_384                           = hash.SHA2_384
-	SHA3_256                           = hash.SHA3_256
-	SHA3_384                           = hash.SHA3_384
-)
-
-// StringToHashAlgorithm converts a string to a HashAlgorithm.
-func StringToHashAlgorithm(s string) HashAlgorithm {
-	switch s {
-	case SHA2_256.String():
-		return SHA2_256
-	case SHA3_256.String():
-		return SHA3_256
-
-	default:
-		return UnknownHashAlgorithm
-	}
-}
-
 // CompatibleAlgorithms returns true if the signature and hash algorithms are compatible.
 func CompatibleAlgorithms(sigAlgo SignatureAlgorithm, hashAlgo HashAlgorithm) bool {
 	switch sigAlgo {
@@ -121,6 +97,7 @@ var _ Signer = (*InMemorySigner)(nil)
 // NewInMemorySigner initializes and returns a new in-memory signer with the provided private key
 // and hasher.
 func NewInMemorySigner(privateKey PrivateKey, hashAlgo HashAlgorithm) InMemorySigner {
+	// TODO: panic if error or remove error return from NewHasher
 	hasher, _ := NewHasher(hashAlgo)
 
 	return InMemorySigner{
