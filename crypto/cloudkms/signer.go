@@ -42,7 +42,9 @@ type Signer struct {
 	curve crypto.SignatureAlgorithm
 }
 
-// SignerForKey returns a new Google Cloud KMS signer for an asymmetric key version.
+// SignerForKey returns a new Google Cloud KMS signer for an asymmetric signing key version.
+//
+// Only ECDSA keys on P-256 and secp256k1 curves and SHA2-256 are supported.
 func (c *Client) SignerForKey(
 	ctx context.Context,
 	key Key,
@@ -69,7 +71,7 @@ func (s *Signer) Sign(message []byte) ([]byte, error) {
 	request := &kmspb.AsymmetricSignRequest{
 		Name:       s.key.ResourceID(),
 		Data:       message,
-		DataCrc32C: getChecksum(message),
+		DataCrc32C: checksum(message),
 	}
 
 	result, err := s.client.AsymmetricSign(s.ctx, request)
@@ -85,7 +87,7 @@ func (s *Signer) Sign(message []byte) ([]byte, error) {
 	return sig, nil
 }
 
-func getChecksum(data []byte) *wrapperspb.Int64Value {
+func checksum(data []byte) *wrapperspb.Int64Value {
 	// compute the checksum
 	checksum := crc32.ChecksumIEEE(data)
 	val := wrapperspb.Int64(int64(checksum))
@@ -106,7 +108,7 @@ func parseSignature(kmsSignature []byte, curve crypto.SignatureAlgorithm) ([]byt
 	rBytes := parsedSig.R.Bytes()
 	sBytes := parsedSig.S.Bytes()
 	copy(signature[curveOrderLen-len(rBytes):], rBytes)
-	copy(signature[2*curveOrderLen-len(sBytes):], sBytes)
+	copy(signature[len(signature)-len(sBytes):], sBytes)
 
 	return signature, nil
 }
@@ -121,6 +123,6 @@ func curveOrder(curve crypto.SignatureAlgorithm) int {
 	case crypto.ECDSA_secp256k1:
 		return 32
 	default:
-		return 0 // or panic?
+		return 0 // or panic? this only happens if there is an implementation bug
 	}
 }
