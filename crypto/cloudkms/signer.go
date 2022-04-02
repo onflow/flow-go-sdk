@@ -31,15 +31,18 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
+var _ crypto.Signer = (*Signer)(nil)
+
 // Signer is a Google Cloud KMS implementation of crypto.Signer.
 type Signer struct {
 	ctx    context.Context
 	client *kms.KeyManagementClient
 	key    Key
 	// ECDSA is the only algorithm supported by this package. The signature algorithm
-	// therefore represents the elliptic curve used.
-	// The curve is needed to parse the signature.
+	// therefore represents the elliptic curve used. The curve is needed to parse the kms signature.
 	curve crypto.SignatureAlgorithm
+	// public key for easier access
+	publicKey crypto.PublicKey
 }
 
 // SignerForKey returns a new Google Cloud KMS signer for an asymmetric signing key version.
@@ -56,10 +59,11 @@ func (c *Client) SignerForKey(
 	}
 
 	return &Signer{
-		ctx:    ctx,
-		client: c.client,
-		key:    key,
-		curve:  pk.Algorithm(),
+		ctx:       ctx,
+		client:    c.client,
+		key:       key,
+		curve:     pk.Algorithm(),
+		publicKey: pk,
 	}, nil
 }
 
@@ -114,8 +118,8 @@ func parseSignature(kmsSignature []byte, curve crypto.SignatureAlgorithm) ([]byt
 }
 
 // returns the curve order size in bytes (used to padd R and S of the ECDSA signature)
-// Only P-256 and secp256k1 are supported. The calling function must make sure only
-// the function is called with one of the 2 curves.
+// Only P-256 and secp256k1 are supported. The calling function should make sure
+// the function is only called with one of the 2 curves.
 func curveOrder(curve crypto.SignatureAlgorithm) int {
 	switch curve {
 	case crypto.ECDSA_P256:
@@ -125,4 +129,8 @@ func curveOrder(curve crypto.SignatureAlgorithm) int {
 	default:
 		return 0 // or panic? this only happens if there is an implementation bug
 	}
+}
+
+func (s *Signer) PublicKey() crypto.PublicKey {
+	return s.publicKey
 }
