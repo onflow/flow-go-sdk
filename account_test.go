@@ -20,6 +20,7 @@ package flow
 
 import (
 	"crypto/rand"
+	"fmt"
 	"testing"
 
 	"github.com/onflow/flow-go-sdk/crypto"
@@ -77,18 +78,43 @@ func TestAccountKey(t *testing.T) {
 		assert.EqualError(t, key.Validate(), "invalid key weight: -1")
 	})
 
-	t.Run("Invalid Key Algorithm", func(t *testing.T) {
-		privateKey := generateKey()
-		key := AccountKey{
-			PublicKey: privateKey.PublicKey(),
+	t.Run("Key Algorithm", func(t *testing.T) {
+		hashAlgos := []crypto.HashAlgorithm{
+			crypto.UnknownHashAlgorithm,
+			crypto.SHA2_256,
+			crypto.SHA2_384,
+			crypto.SHA3_256,
+			crypto.SHA3_384,
+			crypto.Keccak256,
+		}
+		signAlgos := []crypto.SignatureAlgorithm{
+			crypto.UnknownSignatureAlgorithm,
+			crypto.ECDSA_P256,
+			crypto.ECDSA_secp256k1,
 		}
 
-		key.SetSigAlgo(privateKey.Algorithm())
-		assert.EqualError(t, key.Validate(), "signing algorithm (ECDSA_P256) is incompatible with hashing algorithm (UNKNOWN)")
+		validPairs := map[crypto.SignatureAlgorithm]map[crypto.HashAlgorithm]bool{
+			crypto.ECDSA_P256: map[crypto.HashAlgorithm]bool{
+				crypto.SHA2_256: true,
+				crypto.SHA3_256: true,
+			},
+			crypto.ECDSA_secp256k1: map[crypto.HashAlgorithm]bool{
+				crypto.SHA2_256: true,
+				crypto.SHA3_256: true,
+			},
+		}
 
-		key.SetHashAlgo(crypto.SHA3_256)
-		key.SetSigAlgo(crypto.UnknownSignatureAlgorithm)
-		assert.EqualError(t, key.Validate(), "signing algorithm (UNKNOWN) is incompatible with hashing algorithm (SHA3_256)")
+		key := AccountKey{}
+		for _, s := range signAlgos {
+			for _, h := range hashAlgos {
+				key.SetSigAlgo(s)
+				key.SetHashAlgo(h)
+				if validPairs[s][h] {
+					assert.NoError(t, key.Validate())
+				} else {
+					assert.EqualError(t, key.Validate(), fmt.Sprintf("signing algorithm (%s) and hashing algorithm (%s) are not a valid pair for a Flow account key", s, h))
+				}
+			}
+		}
 	})
-
 }

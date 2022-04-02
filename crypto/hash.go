@@ -36,6 +36,7 @@ const (
 	SHA2_384                           = hash.SHA2_384
 	SHA3_256                           = hash.SHA3_256
 	SHA3_384                           = hash.SHA3_384
+	Keccak256                          = hash.Keccak_256
 )
 
 // StringToHashAlgorithm converts a string to a HashAlgorithm.
@@ -49,6 +50,8 @@ func StringToHashAlgorithm(s string) HashAlgorithm {
 		return SHA2_384
 	case SHA3_384.String():
 		return SHA3_384
+	case Keccak256.String():
+		return Keccak256
 
 	default:
 		return UnknownHashAlgorithm
@@ -68,6 +71,8 @@ func NewHasher(algo HashAlgorithm) (Hasher, error) {
 		return NewSHA3_256(), nil
 	case SHA3_384:
 		return NewSHA3_384(), nil
+	case Keccak256:
+		return NewKeccak_256(), nil
 	default:
 		return nil, fmt.Errorf("invalid hash algorithm %s", algo)
 	}
@@ -92,3 +97,6 @@ func NewSHA3_256() Hasher {
 func NewSHA3_384() Hasher {
 	return hash.NewSHA3_384()
 }
+
+// NewKeccak_256 returns a new instance of Keccak256 hasher.
+var NewKeccak_256 = hash.NewKeccak_256

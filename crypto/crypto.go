@@ -53,7 +53,11 @@ func StringToSignatureAlgorithm(s string) SignatureAlgorithm {
 	}
 }
 
-// CompatibleAlgorithms returns true if the signature and hash algorithms are compatible.
+// CompatibleAlgorithms returns true if the signature and hash algorithms is a valid pair for a signing key
+// supported by the package.
+//
+// The package currently supports ECDSA with the 2 curves P-256 and secp256k1. Both curves can be paired with
+// a supported hash function of 256-bits output (SHA2-256, SHA3-256, Keccak256)
 func CompatibleAlgorithms(sigAlgo SignatureAlgorithm, hashAlgo HashAlgorithm) bool {
 	switch sigAlgo {
 	case ECDSA_P256:
@@ -63,6 +67,8 @@ func CompatibleAlgorithms(sigAlgo SignatureAlgorithm, hashAlgo HashAlgorithm) bo
 		case SHA2_256:
 			fallthrough
 		case SHA3_256:
+			fallthrough
+		case Keccak256:
 			return true
 		}
 	}
@@ -95,9 +101,15 @@ type InMemorySigner struct {
 var _ Signer = (*InMemorySigner)(nil)
 
 // NewInMemorySigner initializes and returns a new in-memory signer with the provided private key
-// and hasher.
+// and hashing algorithm.
 func NewInMemorySigner(privateKey PrivateKey, hashAlgo HashAlgorithm) InMemorySigner {
-	// TODO: panic if error or remove error return from NewHasher
+	// check compatibility to form a signing key
+	if !CompatibleAlgorithms(privateKey.Algorithm(), hashAlgo) {
+		// TODO: panic?
+		return InMemorySigner{}
+	}
+
+	// The error is ignored because the hash algorithm is valid at this point
 	hasher, _ := NewHasher(hashAlgo)
 
 	return InMemorySigner{

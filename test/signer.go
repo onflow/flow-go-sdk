@@ -18,8 +18,14 @@
 
 package test
 
+import "github.com/onflow/flow-go-sdk/crypto"
+
 type MockSigner []byte
 
 func (s MockSigner) Sign(message []byte) ([]byte, error) {
 	return s, nil
+}
+
+func (s MockSigner) PublicKey() crypto.PublicKey {
+	return nil
 }
