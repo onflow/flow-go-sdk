@@ -79,6 +79,7 @@ type PublicKey = crypto.PublicKey
 type Signer interface {
 	// Sign signs the given message with this signer.
 	Sign(message []byte) ([]byte, error)
+	// TODO: add PublicKey() method
 }
 
 // An InMemorySigner is a signer that generates signatures using an in-memory private key.
