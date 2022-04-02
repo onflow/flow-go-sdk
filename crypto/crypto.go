@@ -80,11 +80,16 @@ type Signer interface {
 	// Sign signs the given message with this signer.
 	Sign(message []byte) ([]byte, error)
 <<<<<<< HEAD
+<<<<<<< HEAD
 	// PublicKey returns the verification public key corresponding to the signer
 	PublicKey() PublicKey
 =======
 	// TODO: add PublicKey() method
 >>>>>>> 834976a... use curve order to pad the kms signature + use CRC32 for the message to sign
+=======
+	// PublicKey returns the verification public key corresponding to the signer
+	PublicKey() PublicKey
+>>>>>>> 42d8a84... add PublicKey() method to Signer interface
 }
 
 // An InMemorySigner is a signer that generates signatures using an in-memory private key.

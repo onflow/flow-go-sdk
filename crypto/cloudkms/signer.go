@@ -119,8 +119,8 @@ func parseSignature(kmsSignature []byte, curve crypto.SignatureAlgorithm) ([]byt
 }
 
 // returns the curve order size in bytes (used to padd R and S of the ECDSA signature)
-// Only P-256 and secp256k1 are supported. The calling function must make sure only
-// the function is called with one of the 2 curves.
+// Only P-256 and secp256k1 are supported. The calling function should make sure
+// the function is only called with one of the 2 curves.
 func curveOrder(curve crypto.SignatureAlgorithm) int {
 	switch curve {
 	case crypto.ECDSA_P256:
