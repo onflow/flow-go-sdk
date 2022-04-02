@@ -64,6 +64,7 @@ func (k Key) ResourceID() string {
 	)
 }
 
+// KeyFromResourceID returns a `Key` from a resource ID.
 func KeyFromResourceID(resourceID string) (Key, error) {
 	key := Key{}
 
@@ -154,6 +155,7 @@ func (c *Client) KMSClient() *kms.KeyManagementClient {
 	return c.client
 }
 
+// ParseSignatureAlgorithm returns the `SignatureAlgorithm` corresponding to the input KMS key.
 func ParseSignatureAlgorithm(algo kmspb.CryptoKeyVersion_CryptoKeyVersionAlgorithm) crypto.SignatureAlgorithm {
 	if algo == kmspb.CryptoKeyVersion_EC_SIGN_P256_SHA256 {
 		return crypto.ECDSA_P256
@@ -164,6 +166,7 @@ func ParseSignatureAlgorithm(algo kmspb.CryptoKeyVersion_CryptoKeyVersionAlgorit
 	return crypto.ECDSA_secp256k1
 }
 
+// ParseHashAlgorithm returns the `HashAlgorithm` corresponding to the input KMS key.
 func ParseHashAlgorithm(algo kmspb.CryptoKeyVersion_CryptoKeyVersionAlgorithm) crypto.HashAlgorithm {
 	if algo == kmspb.CryptoKeyVersion_EC_SIGN_P256_SHA256 {
 		return crypto.SHA2_256
