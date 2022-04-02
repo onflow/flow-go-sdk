@@ -19,51 +19,54 @@
 package flow
 
 import (
+	"encoding/hex"
+	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
-type canonicalAccountProofWithoutTag struct {
-	Address   []byte
-	Timestamp uint64
+// AccountProofNonceMinLenBytes is the minimum length of account proof nonces in bytes.
+const AccountProofNonceMinLenBytes = 32
+
+var (
+	// ErrInvalidNonce is returned when the account proof nonce passed to a function is invalid.
+	ErrInvalidNonce = errors.New("invalid nonce")
+	// ErrInvalidAppID is returned when the account proof app ID passed to a function is invalid.
+	ErrInvalidAppID = errors.New("invalid app ID")
+)
+
+type canonicalAccountProof struct {
+	AppID   string
+	Address []byte
+	Nonce   []byte
 }
 
-type canonicalAccountProofWithTag struct {
-	DomainTag []byte
-	Address   []byte
-	Timestamp uint64
-}
-
-// NewAccountProofMessage creates a new account proof message for singing. The appDomainTag is optional and can be left
-// empty. Note that the resulting byte slice does not contain the user domain tag.
-func NewAccountProofMessage(address Address, timestamp int64, appDomainTag string) ([]byte, error) {
-	var (
-		encodedMessage []byte
-		err            error
-	)
-
-	if appDomainTag != "" {
-		paddedTag, err := padDomainTag(appDomainTag)
-		if err != nil {
-			return nil, fmt.Errorf("error encoding domain tag: %w", err)
-		}
-
-		encodedMessage, err = rlp.EncodeToBytes(&canonicalAccountProofWithTag{
-			DomainTag: paddedTag[:],
-			Address:   address.Bytes(),
-			Timestamp: uint64(timestamp),
-		})
-	} else {
-		encodedMessage, err = rlp.EncodeToBytes(&canonicalAccountProofWithoutTag{
-			Address:   address.Bytes(),
-			Timestamp: uint64(timestamp),
-		})
+// EncodeAccountProofMessage creates a new account proof message for singing. The encoded message returned does not include
+// the user domain tag.
+func EncodeAccountProofMessage(address Address, appID, nonceHex string) ([]byte, error) {
+	if appID == "" {
+		return nil, fmt.Errorf("%w: appID can't be empty", ErrInvalidAppID)
 	}
 
+	nonceBytes, err := hex.DecodeString(strings.TrimPrefix(nonceHex, "0x"))
+	if err != nil {
+		return nil, fmt.Errorf("%w: %s", ErrInvalidNonce, err)
+	}
+
+	if len(nonceBytes) < AccountProofNonceMinLenBytes {
+		return nil, fmt.Errorf("%w: nonce must be at least %d bytes", ErrInvalidNonce, AccountProofNonceMinLenBytes)
+	}
+
+	msg, err := rlp.EncodeToBytes(&canonicalAccountProof{
+		AppID:   appID,
+		Address: address.Bytes(),
+		Nonce:   nonceBytes,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("error encoding account proof message: %w", err)
 	}
 
-	return encodedMessage, nil
+	return msg, nil
 }
