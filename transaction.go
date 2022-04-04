@@ -162,7 +162,7 @@ func (t *Transaction) Argument(i int) (cadence.Value, error) {
 
 	encodedArg := t.Arguments[i]
 
-	arg, err := jsoncdc.Decode(encodedArg)
+	arg, err := jsoncdc.Decode(nil, encodedArg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode argument at index %d: %w", i, err)
 	}

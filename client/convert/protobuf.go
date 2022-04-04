@@ -214,7 +214,7 @@ func CadenceValuesToMessages(values []cadence.Value) ([][]byte, error) {
 }
 
 func MessageToCadenceValue(m []byte) (cadence.Value, error) {
-	v, err := jsoncdc.Decode(m)
+	v, err := jsoncdc.Decode(nil, m)
 	if err != nil {
 		return nil, fmt.Errorf("convert: %w", err)
 	}
