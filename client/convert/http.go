@@ -130,6 +130,19 @@ func HTTPToBlockPayload(payload *models.BlockPayload) (*flow.BlockPayload, error
 	}, nil
 }
 
+func HTTPToBlocks(blocks []*models.Block) ([]*flow.Block, error) {
+	convertedBlocks := make([]*flow.Block, len(blocks))
+	for i, b := range blocks {
+		converted, err := HTTPToBlock(b)
+		if err != nil {
+			return nil, err
+		}
+
+		convertedBlocks[i] = converted
+	}
+	return convertedBlocks, nil
+}
+
 func HTTPToBlock(block *models.Block) (*flow.Block, error) {
 	payload, err := HTTPToBlockPayload(block.Payload)
 	if err != nil {
@@ -148,11 +161,16 @@ func HTTPToBlock(block *models.Block) (*flow.Block, error) {
 	}, nil
 }
 
-func SealedToHTTP(isSealed bool) string {
-	if isSealed {
-		return "sealed"
+func HeightsToHTTP(heights []uint64) string {
+	converted := ""
+	for i, h := range heights {
+		if i == 0 {
+			converted = fmt.Sprintf("%d", h)
+			continue
+		}
+		converted = fmt.Sprintf("%s,%d", converted, h)
 	}
-	return "final"
+	return converted
 }
 
 func HTTPToCollection(collection *models.Collection) *flow.Collection {

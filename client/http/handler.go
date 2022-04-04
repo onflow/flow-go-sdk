@@ -34,6 +34,10 @@ import (
 	"github.com/onflow/flow-go/engine/access/rest/models"
 )
 
+type queryOpts interface {
+	toQuery() (string, string)
+}
+
 type httpHandler struct {
 	client *http.Client
 	base   string
@@ -137,28 +141,37 @@ func (h *httpHandler) getBlockByID(ctx context.Context, ID string) (*models.Bloc
 	}
 
 	if len(blocks) == 0 {
-		return nil, fmt.Errorf("block ID %s not found", ID)
+		return nil, fmt.Errorf("block ID %s not found", ID) // sanity check it should never be empty
 	}
 
 	return blocks[0], nil
 }
 
-func (h *httpHandler) getBlockByHeight(ctx context.Context, height string) ([]*models.Block, error) {
+func (h *httpHandler) getBlocksByHeights(
+	ctx context.Context,
+	heights string,
+	startHeight string,
+	endHeight string,
+) ([]*models.Block, error) {
 	u := h.mustBuildURL("/blocks")
 
 	q := u.Query()
-	q.Add("height", height)
+	if heights != "" {
+		q.Add("height", heights)
+	} else if startHeight != "" && endHeight != "" {
+		q.Add("start_height", startHeight)
+		q.Add("end_height", endHeight)
+	} else {
+		return nil, fmt.Errorf("must provide either heights or start and end height")
+	}
+
 	q.Add("expand", "payload")
 	u.RawQuery = q.Encode()
 
 	var blocks []*models.Block
 	err := h.get(ctx, u, &blocks)
 	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("get block by height %s failed", height))
-	}
-
-	if len(blocks) == 0 {
-		return nil, fmt.Errorf("blocks not found")
+		return nil, errors.Wrap(err, fmt.Sprintf("get block by height %s failed", heights))
 	}
 
 	return blocks, nil

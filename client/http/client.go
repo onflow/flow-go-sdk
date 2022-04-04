@@ -38,7 +38,7 @@ const CANARYNET_API = ""
 
 // NewClient creates an instance of the client with the provided http handler.
 func NewClient(handler handler) *BaseClient {
-	return &BaseClient{handler}
+	return &BaseClient{NewHTTPClient(handler)}
 }
 
 // NewDefaultEmulatorClient creates a new client for connecting to the emulator AN API.
@@ -81,7 +81,7 @@ func NewDefaultMainnetClient() (*BaseClient, error) {
 	return NewClient(httpHandler), nil
 }
 
-// Client implementing all the network interactions according to the client interface.
+// BaseClient implementing all the network interactions according to the client interface.
 type BaseClient struct {
 	httpClient *HTTPClient
 }
@@ -122,16 +122,23 @@ func (c *BaseClient) GetBlockHeaderByHeight(ctx context.Context, height uint64) 
 }
 
 func (c *BaseClient) GetLatestBlock(ctx context.Context, isSealed bool) (*flow.Block, error) {
-	blocks, err := c.handler.getBlocksByHeights(ctx, convert.SealedToHTTP(isSealed))
+	height := FINAL
+	if isSealed {
+		height = SEALED
+	}
+
+	blocks, err := c.httpClient.GetBlocksByHeights(ctx, BlockHeightQuery{
+		Special: height,
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	return convert.HTTPToBlock(blocks[0])
+	return blocks[0], nil
 }
 
 func (c *BaseClient) GetBlockByHeight(ctx context.Context, height uint64) (*flow.Block, error) {
-	blocks, err := c.httpClient.GetBlocksByHeights(ctx, BlockQuery{Heights: []uint64{height}})
+	blocks, err := c.httpClient.GetBlocksByHeights(ctx, BlockHeightQuery{Heights: []uint64{height}})
 	if err != nil {
 		return nil, err
 	}
