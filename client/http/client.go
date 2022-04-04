@@ -24,8 +24,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/onflow/flow-go/engine/access/rest/models"
-
 	"github.com/onflow/cadence"
 	"github.com/onflow/flow-go-sdk/client/convert"
 
@@ -38,25 +36,13 @@ const TESTNET_API = "https://rest-testnet.onflow.org/v1/"
 const MAINNET_API = "https://rest-mainnet.onflow.org/v1/"
 const CANARYNET_API = ""
 
-type handler interface {
-	getBlockByID(ctx context.Context, ID string) (*models.Block, error)
-	getBlockByHeight(ctx context.Context, height string) ([]*models.Block, error)
-	getAccount(ctx context.Context, address string, height string) (*models.Account, error)
-	getCollection(ctx context.Context, ID string) (*models.Collection, error)
-	executeScriptAtBlockHeight(ctx context.Context, height string, script string, arguments []string) (string, error)
-	executeScriptAtBlockID(ctx context.Context, ID string, script string, arguments []string) (string, error)
-	getTransaction(ctx context.Context, ID string, includeResult bool) (*models.Transaction, error)
-	sendTransaction(ctx context.Context, transaction []byte) error
-	getEvents(ctx context.Context, eventType string, start string, end string, blockIDs []string) ([]models.BlockEvents, error)
-}
-
 // NewClient creates an instance of the client with the provided http handler.
-func NewClient(handler handler) *Client {
-	return &Client{handler}
+func NewClient(handler handler) *BaseClient {
+	return &BaseClient{handler}
 }
 
 // NewDefaultEmulatorClient creates a new client for connecting to the emulator AN API.
-func NewDefaultEmulatorClient(debug bool) (*Client, error) {
+func NewDefaultEmulatorClient(debug bool) (*BaseClient, error) {
 	httpHandler, err := newHandler(EMULATOR_API, debug)
 	if err != nil {
 		return nil, err
@@ -66,7 +52,7 @@ func NewDefaultEmulatorClient(debug bool) (*Client, error) {
 }
 
 // NewDefaultTestnetClient creates a new client for connecting to the testnet AN API.
-func NewDefaultTestnetClient() (*Client, error) {
+func NewDefaultTestnetClient() (*BaseClient, error) {
 	httpHandler, err := newHandler(TESTNET_API, false)
 	if err != nil {
 		return nil, err
@@ -76,7 +62,7 @@ func NewDefaultTestnetClient() (*Client, error) {
 }
 
 // NewDefaultCanaryClient creates a new client for connecting to the canary AN API.
-func NewDefaultCanaryClient() (*Client, error) {
+func NewDefaultCanaryClient() (*BaseClient, error) {
 	httpHandler, err := newHandler(CANARYNET_API, false)
 	if err != nil {
 		return nil, err
@@ -86,7 +72,7 @@ func NewDefaultCanaryClient() (*Client, error) {
 }
 
 // NewDefaultMainnetClient creates a new client for connecting to the mainnet AN API.
-func NewDefaultMainnetClient() (*Client, error) {
+func NewDefaultMainnetClient() (*BaseClient, error) {
 	httpHandler, err := newHandler(MAINNET_API, false)
 	if err != nil {
 		return nil, err
@@ -96,24 +82,19 @@ func NewDefaultMainnetClient() (*Client, error) {
 }
 
 // Client implementing all the network interactions according to the client interface.
-type Client struct {
-	handler handler
+type BaseClient struct {
+	httpClient *HTTPClient
 }
 
-func (c *Client) Ping(ctx context.Context) error {
+func (c *BaseClient) Ping(ctx context.Context) error {
 	panic("implement me")
 }
 
-func (c *Client) GetBlockByID(ctx context.Context, blockID flow.Identifier) (*flow.Block, error) {
-	block, err := c.handler.getBlockByID(ctx, blockID.String())
-	if err != nil {
-		return nil, err
-	}
-
-	return convert.HTTPToBlock(block)
+func (c *BaseClient) GetBlockByID(ctx context.Context, blockID flow.Identifier) (*flow.Block, error) {
+	return c.httpClient.GetBlockByID(ctx, blockID)
 }
 
-func (c *Client) GetLatestBlockHeader(ctx context.Context, isSealed bool) (*flow.BlockHeader, error) {
+func (c *BaseClient) GetLatestBlockHeader(ctx context.Context, isSealed bool) (*flow.BlockHeader, error) {
 	block, err := c.GetLatestBlock(ctx, isSealed)
 	if err != nil {
 		return nil, err
@@ -122,7 +103,7 @@ func (c *Client) GetLatestBlockHeader(ctx context.Context, isSealed bool) (*flow
 	return &block.BlockHeader, nil
 }
 
-func (c *Client) GetBlockHeaderByID(ctx context.Context, blockID flow.Identifier) (*flow.BlockHeader, error) {
+func (c *BaseClient) GetBlockHeaderByID(ctx context.Context, blockID flow.Identifier) (*flow.BlockHeader, error) {
 	block, err := c.GetBlockByID(ctx, blockID)
 	if err != nil {
 		return nil, err
@@ -131,7 +112,7 @@ func (c *Client) GetBlockHeaderByID(ctx context.Context, blockID flow.Identifier
 	return &block.BlockHeader, nil
 }
 
-func (c *Client) GetBlockHeaderByHeight(ctx context.Context, height uint64) (*flow.BlockHeader, error) {
+func (c *BaseClient) GetBlockHeaderByHeight(ctx context.Context, height uint64) (*flow.BlockHeader, error) {
 	block, err := c.GetBlockByHeight(ctx, height)
 	if err != nil {
 		return nil, err
@@ -140,8 +121,8 @@ func (c *Client) GetBlockHeaderByHeight(ctx context.Context, height uint64) (*fl
 	return &block.BlockHeader, nil
 }
 
-func (c *Client) GetLatestBlock(ctx context.Context, isSealed bool) (*flow.Block, error) {
-	blocks, err := c.handler.getBlockByHeight(ctx, convert.SealedToHTTP(isSealed))
+func (c *BaseClient) GetLatestBlock(ctx context.Context, isSealed bool) (*flow.Block, error) {
+	blocks, err := c.handler.getBlocksByHeights(ctx, convert.SealedToHTTP(isSealed))
 	if err != nil {
 		return nil, err
 	}
@@ -149,16 +130,16 @@ func (c *Client) GetLatestBlock(ctx context.Context, isSealed bool) (*flow.Block
 	return convert.HTTPToBlock(blocks[0])
 }
 
-func (c *Client) GetBlockByHeight(ctx context.Context, height uint64) (*flow.Block, error) {
-	blocks, err := c.handler.getBlockByHeight(ctx, fmt.Sprintf("%d", height))
+func (c *BaseClient) GetBlockByHeight(ctx context.Context, height uint64) (*flow.Block, error) {
+	blocks, err := c.httpClient.GetBlocksByHeights(ctx, BlockQuery{Heights: []uint64{height}})
 	if err != nil {
 		return nil, err
 	}
 
-	return convert.HTTPToBlock(blocks[0])
+	return blocks[0], nil
 }
 
-func (c *Client) GetCollection(ctx context.Context, ID flow.Identifier) (*flow.Collection, error) {
+func (c *BaseClient) GetCollection(ctx context.Context, ID flow.Identifier) (*flow.Collection, error) {
 	collection, err := c.handler.getCollection(ctx, ID.String())
 	if err != nil {
 		return nil, err
@@ -167,7 +148,7 @@ func (c *Client) GetCollection(ctx context.Context, ID flow.Identifier) (*flow.C
 	return convert.HTTPToCollection(collection), nil
 }
 
-func (c *Client) SendTransaction(ctx context.Context, tx flow.Transaction) error {
+func (c *BaseClient) SendTransaction(ctx context.Context, tx flow.Transaction) error {
 	convertedTx, err := convert.TransactionToHTTP(tx)
 	if err != nil {
 		return err
@@ -176,7 +157,7 @@ func (c *Client) SendTransaction(ctx context.Context, tx flow.Transaction) error
 	return c.handler.sendTransaction(ctx, convertedTx)
 }
 
-func (c *Client) GetTransaction(ctx context.Context, ID flow.Identifier) (*flow.Transaction, error) {
+func (c *BaseClient) GetTransaction(ctx context.Context, ID flow.Identifier) (*flow.Transaction, error) {
 	tx, err := c.handler.getTransaction(ctx, ID.String(), false)
 	if err != nil {
 		return nil, err
@@ -185,7 +166,7 @@ func (c *Client) GetTransaction(ctx context.Context, ID flow.Identifier) (*flow.
 	return convert.HTTPToTransaction(tx)
 }
 
-func (c *Client) GetTransactionResult(ctx context.Context, ID flow.Identifier) (*flow.TransactionResult, error) {
+func (c *BaseClient) GetTransactionResult(ctx context.Context, ID flow.Identifier) (*flow.TransactionResult, error) {
 	tx, err := c.handler.getTransaction(ctx, ID.String(), true)
 	if err != nil {
 		return nil, err
@@ -194,7 +175,7 @@ func (c *Client) GetTransactionResult(ctx context.Context, ID flow.Identifier) (
 	return convert.HTTPToTransactionResult(tx.Result)
 }
 
-func (c *Client) GetAccount(ctx context.Context, address flow.Address) (*flow.Account, error) {
+func (c *BaseClient) GetAccount(ctx context.Context, address flow.Address) (*flow.Account, error) {
 	account, err := c.handler.getAccount(ctx, address.String(), SEALED_HEIGHT)
 	if err != nil {
 		return nil, err
@@ -203,11 +184,11 @@ func (c *Client) GetAccount(ctx context.Context, address flow.Address) (*flow.Ac
 	return convert.HTTPToAccount(account)
 }
 
-func (c *Client) GetAccountAtLatestBlock(ctx context.Context, address flow.Address) (*flow.Account, error) {
+func (c *BaseClient) GetAccountAtLatestBlock(ctx context.Context, address flow.Address) (*flow.Account, error) {
 	return c.GetAccount(ctx, address)
 }
 
-func (c *Client) GetAccountAtBlockHeight(
+func (c *BaseClient) GetAccountAtBlockHeight(
 	ctx context.Context,
 	address flow.Address,
 	blockHeight uint64,
@@ -220,7 +201,7 @@ func (c *Client) GetAccountAtBlockHeight(
 	return convert.HTTPToAccount(account)
 }
 
-func (c *Client) ExecuteScriptAtLatestBlock(
+func (c *BaseClient) ExecuteScriptAtLatestBlock(
 	ctx context.Context,
 	script []byte,
 	arguments []cadence.Value,
@@ -238,7 +219,7 @@ func (c *Client) ExecuteScriptAtLatestBlock(
 	return convert.HTTPToCadenceValue(result)
 }
 
-func (c *Client) ExecuteScriptAtBlockID(
+func (c *BaseClient) ExecuteScriptAtBlockID(
 	ctx context.Context,
 	blockID flow.Identifier,
 	script []byte,
@@ -257,7 +238,7 @@ func (c *Client) ExecuteScriptAtBlockID(
 	return convert.HTTPToCadenceValue(result)
 }
 
-func (c *Client) ExecuteScriptAtBlockHeight(
+func (c *BaseClient) ExecuteScriptAtBlockHeight(
 	ctx context.Context,
 	height uint64,
 	script []byte,
@@ -276,7 +257,7 @@ func (c *Client) ExecuteScriptAtBlockHeight(
 	return convert.HTTPToCadenceValue(result)
 }
 
-func (c *Client) GetEventsForHeightRange(
+func (c *BaseClient) GetEventsForHeightRange(
 	ctx context.Context,
 	eventType string,
 	startHeight uint64,
@@ -296,7 +277,7 @@ func (c *Client) GetEventsForHeightRange(
 	return convert.HTTPToBlockEvents(events)
 }
 
-func (c *Client) GetEventsForBlockIDs(
+func (c *BaseClient) GetEventsForBlockIDs(
 	ctx context.Context,
 	eventType string,
 	blockIDs []flow.Identifier,
@@ -314,10 +295,10 @@ func (c *Client) GetEventsForBlockIDs(
 	return convert.HTTPToBlockEvents(events)
 }
 
-func (c *Client) GetLatestProtocolStateSnapshot(ctx context.Context) ([]byte, error) {
+func (c *BaseClient) GetLatestProtocolStateSnapshot(ctx context.Context) ([]byte, error) {
 	panic("implement me")
 }
 
-func (c *Client) GetExecutionResultForBlockID(ctx context.Context, blockID flow.Identifier) (*flow.ExecutionResult, error) {
+func (c *BaseClient) GetExecutionResultForBlockID(ctx context.Context, blockID flow.Identifier) (*flow.ExecutionResult, error) {
 	panic("implement me")
 }

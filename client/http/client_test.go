@@ -13,7 +13,7 @@ import (
 )
 
 func clientTest(
-	f func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client),
+	f func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient),
 ) func(t *testing.T) {
 	return func(t *testing.T) {
 		h := &mockHandler{}
@@ -25,7 +25,7 @@ func clientTest(
 
 func Test_GetBlockByID(t *testing.T) {
 	const handlerName = "getBlockByID"
-	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
+	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
 		httpBlock := test.BlockHTTP()
 		expectedBlock, err := convert.HTTPToBlock(&httpBlock)
 		assert.NoError(t, err)
@@ -37,11 +37,11 @@ func Test_GetBlockByID(t *testing.T) {
 		assert.Equal(t, block, expectedBlock)
 	}))
 
-	t.Run("Not found", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
+	t.Run("Not found", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
 		handler.On(handlerName, mock.Anything, mock.Anything).Return(nil)
 	}))
 
-	t.Run("Bad request", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
+	t.Run("Bad request", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
 
 	}))
 }

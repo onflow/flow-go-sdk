@@ -268,7 +268,7 @@ func Handle(err error) {
 	}
 }
 
-func NewFlowGRPCClient() *grpc2.Client {
+func NewFlowGRPCClient() *grpc2.BaseClient {
 	accessAPI := "127.0.0.1:3569"
 	handler, err := grpc2.New(accessAPI, grpc.WithInsecure())
 	Handle(err)
