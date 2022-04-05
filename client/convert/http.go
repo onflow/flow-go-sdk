@@ -161,18 +161,6 @@ func HTTPToBlock(block *models.Block) (*flow.Block, error) {
 	}, nil
 }
 
-func HeightsToHTTP(heights []uint64) string {
-	converted := ""
-	for i, h := range heights {
-		if i == 0 {
-			converted = fmt.Sprintf("%d", h)
-			continue
-		}
-		converted = fmt.Sprintf("%s,%d", converted, h)
-	}
-	return converted
-}
-
 func HTTPToCollection(collection *models.Collection) *flow.Collection {
 	IDs := make([]flow.Identifier, len(collection.Transactions))
 	for i, tx := range collection.Transactions {

@@ -127,7 +127,7 @@ func (h *httpHandler) post(_ context.Context, url *url.URL, body []byte, model i
 	return nil
 }
 
-func (h *httpHandler) getBlockByID(ctx context.Context, ID string) (*models.Block, error) {
+func (h *httpHandler) getBlockByID(ctx context.Context, ID string, opts ...queryOpts) (*models.Block, error) {
 	u := h.mustBuildURL(fmt.Sprintf("/blocks/%s", ID))
 
 	q := u.Query()
@@ -152,6 +152,7 @@ func (h *httpHandler) getBlocksByHeights(
 	heights string,
 	startHeight string,
 	endHeight string,
+	opts ...queryOpts,
 ) ([]*models.Block, error) {
 	u := h.mustBuildURL("/blocks")
 
@@ -177,7 +178,12 @@ func (h *httpHandler) getBlocksByHeights(
 	return blocks, nil
 }
 
-func (h *httpHandler) getAccount(ctx context.Context, address string, height string) (*models.Account, error) {
+func (h *httpHandler) getAccount(
+	ctx context.Context,
+	address string,
+	height string,
+	opts ...queryOpts,
+) (*models.Account, error) {
 	u := h.mustBuildURL(fmt.Sprintf("/accounts/%s", address))
 
 	q := u.Query()
@@ -194,7 +200,7 @@ func (h *httpHandler) getAccount(ctx context.Context, address string, height str
 	return &account, nil
 }
 
-func (h *httpHandler) getCollection(ctx context.Context, ID string) (*models.Collection, error) {
+func (h *httpHandler) getCollection(ctx context.Context, ID string, opts ...queryOpts) (*models.Collection, error) {
 	var collection models.Collection
 	err := h.get(
 		ctx, h.mustBuildURL(fmt.Sprintf("/collections/%s", ID)),
@@ -212,6 +218,7 @@ func (h *httpHandler) executeScriptAt(
 	query map[string]string,
 	script string,
 	arguments []string,
+	opts ...queryOpts,
 ) (string, error) {
 	u := h.mustBuildURL("/scripts")
 
@@ -245,6 +252,7 @@ func (h *httpHandler) executeScriptAtBlockHeight(
 	height string,
 	script string,
 	arguments []string,
+	opts ...queryOpts,
 ) (string, error) {
 	return h.executeScriptAt(
 		ctx,
@@ -259,6 +267,7 @@ func (h *httpHandler) executeScriptAtBlockID(
 	ID string,
 	script string,
 	arguments []string,
+	opts ...queryOpts,
 ) (string, error) {
 	return h.executeScriptAt(
 		ctx,
@@ -268,7 +277,12 @@ func (h *httpHandler) executeScriptAtBlockID(
 	)
 }
 
-func (h *httpHandler) getTransaction(ctx context.Context, ID string, includeResult bool) (*models.Transaction, error) {
+func (h *httpHandler) getTransaction(
+	ctx context.Context,
+	ID string,
+	includeResult bool,
+	opts ...queryOpts,
+) (*models.Transaction, error) {
 	var transaction models.Transaction
 	u := h.mustBuildURL(fmt.Sprintf("/transactions/%s", ID))
 
@@ -286,7 +300,7 @@ func (h *httpHandler) getTransaction(ctx context.Context, ID string, includeResu
 	return &transaction, nil
 }
 
-func (h *httpHandler) sendTransaction(ctx context.Context, transaction []byte) error {
+func (h *httpHandler) sendTransaction(ctx context.Context, transaction []byte, opts ...queryOpts) error {
 	var tx models.Transaction
 	return h.post(ctx, h.mustBuildURL("/transactions"), transaction, &tx)
 }
@@ -297,6 +311,7 @@ func (h *httpHandler) getEvents(
 	start string,
 	end string,
 	blockIDs []string,
+	opts ...queryOpts,
 ) ([]models.BlockEvents, error) {
 	u := h.mustBuildURL("/events")
 

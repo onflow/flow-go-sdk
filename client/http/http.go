@@ -3,6 +3,7 @@ package http
 import (
 	"context"
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/onflow/cadence"
@@ -46,8 +47,79 @@ func (e *SelectOpts) toQuery() (string, string) {
 	return "select", strings.Join(e.Selects, ",")
 }
 
-func NewHTTPClient(handler handler) *HTTPClient {
-	return &HTTPClient{handler: handler}
+// special height values definition.
+const (
+	// FINAL points to latest finalised block height.
+	FINAL uint64 = math.MaxUint64 - 1
+	// SEALED points to latest sealed block height.
+	SEALED = math.MaxUint64 - 2
+)
+
+var specialHeightMap = map[uint64]string{
+	FINAL:  "final",
+	SEALED: "sealed",
+}
+
+// HeightQuery defines all the possible heights you can pass when fetching blocks.
+//
+// Make sure you only pass either heights or special heights or start and end height else an
+// error will be returned. You can refer to the docs for querying blocks found here https://docs.onflow.org/http-api/#tag/Blocks/paths/~1blocks/get
+type HeightQuery struct {
+	Heights []uint64
+	Start   uint64
+	End     uint64
+}
+
+// heightToString is a helper method to get first height as string.
+func (b *HeightQuery) heightsString() string {
+	converted := ""
+	for i, h := range b.Heights {
+		str := fmt.Sprintf("%d", h)
+		if h == FINAL || h == SEALED {
+			str = specialHeightMap[h]
+		}
+
+		if i == 0 {
+			continue
+		}
+		converted = fmt.Sprintf("%s,%s", converted, str)
+	}
+	return converted
+}
+
+func (b *HeightQuery) startString() string {
+	if b.Start == 0 {
+		return ""
+	}
+	return fmt.Sprintf("%d", b.Start)
+}
+
+func (b *HeightQuery) endString() string {
+	if b.End == 0 {
+		return ""
+	}
+	return fmt.Sprintf("%d", b.End)
+}
+
+func (b *HeightQuery) rangeDefined() bool {
+	return b.Start != 0 && b.End != 0
+}
+
+func (b *HeightQuery) heightsDefined() bool {
+	return len(b.Heights) > 0
+}
+
+func (b *HeightQuery) singleHeightDefined() bool {
+	return len(b.Heights) == 1
+}
+
+func NewHTTPClient(url string) (*HTTPClient, error) {
+	handler, err := newHandler(url, false)
+	if err != nil {
+		return nil, err
+	}
+
+	return &HTTPClient{handler}, nil
 }
 
 // HTTPClient exposes methods specific to the http clients exposing all capabilities of the network implementation.
@@ -68,42 +140,24 @@ func (c *HTTPClient) GetBlockByID(ctx context.Context, blockID flow.Identifier, 
 	return convert.HTTPToBlock(block)
 }
 
-// SpecialHeight defines two special height values.
-type SpecialHeight string
+// GetBlocksByHeights requests the blocks by the specificed block query.
+func (c *HTTPClient) GetBlocksByHeights(
+	ctx context.Context,
+	blockQuery HeightQuery,
+	opts ...queryOpts,
+) ([]*flow.Block, error) {
 
-const (
-	// FINAL points to latest finalised block height.
-	FINAL SpecialHeight = "final"
-	// SEALED points to latest sealed block height.
-	SEALED = "sealed"
-)
-
-// BlockHeightQuery defines all the possible heights you can pass when fetching blocks.
-//
-// Make sure you only pass either heights or special heights or start and end height else an
-// error will be returned. You can refer to the docs for querying blocks found here https://docs.onflow.org/http-api/#tag/Blocks/paths/~1blocks/get
-type BlockHeightQuery struct {
-	Heights []uint64
-	Special SpecialHeight
-	Start   uint64
-	End     uint64
-}
-
-// GetBlocksByHeights
-func (c *HTTPClient) GetBlocksByHeights(ctx context.Context, blockQuery BlockHeightQuery, opts ...queryOpts) ([]*flow.Block, error) {
-	var heights, start, end string
-	if len(blockQuery.Heights) > 0 {
-		heights = convert.HeightsToHTTP(blockQuery.Heights)
-	} else if blockQuery.Special != "" {
-		heights = string(blockQuery.Special)
-	} else if blockQuery.Start != 0 && blockQuery.End != 0 {
-		start = fmt.Sprintf("%d", blockQuery.Start)
-		end = fmt.Sprintf("%d", blockQuery.End)
-	} else {
+	if !blockQuery.heightsDefined() && !blockQuery.rangeDefined() {
 		return nil, fmt.Errorf("must either provide heights or start and end height range")
 	}
 
-	httpBlocks, err := c.handler.getBlocksByHeights(ctx, heights, start, end, opts...)
+	httpBlocks, err := c.handler.getBlocksByHeights(
+		ctx,
+		blockQuery.heightsString(),
+		blockQuery.startString(),
+		blockQuery.endString(),
+		opts...,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -111,8 +165,12 @@ func (c *HTTPClient) GetBlocksByHeights(ctx context.Context, blockQuery BlockHei
 	return convert.HTTPToBlocks(httpBlocks)
 }
 
-func (c *HTTPClient) GetCollection(ctx context.Context, ID flow.Identifier) (*flow.Collection, error) {
-	collection, err := c.handler.getCollection(ctx, ID.String())
+func (c *HTTPClient) GetCollection(
+	ctx context.Context,
+	ID flow.Identifier,
+	opts ...queryOpts,
+) (*flow.Collection, error) {
+	collection, err := c.handler.getCollection(ctx, ID.String(), opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -120,17 +178,25 @@ func (c *HTTPClient) GetCollection(ctx context.Context, ID flow.Identifier) (*fl
 	return convert.HTTPToCollection(collection), nil
 }
 
-func (c *HTTPClient) SendTransaction(ctx context.Context, tx flow.Transaction) error {
+func (c *HTTPClient) SendTransaction(
+	ctx context.Context,
+	tx flow.Transaction,
+	opts ...queryOpts,
+) error {
 	convertedTx, err := convert.TransactionToHTTP(tx)
 	if err != nil {
 		return err
 	}
 
-	return c.handler.sendTransaction(ctx, convertedTx)
+	return c.handler.sendTransaction(ctx, convertedTx, opts...)
 }
 
-func (c *HTTPClient) GetTransaction(ctx context.Context, ID flow.Identifier) (*flow.Transaction, error) {
-	tx, err := c.handler.getTransaction(ctx, ID.String(), false)
+func (c *HTTPClient) GetTransaction(
+	ctx context.Context,
+	ID flow.Identifier,
+	opts ...queryOpts,
+) (*flow.Transaction, error) {
+	tx, err := c.handler.getTransaction(ctx, ID.String(), false, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -138,8 +204,12 @@ func (c *HTTPClient) GetTransaction(ctx context.Context, ID flow.Identifier) (*f
 	return convert.HTTPToTransaction(tx)
 }
 
-func (c *HTTPClient) GetTransactionResult(ctx context.Context, ID flow.Identifier) (*flow.TransactionResult, error) {
-	tx, err := c.handler.getTransaction(ctx, ID.String(), true)
+func (c *HTTPClient) GetTransactionResult(
+	ctx context.Context,
+	ID flow.Identifier,
+	opts ...queryOpts,
+) (*flow.TransactionResult, error) {
+	tx, err := c.handler.getTransaction(ctx, ID.String(), true, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -147,48 +217,22 @@ func (c *HTTPClient) GetTransactionResult(ctx context.Context, ID flow.Identifie
 	return convert.HTTPToTransactionResult(tx.Result)
 }
 
-func (c *HTTPClient) GetAccount(ctx context.Context, address flow.Address) (*flow.Account, error) {
-	account, err := c.handler.getAccount(ctx, address.String(), SEALED_HEIGHT)
-	if err != nil {
-		return nil, err
-	}
-
-	return convert.HTTPToAccount(account)
-}
-
-func (c *HTTPClient) GetAccountAtLatestBlock(ctx context.Context, address flow.Address) (*flow.Account, error) {
-	return c.GetAccount(ctx, address)
-}
-
 func (c *HTTPClient) GetAccountAtBlockHeight(
 	ctx context.Context,
 	address flow.Address,
-	blockHeight uint64,
+	blockQuery HeightQuery,
+	opts ...queryOpts,
 ) (*flow.Account, error) {
-	account, err := c.handler.getAccount(ctx, address.String(), fmt.Sprintf("%d", blockHeight))
+	if !blockQuery.singleHeightDefined() {
+		return nil, fmt.Errorf("can only provide one block height at a time")
+	}
+
+	account, err := c.handler.getAccount(ctx, address.String(), blockQuery.heightsString(), opts...)
 	if err != nil {
 		return nil, err
 	}
 
 	return convert.HTTPToAccount(account)
-}
-
-func (c *HTTPClient) ExecuteScriptAtLatestBlock(
-	ctx context.Context,
-	script []byte,
-	arguments []cadence.Value,
-) (cadence.Value, error) {
-	args, err := convert.CadenceArgsToHTTP(arguments)
-	if err != nil {
-		return nil, err
-	}
-
-	result, err := c.handler.executeScriptAtBlockHeight(ctx, SEALED_HEIGHT, convert.ScriptToHTTP(script), args)
-	if err != nil {
-		return nil, err
-	}
-
-	return convert.HTTPToCadenceValue(result)
 }
 
 func (c *HTTPClient) ExecuteScriptAtBlockID(
@@ -196,13 +240,14 @@ func (c *HTTPClient) ExecuteScriptAtBlockID(
 	blockID flow.Identifier,
 	script []byte,
 	arguments []cadence.Value,
+	opts ...queryOpts,
 ) (cadence.Value, error) {
 	args, err := convert.CadenceArgsToHTTP(arguments)
 	if err != nil {
 		return nil, err
 	}
 
-	result, err := c.handler.executeScriptAtBlockID(ctx, blockID.String(), convert.ScriptToHTTP(script), args)
+	result, err := c.handler.executeScriptAtBlockID(ctx, blockID.String(), convert.ScriptToHTTP(script), args, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -212,16 +257,27 @@ func (c *HTTPClient) ExecuteScriptAtBlockID(
 
 func (c *HTTPClient) ExecuteScriptAtBlockHeight(
 	ctx context.Context,
-	height uint64,
+	blockQuery HeightQuery,
 	script []byte,
 	arguments []cadence.Value,
+	opts ...queryOpts,
 ) (cadence.Value, error) {
 	args, err := convert.CadenceArgsToHTTP(arguments)
 	if err != nil {
 		return nil, err
 	}
 
-	result, err := c.handler.executeScriptAtBlockHeight(ctx, fmt.Sprintf("%d", height), convert.ScriptToHTTP(script), args)
+	if !blockQuery.singleHeightDefined() {
+		return nil, fmt.Errorf("must only provide one height at a time")
+	}
+
+	result, err := c.handler.executeScriptAtBlockHeight(
+		ctx,
+		blockQuery.heightsString(),
+		convert.ScriptToHTTP(script),
+		args,
+		opts...,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -232,14 +288,17 @@ func (c *HTTPClient) ExecuteScriptAtBlockHeight(
 func (c *HTTPClient) GetEventsForHeightRange(
 	ctx context.Context,
 	eventType string,
-	startHeight uint64,
-	endHeight uint64,
+	heightQuery HeightQuery,
 ) ([]flow.BlockEvents, error) {
+	if !heightQuery.rangeDefined() {
+		return nil, fmt.Errorf("must provide start and end height range")
+	}
+
 	events, err := c.handler.getEvents(
 		ctx,
 		eventType,
-		fmt.Sprintf("%d", startHeight),
-		fmt.Sprintf("%d", endHeight),
+		heightQuery.startString(),
+		heightQuery.endString(),
 		nil,
 	)
 	if err != nil {

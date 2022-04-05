@@ -80,7 +80,7 @@ func (_m *mockHandler) getAccount(ctx context.Context, address string, height st
 }
 
 // getBlockByHeight provides a mock function with given fields: ctx, height
-func (_m *mockHandler) getBlockByHeight(ctx context.Context, height string) ([]*models.Block, error) {
+func (_m *mockHandler) getBlocksByHeights(ctx context.Context, height string) ([]*models.Block, error) {
 	ret := _m.Called(ctx, height)
 
 	var r0 []*models.Block
