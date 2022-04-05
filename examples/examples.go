@@ -29,13 +29,11 @@ import (
 
 	"github.com/onflow/flow-go-sdk/client"
 
-	grpc2 "github.com/onflow/flow-go-sdk/client/grpc"
+	"github.com/onflow/flow-go-sdk/client/grpc"
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/cadence/runtime/sema"
-	"google.golang.org/grpc"
-
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/templates"
@@ -268,12 +266,10 @@ func Handle(err error) {
 	}
 }
 
-func NewFlowGRPCClient() *grpc2.BaseClient {
-	accessAPI := "127.0.0.1:3569"
-	handler, err := grpc2.New(accessAPI, grpc.WithInsecure())
+func NewFlowGRPCClient() *grpc.BaseClient {
+	c, err := grpc.NewClient("127.0.0.1:3569")
 	Handle(err)
-
-	return grpc2.NewClient(handler)
+	return c
 }
 
 func WaitForSeal(ctx context.Context, c client.Client, id flow.Identifier) *flow.TransactionResult {
