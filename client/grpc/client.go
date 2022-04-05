@@ -32,16 +32,19 @@ import (
 	"github.com/onflow/flow-go-sdk"
 )
 
-const EMULATOR_API = "127.0.0.1:3569"
-const TESTNET_API = "access.devnet.nodes.onflow.org:9000"
-const CANARYNET_API = "access.canary.nodes.onflow.org:9000"
-const MAINNET_API = "access.mainnet.nodes.onflow.org:9000"
+const EMULATOR_URL = "127.0.0.1:3569"
+const TESTNET_URL = "access.devnet.nodes.onflow.org:9000"
+const CANARYNET_URL = "access.canary.nodes.onflow.org:9000"
+const MAINNET_URL = "access.mainnet.nodes.onflow.org:9000"
 
 // NewClient create a client by passing the gRPC handler.
-func NewClient(handler *GRPCClient) *BaseClient {
-	return &BaseClient{
-		grpc: handler,
+func NewClient(url string) (*BaseClient, error) {
+	client, err := NewGRPCClient(url)
+	if err != nil {
+		return nil, err
 	}
+
+	return &BaseClient{client}, nil
 }
 
 // BaseClient complies with the client interface and hides any gRPC specific options.
@@ -51,42 +54,22 @@ type BaseClient struct {
 
 // NewDefaultEmulatorClient creates a client for accessing default local emulator network using gRPC.
 func NewDefaultEmulatorClient() (*BaseClient, error) {
-	handler, err := New(EMULATOR_API)
-	if err != nil {
-		return nil, err
-	}
-
-	return NewClient(handler), nil
+	return NewClient(EMULATOR_URL)
 }
 
 // NewDefaultTestnetClient creates a client for accessing default testnet AN using gRPC.
 func NewDefaultTestnetClient() (*BaseClient, error) {
-	handler, err := New(TESTNET_API)
-	if err != nil {
-		return nil, err
-	}
-
-	return NewClient(handler), nil
+	return NewClient(TESTNET_URL)
 }
 
 // NewDefaultCanaryClient creates a client for accessing default canary AN using gRPC.
 func NewDefaultCanaryClient() (*BaseClient, error) {
-	handler, err := New(CANARYNET_API)
-	if err != nil {
-		return nil, err
-	}
-
-	return NewClient(handler), nil
+	return NewClient(CANARYNET_URL)
 }
 
 // NewDefaultMainnetClient creates a client for accessing default mainnet AN using gRPC.
 func NewDefaultMainnetClient() (*BaseClient, error) {
-	handler, err := New(MAINNET_API)
-	if err != nil {
-		return nil, err
-	}
-
-	return NewClient(handler), nil
+	return NewClient(MAINNET_URL)
 }
 
 func (c *BaseClient) Ping(ctx context.Context) error {

@@ -31,20 +31,20 @@ import (
 	"github.com/onflow/flow-go-sdk/client/convert"
 )
 
-// An RPCClient is an RPC client for the Flow Access API.
+// RPCClient is an RPC client for the Flow Access API.
 type RPCClient interface {
 	access.AccessAPIClient
 }
 
-// A Handler is a gRPC Handler for the Flow Access API.
+// GRPCClient is a gRPC client for the Flow Access API exposing all grpc specific methods.
 type GRPCClient struct {
 	rpcClient RPCClient
 	close     func() error
 }
 
-// New creates a new gRPC handler for network communication.
-func New(addr string, opts ...grpc.DialOption) (*GRPCClient, error) {
-	conn, err := grpc.Dial(addr, opts...)
+// NewGRPCClient creates a new gRPC handler for network communication.
+func NewGRPCClient(url string, opts ...grpc.DialOption) (*GRPCClient, error) {
+	conn, err := grpc.Dial(url, opts...)
 	if err != nil {
 		return nil, err
 	}
