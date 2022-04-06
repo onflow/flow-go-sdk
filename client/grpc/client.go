@@ -28,8 +28,11 @@ package grpc
 import (
 	"context"
 
+	"google.golang.org/grpc"
+
 	"github.com/onflow/cadence"
 	"github.com/onflow/flow-go-sdk"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 const EMULATOR_URL = "127.0.0.1:3569"
@@ -39,7 +42,7 @@ const MAINNET_URL = "access.mainnet.nodes.onflow.org:9000"
 
 // NewClient create a client by passing the gRPC handler.
 func NewClient(url string) (*BaseClient, error) {
-	client, err := NewGRPCClient(url)
+	client, err := NewGRPCClient(url, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err
 	}

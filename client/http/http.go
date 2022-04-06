@@ -89,7 +89,7 @@ func (b *HeightQuery) heightsString() string {
 }
 
 func (b *HeightQuery) startString() string {
-	if b.Start == 0 {
+	if b.Start == 0 && b.End == 0 { // start height can be 0 if end height is not
 		return ""
 	}
 	return fmt.Sprintf("%d", b.Start)
@@ -103,7 +103,7 @@ func (b *HeightQuery) endString() string {
 }
 
 func (b *HeightQuery) rangeDefined() bool {
-	return b.Start != 0 && b.End != 0
+	return b.End != 0 && b.End > b.Start
 }
 
 func (b *HeightQuery) heightsDefined() bool {
