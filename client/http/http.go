@@ -52,7 +52,7 @@ const (
 	// FINAL points to latest finalised block height.
 	FINAL uint64 = math.MaxUint64 - 1
 	// SEALED points to latest sealed block height.
-	SEALED = math.MaxUint64 - 2
+	SEALED uint64 = math.MaxUint64 - 2
 )
 
 var specialHeightMap = map[uint64]string{
@@ -73,16 +73,17 @@ type HeightQuery struct {
 // heightToString is a helper method to get first height as string.
 func (b *HeightQuery) heightsString() string {
 	converted := ""
-	for i, h := range b.Heights {
+	for _, h := range b.Heights {
 		str := fmt.Sprintf("%d", h)
 		if h == FINAL || h == SEALED {
 			str = specialHeightMap[h]
 		}
 
-		if i == 0 {
-			continue
+		if converted == "" {
+			converted = str
+		} else {
+			converted = fmt.Sprintf("%s,%s", converted, str)
 		}
-		converted = fmt.Sprintf("%s,%s", converted, str)
 	}
 	return converted
 }
@@ -140,22 +141,22 @@ func (c *HTTPClient) GetBlockByID(ctx context.Context, blockID flow.Identifier, 
 	return convert.HTTPToBlock(block)
 }
 
-// GetBlocksByHeights requests the blocks by the specificed block query.
+// GetBlocksByHeights requests the blocks by the specified block query.
 func (c *HTTPClient) GetBlocksByHeights(
 	ctx context.Context,
-	blockQuery HeightQuery,
+	heightQuery HeightQuery,
 	opts ...queryOpts,
 ) ([]*flow.Block, error) {
 
-	if !blockQuery.heightsDefined() && !blockQuery.rangeDefined() {
+	if !heightQuery.heightsDefined() && !heightQuery.rangeDefined() {
 		return nil, fmt.Errorf("must either provide heights or start and end height range")
 	}
 
 	httpBlocks, err := c.handler.getBlocksByHeights(
 		ctx,
-		blockQuery.heightsString(),
-		blockQuery.startString(),
-		blockQuery.endString(),
+		heightQuery.heightsString(),
+		heightQuery.startString(),
+		heightQuery.endString(),
 		opts...,
 	)
 	if err != nil {

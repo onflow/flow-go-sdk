@@ -38,6 +38,16 @@ type queryOpts interface {
 	toQuery() (string, string)
 }
 
+type HttpError struct {
+	Url     string
+	Code    int
+	Message string
+}
+
+func (h HttpError) Error() string {
+	return h.Message
+}
+
 type httpHandler struct {
 	client *http.Client
 	base   string
@@ -66,7 +76,7 @@ func (h *httpHandler) get(_ context.Context, url *url.URL, model interface{}) er
 	// todo use a .Do() method and use the context
 	res, err := h.client.Get(url.String())
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("HTTP GET %s failed", url.String()))
+		return err
 	}
 	defer res.Body.Close()
 
@@ -76,7 +86,18 @@ func (h *httpHandler) get(_ context.Context, url *url.URL, model interface{}) er
 	}
 
 	if res.StatusCode >= http.StatusBadRequest {
-		return fmt.Errorf("HTTP GET %s failed, status code: %d, response :%s", url.String(), res.StatusCode, body)
+		if h.debug {
+			fmt.Printf("\n<- FAILED GET %s t=%d status=%d - %s", url.String(), res.StatusCode, time.Now().Unix(), body)
+		}
+
+		var httpErr HttpError
+		err = json.Unmarshal(body, &httpErr)
+		if err != nil {
+			return err
+		}
+
+		httpErr.Url = url.String()
+		return httpErr
 	}
 
 	if h.debug {
@@ -112,7 +133,18 @@ func (h *httpHandler) post(_ context.Context, url *url.URL, body []byte, model i
 	}
 
 	if res.StatusCode >= http.StatusBadRequest {
-		return fmt.Errorf("HTTP POST %s failed, status code: %d, response :%s", url.String(), res.StatusCode, responseBody)
+		if h.debug {
+			fmt.Printf("\n<- POST FAILED %s, status=%d, response: %s", url.String(), res.StatusCode, responseBody)
+		}
+
+		var httpErr HttpError
+		err = json.Unmarshal(body, &httpErr)
+		if err != nil {
+			return err
+		}
+
+		httpErr.Url = url.String()
+		return httpErr
 	}
 
 	if h.debug {
@@ -140,8 +172,8 @@ func (h *httpHandler) getBlockByID(ctx context.Context, ID string, opts ...query
 		return nil, errors.Wrap(err, fmt.Sprintf("get block ID %s failed", ID))
 	}
 
-	if len(blocks) == 0 {
-		return nil, fmt.Errorf("block ID %s not found", ID) // sanity check it should never be empty
+	if len(blocks) == 0 { // sanity check
+		return nil, fmt.Errorf("get block failed")
 	}
 
 	return blocks[0], nil
@@ -207,7 +239,7 @@ func (h *httpHandler) getCollection(ctx context.Context, ID string, opts ...quer
 		&collection,
 	)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, fmt.Sprintf("get collection ID %s failed", ID))
 	}
 
 	return &collection, nil
@@ -235,7 +267,7 @@ func (h *httpHandler) executeScriptAt(
 		},
 	)
 	if err != nil {
-		return "", err
+		return "", errors.Wrap(err, "executing script failed")
 	}
 
 	var result string
@@ -294,7 +326,7 @@ func (h *httpHandler) getTransaction(
 
 	err := h.get(ctx, u, &transaction)
 	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("get transaction %s failed", ID))
+		return nil, errors.Wrap(err, fmt.Sprintf("get transaction ID %s failed", ID))
 	}
 
 	return &transaction, nil
@@ -331,7 +363,7 @@ func (h *httpHandler) getEvents(
 	var events []models.BlockEvents
 	err := h.get(ctx, u, &events)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, fmt.Sprintf("get events by type %s failed", eventType))
 	}
 
 	return events, nil

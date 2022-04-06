@@ -22,6 +22,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/onflow/flow-go-sdk/client"
+
 	"github.com/onflow/flow-go-sdk/client/http"
 
 	"github.com/onflow/flow-go-sdk"
@@ -34,6 +36,7 @@ func main() {
 
 func demo() {
 	ctx := context.Background()
+	var flowClient client.Client
 	flowClient, err := http.NewDefaultEmulatorClient(false)
 	examples.Handle(err)
 
