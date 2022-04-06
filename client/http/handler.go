@@ -38,13 +38,13 @@ type queryOpts interface {
 	toQuery() (string, string)
 }
 
-type HttpError struct {
+type HTTPError struct {
 	Url     string
 	Code    int
 	Message string
 }
 
-func (h HttpError) Error() string {
+func (h HTTPError) Error() string {
 	return h.Message
 }
 
@@ -90,7 +90,7 @@ func (h *httpHandler) get(_ context.Context, url *url.URL, model interface{}) er
 			fmt.Printf("\n<- FAILED GET %s t=%d status=%d - %s", url.String(), res.StatusCode, time.Now().Unix(), body)
 		}
 
-		var httpErr HttpError
+		var httpErr HTTPError
 		err = json.Unmarshal(body, &httpErr)
 		if err != nil {
 			return err
@@ -137,7 +137,7 @@ func (h *httpHandler) post(_ context.Context, url *url.URL, body []byte, model i
 			fmt.Printf("\n<- POST FAILED %s, status=%d, response: %s", url.String(), res.StatusCode, responseBody)
 		}
 
-		var httpErr HttpError
+		var httpErr HTTPError
 		err = json.Unmarshal(body, &httpErr)
 		if err != nil {
 			return err

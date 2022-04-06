@@ -46,7 +46,7 @@ func TestBaseClient_GetBlockByID(t *testing.T) {
 	t.Run("Not found", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
 		handler.
 			On(handlerName, mock.Anything, mock.Anything).
-			Return(nil, HttpError{
+			Return(nil, HTTPError{
 				Url:     "/",
 				Code:    404,
 				Message: "block not found",
@@ -76,7 +76,7 @@ func TestBaseClient_GetBlockByHeight(t *testing.T) {
 	t.Run("Not found", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
 		handler.
 			On(handlerName, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
-			Return(nil, HttpError{
+			Return(nil, HTTPError{
 				Url:     "/",
 				Code:    404,
 				Message: "block not found",
@@ -107,7 +107,7 @@ func TestBaseClient_GetCollection(t *testing.T) {
 	t.Run("Not Found", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
 		handler.
 			On(handlerName, mock.Anything, mock.Anything).
-			Return(nil, HttpError{
+			Return(nil, HTTPError{
 				Url:     "/",
 				Code:    404,
 				Message: "collection not found",
@@ -138,7 +138,7 @@ func TestBaseClient_SendTransaction(t *testing.T) {
 	}))
 
 	t.Run("Not Found", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
-		handler.On(handlerName, mock.Anything, mock.Anything).Return(HttpError{
+		handler.On(handlerName, mock.Anything, mock.Anything).Return(HTTPError{
 			Url:     "/",
 			Code:    400,
 			Message: "invalid payload",
@@ -168,7 +168,7 @@ func TestBaseClient_GetTransaction(t *testing.T) {
 	}))
 
 	t.Run("Not Found", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
-		handler.On(handlerName, mock.Anything, mock.Anything, mock.Anything).Return(nil, HttpError{
+		handler.On(handlerName, mock.Anything, mock.Anything, mock.Anything).Return(nil, HTTPError{
 			Url:     "/",
 			Code:    404,
 			Message: "tx not found",
@@ -202,7 +202,7 @@ func TestBaseClient_GetTransactionResult(t *testing.T) {
 	}))
 
 	t.Run("Not Found", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
-		handler.On(handlerName, mock.Anything, mock.Anything, true).Return(nil, HttpError{
+		handler.On(handlerName, mock.Anything, mock.Anything, true).Return(nil, HTTPError{
 			Url:     "/",
 			Code:    404,
 			Message: "tx result not found",
@@ -231,7 +231,7 @@ func TestBaseClient_GetAccount(t *testing.T) {
 	}))
 
 	t.Run("Not Found", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
-		handler.On(handlerName, mock.Anything, mock.Anything, mock.Anything).Return(nil, HttpError{
+		handler.On(handlerName, mock.Anything, mock.Anything, mock.Anything).Return(nil, HTTPError{
 			Url:     "/",
 			Code:    404,
 			Message: "account not found",
