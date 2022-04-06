@@ -130,7 +130,6 @@ func BlockGenerator() *Blocks {
 
 func (g *Blocks) New() *flow.Block {
 	header := g.headers.New()
-	signatures := g.signatures.New()
 
 	guarantees := []*flow.CollectionGuarantee{
 		g.guarantees.New(),
@@ -150,7 +149,6 @@ func (g *Blocks) New() *flow.Block {
 	return &flow.Block{
 		BlockHeader:  header,
 		BlockPayload: payload,
-		Signatures:   signatures,
 	}
 }
 

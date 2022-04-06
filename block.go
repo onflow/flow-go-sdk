@@ -24,7 +24,6 @@ import "time"
 type Block struct {
 	BlockHeader
 	BlockPayload
-	Signatures [][]byte
 }
 
 // BlockHeader is a summary of a full block.
