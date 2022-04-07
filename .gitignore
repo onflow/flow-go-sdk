@@ -9,6 +9,7 @@ coverage.zip
 cover.json
 cover-summary
 index.html
+coverage.txt
 
 # Since we have tooling that uses node
 node_modules
