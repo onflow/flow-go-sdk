@@ -138,6 +138,66 @@ func TestBaseClient_GetBlockByHeight(t *testing.T) {
 	}))
 }
 
+func TestBaseClient_GetLatestBlock(t *testing.T) {
+	const handlerName = "getBlocksByHeights"
+
+	t.Run("Block Sealed", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+		httpBlock := test.BlockHTTP()
+		expectedBlock, err := convert.HTTPToBlock(&httpBlock)
+		assert.NoError(t, err)
+
+		handler.
+			On(handlerName, mock.Anything, "sealed", "", "").
+			Return([]*models.Block{&httpBlock}, nil)
+
+		block, err := client.GetLatestBlock(ctx, true)
+		assert.NoError(t, err)
+		assert.Equal(t, block, expectedBlock)
+	}))
+
+	t.Run("Block Not Sealed", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+		httpBlock := test.BlockHTTP()
+		expectedBlock, err := convert.HTTPToBlock(&httpBlock)
+		assert.NoError(t, err)
+
+		handler.
+			On(handlerName, mock.Anything, "final", "", "").
+			Return([]*models.Block{&httpBlock}, nil)
+
+		block, err := client.GetLatestBlock(ctx, false)
+		assert.NoError(t, err)
+		assert.Equal(t, block, expectedBlock)
+	}))
+
+	t.Run("Final Header", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+		httpBlock := test.BlockHTTP()
+		expectedBlock, err := convert.HTTPToBlock(&httpBlock)
+		assert.NoError(t, err)
+
+		handler.
+			On(handlerName, mock.Anything, "final", "", "").
+			Return([]*models.Block{&httpBlock}, nil)
+
+		block, err := client.GetLatestBlockHeader(ctx, false)
+		assert.NoError(t, err)
+		assert.Equal(t, block, &expectedBlock.BlockHeader)
+	}))
+
+	t.Run("Sealed Header", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+		httpBlock := test.BlockHTTP()
+		expectedBlock, err := convert.HTTPToBlock(&httpBlock)
+		assert.NoError(t, err)
+
+		handler.
+			On(handlerName, mock.Anything, "sealed", "", "").
+			Return([]*models.Block{&httpBlock}, nil)
+
+		block, err := client.GetLatestBlockHeader(ctx, true)
+		assert.NoError(t, err)
+		assert.Equal(t, block, &expectedBlock.BlockHeader)
+	}))
+}
+
 func TestBaseClient_GetCollection(t *testing.T) {
 	const handlerName = "getCollection"
 
