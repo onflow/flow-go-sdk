@@ -1,5 +1,7 @@
 package http
 
+//go:generate go run github.com/vektra/mockery/cmd/mockery --name handler --filename handler_mock_test.go --inpkg
+
 import (
 	"context"
 	"fmt"

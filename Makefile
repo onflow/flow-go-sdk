@@ -11,7 +11,7 @@ coverage: test
 
 .PHONY: generate
 generate:
-	go get github.com/vektra/mockery/cmd/mockery
+	go get -d github.com/vektra/mockery/cmd/mockery
 	go generate ./...
 
 .PHONY: ci
