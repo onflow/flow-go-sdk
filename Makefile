@@ -3,7 +3,7 @@ PATH := $(PATH):$(GOPATH)/bin
 
 .PHONY: test
 test:
-	go test -coverprofile=cover.out ./...
+	GO111MODULE=on go test -coverprofile=coverage.txt ./...
 
 .PHONY: coverage
 coverage: test
@@ -11,7 +11,7 @@ coverage: test
 
 .PHONY: generate
 generate:
-	go get github.com/vektra/mockery/cmd/mockery
+	go get -d github.com/vektra/mockery/cmd/mockery
 	go generate ./...
 
 .PHONY: ci
