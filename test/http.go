@@ -144,3 +144,32 @@ func TransactionResultHTTP() models.TransactionResult {
 		},
 	}
 }
+
+func EventsHTTP(n int) []models.Event {
+	events := make([]models.Event, n)
+
+	for i := 0; i < n; i++ {
+		e := EventGenerator().New()
+		events[i] = models.Event{
+			Type_:            e.Type,
+			TransactionId:    e.TransactionID.String(),
+			TransactionIndex: fmt.Sprintf("%d", e.TransactionIndex),
+			EventIndex:       fmt.Sprintf("%d", e.EventIndex),
+			Payload:          base64.StdEncoding.EncodeToString(e.Payload),
+		}
+	}
+
+	return events
+}
+
+func BlockEventsHTTP() models.BlockEvents {
+	block := BlockGenerator().New()
+	events := EventsHTTP(4)
+
+	return models.BlockEvents{
+		BlockId:        block.ID.String(),
+		BlockHeight:    fmt.Sprintf("%d", block.Height),
+		BlockTimestamp: block.Timestamp,
+		Events:         events,
+	}
+}

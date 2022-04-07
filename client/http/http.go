@@ -103,7 +103,14 @@ func (b *HeightQuery) endString() string {
 }
 
 func (b *HeightQuery) rangeDefined() bool {
-	return b.End != 0 && b.End > b.Start
+	return b.End != 0 || b.Start != 0
+}
+
+func (b *HeightQuery) validateRange() error {
+	if b.rangeDefined() && b.Start > b.End {
+		return fmt.Errorf("start height (%d) must be smaller than end height (%d)", b.Start, b.End)
+	}
+	return nil
 }
 
 func (b *HeightQuery) heightsDefined() bool {
@@ -293,6 +300,11 @@ func (c *HTTPClient) GetEventsForHeightRange(
 ) ([]flow.BlockEvents, error) {
 	if !heightQuery.rangeDefined() {
 		return nil, fmt.Errorf("must provide start and end height range")
+	}
+
+	err := heightQuery.validateRange()
+	if err != nil {
+		return nil, err
 	}
 
 	events, err := c.handler.getEvents(

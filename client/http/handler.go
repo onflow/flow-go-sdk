@@ -245,7 +245,7 @@ func (h *httpHandler) getCollection(ctx context.Context, ID string, opts ...quer
 	return &collection, nil
 }
 
-func (h *httpHandler) executeScriptAt(
+func (h *httpHandler) executeScript(
 	ctx context.Context,
 	query map[string]string,
 	script string,
@@ -286,7 +286,7 @@ func (h *httpHandler) executeScriptAtBlockHeight(
 	arguments []string,
 	opts ...queryOpts,
 ) (string, error) {
-	return h.executeScriptAt(
+	return h.executeScript(
 		ctx,
 		map[string]string{"block_height": height},
 		script,
@@ -301,7 +301,7 @@ func (h *httpHandler) executeScriptAtBlockID(
 	arguments []string,
 	opts ...queryOpts,
 ) (string, error) {
-	return h.executeScriptAt(
+	return h.executeScript(
 		ctx,
 		map[string]string{"block_id": ID},
 		script,
