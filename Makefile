@@ -7,7 +7,7 @@ test:
 
 .PHONY: coverage
 coverage: test
-	go tool cover -html=cover.txt
+	go tool cover -html=coverage.txt
 
 .PHONY: generate
 generate:
