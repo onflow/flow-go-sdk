@@ -29,6 +29,25 @@ func clientTest(
 	}
 }
 
+func TestClient_Factories(t *testing.T) {
+
+	client, err := NewDefaultEmulatorClient(false)
+	assert.NoError(t, err)
+	assert.NotNil(t, client)
+
+	client, err = NewDefaultMainnetClient()
+	assert.NoError(t, err)
+	assert.NotNil(t, client)
+
+	client, err = NewDefaultTestnetClient()
+	assert.NoError(t, err)
+	assert.NotNil(t, client)
+
+	client, err = NewDefaultCanaryClient()
+	assert.NoError(t, err)
+	assert.NotNil(t, client)
+}
+
 func TestBaseClient_GetBlockByID(t *testing.T) {
 	const handlerName = "getBlockByID"
 	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
@@ -43,6 +62,20 @@ func TestBaseClient_GetBlockByID(t *testing.T) {
 		block, err := client.GetBlockByID(ctx, flow.HexToID(httpBlock.Header.Id))
 		assert.NoError(t, err)
 		assert.Equal(t, block, expectedBlock)
+	}))
+
+	t.Run("Get Block Header", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+		httpBlock := test.BlockHTTP()
+		expectedBlock, err := convert.HTTPToBlock(&httpBlock)
+		assert.NoError(t, err)
+
+		handler.
+			On(handlerName, mock.Anything, httpBlock.Header.Id).
+			Return(&httpBlock, nil)
+
+		header, err := client.GetBlockHeaderByID(ctx, flow.HexToID(httpBlock.Header.Id))
+		assert.NoError(t, err)
+		assert.Equal(t, header, &expectedBlock.BlockHeader)
 	}))
 
 	t.Run("Not found", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
@@ -88,6 +121,20 @@ func TestBaseClient_GetBlockByHeight(t *testing.T) {
 		block, err := client.GetBlockByHeight(ctx, 10)
 		assert.EqualError(t, err, "block not found")
 		assert.Nil(t, block)
+	}))
+
+	t.Run("Get Block Header", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+		httpBlock := test.BlockHTTP()
+		expectedBlock, err := convert.HTTPToBlock(&httpBlock)
+		assert.NoError(t, err)
+
+		handler.
+			On(handlerName, mock.Anything, httpBlock.Header.Height, "", "").
+			Return([]*models.Block{&httpBlock}, nil)
+
+		block, err := client.GetBlockHeaderByHeight(ctx, expectedBlock.Height)
+		assert.NoError(t, err)
+		assert.Equal(t, block, &expectedBlock.BlockHeader)
 	}))
 }
 
