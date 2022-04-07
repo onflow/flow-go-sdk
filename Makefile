@@ -22,3 +22,7 @@ ci: check-tidy test coverage
 check-tidy: generate
 	go mod tidy
 	git diff --exit-code
+
+.PHONY: check-headers
+check-headers:
+	@./check-headers.sh
