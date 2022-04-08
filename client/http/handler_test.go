@@ -340,3 +340,57 @@ func TestHandler_ExecuteScript(t *testing.T) {
 		assert.EqualError(t, err, "executing script main() { return 42; } failed: ") // todo check desc
 	}))
 }
+
+func TestHandler_SendTransaction(t *testing.T) {
+
+	t.Run("Success", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
+		httpTx := test.TransactionHTTP()
+		u, _ := url.Parse("/transactions")
+
+		req.SetData(*u, httpTx)
+
+		rawTx, err := json.Marshal(httpTx)
+		assert.NoError(t, err)
+
+		err = handler.sendTransaction(ctx, rawTx)
+		assert.NoError(t, err)
+	}))
+}
+
+func newTransactionURL(id string, query map[string]string) url.URL {
+	u, _ := url.Parse(fmt.Sprintf("/transactions/%s", id))
+	if query == nil {
+		query = map[string]string{}
+	}
+
+	return addQuery(u, query)
+}
+
+func TestHandler_GetTransaction(t *testing.T) {
+
+	t.Run("Success", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
+		httpTx := test.TransactionHTTP()
+		id := "0x1"
+
+		txURL := newTransactionURL(id, nil)
+		req.SetData(txURL, httpTx)
+
+		tx, err := handler.getTransaction(ctx, id, false)
+		assert.NoError(t, err)
+		assert.Equal(t, *tx, httpTx)
+	}))
+
+	t.Run("Success With Results", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
+		httpTx := test.TransactionHTTP()
+		id := "0x1"
+
+		txURL := newTransactionURL(id, map[string]string{
+			"expand": "result",
+		})
+		req.SetData(txURL, httpTx)
+
+		tx, err := handler.getTransaction(ctx, id, true)
+		assert.NoError(t, err)
+		assert.Equal(t, *tx, httpTx)
+	}))
+}
