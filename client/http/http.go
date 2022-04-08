@@ -161,6 +161,11 @@ func (c *HTTPClient) GetBlocksByHeights(
 		return nil, fmt.Errorf("must either provide heights or start and end height range")
 	}
 
+	err := heightQuery.validateRange()
+	if err != nil {
+		return nil, err
+	}
+
 	httpBlocks, err := c.handler.getBlocksByHeights(
 		ctx,
 		heightQuery.heightsString(),
