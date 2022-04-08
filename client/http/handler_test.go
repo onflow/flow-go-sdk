@@ -319,7 +319,7 @@ func TestHandler_ExecuteScript(t *testing.T) {
 			result,
 		)
 
-		val, err := handler.executeScriptAtBlockHeight(ctx, id, script, nil)
+		val, err := handler.executeScriptAtBlockID(ctx, id, script, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, val, result)
 	}))
