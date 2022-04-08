@@ -86,6 +86,17 @@ func newBlocksURL(query map[string]string) url.URL {
 	return addQuery(u, query)
 }
 
+func TestHandler_ResponseFailures(t *testing.T) {
+	t.Run("Invalid Response", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
+		req.SetData(
+			newBlocksURL(map[string]string{"height": "1"}),
+			"123",
+		)
+		_, err := handler.getBlocksByHeights(ctx, "1", "", "")
+		assert.EqualError(t, err, "get block by height 1 failed: JSON decoding failed: json: cannot unmarshal string into Go value of type []*models.Block")
+	}))
+}
+
 func TestHandler_GetBlockByID(t *testing.T) {
 	t.Run("Success", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
 		b := test.BlockHTTP()
@@ -272,5 +283,60 @@ func TestHandler_GetCollection(t *testing.T) {
 		collection, err := handler.getCollection(ctx, id)
 		assert.NoError(t, err)
 		assert.Equal(t, *collection, httpCollection)
+	}))
+}
+
+// newScriptURL is a helper factory for building script URLs.
+func newScriptURL(query map[string]string) url.URL {
+	u, _ := url.Parse("/scripts")
+	return addQuery(u, query)
+}
+
+func TestHandler_ExecuteScript(t *testing.T) {
+
+	t.Run("Execute at Height", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
+		const height = "1"
+		const script = "main() { return 42; }"
+		const result = "42"
+
+		req.SetData(
+			newScriptURL(map[string]string{"block_height": height}),
+			result,
+		)
+
+		val, err := handler.executeScriptAtBlockHeight(ctx, height, script, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, val, result)
+	}))
+
+	t.Run("Execute at Block ID", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
+		const id = "0x1"
+		const script = "main() { return 42; }"
+		const result = "42"
+
+		req.SetData(
+			newScriptURL(map[string]string{"block_id": id}),
+			result,
+		)
+
+		val, err := handler.executeScriptAtBlockHeight(ctx, id, script, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, val, result)
+	}))
+
+	t.Run("Execute Failure", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
+		const height = "1"
+		const script = "main() { return 42; }"
+
+		req.SetErr(
+			newScriptURL(map[string]string{"block_height": height}),
+			models.ModelError{
+				Code:    http.StatusBadRequest,
+				Message: "execution failure",
+			},
+		)
+
+		_, err := handler.executeScriptAtBlockHeight(ctx, height, script, nil)
+		assert.EqualError(t, err, "executing script main() { return 42; } failed: ") // todo check desc
 	}))
 }

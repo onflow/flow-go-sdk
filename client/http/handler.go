@@ -280,7 +280,7 @@ func (h *httpHandler) executeScript(
 	var result string
 	err = h.post(ctx, u, body, &result)
 	if err != nil {
-		return "", err
+		return "", errors.Wrap(err, fmt.Sprintf("executing script %s failed", script))
 	}
 
 	return result, nil
