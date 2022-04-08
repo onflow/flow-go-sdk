@@ -63,8 +63,15 @@ func newHandler(baseUrl string, debug bool) (*httpHandler, error) {
 	}, nil
 }
 
-func (h *httpHandler) mustBuildURL(path string) *url.URL {
-	u, _ := url.ParseRequestURI(fmt.Sprintf("%s%s", h.base, path)) // we ignore error because the values are always valid
+func (h *httpHandler) mustBuildURL(path string, opts ...queryOpts) *url.URL {
+	u, _ := url.ParseRequestURI(fmt.Sprintf("%s%s", h.base, path))
+
+	for _, opt := range opts {
+		q := u.Query()
+		q.Add(opt.toQuery())
+		u.RawQuery = q.Encode()
+	}
+
 	return u
 }
 
@@ -160,7 +167,7 @@ func (h *httpHandler) post(_ context.Context, url *url.URL, body []byte, model i
 }
 
 func (h *httpHandler) getBlockByID(ctx context.Context, ID string, opts ...queryOpts) (*models.Block, error) {
-	u := h.mustBuildURL(fmt.Sprintf("/blocks/%s", ID))
+	u := h.mustBuildURL(fmt.Sprintf("/blocks/%s", ID), opts...)
 
 	q := u.Query()
 	q.Add("expand", "payload")
@@ -186,7 +193,7 @@ func (h *httpHandler) getBlocksByHeights(
 	endHeight string,
 	opts ...queryOpts,
 ) ([]*models.Block, error) {
-	u := h.mustBuildURL("/blocks")
+	u := h.mustBuildURL("/blocks", opts...)
 
 	q := u.Query()
 	if heights != "" {
@@ -216,7 +223,7 @@ func (h *httpHandler) getAccount(
 	height string,
 	opts ...queryOpts,
 ) (*models.Account, error) {
-	u := h.mustBuildURL(fmt.Sprintf("/accounts/%s", address))
+	u := h.mustBuildURL(fmt.Sprintf("/accounts/%s", address), opts...)
 
 	q := u.Query()
 	q.Add("height", height)
@@ -235,7 +242,7 @@ func (h *httpHandler) getAccount(
 func (h *httpHandler) getCollection(ctx context.Context, ID string, opts ...queryOpts) (*models.Collection, error) {
 	var collection models.Collection
 	err := h.get(
-		ctx, h.mustBuildURL(fmt.Sprintf("/collections/%s", ID)),
+		ctx, h.mustBuildURL(fmt.Sprintf("/collections/%s", ID), opts...),
 		&collection,
 	)
 	if err != nil {
@@ -252,7 +259,7 @@ func (h *httpHandler) executeScript(
 	arguments []string,
 	opts ...queryOpts,
 ) (string, error) {
-	u := h.mustBuildURL("/scripts")
+	u := h.mustBuildURL("/scripts", opts...)
 
 	q := u.Query()
 	for k, v := range query {
@@ -316,7 +323,7 @@ func (h *httpHandler) getTransaction(
 	opts ...queryOpts,
 ) (*models.Transaction, error) {
 	var transaction models.Transaction
-	u := h.mustBuildURL(fmt.Sprintf("/transactions/%s", ID))
+	u := h.mustBuildURL(fmt.Sprintf("/transactions/%s", ID), opts...)
 
 	if includeResult {
 		q := u.Query()
@@ -334,7 +341,7 @@ func (h *httpHandler) getTransaction(
 
 func (h *httpHandler) sendTransaction(ctx context.Context, transaction []byte, opts ...queryOpts) error {
 	var tx models.Transaction
-	return h.post(ctx, h.mustBuildURL("/transactions"), transaction, &tx)
+	return h.post(ctx, h.mustBuildURL("/transactions", opts...), transaction, &tx)
 }
 
 func (h *httpHandler) getEvents(
@@ -345,7 +352,7 @@ func (h *httpHandler) getEvents(
 	blockIDs []string,
 	opts ...queryOpts,
 ) ([]models.BlockEvents, error) {
-	u := h.mustBuildURL("/events")
+	u := h.mustBuildURL("/events", opts...)
 
 	q := u.Query()
 	if start != "" && end != "" {
