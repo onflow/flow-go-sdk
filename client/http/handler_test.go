@@ -206,3 +206,71 @@ func TestHandler_GetBlockByHeights(t *testing.T) {
 		assert.EqualError(t, err, fmt.Sprintf("get block by height %s failed: %s", heights, errHTTP.Message))
 	}))
 }
+
+// newAccountsURL is a helper factory for building accounts URLs.
+func newAccountsURL(address string, query map[string]string) url.URL {
+	u, _ := url.Parse(fmt.Sprintf("/accounts/%s", address))
+	if query == nil {
+		query = map[string]string{}
+	}
+	query["expand"] = "keys,contracts"
+
+	return addQuery(u, query)
+}
+
+func TestHandler_GetAccount(t *testing.T) {
+
+	t.Run("Success", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
+		httpAccount := test.AccountHTTP()
+
+		const height = "sealed"
+		req.SetData(
+			newAccountsURL(httpAccount.Address, map[string]string{
+				"height": height,
+			}),
+			httpAccount,
+		)
+
+		acc, err := handler.getAccount(ctx, httpAccount.Address, height)
+		assert.NoError(t, err)
+		assert.Equal(t, *acc, httpAccount)
+	}))
+
+	t.Run("Failure", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
+		errHTTP := models.ModelError{
+			Code:    400,
+			Message: "invalid height value",
+		}
+
+		const (
+			heights = "foo" // invalid
+			address = "0x1"
+		)
+
+		req.SetErr(
+			newAccountsURL(address, map[string]string{
+				"height": heights,
+			}),
+			errHTTP,
+		)
+
+		_, err := handler.getAccount(ctx, address, heights)
+		assert.EqualError(t, err, fmt.Sprintf("get account %s failed: %s", address, errHTTP.Message))
+	}))
+}
+
+func TestHandler_GetCollection(t *testing.T) {
+	const collectionURL = "/collections"
+
+	t.Run("Success", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
+		httpCollection := test.CollectionHTTP()
+		id := "0x1"
+
+		collURL, _ := url.Parse(fmt.Sprintf("%s/%s", collectionURL, id))
+		req.SetData(*collURL, httpCollection)
+
+		collection, err := handler.getCollection(ctx, id)
+		assert.NoError(t, err)
+		assert.Equal(t, *collection, httpCollection)
+	}))
+}
