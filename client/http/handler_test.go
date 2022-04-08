@@ -394,3 +394,43 @@ func TestHandler_GetTransaction(t *testing.T) {
 		assert.Equal(t, *tx, httpTx)
 	}))
 }
+
+func newEventsURL(query map[string]string) url.URL {
+	u, _ := url.Parse("/events")
+	if query == nil {
+		query = map[string]string{}
+	}
+
+	return addQuery(u, query)
+}
+
+func TestHandler_GetEvents(t *testing.T) {
+	const (
+		startHeightKey = "start_height"
+		endHeightKey   = "end_height"
+		blockIdKey     = "block_ids"
+		eventKey       = "type"
+	)
+
+	t.Run("Get for Range", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
+		const (
+			eventType = "A.Foo"
+			start     = "1"
+			end       = "3"
+		)
+		httpEvents := []models.BlockEvents{test.BlockEventsHTTP()}
+
+		req.SetData(
+			newEventsURL(map[string]string{
+				startHeightKey: start,
+				endHeightKey:   end,
+				eventKey:       eventType,
+			}),
+			httpEvents,
+		)
+
+		events, err := handler.getEvents(ctx, eventType, start, end, []string{})
+		assert.NoError(t, err)
+		assert.Equal(t, events, httpEvents)
+	}))
+}
