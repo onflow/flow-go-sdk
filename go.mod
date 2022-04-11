@@ -8,7 +8,7 @@ require (
 	github.com/onflow/cadence v0.20.1
 	github.com/onflow/flow-go/crypto v0.24.3
 	github.com/onflow/flow/protobuf/go/flow v0.2.2
-	github.com/onflow/sdks v0.3.0
+	github.com/onflow/sdks v0.4.0
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.7.1-0.20210824115523-ab6dc3262822
 	google.golang.org/api v0.70.0
@@ -18,4 +18,3 @@ require (
 )
 
 replace github.com/onflow/cadence => github.com/onflow/cadence v0.21.3-0.20220419065337-d5202c162010
-replace github.com/onflow/sdks => /Users/dapper/Dev/sdks
