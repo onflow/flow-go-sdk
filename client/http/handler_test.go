@@ -68,6 +68,10 @@ func (t *testRequest) SetErr(url url.URL, err interface{}) {
 // addQuery adds query parameters from a map to URL.
 func addQuery(u *url.URL, q map[string]string) url.URL {
 	query := u.Query()
+	if q == nil {
+		return *u
+	}
+
 	for key, value := range q {
 		query.Add(key, value)
 	}
@@ -359,10 +363,6 @@ func TestHandler_SendTransaction(t *testing.T) {
 
 func newTransactionURL(id string, query map[string]string) url.URL {
 	u, _ := url.Parse(fmt.Sprintf("/transactions/%s", id))
-	if query == nil {
-		query = map[string]string{}
-	}
-
 	return addQuery(u, query)
 }
 
@@ -395,10 +395,24 @@ func TestHandler_GetTransaction(t *testing.T) {
 	}))
 }
 
-func newEventsURL(query map[string]string) url.URL {
+func newEventsURL(query map[string]string, ids []string) url.URL {
 	u, _ := url.Parse("/events")
 	if query == nil {
 		query = map[string]string{}
+	}
+
+	if len(ids) != 0 {
+		q := u.Query()
+		rawIds := ""
+		for _, i := range ids {
+			if rawIds == "" {
+				rawIds = i
+				continue
+			}
+			rawIds = fmt.Sprintf("%s,%s", rawIds, i)
+		}
+		q.Add("block_ids", rawIds)
+		u.RawQuery = q.Encode()
 	}
 
 	return addQuery(u, query)
@@ -408,7 +422,6 @@ func TestHandler_GetEvents(t *testing.T) {
 	const (
 		startHeightKey = "start_height"
 		endHeightKey   = "end_height"
-		blockIdKey     = "block_ids"
 		eventKey       = "type"
 	)
 
@@ -425,7 +438,7 @@ func TestHandler_GetEvents(t *testing.T) {
 				startHeightKey: start,
 				endHeightKey:   end,
 				eventKey:       eventType,
-			}),
+			}, nil),
 			httpEvents,
 		)
 
@@ -433,4 +446,52 @@ func TestHandler_GetEvents(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, events, httpEvents)
 	}))
+
+	t.Run("Get for IDs", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
+		httpEvents := []models.BlockEvents{test.BlockEventsHTTP()}
+
+		const eventType = "A.Foo"
+		ids := []string{"0x1", "0x2"}
+
+		req.SetData(
+			newEventsURL(map[string]string{
+				eventKey: eventType,
+			}, ids),
+			httpEvents,
+		)
+
+		events, err := handler.getEvents(ctx, eventType, "", "", ids)
+		assert.NoError(t, err)
+		assert.Equal(t, events, httpEvents)
+	}))
+
+	t.Run("Failure arguments", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
+		req.SetData(newEventsURL(nil, nil), nil)
+		_, err := handler.getEvents(ctx, "A", "", "", nil)
+		assert.EqualError(t, err, "must either provide start and end height or block IDs")
+	}))
+
+	t.Run("Failure response", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
+		const (
+			eventType = "A.Foo"
+			start     = "1"
+			end       = "3"
+		)
+
+		req.SetErr(
+			newEventsURL(map[string]string{
+				startHeightKey: start,
+				endHeightKey:   end,
+				eventKey:       eventType,
+			}, nil),
+			models.ModelError{
+				Code:    400,
+				Message: "events not found",
+			},
+		)
+
+		_, err := handler.getEvents(ctx, eventType, start, end, nil)
+		assert.EqualError(t, err, "get events by type A.Foo failed: events not found")
+	}))
+
 }
