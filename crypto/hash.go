@@ -1,7 +1,7 @@
 /*
  * Flow Go SDK
  *
- * Copyright 2019-2020 Dapper Labs, Inc.
+ * Copyright 2019 Dapper Labs, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,37 @@ import (
 type Hasher = hash.Hasher
 type Hash = hash.Hash
 
+// HashAlgorithm is an identifier for a hash algorithm.
+type HashAlgorithm = hash.HashingAlgorithm
+
+const (
+	UnknownHashAlgorithm HashAlgorithm = hash.UnknownHashingAlgorithm
+	SHA2_256                           = hash.SHA2_256
+	SHA2_384                           = hash.SHA2_384
+	SHA3_256                           = hash.SHA3_256
+	SHA3_384                           = hash.SHA3_384
+	Keccak256                          = hash.Keccak_256
+)
+
+// StringToHashAlgorithm converts a string to a HashAlgorithm.
+func StringToHashAlgorithm(s string) HashAlgorithm {
+	switch s {
+	case SHA2_256.String():
+		return SHA2_256
+	case SHA3_256.String():
+		return SHA3_256
+	case SHA2_384.String():
+		return SHA2_384
+	case SHA3_384.String():
+		return SHA3_384
+	case Keccak256.String():
+		return Keccak256
+
+	default:
+		return UnknownHashAlgorithm
+	}
+}
+
 // NewHasher initializes and returns a new hasher with the given hash algorithm.
 //
 // This function returns an error if the hash algorithm is invalid.
@@ -40,6 +71,8 @@ func NewHasher(algo HashAlgorithm) (Hasher, error) {
 		return NewSHA3_256(), nil
 	case SHA3_384:
 		return NewSHA3_384(), nil
+	case Keccak256:
+		return NewKeccak_256(), nil
 	default:
 		return nil, fmt.Errorf("invalid hash algorithm %s", algo)
 	}
@@ -64,3 +97,6 @@ func NewSHA3_256() Hasher {
 func NewSHA3_384() Hasher {
 	return hash.NewSHA3_384()
 }
+
+// NewKeccak_256 returns a new instance of Keccak256 hasher.
+var NewKeccak_256 = hash.NewKeccak_256

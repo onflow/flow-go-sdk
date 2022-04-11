@@ -1,7 +1,7 @@
 /*
  * Flow Go SDK
  *
- * Copyright 2019-2020 Dapper Labs, Inc.
+ * Copyright 2019 Dapper Labs, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,14 @@
 
 package test
 
+import "github.com/onflow/flow-go-sdk/crypto"
+
 type MockSigner []byte
 
 func (s MockSigner) Sign(message []byte) ([]byte, error) {
 	return s, nil
+}
+
+func (s MockSigner) PublicKey() crypto.PublicKey {
+	return nil
 }

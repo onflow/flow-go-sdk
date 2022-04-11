@@ -3,11 +3,11 @@ PATH := $(PATH):$(GOPATH)/bin
 
 .PHONY: test
 test:
-	go test -coverprofile=cover.out ./...
+	GO111MODULE=on go test -coverprofile=coverage.txt ./...
 
 .PHONY: coverage
 coverage: test
-	go tool cover -html=cover.out
+	go tool cover -html=coverage.txt
 
 .PHONY: generate
 generate:
@@ -22,3 +22,7 @@ ci: check-tidy test coverage
 check-tidy: generate
 	go mod tidy
 	git diff --exit-code
+
+.PHONY: check-headers
+check-headers:
+	@./check-headers.sh
