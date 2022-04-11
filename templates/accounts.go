@@ -21,9 +21,11 @@ package templates
 import (
 	"encoding/hex"
 	"fmt"
+
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/cadence/runtime"
+	"github.com/onflow/cadence/runtime/common"
 	"github.com/onflow/cadence/runtime/sema"
 	"github.com/onflow/flow-go-sdk/crypto"
 	templates "github.com/onflow/sdks"
@@ -91,7 +93,6 @@ func newPublicKeyValue(pubKey crypto.PublicKey) cadence.Struct {
 		[]cadence.Value{
 			cadence.NewArray(pubKeyCadence),
 			newSignAlgoValue(pubKey.Algorithm()),
-			cadence.NewBool(true),
 		},
 	).WithType(
 		exportType(sema.PublicKeyType).(*cadence.StructType),
@@ -99,16 +100,17 @@ func newPublicKeyValue(pubKey crypto.PublicKey) cadence.Struct {
 }
 
 func newKeyListValue(key *flow.AccountKey) cadence.Struct {
-	weight, _ := cadence.NewUFix64(fmt.Sprintf("%d", key.Weight))
+	weight, _ := cadence.NewUFix64(fmt.Sprintf("%d.0", key.Weight))
+
 	return cadence.NewStruct([]cadence.Value{
-		cadence.NewInt(0),
+		cadence.NewInt(key.Weight),
 		newPublicKeyValue(key.PublicKey),
 		newHashAlgoValue(key.HashAlgo),
 		weight,
 		cadence.NewBool(false),
 	}).WithType(&cadence.StructType{
-		Location:            nil,
-		QualifiedIdentifier: "KeyListEntry",
+		Location:            common.IdentifierLocation("Crypto"),
+		QualifiedIdentifier: "Crypto.KeyListEntry",
 		Fields: []cadence.Field{{
 			Identifier: "keyIndex",
 			Type:       cadence.IntType{},
