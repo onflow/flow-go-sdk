@@ -20,37 +20,57 @@ package flow
 
 import (
 	"encoding/hex"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewAccountProofMsg(t *testing.T) {
+func TestEncodeAccountProofMessage(t *testing.T) {
 	type testCase struct {
 		address        Address
-		timestamp      int64
-		appDomainTag   string
+		nonce          string
+		appID          string
 		expectedResult string
+		expectedErr    error
 	}
 
 	for name, tc := range map[string]testCase{
-		"with domain tag": {
-			address:        HexToAddress("ABC123DEF456"),
-			timestamp:      int64(1632179933495),
-			appDomainTag:   "FLOW-JS-SDK",
-			expectedResult: "f1a0464c4f572d4a532d53444b000000000000000000000000000000000000000000880000abc123def45686017c05815137",
+		"valid inputs": {
+			address: HexToAddress("ABC123DEF456"),
+			nonce:   "3037366134636339643564623330316636626239323161663465346131393662",
+			appID:   "AWESOME-APP-ID",
+			// nolint: lll
+			expectedResult: "f8398e415745534f4d452d4150502d4944880000abc123def456a03037366134636339643564623330316636626239323161663465346131393662",
 		},
-		"without domain tag": {
-			address:        HexToAddress("ABC123DEF456"),
-			timestamp:      int64(1632179933495),
-			expectedResult: "d0880000abc123def45686017c05815137",
+		"nonce invalid hex": {
+			address:     HexToAddress("ABC123DEF456"),
+			nonce:       "asdf",
+			appID:       "AWESOME-APP-ID",
+			expectedErr: ErrInvalidNonce,
+		},
+		"nonce too short": {
+			address:     HexToAddress("ABC123DEF456"),
+			nonce:       "222222",
+			appID:       "AWESOME-APP-ID",
+			expectedErr: ErrInvalidNonce,
+		},
+		"empty app ID": {
+			address:     HexToAddress("ABC123DEF456"),
+			nonce:       "222222",
+			appID:       "",
+			expectedErr: ErrInvalidAppID,
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			// Check the output of NewAccountProofMessage against a pre-generated message from the flow-js-sdk
-			msg, err := NewAccountProofMessage(tc.address, tc.timestamp, tc.appDomainTag)
-			assert.NoError(t, err)
-			assert.Equal(t, tc.expectedResult, hex.EncodeToString(msg))
+			// Check the output of EncodeAccountProofMessage against a pre-generated message from the flow-js-sdk
+			msg, err := EncodeAccountProofMessage(tc.address, tc.appID, tc.nonce)
+			if tc.expectedErr != nil {
+				assert.True(t, errors.Is(err, tc.expectedErr))
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tc.expectedResult, hex.EncodeToString(msg))
+			}
 		})
 	}
 }
