@@ -59,16 +59,8 @@ func StringToSignatureAlgorithm(s string) SignatureAlgorithm {
 // The package currently supports ECDSA with the 2 curves P-256 and secp256k1. Both curves can be paired with
 // a supported hash function of 256-bits output (SHA2-256, SHA3-256, Keccak256)
 func CompatibleAlgorithms(sigAlgo SignatureAlgorithm, hashAlgo HashAlgorithm) bool {
-	switch sigAlgo {
-	case ECDSA_P256:
-		fallthrough
-	case ECDSA_secp256k1:
-		switch hashAlgo {
-		case SHA2_256:
-			fallthrough
-		case SHA3_256:
-			fallthrough
-		case Keccak256:
+	if sigAlgo == ECDSA_P256 || sigAlgo == ECDSA_secp256k1 {
+		if hashAlgo == SHA2_256 || hashAlgo == SHA3_256 || hashAlgo == Keccak256 {
 			return true
 		}
 	}

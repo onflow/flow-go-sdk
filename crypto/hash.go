@@ -99,4 +99,6 @@ func NewSHA3_384() Hasher {
 }
 
 // NewKeccak_256 returns a new instance of Keccak256 hasher.
-var NewKeccak_256 = hash.NewKeccak_256
+func NewKeccak_256() Hasher {
+	return hash.NewKeccak_256()
+}
