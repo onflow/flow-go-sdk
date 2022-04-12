@@ -55,7 +55,11 @@ type httpHandler struct {
 }
 
 func newHandler(baseUrl string, debug bool) (*httpHandler, error) {
-	// todo validate url and return err
+	_, err := url.Parse(baseUrl)
+	if err != nil {
+		return nil, err
+	}
+
 	return &httpHandler{
 		client: http.DefaultClient,
 		base:   baseUrl,
