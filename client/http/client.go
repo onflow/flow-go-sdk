@@ -30,7 +30,7 @@ const (
 	EMULATOR_URL  = "http://127.0.0.1:8888/v1"
 	TESTNET_URL   = "https://rest-testnet.onflow.org/v1/"
 	MAINNET_URL   = "https://rest-mainnet.onflow.org/v1/"
-	CANARYNET_URL = "" // todo define
+	CANARYNET_URL = "https://rest-canary.onflow.org/v1/"
 )
 
 // NewClient creates an instance of the client with the provided http handler.
