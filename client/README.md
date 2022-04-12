@@ -20,20 +20,29 @@ implementations like so:
 
 **General Usage**
 ```go
-var flowClient client.Client 
-// using HTTP API
-flowClient, err := http.NewDefaultTestnetClient()
-// using gRPC API
-flowClient, err = grpc.NewDefaultTestnetClient()
+// common client interface
+var flowClient client.Client
+
+// initialize an http emulator client
+flowClient, err := http.NewDefaultEmulatorClient(false)
+
+// initialize a gPRC emulator client
+flowClient, err = grpc.NewDefaultEmulatorClient()
 ```
 
 **Network Specific Usage** if you require some network specific usage you can also 
 instantiate the client like so:
 ```go
-flowClient, err := http.HTTPClient{}
-flowClient.GetBlocksByHeights(context.Background(), BlockQuery{ Heights: []uint64{100},  })
-```
+// initialize http specific client
+httpClient, err := http.NewHTTPClient(http.EMULATOR_URL)
 
+// initialize grpc specific client
+grpcClient, err := grpc.NewGRPCClient(
+    grpc.EMULATOR_URL,
+    grpcOpts.WithTransportCredentials(insecure.NewCredentials()),
+)
+```
+Read more about this in the docs.
 
 ## Development
 
