@@ -98,14 +98,8 @@ func (a AccountKey) Encode() []byte {
 // accountCompatibleAlgorithms returns true if the signature and hash algorithms are a valid pair
 // for a key on a Flow account.
 func accountCompatibleAlgorithms(sigAlgo crypto.SignatureAlgorithm, hashAlgo crypto.HashAlgorithm) bool {
-	switch sigAlgo {
-	case crypto.ECDSA_P256:
-		fallthrough
-	case crypto.ECDSA_secp256k1:
-		switch hashAlgo {
-		case crypto.SHA2_256:
-			fallthrough
-		case crypto.SHA3_256:
+	if sigAlgo == crypto.ECDSA_P256 || sigAlgo == crypto.ECDSA_secp256k1 {
+		if hashAlgo == crypto.SHA2_256 || hashAlgo == crypto.SHA3_256 {
 			return true
 		}
 	}
