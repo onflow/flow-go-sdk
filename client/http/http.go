@@ -26,6 +26,8 @@ import (
 	"math"
 	"strings"
 
+	"github.com/pkg/errors"
+
 	"github.com/onflow/cadence"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/client/convert"
@@ -43,6 +45,8 @@ type handler interface {
 	getTransaction(ctx context.Context, ID string, includeResult bool, opts ...queryOpts) (*models.Transaction, error)
 	sendTransaction(ctx context.Context, transaction []byte, opts ...queryOpts) error
 	getEvents(ctx context.Context, eventType string, start string, end string, blockIDs []string, opts ...queryOpts) ([]models.BlockEvents, error)
+	getExecutionResultByID(ctx context.Context, id string, opts ...queryOpts) (*models.ExecutionResult, error)
+	getExecutionResults(ctx context.Context, blockIDs []string, opts ...queryOpts) ([]models.ExecutionResult, error)
 }
 
 // ExpandOpts allows you to define a list of fields that you want to retrieve as extra data in the response.
@@ -156,7 +160,12 @@ type HTTPClient struct {
 }
 
 func (c *HTTPClient) Ping(ctx context.Context) error {
-	panic("implement me")
+	_, err := c.handler.getBlocksByHeights(ctx, specialHeightMap[SEALED], "", "")
+	if err != nil {
+		return errors.Wrap(err, "ping error")
+	}
+
+	return nil
 }
 
 func (c *HTTPClient) GetBlockByID(ctx context.Context, blockID flow.Identifier, opts ...queryOpts) (*flow.Block, error) {
@@ -365,9 +374,18 @@ func (c *HTTPClient) GetEventsForBlockIDs(
 }
 
 func (c *HTTPClient) GetLatestProtocolStateSnapshot(ctx context.Context) ([]byte, error) {
-	panic("implement me")
+	return nil, fmt.Errorf("get latest protocol snapshot is currently not supported for HTTP API, if you require this functionality please open an issue on the flow-go-sdk github")
 }
 
 func (c *HTTPClient) GetExecutionResultForBlockID(ctx context.Context, blockID flow.Identifier) (*flow.ExecutionResult, error) {
-	panic("implement me")
+	results, err := c.handler.getExecutionResults(ctx, []string{blockID.String()})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(results) == 0 {
+		return nil, fmt.Errorf("results not found") // sanity check
+	}
+
+	return convert.HTTPToExecutionResults(results[0]), nil
 }

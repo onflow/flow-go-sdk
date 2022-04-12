@@ -375,3 +375,35 @@ func (h *httpHandler) getEvents(
 
 	return events, nil
 }
+
+func (h *httpHandler) getExecutionResults(
+	ctx context.Context,
+	blockIDs []string,
+	opts ...queryOpts,
+) ([]models.ExecutionResult, error) {
+	u := h.mustBuildURL("/execution_results", opts...)
+
+	q := u.Query()
+	q.Add("block_ids", strings.Join(blockIDs, ","))
+	u.RawQuery = q.Encode()
+
+	var results []models.ExecutionResult
+	err := h.get(ctx, u, &results)
+	if err != nil {
+		return nil, errors.Wrap(err, fmt.Sprintf("get execution results by IDs %v failed", blockIDs))
+	}
+
+	return results, nil
+}
+
+func (h *httpHandler) getExecutionResultByID(ctx context.Context, id string, opts ...queryOpts) (*models.ExecutionResult, error) {
+	u := h.mustBuildURL(fmt.Sprintf("/execution_results/%s", id), opts...)
+
+	var result models.ExecutionResult
+	err := h.get(ctx, u, &result)
+	if err != nil {
+		return nil, errors.Wrap(err, fmt.Sprintf("get execution result by ID %s failed", id))
+	}
+
+	return &result, nil
+}

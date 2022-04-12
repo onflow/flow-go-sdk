@@ -68,7 +68,7 @@ type BaseClient struct {
 }
 
 func (c *BaseClient) Ping(ctx context.Context) error {
-	panic("implement me")
+	return c.httpClient.Ping(ctx)
 }
 
 func (c *BaseClient) GetBlockByID(ctx context.Context, blockID flow.Identifier) (*flow.Block, error) {
@@ -229,9 +229,9 @@ func (c *BaseClient) GetEventsForBlockIDs(
 }
 
 func (c *BaseClient) GetLatestProtocolStateSnapshot(ctx context.Context) ([]byte, error) {
-	panic("implement me")
+	return c.httpClient.GetLatestProtocolStateSnapshot(ctx)
 }
 
 func (c *BaseClient) GetExecutionResultForBlockID(ctx context.Context, blockID flow.Identifier) (*flow.ExecutionResult, error) {
-	panic("implement me")
+	return c.httpClient.GetExecutionResultForBlockID(ctx, blockID)
 }

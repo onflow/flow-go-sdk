@@ -396,3 +396,21 @@ func TransactionToHTTP(tx flow.Transaction) ([]byte, error) {
 		EnvelopeSignatures: SignaturesToHTTP(tx.EnvelopeSignatures),
 	})
 }
+
+func HTTPToExecutionResults(result models.ExecutionResult) *flow.ExecutionResult {
+	events := make([]*flow.ServiceEvent, len(result.Events))
+	for i, e := range result.Events {
+		events[i] = &flow.ServiceEvent{
+			Type:    e.Type_,
+			Payload: []byte(e.Payload),
+		}
+	}
+
+	// todo there is missing data on the http api, make sure this is consistent
+	return &flow.ExecutionResult{
+		PreviousResultID: flow.EmptyID,
+		BlockID:          flow.HexToID(result.BlockId),
+		Chunks:           nil,
+		ServiceEvents:    events,
+	}
+}
