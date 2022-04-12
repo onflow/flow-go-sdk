@@ -220,6 +220,66 @@ func (_m *mockHandler) getEvents(ctx context.Context, eventType string, start st
 	return r0, r1
 }
 
+// getExecutionResultByID provides a mock function with given fields: ctx, id, opts
+func (_m *mockHandler) getExecutionResultByID(ctx context.Context, id string, opts ...queryOpts) (*models.ExecutionResult, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, id)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *models.ExecutionResult
+	if rf, ok := ret.Get(0).(func(context.Context, string, ...queryOpts) *models.ExecutionResult); ok {
+		r0 = rf(ctx, id, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.ExecutionResult)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string, ...queryOpts) error); ok {
+		r1 = rf(ctx, id, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// getExecutionResults provides a mock function with given fields: ctx, blockIDs, opts
+func (_m *mockHandler) getExecutionResults(ctx context.Context, blockIDs []string, opts ...queryOpts) ([]models.ExecutionResult, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, blockIDs)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 []models.ExecutionResult
+	if rf, ok := ret.Get(0).(func(context.Context, []string, ...queryOpts) []models.ExecutionResult); ok {
+		r0 = rf(ctx, blockIDs, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.ExecutionResult)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, []string, ...queryOpts) error); ok {
+		r1 = rf(ctx, blockIDs, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // getTransaction provides a mock function with given fields: ctx, ID, includeResult, opts
 func (_m *mockHandler) getTransaction(ctx context.Context, ID string, includeResult bool, opts ...queryOpts) (*models.Transaction, error) {
 	_va := make([]interface{}, len(opts))
