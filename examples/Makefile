@@ -1,5 +1,5 @@
 .PHONY: all
-all: get-blocks get-accounts get-events get-collection get-transactions execute-script send-transaction create-account add-account-key deploy-contract query-events storage-usage transaction-arguments single-party single-party-multisig multi-party multi-party-multisig user-signature user-signature-validate-all user-signature-validate-any
+all: get-blocks get-accounts get-events get-collection get-transactions execute-script send-transaction create-account add-account-key deploy-contract query-events storage-usage transaction-arguments single-party single-party-multisig multi-party multi-party-multisig user-signature user-signature-validate-all user-signature-validate-any rest-grpc-clients
 
 .PHONY: create-account
 create-account:
@@ -84,3 +84,7 @@ user-signature-validate-all:
 .PHONY: user-signature-validate-any
 user-signature-validate-any:
 	go run ./verify_signature/user_signature_validate_any/main.go
+
+.PHONY: rest-grpc-clients
+rest-grpc-clients:
+	go run ./rest_grpc_clients/main.go
