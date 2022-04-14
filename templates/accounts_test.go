@@ -1,7 +1,7 @@
 /*
  * Flow Go SDK
  *
- * Copyright 2019-2020 Dapper Labs, Inc.
+ * Copyright 2019 Dapper Labs, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,11 @@
 package templates_test
 
 import (
+	"testing"
+
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/templates"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestCreateAccount(t *testing.T) {

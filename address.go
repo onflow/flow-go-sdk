@@ -1,7 +1,7 @@
 /*
  * Flow Go SDK
  *
- * Copyright 2019-2021 Dapper Labs, Inc.
+ * Copyright 2019 Dapper Labs, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -131,7 +131,7 @@ func zeroAddress(chain ChainID) Address {
 // HexToAddress converts a hex string to an Address.
 func HexToAddress(h string) Address {
 	trimmed := strings.TrimPrefix(h, "0x")
-	if len(trimmed) % 2 == 1 {
+	if len(trimmed)%2 == 1 {
 		trimmed = "0" + trimmed
 	}
 	b, _ := hex.DecodeString(trimmed)

@@ -1,7 +1,7 @@
 /*
  * Flow Go SDK
  *
- * Copyright 2019-2020 Dapper Labs, Inc.
+ * Copyright 2019 Dapper Labs, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,7 +69,7 @@ func MultiPartySingleSignatureDemo() {
 		SetScript([]byte(`
 		transaction { 
 			prepare(signer1: AuthAccount, signer2: AuthAccount) { 
-				log(signer.address) 
+				log(signer1.address) 
 				log(signer2.address)
 			}
 		}`)).

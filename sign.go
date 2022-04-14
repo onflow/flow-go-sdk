@@ -1,7 +1,7 @@
 /*
  * Flow Go SDK
  *
- * Copyright 2019-2020 Dapper Labs, Inc.
+ * Copyright 2019 Dapper Labs, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,23 +29,32 @@ const domainTagLength = 32
 // TransactionDomainTag is the prefix of all signed transaction payloads.
 //
 // A domain tag is encoded as UTF-8 bytes, right padded to a total length of 32 bytes.
-var TransactionDomainTag = paddedDomainTag("FLOW-V0.0-transaction")
+var TransactionDomainTag = mustPadDomainTag("FLOW-V0.0-transaction")
 
 // UserDomainTag is the prefix of all signed user space payloads.
 //
 // A domain tag is encoded as UTF-8 bytes, right padded to a total length of 32 bytes.
-var UserDomainTag = paddedDomainTag("FLOW-V0.0-user")
+var UserDomainTag = mustPadDomainTag("FLOW-V0.0-user")
 
-func paddedDomainTag(s string) [domainTagLength]byte {
-	var tag [domainTagLength]byte
-
-	if len(s) > domainTagLength {
-		panic(fmt.Sprintf("domain tag %s cannot be longer than %d characters", s, domainTagLength))
+func mustPadDomainTag(s string) [domainTagLength]byte {
+	paddedTag, err := padDomainTag(s)
+	if err != nil {
+		panic(err)
 	}
 
-	copy(tag[:], s)
+	return paddedTag
+}
 
-	return tag
+// padDomainTag returns a new padded domain tag from the given string. This function returns an error if the domain
+// tag is too long.
+func padDomainTag(tag string) (paddedTag [domainTagLength]byte, err error) {
+	if len(tag) > domainTagLength {
+		return paddedTag, fmt.Errorf("domain tag %s cannot be longer than %d characters", tag, domainTagLength)
+	}
+
+	copy(paddedTag[:], tag)
+
+	return paddedTag, nil
 }
 
 // SignUserMessage signs a message in the user domain.

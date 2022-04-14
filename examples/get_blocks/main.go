@@ -1,7 +1,7 @@
 /*
  * Flow Go SDK
  *
- * Copyright 2019-2020 Dapper Labs, Inc.
+ * Copyright 2019 Dapper Labs, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ package main
 import (
 	"context"
 	"fmt"
+
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/client"
 	"github.com/onflow/flow-go-sdk/examples"
@@ -57,6 +58,7 @@ func printBlock(block *flow.Block, err error) {
 	fmt.Printf("\nID: %s\n", block.ID)
 	fmt.Printf("height: %d\n", block.Height)
 	fmt.Printf("timestamp: %s\n\n", block.Timestamp)
+	fmt.Printf("Signatures: %s\n", block.Signatures)
 }
 
 func prepareDemo() {

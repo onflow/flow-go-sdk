@@ -1,7 +1,7 @@
 /*
  * Flow Go SDK
  *
- * Copyright 2019-2020 Dapper Labs, Inc.
+ * Copyright 2019 Dapper Labs, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,6 +64,7 @@ func (k Key) ResourceID() string {
 	)
 }
 
+// KeyFromResourceID returns a `Key` from a resource ID.
 func KeyFromResourceID(resourceID string) (Key, error) {
 	key := Key{}
 
@@ -103,7 +104,8 @@ func NewClient(ctx context.Context, opts ...option.ClientOption) (*Client, error
 
 // GetPublicKey fetches the public key portion of a KMS asymmetric signing key version.
 //
-// ECDSA_P256 is currently the only Flow signature algorithm supported by Google Cloud KMS.
+// KMS keys of the type `CryptoKeyVersion_EC_SIGN_P256_SHA256` and `CryptoKeyVersion_EC_SIGN_SECP256K1_SHA256`
+// are the only keys supported by the SDK.
 //
 // Ref: https://cloud.google.com/kms/docs/retrieve-public-key
 func (c *Client) GetPublicKey(ctx context.Context, key Key) (crypto.PublicKey, crypto.HashAlgorithm, error) {
@@ -118,7 +120,7 @@ func (c *Client) GetPublicKey(ctx context.Context, key Key) (crypto.PublicKey, c
 			fmt.Errorf("cloudkms: failed to fetch public key from KMS API: %v", err)
 	}
 
-	sigAlgo := parseSignatureAlgorithm(result.Algorithm)
+	sigAlgo := ParseSignatureAlgorithm(result.Algorithm)
 	if sigAlgo == crypto.UnknownSignatureAlgorithm {
 		return nil,
 			crypto.UnknownHashAlgorithm,
@@ -128,7 +130,7 @@ func (c *Client) GetPublicKey(ctx context.Context, key Key) (crypto.PublicKey, c
 			)
 	}
 
-	hashAlgo := parseHashAlgorithm(result.Algorithm)
+	hashAlgo := ParseHashAlgorithm(result.Algorithm)
 	if hashAlgo == crypto.UnknownHashAlgorithm {
 		return nil,
 			crypto.UnknownHashAlgorithm,
@@ -148,22 +150,31 @@ func (c *Client) GetPublicKey(ctx context.Context, key Key) (crypto.PublicKey, c
 	return publicKey, hashAlgo, nil
 }
 
-func parseSignatureAlgorithm(algo kmspb.CryptoKeyVersion_CryptoKeyVersionAlgorithm) crypto.SignatureAlgorithm {
+// KMSClient gives access to the KeyManagementClient,
+// e.g. for closing the connection to the Google KMS API
+func (c *Client) KMSClient() *kms.KeyManagementClient {
+	return c.client
+}
+
+// ParseSignatureAlgorithm returns the `SignatureAlgorithm` corresponding to the input KMS key type.
+func ParseSignatureAlgorithm(algo kmspb.CryptoKeyVersion_CryptoKeyVersionAlgorithm) crypto.SignatureAlgorithm {
 	if algo == kmspb.CryptoKeyVersion_EC_SIGN_P256_SHA256 {
 		return crypto.ECDSA_P256
 	}
 
-	// TODO: update this once Google KMS API supports ECDSA_secp256k1
-	// https://github.com/onflow/flow-go-sdk/issues/193
-	return crypto.ECDSA_secp256k1
+	if algo == kmspb.CryptoKeyVersion_EC_SIGN_SECP256K1_SHA256 {
+		return crypto.ECDSA_secp256k1
+	}
+
+	return crypto.UnknownSignatureAlgorithm
 }
 
-func parseHashAlgorithm(algo kmspb.CryptoKeyVersion_CryptoKeyVersionAlgorithm) crypto.HashAlgorithm {
-	if algo == kmspb.CryptoKeyVersion_EC_SIGN_P256_SHA256 {
+// ParseHashAlgorithm returns the `HashAlgorithm` corresponding to the input KMS key type.
+func ParseHashAlgorithm(algo kmspb.CryptoKeyVersion_CryptoKeyVersionAlgorithm) crypto.HashAlgorithm {
+	if algo == kmspb.CryptoKeyVersion_EC_SIGN_P256_SHA256 || algo == kmspb.CryptoKeyVersion_EC_SIGN_SECP256K1_SHA256 {
 		return crypto.SHA2_256
 	}
 
-	// TODO: update this once Google KMS API supports ECDSA_secp256k1
-	// https://github.com/onflow/flow-go-sdk/issues/193
-	return crypto.SHA2_256
+	// the function can be extended to return SHA3-256 if it becomes supported by KMS.
+	return crypto.UnknownHashAlgorithm
 }

@@ -1,7 +1,7 @@
 /*
  * Flow Go SDK
  *
- * Copyright 2019-2021 Dapper Labs, Inc.
+ * Copyright 2019 Dapper Labs, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/client"
 	"github.com/onflow/flow-go-sdk/crypto"
@@ -95,6 +96,8 @@ func StorageUsageDemo() {
 
 	// Add some flow to increase storage capacity
 	examples.FundAccountInEmulator(flowClient, demoAccount.Address, 1.0)
+
+	serviceAcctKey.SequenceNumber++
 
 	// try to save a very large resource again. This time it should work.
 	txId = sendSaveLargeResourceTransaction(
