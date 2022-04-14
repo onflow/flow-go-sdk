@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go v0.97.0 // indirect
 	cloud.google.com/go/kms v1.0.0
 	github.com/ethereum/go-ethereum v1.9.9
-	github.com/onflow/cadence v0.20.1
+	github.com/onflow/cadence v0.23.3
 	github.com/onflow/flow-go/crypto v0.21.3
 	github.com/onflow/flow/protobuf/go/flow v0.2.2
 	github.com/pkg/errors v0.9.1
