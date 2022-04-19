@@ -1,7 +1,7 @@
 /*
  * Flow Go SDK
  *
- * Copyright 2019-2020 Dapper Labs, Inc.
+ * Copyright 2019 Dapper Labs, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,15 +95,32 @@ func (a AccountKey) Encode() []byte {
 	return mustRLPEncode(&temp)
 }
 
+// accountCompatibleAlgorithms returns true if the signature and hash algorithms are a valid pair
+// for a key on a Flow account.
+func accountCompatibleAlgorithms(sigAlgo crypto.SignatureAlgorithm, hashAlgo crypto.HashAlgorithm) bool {
+	switch sigAlgo {
+	case crypto.ECDSA_P256:
+		fallthrough
+	case crypto.ECDSA_secp256k1:
+		switch hashAlgo {
+		case crypto.SHA2_256:
+			fallthrough
+		case crypto.SHA3_256:
+			return true
+		}
+	}
+	return false
+}
+
 // Validate returns an error if this account key is invalid.
 //
 // An account key can be invalid for the following reasons:
-// - It specifies an incompatible signature/hash algorithm pairing
+// - It specifies an incompatible signature/hash algorithm pair with regards to Flow accounts
 // - It specifies a valid key weight
 func (a AccountKey) Validate() error {
-	if !crypto.CompatibleAlgorithms(a.SigAlgo, a.HashAlgo) {
+	if !accountCompatibleAlgorithms(a.SigAlgo, a.HashAlgo) {
 		return errors.Errorf(
-			"signing algorithm (%s) is incompatible with hashing algorithm (%s)",
+			"signing algorithm (%s) and hashing algorithm (%s) are not a valid pair for a Flow account key",
 			a.SigAlgo,
 			a.HashAlgo,
 		)

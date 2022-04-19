@@ -9,11 +9,22 @@ on:
       - master
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-go@v2
         with:
-          go-version: '1.16.5'
-      - run: make ci
+          fetch-depth: 0
+      - uses: actions/setup-go@v1
+        with:
+          go-version: '1.17'
+      - name: Run tests
+        run: |
+          make ci
+          make check-tidy
+          make check-headers
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v1
+        with:
+          file: ./coverage.txt
+          flags: unittests
