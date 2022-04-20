@@ -154,7 +154,7 @@ func AddAccountContract(address flow.Address, contract Contract) *flow.Transacti
 }
 
 func addAccountKeyTemplate(sigAlgo crypto.SignatureAlgorithm, hashAlgo crypto.HashAlgorithm) string {
-	return `transaction(publicKey: String) {
+	return fmt.Sprintf(`transaction(publicKey: String) {
 		prepare(signer: AuthAccount) {
 			let pk = PublicKey(
 				publicKey: publicKey.decodeHex(),
@@ -163,7 +163,7 @@ func addAccountKeyTemplate(sigAlgo crypto.SignatureAlgorithm, hashAlgo crypto.Ha
 			acct.keys.add(key, hashAlgorithm: HashAlgorithm.%s, weight: 1000.0)
 		}
 	}
-	`
+	`, sigAlgo.String(), hashAlgo.String())
 }
 
 // AddAccountKey generates a transaction that adds a public key to an account.
