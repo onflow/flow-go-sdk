@@ -602,9 +602,10 @@ func (s signaturesList) canonicalForm() []transactionSignatureCanonicalForm {
 }
 
 type TransactionResult struct {
-	Status TransactionStatus
-	Error  error
-	Events []Event
+	Status  TransactionStatus
+	Error   error
+	Events  []Event
+	BlockID Identifier
 }
 
 // TransactionStatus represents the status of a transaction.

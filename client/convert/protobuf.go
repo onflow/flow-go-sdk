@@ -505,6 +505,7 @@ func TransactionResultToMessage(result flow.TransactionResult) (*access.Transact
 		StatusCode:   uint32(statusCode),
 		ErrorMessage: errorMsg,
 		Events:       eventMessages,
+		BlockId:      IdentifierToMessage(result.BlockID),
 	}, nil
 }
 
@@ -534,8 +535,9 @@ func MessageToTransactionResult(m *access.TransactionResultResponse) (flow.Trans
 	}
 
 	return flow.TransactionResult{
-		Status: flow.TransactionStatus(m.GetStatus()),
-		Error:  err,
-		Events: events,
+		Status:  flow.TransactionStatus(m.GetStatus()),
+		Error:   err,
+		Events:  events,
+		BlockID: flow.BytesToID(m.GetBlockId()),
 	}, nil
 }
