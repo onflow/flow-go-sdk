@@ -191,11 +191,11 @@ func AddAccountContract(address flow.Address, contract Contract) *flow.Transacti
 
 // AddAccountKey generates a transaction that adds a public key to an account.
 func AddAccountKey(address flow.Address, accountKey *flow.AccountKey) *flow.Transaction {
-	cadenceKey := newKeyListValue(accountKey)
+	key := newKeyListValue(accountKey)
 
 	return flow.NewTransaction().
 		SetScript([]byte(templates.AddAccountKey)).
-		AddRawArgument(jsoncdc.MustEncode(cadenceKey)).
+		AddRawArgument(jsoncdc.MustEncode(key)).
 		AddAuthorizer(address)
 }
 
