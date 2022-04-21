@@ -114,7 +114,18 @@ func newPublicKeyValue(pubKey crypto.PublicKey) cadence.Struct {
 	)
 }
 
-func newKeyListValue(key *flow.AccountKey) cadence.Struct {
+// AccountKeyToCadenceCryptoKey converts a `flow.AccountKe` key to the Cadence struct `Crypto.KeyListEntry`,
+// so that it can more easily be used as a parameter in scripts and transactions.
+//
+// example:
+// ```go
+// 	key := AccountKeyToCadenceCryptoKey(accountKey)
+//
+//	return flow.NewTransaction().
+//		SetScript([]byte(templates.AddAccountKey)).
+//		AddRawArgument(jsoncdc.MustEncode(key))
+// ```
+func AccountKeyToCadenceCryptoKey(key *flow.AccountKey) cadence.Value {
 	weight, _ := cadence.NewUFix64(fmt.Sprintf("%d.0", key.Weight))
 
 	return cadence.NewStruct([]cadence.Value{
@@ -160,7 +171,7 @@ func CreateAccount(accountKeys []*flow.AccountKey, contracts []Contract, payer f
 	contractKeyPairs := make([]cadence.KeyValuePair, len(contracts))
 
 	for i, key := range accountKeys {
-		keyList[i] = newKeyListValue(key)
+		keyList[i] = AccountKeyToCadenceCryptoKey(key)
 	}
 
 	for i, contract := range contracts {
@@ -206,7 +217,7 @@ func AddAccountContract(address flow.Address, contract Contract) *flow.Transacti
 
 // AddAccountKey generates a transaction that adds a public key to an account.
 func AddAccountKey(address flow.Address, accountKey *flow.AccountKey) *flow.Transaction {
-	key := newKeyListValue(accountKey)
+	key := AccountKeyToCadenceCryptoKey(accountKey)
 
 	return flow.NewTransaction().
 		SetScript([]byte(templates.AddAccountKey)).
