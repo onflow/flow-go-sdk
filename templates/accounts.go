@@ -21,7 +21,6 @@ package templates
 import (
 	"encoding/hex"
 	"fmt"
-
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/cadence/runtime"
@@ -58,16 +57,42 @@ func exportType(t sema.Type) cadence.Type {
 }
 
 func newSignAlgoValue(sigAlgo crypto.SignatureAlgorithm) cadence.Enum {
+	sigAlgoValue := sema.SignatureAlgorithmECDSA_P256
+	switch sigAlgo {
+	case crypto.ECDSA_P256:
+		sigAlgoValue = sema.SignatureAlgorithmECDSA_P256
+	case crypto.ECDSA_secp256k1:
+		sigAlgoValue = sema.SignatureAlgorithmECDSA_secp256k1
+	default:
+		panic(fmt.Sprintf("unsupported signature algorithm: %v", sigAlgo))
+	}
+
 	return cadence.NewEnum([]cadence.Value{
-		cadence.NewUInt8(uint8(sigAlgo)),
+		cadence.NewUInt8(sigAlgoValue.RawValue()),
 	}).WithType(
 		exportType(sema.SignatureAlgorithmType).(*cadence.EnumType),
 	)
 }
 
 func newHashAlgoValue(hashAlgo crypto.HashAlgorithm) cadence.Enum {
+	hashAlgoValue := sema.HashAlgorithmSHA2_256
+	switch hashAlgo {
+	case crypto.SHA2_256:
+		hashAlgoValue = sema.HashAlgorithmSHA2_256
+	case crypto.SHA2_384:
+		hashAlgoValue = sema.HashAlgorithmSHA2_384
+	case crypto.SHA3_256:
+		hashAlgoValue = sema.HashAlgorithmSHA3_256
+	case crypto.SHA3_384:
+		hashAlgoValue = sema.HashAlgorithmSHA3_384
+	case crypto.Keccak256:
+		hashAlgoValue = sema.HashAlgorithmKECCAK_256
+	default:
+		panic(fmt.Sprintf("unsupported hash algorithm: %v", hashAlgo))
+	}
+
 	return cadence.NewEnum([]cadence.Value{
-		cadence.NewUInt8(uint8(hashAlgo)),
+		cadence.NewUInt8(hashAlgoValue.RawValue()),
 	}).WithType(
 		exportType(sema.HashAlgorithmType).(*cadence.EnumType),
 	)
