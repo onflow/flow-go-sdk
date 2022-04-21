@@ -20,9 +20,15 @@ package templates
 
 import (
 	"encoding/hex"
+	"fmt"
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
+	"github.com/onflow/cadence/runtime"
+	"github.com/onflow/cadence/runtime/common"
+	"github.com/onflow/cadence/runtime/sema"
+	"github.com/onflow/flow-go-sdk/crypto"
+	templates "github.com/onflow/sdks"
 
 	"github.com/onflow/flow-go-sdk"
 )
@@ -47,21 +53,82 @@ func (c Contract) SourceHex() string {
 	return hex.EncodeToString(c.SourceBytes())
 }
 
-const createAccountTemplate = `
-transaction(publicKeys: [String], contracts: {String: String}) {
-	prepare(signer: AuthAccount) {
-		let acct = AuthAccount(payer: signer)
-
-		for key in publicKeys {
-			acct.addPublicKey(key.decodeHex())
-		}
-
-		for contract in contracts.keys {
-			acct.contracts.add(name: contract, code: contracts[contract]!.decodeHex())
-		}
-	}
+func exportType(t sema.Type) cadence.Type {
+	return runtime.ExportType(t, map[sema.TypeID]cadence.Type{})
 }
-`
+
+func newSignAlgoValue(sigAlgo crypto.SignatureAlgorithm) cadence.Enum {
+	sigAlgoCadence := sema.SignatureAlgorithmECDSA_P256
+	if sigAlgo == crypto.ECDSA_secp256k1 {
+		sigAlgoCadence = sema.SignatureAlgorithmECDSA_secp256k1
+	}
+
+	return cadence.NewEnum([]cadence.Value{
+		cadence.NewUInt8(sigAlgoCadence.RawValue()),
+	}).WithType(
+		exportType(sema.SignatureAlgorithmType).(*cadence.EnumType),
+	)
+}
+
+func newHashAlgoValue(hashAlgo crypto.HashAlgorithm) cadence.Enum {
+	hashAlgoCadence := sema.HashAlgorithmSHA3_256
+	if hashAlgo == crypto.SHA2_256 {
+		hashAlgoCadence = sema.HashAlgorithmSHA2_256
+	}
+
+	return cadence.NewEnum([]cadence.Value{
+		cadence.NewUInt8(hashAlgoCadence.RawValue()),
+	}).WithType(
+		exportType(sema.HashAlgorithmType).(*cadence.EnumType),
+	)
+}
+
+func newPublicKeyValue(pubKey crypto.PublicKey) cadence.Struct {
+	pubKeyCadence := make([]cadence.Value, len(pubKey.Encode()))
+	for i, k := range pubKey.Encode() {
+		pubKeyCadence[i] = cadence.NewUInt8(k)
+	}
+
+	return cadence.NewStruct(
+		[]cadence.Value{
+			cadence.NewArray(pubKeyCadence),
+			newSignAlgoValue(pubKey.Algorithm()),
+		},
+	).WithType(
+		exportType(sema.PublicKeyType).(*cadence.StructType),
+	)
+}
+
+func newKeyListValue(key *flow.AccountKey) cadence.Struct {
+	weight, _ := cadence.NewUFix64(fmt.Sprintf("%d.0", key.Weight))
+
+	return cadence.NewStruct([]cadence.Value{
+		cadence.NewInt(key.Weight),
+		newPublicKeyValue(key.PublicKey),
+		newHashAlgoValue(key.HashAlgo),
+		weight,
+		cadence.NewBool(false),
+	}).WithType(&cadence.StructType{
+		Location:            common.IdentifierLocation("Crypto"),
+		QualifiedIdentifier: "Crypto.KeyListEntry",
+		Fields: []cadence.Field{{
+			Identifier: "keyIndex",
+			Type:       cadence.IntType{},
+		}, {
+			Identifier: "publicKey",
+			Type:       exportType(sema.PublicKeyType).(*cadence.StructType),
+		}, {
+			Identifier: "hashAlgorithm",
+			Type:       exportType(sema.HashAlgorithmType).(*cadence.EnumType),
+		}, {
+			Identifier: "weight",
+			Type:       cadence.UFix64Type{},
+		}, {
+			Identifier: "isRevoked",
+			Type:       cadence.BoolType{},
+		}},
+	})
+}
 
 // CreateAccount generates a transactions that creates a new account.
 //
@@ -73,14 +140,13 @@ transaction(publicKeys: [String], contracts: {String: String}) {
 // The final argument is the address of the account that will pay the account creation fee.
 // This account is added as a transaction authorizer and therefore must sign the resulting transaction.
 func CreateAccount(accountKeys []*flow.AccountKey, contracts []Contract, payer flow.Address) *flow.Transaction {
-	publicKeys := make([]cadence.Value, len(accountKeys))
-
-	for i, accountKey := range accountKeys {
-		keyHex := hex.EncodeToString(accountKey.Encode())
-		publicKeys[i] = cadence.String(keyHex)
-	}
+	keyList := make([]cadence.Value, len(accountKeys))
 
 	contractKeyPairs := make([]cadence.KeyValuePair, len(contracts))
+
+	for i, key := range accountKeys {
+		keyList[i] = newKeyListValue(key)
+	}
 
 	for i, contract := range contracts {
 		contractKeyPairs[i] = cadence.KeyValuePair{
@@ -89,23 +155,15 @@ func CreateAccount(accountKeys []*flow.AccountKey, contracts []Contract, payer f
 		}
 	}
 
-	cadencePublicKeys := cadence.NewArray(publicKeys)
+	cadencePublicKeys := cadence.NewArray(keyList)
 	cadenceContracts := cadence.NewDictionary(contractKeyPairs)
 
 	return flow.NewTransaction().
-		SetScript([]byte(createAccountTemplate)).
+		SetScript([]byte(templates.CreateAccount)).
 		AddAuthorizer(payer).
 		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
 		AddRawArgument(jsoncdc.MustEncode(cadenceContracts))
 }
-
-const updateAccountContractTemplate = `
-transaction(name: String, code: String) {
-	prepare(signer: AuthAccount) {
-		signer.contracts.update__experimental(name: name, code: code.decodeHex())
-	}
-}
-`
 
 // UpdateAccountContract generates a transaction that updates a contract deployed at an account.
 func UpdateAccountContract(address flow.Address, contract Contract) *flow.Transaction {
@@ -113,19 +171,11 @@ func UpdateAccountContract(address flow.Address, contract Contract) *flow.Transa
 	cadenceCode := cadence.String(contract.SourceHex())
 
 	return flow.NewTransaction().
-		SetScript([]byte(updateAccountContractTemplate)).
+		SetScript([]byte(templates.UpdateContract)).
 		AddRawArgument(jsoncdc.MustEncode(cadenceName)).
 		AddRawArgument(jsoncdc.MustEncode(cadenceCode)).
 		AddAuthorizer(address)
 }
-
-const addAccountContractTemplate = `
-transaction(name: String, code: String) {
-	prepare(signer: AuthAccount) {
-		signer.contracts.add(name: name, code: code.decodeHex())
-	}
-}
-`
 
 // AddAccountContract generates a transaction that deploys a contract to an account.
 func AddAccountContract(address flow.Address, contract Contract) *flow.Transaction {
@@ -133,45 +183,29 @@ func AddAccountContract(address flow.Address, contract Contract) *flow.Transacti
 	cadenceCode := cadence.String(contract.SourceHex())
 
 	return flow.NewTransaction().
-		SetScript([]byte(addAccountContractTemplate)).
+		SetScript([]byte(templates.AddContract)).
 		AddRawArgument(jsoncdc.MustEncode(cadenceName)).
 		AddRawArgument(jsoncdc.MustEncode(cadenceCode)).
 		AddAuthorizer(address)
 }
 
-const addAccountKeyTemplate = `
-transaction(publicKey: String) {
-	prepare(signer: AuthAccount) {
-		signer.addPublicKey(publicKey.decodeHex())
-	}
-}
-`
-
 // AddAccountKey generates a transaction that adds a public key to an account.
 func AddAccountKey(address flow.Address, accountKey *flow.AccountKey) *flow.Transaction {
-	keyHex := hex.EncodeToString(accountKey.Encode())
+	keyHex := hex.EncodeToString(accountKey.PublicKey.Encode())
 	cadencePublicKey := cadence.String(keyHex)
 
 	return flow.NewTransaction().
-		SetScript([]byte(addAccountKeyTemplate)).
+		SetScript([]byte(templates.AddAccountKey)).
 		AddRawArgument(jsoncdc.MustEncode(cadencePublicKey)).
 		AddAuthorizer(address)
 }
-
-const removeAccountKeyTemplate = `
-transaction(keyIndex: Int) {
-	prepare(signer: AuthAccount) {
-		signer.removePublicKey(keyIndex)
-	}
-}
-`
 
 // RemoveAccountKey generates a transaction that removes a key from an account.
 func RemoveAccountKey(address flow.Address, keyIndex int) *flow.Transaction {
 	cadenceKeyIndex := cadence.NewInt(keyIndex)
 
 	return flow.NewTransaction().
-		SetScript([]byte(removeAccountKeyTemplate)).
+		SetScript([]byte(templates.RemoveAccountKey)).
 		AddRawArgument(jsoncdc.MustEncode(cadenceKeyIndex)).
 		AddAuthorizer(address)
 }
@@ -181,15 +215,7 @@ func RemoveAccountContract(address flow.Address, contractName string) *flow.Tran
 	cadenceName := cadence.String(contractName)
 
 	return flow.NewTransaction().
-		SetScript([]byte(removeAccountContractTemplate)).
+		SetScript([]byte(templates.RemoveContract)).
 		AddRawArgument(jsoncdc.MustEncode(cadenceName)).
 		AddAuthorizer(address)
 }
-
-const removeAccountContractTemplate = `
-transaction(name: String) {
-	prepare(signer: AuthAccount) {
-		signer.contracts.remove(name: name)
-	}
-}
-`
