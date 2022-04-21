@@ -58,26 +58,16 @@ func exportType(t sema.Type) cadence.Type {
 }
 
 func newSignAlgoValue(sigAlgo crypto.SignatureAlgorithm) cadence.Enum {
-	sigAlgoCadence := sema.SignatureAlgorithmECDSA_P256
-	if sigAlgo == crypto.ECDSA_secp256k1 {
-		sigAlgoCadence = sema.SignatureAlgorithmECDSA_secp256k1
-	}
-
 	return cadence.NewEnum([]cadence.Value{
-		cadence.NewUInt8(sigAlgoCadence.RawValue()),
+		cadence.NewUInt8(uint8(sigAlgo)),
 	}).WithType(
 		exportType(sema.SignatureAlgorithmType).(*cadence.EnumType),
 	)
 }
 
 func newHashAlgoValue(hashAlgo crypto.HashAlgorithm) cadence.Enum {
-	hashAlgoCadence := sema.HashAlgorithmSHA3_256
-	if hashAlgo == crypto.SHA2_256 {
-		hashAlgoCadence = sema.HashAlgorithmSHA2_256
-	}
-
 	return cadence.NewEnum([]cadence.Value{
-		cadence.NewUInt8(hashAlgoCadence.RawValue()),
+		cadence.NewUInt8(uint8(hashAlgo)),
 	}).WithType(
 		exportType(sema.HashAlgorithmType).(*cadence.EnumType),
 	)
