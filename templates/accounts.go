@@ -114,7 +114,7 @@ func newPublicKeyValue(pubKey crypto.PublicKey) cadence.Struct {
 	)
 }
 
-// AccountKeyToCadenceCryptoKey converts a `flow.AccountKe` key to the Cadence struct `Crypto.KeyListEntry`,
+// AccountKeyToCadenceCryptoKey converts a `flow.AccountKey` key to the Cadence struct `Crypto.KeyListEntry`,
 // so that it can more easily be used as a parameter in scripts and transactions.
 //
 // example:
