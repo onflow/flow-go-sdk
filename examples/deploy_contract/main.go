@@ -55,7 +55,8 @@ func DeployContractDemo() {
 	mySigner := crypto.NewInMemorySigner(myPrivateKey, myAcctKey.HashAlgo)
 
 	referenceBlockID := examples.GetReferenceBlockId(flowClient)
-	createAccountTx := templates.CreateAccount([]*flow.AccountKey{myAcctKey}, nil, serviceAcctAddr)
+	createAccountTx, err := templates.CreateAccount([]*flow.AccountKey{myAcctKey}, nil, serviceAcctAddr)
+	examples.Handle(err)
 	createAccountTx.SetProposalKey(
 		serviceAcctAddr,
 		serviceAcctKey.Index,
@@ -92,11 +93,12 @@ func DeployContractDemo() {
 
 	// Deploy the Great NFT contract
 	nftCode := examples.ReadFile(GreatTokenContractFile)
-	deployContractTx := templates.CreateAccount(nil,
+	deployContractTx, err := templates.CreateAccount(nil,
 		[]templates.Contract{{
 			Name:   "GreatToken",
 			Source: nftCode,
 		}}, serviceAcctAddr)
+	examples.Handle(err)
 
 	deployContractTx.SetProposalKey(
 		serviceAcctAddr,

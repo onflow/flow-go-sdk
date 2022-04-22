@@ -56,7 +56,7 @@ func exportType(t sema.Type) cadence.Type {
 	return runtime.ExportType(t, map[sema.TypeID]cadence.Type{})
 }
 
-func newSignAlgoValue(sigAlgo crypto.SignatureAlgorithm) cadence.Enum {
+func newSignAlgoValue(sigAlgo crypto.SignatureAlgorithm) (cadence.Enum, error) {
 	sigAlgoValue := sema.SignatureAlgorithmECDSA_P256
 	switch sigAlgo {
 	case crypto.ECDSA_P256:
@@ -64,17 +64,17 @@ func newSignAlgoValue(sigAlgo crypto.SignatureAlgorithm) cadence.Enum {
 	case crypto.ECDSA_secp256k1:
 		sigAlgoValue = sema.SignatureAlgorithmECDSA_secp256k1
 	default:
-		panic(fmt.Sprintf("unsupported signature algorithm: %v", sigAlgo))
+		return cadence.Enum{}, fmt.Errorf("cannot encode signature algorithm to cadence value: unsupported signature algorithm: %v", sigAlgo)
 	}
 
 	return cadence.NewEnum([]cadence.Value{
 		cadence.NewUInt8(sigAlgoValue.RawValue()),
 	}).WithType(
 		exportType(sema.SignatureAlgorithmType).(*cadence.EnumType),
-	)
+	), nil
 }
 
-func newHashAlgoValue(hashAlgo crypto.HashAlgorithm) cadence.Enum {
+func newHashAlgoValue(hashAlgo crypto.HashAlgorithm) (cadence.Enum, error) {
 	hashAlgoValue := sema.HashAlgorithmSHA2_256
 	switch hashAlgo {
 	case crypto.SHA2_256:
@@ -88,30 +88,35 @@ func newHashAlgoValue(hashAlgo crypto.HashAlgorithm) cadence.Enum {
 	case crypto.Keccak256:
 		hashAlgoValue = sema.HashAlgorithmKECCAK_256
 	default:
-		panic(fmt.Sprintf("unsupported hash algorithm: %v", hashAlgo))
+		return cadence.Enum{}, fmt.Errorf("cannot encode hash algorithm to cadence value: unsupported hash algorithm: %v", hashAlgo)
 	}
 
 	return cadence.NewEnum([]cadence.Value{
 		cadence.NewUInt8(hashAlgoValue.RawValue()),
 	}).WithType(
 		exportType(sema.HashAlgorithmType).(*cadence.EnumType),
-	)
+	), nil
 }
 
-func newPublicKeyValue(pubKey crypto.PublicKey) cadence.Struct {
+func newPublicKeyValue(pubKey crypto.PublicKey) (cadence.Struct, error) {
 	pubKeyCadence := make([]cadence.Value, len(pubKey.Encode()))
 	for i, k := range pubKey.Encode() {
 		pubKeyCadence[i] = cadence.NewUInt8(k)
 	}
 
+	sig, err := newSignAlgoValue(pubKey.Algorithm())
+	if err != nil {
+		return cadence.Struct{}, fmt.Errorf("cannot encode public key to cadence value: %w", err)
+	}
+
 	return cadence.NewStruct(
 		[]cadence.Value{
 			cadence.NewArray(pubKeyCadence),
-			newSignAlgoValue(pubKey.Algorithm()),
+			sig,
 		},
 	).WithType(
 		exportType(sema.PublicKeyType).(*cadence.StructType),
-	)
+	), nil
 }
 
 // AccountKeyToCadenceCryptoKey converts a `flow.AccountKey` key to the Cadence struct `Crypto.KeyListEntry`,
@@ -125,13 +130,21 @@ func newPublicKeyValue(pubKey crypto.PublicKey) cadence.Struct {
 //		SetScript([]byte(templates.AddAccountKey)).
 //		AddRawArgument(jsoncdc.MustEncode(key))
 // ```
-func AccountKeyToCadenceCryptoKey(key *flow.AccountKey) cadence.Value {
+func AccountKeyToCadenceCryptoKey(key *flow.AccountKey) (cadence.Value, error) {
 	weight, _ := cadence.NewUFix64(fmt.Sprintf("%d.0", key.Weight))
+	publicKey, err := newPublicKeyValue(key.PublicKey)
+	if err != nil {
+		return nil, fmt.Errorf("cannot encode account key to cadence value: %w", err)
+	}
+	hash, err := newHashAlgoValue(key.HashAlgo)
+	if err != nil {
+		return nil, fmt.Errorf("cannot encode account key to cadence value: %w", err)
+	}
 
 	return cadence.NewStruct([]cadence.Value{
 		cadence.NewInt(key.Weight),
-		newPublicKeyValue(key.PublicKey),
-		newHashAlgoValue(key.HashAlgo),
+		publicKey,
+		hash,
 		weight,
 		cadence.NewBool(false),
 	}).WithType(&cadence.StructType{
@@ -153,7 +166,7 @@ func AccountKeyToCadenceCryptoKey(key *flow.AccountKey) cadence.Value {
 			Identifier: "isRevoked",
 			Type:       cadence.BoolType{},
 		}},
-	})
+	}), nil
 }
 
 // CreateAccount generates a transactions that creates a new account.
@@ -165,13 +178,17 @@ func AccountKeyToCadenceCryptoKey(key *flow.AccountKey) cadence.Value {
 //
 // The final argument is the address of the account that will pay the account creation fee.
 // This account is added as a transaction authorizer and therefore must sign the resulting transaction.
-func CreateAccount(accountKeys []*flow.AccountKey, contracts []Contract, payer flow.Address) *flow.Transaction {
+func CreateAccount(accountKeys []*flow.AccountKey, contracts []Contract, payer flow.Address) (*flow.Transaction, error) {
 	keyList := make([]cadence.Value, len(accountKeys))
 
 	contractKeyPairs := make([]cadence.KeyValuePair, len(contracts))
 
+	var err error
 	for i, key := range accountKeys {
-		keyList[i] = AccountKeyToCadenceCryptoKey(key)
+		keyList[i], err = AccountKeyToCadenceCryptoKey(key)
+		if err != nil {
+			return nil, fmt.Errorf("cannot create CreateAccount transaction: %w", err)
+		}
 	}
 
 	for i, contract := range contracts {
@@ -188,7 +205,7 @@ func CreateAccount(accountKeys []*flow.AccountKey, contracts []Contract, payer f
 		SetScript([]byte(templates.CreateAccount)).
 		AddAuthorizer(payer).
 		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
-		AddRawArgument(jsoncdc.MustEncode(cadenceContracts))
+		AddRawArgument(jsoncdc.MustEncode(cadenceContracts)), nil
 }
 
 // UpdateAccountContract generates a transaction that updates a contract deployed at an account.
@@ -216,13 +233,16 @@ func AddAccountContract(address flow.Address, contract Contract) *flow.Transacti
 }
 
 // AddAccountKey generates a transaction that adds a public key to an account.
-func AddAccountKey(address flow.Address, accountKey *flow.AccountKey) *flow.Transaction {
-	key := AccountKeyToCadenceCryptoKey(accountKey)
+func AddAccountKey(address flow.Address, accountKey *flow.AccountKey) (*flow.Transaction, error) {
+	key, err := AccountKeyToCadenceCryptoKey(accountKey)
+	if err != nil {
+		return nil, fmt.Errorf("cannot create CreateAccount transaction: %w", err)
+	}
 
 	return flow.NewTransaction().
 		SetScript([]byte(templates.AddAccountKey)).
 		AddRawArgument(jsoncdc.MustEncode(key)).
-		AddAuthorizer(address)
+		AddAuthorizer(address), nil
 }
 
 // RemoveAccountKey generates a transaction that removes a key from an account.
