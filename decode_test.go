@@ -29,7 +29,7 @@ import (
 )
 
 func TestDecodeFlowTypeID(t *testing.T) {
-	location, qualifiedIdentifier, err := common.DecodeTypeID(flow.EventAccountCreated)
+	location, qualifiedIdentifier, err := common.DecodeTypeID(nil, flow.EventAccountCreated)
 	require.NoError(t, err)
 	assert.Equal(t, common.LocationID("flow"), location.ID())
 	assert.Equal(t, "AccountCreated", qualifiedIdentifier)
