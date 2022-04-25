@@ -35,10 +35,10 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-const EMULATOR_URL = "127.0.0.1:3569"
-const TESTNET_URL = "access.devnet.nodes.onflow.org:9000"
-const CANARYNET_URL = "access.canary.nodes.onflow.org:9000"
-const MAINNET_URL = "access.mainnet.nodes.onflow.org:9000"
+const EmulatorHost = "127.0.0.1:3569"
+const TestnetHost = "access.devnet.nodes.onflow.org:9000"
+const CanarynetHost = "access.canary.nodes.onflow.org:9000"
+const MainnetHost = "access.mainnet.nodes.onflow.org:9000"
 
 // NewClient create a client by passing the gRPC handler.
 func NewClient(url string) (*BaseClient, error) {
@@ -57,22 +57,22 @@ type BaseClient struct {
 
 // NewDefaultEmulatorClient creates a client for accessing default local emulator network using gRPC.
 func NewDefaultEmulatorClient() (*BaseClient, error) {
-	return NewClient(EMULATOR_URL)
+	return NewClient(EmulatorHost)
 }
 
 // NewDefaultTestnetClient creates a client for accessing default testnet AN using gRPC.
 func NewDefaultTestnetClient() (*BaseClient, error) {
-	return NewClient(TESTNET_URL)
+	return NewClient(TestnetHost)
 }
 
 // NewDefaultCanaryClient creates a client for accessing default canary AN using gRPC.
 func NewDefaultCanaryClient() (*BaseClient, error) {
-	return NewClient(CANARYNET_URL)
+	return NewClient(CanarynetHost)
 }
 
 // NewDefaultMainnetClient creates a client for accessing default mainnet AN using gRPC.
 func NewDefaultMainnetClient() (*BaseClient, error) {
-	return NewClient(MAINNET_URL)
+	return NewClient(MainnetHost)
 }
 
 func (c *BaseClient) Ping(ctx context.Context) error {

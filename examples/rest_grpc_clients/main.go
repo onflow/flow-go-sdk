@@ -56,7 +56,7 @@ func main() {
 	fmt.Println("Block ID:", latestBlock.BlockHeader.ID.String())
 
 	// initialize http specific client
-	httpClient, err := http.NewHTTPClient(http.EMULATOR_URL)
+	httpClient, err := http.NewHTTPClient(http.EmulatorHost)
 	examples.Handle(err)
 
 	httpBlocks, err := httpClient.GetBlocksByHeights(
@@ -71,7 +71,7 @@ func main() {
 
 	// initialize grpc specific client
 	grpcClient, err := grpc.NewGRPCClient(
-		grpc.EMULATOR_URL,
+		grpc.EmulatorHost,
 		grpcOpts.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	examples.Handle(err)

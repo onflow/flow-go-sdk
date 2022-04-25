@@ -27,10 +27,10 @@ import (
 )
 
 const (
-	EMULATOR_URL  = "http://127.0.0.1:8888/v1"
-	TESTNET_URL   = "https://rest-testnet.onflow.org/v1/"
-	MAINNET_URL   = "https://rest-mainnet.onflow.org/v1/"
-	CANARYNET_URL = "https://rest-canary.onflow.org/v1/"
+	EmulatorHost  = "http://127.0.0.1:8888/v1"
+	TestnetHost   = "https://rest-testnet.onflow.org/v1/"
+	MainnetHost   = "https://rest-mainnet.onflow.org/v1/"
+	CanarynetHost = "https://rest-canary.onflow.org/v1/"
 )
 
 // NewClient creates an instance of the client with the provided http handler.
@@ -44,22 +44,22 @@ func NewClient(url string) (*BaseClient, error) {
 
 // NewDefaultEmulatorClient creates a new client for connecting to the emulator AN API.
 func NewDefaultEmulatorClient(debug bool) (*BaseClient, error) {
-	return NewClient(EMULATOR_URL)
+	return NewClient(EmulatorHost)
 }
 
 // NewDefaultTestnetClient creates a new client for connecting to the testnet AN API.
 func NewDefaultTestnetClient() (*BaseClient, error) {
-	return NewClient(TESTNET_URL)
+	return NewClient(TestnetHost)
 }
 
 // NewDefaultCanaryClient creates a new client for connecting to the canary AN API.
 func NewDefaultCanaryClient() (*BaseClient, error) {
-	return NewClient(CANARYNET_URL)
+	return NewClient(CanarynetHost)
 }
 
 // NewDefaultMainnetClient creates a new client for connecting to the mainnet AN API.
 func NewDefaultMainnetClient() (*BaseClient, error) {
-	return NewClient(MAINNET_URL)
+	return NewClient(MainnetHost)
 }
 
 // BaseClient implementing all the network interactions according to the client interface.
