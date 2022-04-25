@@ -222,7 +222,7 @@ func HTTPToArguments(arguments []string) ([][]byte, error) {
 }
 
 func MustHTTPToUint(value string) uint64 {
-	parsed, _ := strconv.ParseUint(value, 10, 64) // we can ignore error since this values are validated before returned
+	parsed, _ := strconv.ParseUint(value, 10, 64) // we can ignore error since these values are validated before returned
 	return parsed
 }
 
