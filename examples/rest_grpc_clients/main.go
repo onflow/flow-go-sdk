@@ -24,9 +24,9 @@ import (
 
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/onflow/flow-go-sdk/client"
-	"github.com/onflow/flow-go-sdk/client/grpc"
-	"github.com/onflow/flow-go-sdk/client/http"
+	"github.com/onflow/flow-go-sdk/access"
+	"github.com/onflow/flow-go-sdk/access/grpc"
+	"github.com/onflow/flow-go-sdk/access/http"
 	"github.com/onflow/flow-go-sdk/examples"
 
 	grpcOpts "google.golang.org/grpc"
@@ -35,7 +35,7 @@ import (
 func main() {
 	ctx := context.Background()
 
-	var flowClient client.Client
+	var flowClient access.Client
 
 	// initialize a http emulator client
 	flowClient, err := http.NewClient(http.EmulatorHost)

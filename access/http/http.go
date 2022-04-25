@@ -30,7 +30,7 @@ import (
 
 	"github.com/onflow/cadence"
 	"github.com/onflow/flow-go-sdk"
-	"github.com/onflow/flow-go-sdk/client/convert"
+	"github.com/onflow/flow-go-sdk/access/convert"
 	"github.com/onflow/flow-go/engine/access/rest/models"
 )
 

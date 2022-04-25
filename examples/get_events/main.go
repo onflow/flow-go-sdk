@@ -22,7 +22,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/onflow/flow-go-sdk/client/http"
+	"github.com/onflow/flow-go-sdk/access/http"
 
 	"github.com/onflow/flow-go-sdk/templates"
 

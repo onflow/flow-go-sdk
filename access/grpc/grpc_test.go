@@ -35,7 +35,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/onflow/flow-go-sdk"
-	"github.com/onflow/flow-go-sdk/client/convert"
+	"github.com/onflow/flow-go-sdk/access/convert"
 	"github.com/onflow/flow-go-sdk/test"
 )
 

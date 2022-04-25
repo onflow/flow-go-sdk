@@ -94,7 +94,7 @@ type Client struct {
 func NewClient(ctx context.Context, opts ...option.ClientOption) (*Client, error) {
 	client, err := kms.NewKeyManagementClient(ctx, opts...)
 	if err != nil {
-		return nil, fmt.Errorf("cloudkms: failed to initialize client: %w", err)
+		return nil, fmt.Errorf("cloudkms: failed to initialize access: %w", err)
 	}
 
 	return &Client{

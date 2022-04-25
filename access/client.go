@@ -23,7 +23,7 @@
 // Access Node role, as well as the mock Access API exposed by the Flow Emulator.
 //
 // The full Access API specification is here: https://docs.onflow.org/access-api/
-package client
+package access
 
 import (
 	"context"

@@ -27,7 +27,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/onflow/flow-go-sdk"
-	"github.com/onflow/flow-go-sdk/client"
+	"github.com/onflow/flow-go-sdk/access"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/examples"
 )
@@ -36,7 +36,7 @@ func main() {
 	ModifyAccountDemo()
 }
 
-func prepareAndSendTx(ctx context.Context, client *client.Client, key *flow.AccountKey, tx flow.Transaction) {
+func prepareAndSendTx(ctx context.Context, client *access.Client, key *flow.AccountKey, tx flow.Transaction) {
 	serviceAcctAddr, serviceAcctKey, serviceSigner := examples.ServiceAccount(client)
 	tx.SetProposalKey(
 		serviceAcctAddr,
@@ -77,7 +77,7 @@ func contractsString(contracts map[string][]byte) string {
 
 func ModifyAccountDemo() {
 	ctx := context.Background()
-	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
+	flowClient, err := access.New("127.0.0.1:3569", grpc.WithInsecure())
 	examples.Handle(err)
 
 	serviceAcctAddr, _, _ := examples.ServiceAccount(flowClient)

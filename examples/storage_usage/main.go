@@ -24,8 +24,8 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	"github.com/onflow/flow-go-sdk/client"
-	"github.com/onflow/flow-go-sdk/client/http"
+	"github.com/onflow/flow-go-sdk/access"
+	"github.com/onflow/flow-go-sdk/access/http"
 
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
@@ -118,7 +118,7 @@ func StorageUsageDemo() {
 
 func sendSaveLargeResourceTransaction(
 	ctx context.Context,
-	flowClient client.Client,
+	flowClient access.Client,
 	serviceAcctAddr flow.Address,
 	serviceAcctKey *flow.AccountKey,
 	serviceSigner crypto.Signer,

@@ -28,7 +28,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/onflow/flow-go-sdk"
-	"github.com/onflow/flow-go-sdk/client/convert"
+	"github.com/onflow/flow-go-sdk/access/convert"
 )
 
 // RPCClient is an RPC client for the Flow Access API.

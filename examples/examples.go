@@ -28,8 +28,8 @@ import (
 	"time"
 
 	"github.com/onflow/flow-go-sdk"
-	"github.com/onflow/flow-go-sdk/client"
-	"github.com/onflow/flow-go-sdk/client/grpc"
+	"github.com/onflow/flow-go-sdk/access"
+	"github.com/onflow/flow-go-sdk/access/grpc"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/templates"
 
@@ -85,7 +85,7 @@ func init() {
 	conf = readConfig()
 }
 
-func ServiceAccount(flowClient client.Client) (flow.Address, *flow.AccountKey, crypto.Signer) {
+func ServiceAccount(flowClient access.Client) (flow.Address, *flow.AccountKey, crypto.Signer) {
 	privateKey, err := crypto.DecodePrivateKeyHex(crypto.ECDSA_P256, conf.Accounts.Service.Key)
 	Handle(err)
 
@@ -110,7 +110,7 @@ func RandomPrivateKey() crypto.PrivateKey {
 	return privateKey
 }
 
-func RandomTransaction(flowClient client.Client) *flow.Transaction {
+func RandomTransaction(flowClient access.Client) *flow.Transaction {
 	serviceAcctAddr, serviceAcctKey, serviceSigner := ServiceAccount(flowClient)
 
 	tx := flow.NewTransaction().
@@ -129,7 +129,7 @@ func RandomTransaction(flowClient client.Client) *flow.Transaction {
 	return tx
 }
 
-func RandomAccount(flowClient client.Client) (flow.Address, *flow.AccountKey, crypto.Signer) {
+func RandomAccount(flowClient access.Client) (flow.Address, *flow.AccountKey, crypto.Signer) {
 	privateKey := RandomPrivateKey()
 
 	accountKey := flow.NewAccountKey().
@@ -143,14 +143,14 @@ func RandomAccount(flowClient client.Client) (flow.Address, *flow.AccountKey, cr
 	return account.Address, account.Keys[0], signer
 }
 
-func GetReferenceBlockId(flowClient client.Client) flow.Identifier {
+func GetReferenceBlockId(flowClient access.Client) flow.Identifier {
 	block, err := flowClient.GetLatestBlock(context.Background(), true)
 	Handle(err)
 
 	return block.ID
 }
 
-func CreateAccountWithContracts(flowClient client.Client, publicKeys []*flow.AccountKey, contracts []templates.Contract) *flow.Account {
+func CreateAccountWithContracts(flowClient access.Client, publicKeys []*flow.AccountKey, contracts []templates.Contract) *flow.Account {
 	serviceAcctAddr, serviceAcctKey, serviceSigner := ServiceAccount(flowClient)
 
 	referenceBlockID := GetReferenceBlockId(flowClient)
@@ -221,7 +221,7 @@ transaction(recipient: Address, amount: UFix64) {
 `
 
 // FundAccountInEmulator Mints FLOW to an account. Minting only works in an emulator environment.
-func FundAccountInEmulator(flowClient client.Client, address flow.Address, amount float64) {
+func FundAccountInEmulator(flowClient access.Client, address flow.Address, amount float64) {
 	serviceAcctAddr, serviceAcctKey, serviceSigner := ServiceAccount(flowClient)
 
 	referenceBlockID := GetReferenceBlockId(flowClient)
@@ -254,7 +254,7 @@ func FundAccountInEmulator(flowClient client.Client, address flow.Address, amoun
 	Handle(result.Error)
 }
 
-func CreateAccount(flowClient client.Client, publicKeys []*flow.AccountKey) *flow.Account {
+func CreateAccount(flowClient access.Client, publicKeys []*flow.AccountKey) *flow.Account {
 	return CreateAccountWithContracts(flowClient, publicKeys, nil)
 }
 
@@ -271,7 +271,7 @@ func NewFlowGRPCClient() *grpc.BaseClient {
 	return c
 }
 
-func WaitForSeal(ctx context.Context, c client.Client, id flow.Identifier) *flow.TransactionResult {
+func WaitForSeal(ctx context.Context, c access.Client, id flow.Identifier) *flow.TransactionResult {
 	result, err := c.GetTransactionResult(ctx, id)
 	Handle(err)
 
