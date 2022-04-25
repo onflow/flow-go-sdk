@@ -145,21 +145,21 @@ func (b *HeightQuery) singleHeightDefined() bool {
 	return len(b.Heights) == 1
 }
 
-func NewHTTPClient(url string) (*HTTPClient, error) {
+func NewHTTPClient(url string) (*BaseClient, error) {
 	handler, err := newHandler(url, false)
 	if err != nil {
 		return nil, err
 	}
 
-	return &HTTPClient{handler}, nil
+	return &BaseClient{handler}, nil
 }
 
-// HTTPClient exposes methods specific to the http clients exposing all capabilities of the network implementation.
-type HTTPClient struct {
+// BaseClient exposes methods specific to the http clients exposing all capabilities of the network implementation.
+type BaseClient struct {
 	handler handler
 }
 
-func (c *HTTPClient) Ping(ctx context.Context) error {
+func (c *BaseClient) Ping(ctx context.Context) error {
 	_, err := c.handler.getBlocksByHeights(ctx, specialHeightMap[SEALED], "", "")
 	if err != nil {
 		return errors.Wrap(err, "ping error")
@@ -168,7 +168,7 @@ func (c *HTTPClient) Ping(ctx context.Context) error {
 	return nil
 }
 
-func (c *HTTPClient) GetBlockByID(ctx context.Context, blockID flow.Identifier, opts ...queryOpts) (*flow.Block, error) {
+func (c *BaseClient) GetBlockByID(ctx context.Context, blockID flow.Identifier, opts ...queryOpts) (*flow.Block, error) {
 	block, err := c.handler.getBlockByID(ctx, blockID.String())
 	if err != nil {
 		return nil, err
@@ -178,7 +178,7 @@ func (c *HTTPClient) GetBlockByID(ctx context.Context, blockID flow.Identifier, 
 }
 
 // GetBlocksByHeights requests the blocks by the specified block query.
-func (c *HTTPClient) GetBlocksByHeights(
+func (c *BaseClient) GetBlocksByHeights(
 	ctx context.Context,
 	heightQuery HeightQuery,
 	opts ...queryOpts,
@@ -207,7 +207,7 @@ func (c *HTTPClient) GetBlocksByHeights(
 	return convert.HTTPToBlocks(httpBlocks)
 }
 
-func (c *HTTPClient) GetCollection(
+func (c *BaseClient) GetCollection(
 	ctx context.Context,
 	ID flow.Identifier,
 	opts ...queryOpts,
@@ -220,7 +220,7 @@ func (c *HTTPClient) GetCollection(
 	return convert.HTTPToCollection(collection), nil
 }
 
-func (c *HTTPClient) SendTransaction(
+func (c *BaseClient) SendTransaction(
 	ctx context.Context,
 	tx flow.Transaction,
 	opts ...queryOpts,
@@ -233,7 +233,7 @@ func (c *HTTPClient) SendTransaction(
 	return c.handler.sendTransaction(ctx, convertedTx, opts...)
 }
 
-func (c *HTTPClient) GetTransaction(
+func (c *BaseClient) GetTransaction(
 	ctx context.Context,
 	ID flow.Identifier,
 	opts ...queryOpts,
@@ -246,7 +246,7 @@ func (c *HTTPClient) GetTransaction(
 	return convert.HTTPToTransaction(tx)
 }
 
-func (c *HTTPClient) GetTransactionResult(
+func (c *BaseClient) GetTransactionResult(
 	ctx context.Context,
 	ID flow.Identifier,
 	opts ...queryOpts,
@@ -259,7 +259,7 @@ func (c *HTTPClient) GetTransactionResult(
 	return convert.HTTPToTransactionResult(tx.Result)
 }
 
-func (c *HTTPClient) GetAccountAtBlockHeight(
+func (c *BaseClient) GetAccountAtBlockHeight(
 	ctx context.Context,
 	address flow.Address,
 	blockQuery HeightQuery,
@@ -277,7 +277,7 @@ func (c *HTTPClient) GetAccountAtBlockHeight(
 	return convert.HTTPToAccount(account)
 }
 
-func (c *HTTPClient) ExecuteScriptAtBlockID(
+func (c *BaseClient) ExecuteScriptAtBlockID(
 	ctx context.Context,
 	blockID flow.Identifier,
 	script []byte,
@@ -297,7 +297,7 @@ func (c *HTTPClient) ExecuteScriptAtBlockID(
 	return convert.HTTPToCadenceValue(result)
 }
 
-func (c *HTTPClient) ExecuteScriptAtBlockHeight(
+func (c *BaseClient) ExecuteScriptAtBlockHeight(
 	ctx context.Context,
 	blockQuery HeightQuery,
 	script []byte,
@@ -327,7 +327,7 @@ func (c *HTTPClient) ExecuteScriptAtBlockHeight(
 	return convert.HTTPToCadenceValue(result)
 }
 
-func (c *HTTPClient) GetEventsForHeightRange(
+func (c *BaseClient) GetEventsForHeightRange(
 	ctx context.Context,
 	eventType string,
 	heightQuery HeightQuery,
@@ -355,7 +355,7 @@ func (c *HTTPClient) GetEventsForHeightRange(
 	return convert.HTTPToBlockEvents(events)
 }
 
-func (c *HTTPClient) GetEventsForBlockIDs(
+func (c *BaseClient) GetEventsForBlockIDs(
 	ctx context.Context,
 	eventType string,
 	blockIDs []flow.Identifier,
@@ -373,11 +373,11 @@ func (c *HTTPClient) GetEventsForBlockIDs(
 	return convert.HTTPToBlockEvents(events)
 }
 
-func (c *HTTPClient) GetLatestProtocolStateSnapshot(ctx context.Context) ([]byte, error) {
+func (c *BaseClient) GetLatestProtocolStateSnapshot(ctx context.Context) ([]byte, error) {
 	return nil, fmt.Errorf("get latest protocol snapshot is currently not supported for HTTP API, if you require this functionality please open an issue on the flow-go-sdk github")
 }
 
-func (c *HTTPClient) GetExecutionResultForBlockID(ctx context.Context, blockID flow.Identifier) (*flow.ExecutionResult, error) {
+func (c *BaseClient) GetExecutionResultForBlockID(ctx context.Context, blockID flow.Identifier) (*flow.ExecutionResult, error) {
 	results, err := c.handler.getExecutionResults(ctx, []string{blockID.String()})
 	if err != nil {
 		return nil, err

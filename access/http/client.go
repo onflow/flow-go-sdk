@@ -44,7 +44,7 @@ func NewClient(url string) (*Client, error) {
 
 // Client implementing all the network interactions according to the client interface.
 type Client struct {
-	httpClient *HTTPClient
+	httpClient *BaseClient
 }
 
 func (c *Client) Ping(ctx context.Context) error {

@@ -40,7 +40,7 @@ func clientTest(
 	return func(t *testing.T) {
 		h := &mockHandler{}
 		client := &Client{
-			&HTTPClient{h},
+			&BaseClient{h},
 		}
 		f(context.Background(), t, h, client)
 		h.AssertExpectations(t)
