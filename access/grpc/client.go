@@ -42,7 +42,7 @@ const MainnetHost = "access.mainnet.nodes.onflow.org:9000"
 
 // NewClient create a client by passing the gRPC handler.
 func NewClient(url string) (*Client, error) {
-	client, err := NewGRPCClient(url, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	client, err := NewBaseClient(url, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +52,7 @@ func NewClient(url string) (*Client, error) {
 
 // Client complies with the client interface and hides any gRPC specific options.
 type Client struct {
-	grpc *GRPCClient
+	grpc *BaseClient
 }
 
 func (c *Client) Ping(ctx context.Context) error {

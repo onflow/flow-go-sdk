@@ -70,7 +70,7 @@ func main() {
 	fmt.Println("Block ID:", httpBlocks[0].ID.String())
 
 	// initialize grpc specific client
-	grpcClient, err := grpc.NewGRPCClient(
+	grpcClient, err := grpc.NewBaseClient(
 		grpc.EmulatorHost,
 		grpcOpts.WithTransportCredentials(insecure.NewCredentials()),
 	)
