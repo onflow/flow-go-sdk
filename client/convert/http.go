@@ -227,7 +227,7 @@ func MustHTTPToUint(value string) uint64 {
 }
 
 func MustHTTPToInt(value string) int {
-	parsed, _ := strconv.Atoi(value) // we can ignore error since this values are validated before returned
+	parsed, _ := strconv.Atoi(value) // we can ignore error since these values are validated before returned
 	return parsed
 }
 
