@@ -1,6 +1,6 @@
 module github.com/onflow/flow-go-sdk
 
-go 1.13
+go 1.16
 
 require (
 	cloud.google.com/go/kms v1.4.0
@@ -11,6 +11,7 @@ require (
 	github.com/onflow/flow/protobuf/go/flow v0.2.3
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.7.0
+	github.com/vektra/mockery v1.1.2 // indirect
 	google.golang.org/api v0.70.0
 	google.golang.org/genproto v0.0.0-20220222213610-43724f9ea8cf
 	google.golang.org/grpc v1.44.0
