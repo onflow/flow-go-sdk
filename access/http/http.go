@@ -145,8 +145,12 @@ func (b *HeightQuery) singleHeightDefined() bool {
 	return len(b.Heights) == 1
 }
 
-func NewHTTPClient(url string) (*BaseClient, error) {
-	handler, err := newHandler(url, false)
+// NewBaseClient creates a new BaseClient. BaseClient provides an API specific to the HTTP.
+//
+// Use this client if you need advance access to the HTTP API. If you
+// don't require special methods use the Client instead.
+func NewBaseClient(host string) (*BaseClient, error) {
+	handler, err := newHandler(host, false)
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +158,10 @@ func NewHTTPClient(url string) (*BaseClient, error) {
 	return &BaseClient{handler}, nil
 }
 
-// BaseClient exposes methods specific to the http clients exposing all capabilities of the network implementation.
+// BaseClient provides an API specific to the HTTP.
+//
+// Use this client if you need advance access to the HTTP API. If you
+// don't require special methods use the Client instead.
 type BaseClient struct {
 	handler handler
 }

@@ -33,16 +33,17 @@ const (
 	CanarynetHost = "https://rest-canary.onflow.org/v1/"
 )
 
-// NewClient creates an instance of the client with the provided http handler.
-func NewClient(url string) (*Client, error) {
-	client, err := NewHTTPClient(url)
+// NewClient creates an HTTP client exposing all the common access APIs.
+// Client will use provided host for connection.
+func NewClient(host string) (*Client, error) {
+	client, err := NewBaseClient(host)
 	if err != nil {
 		return nil, err
 	}
 	return &Client{client}, nil
 }
 
-// Client implementing all the network interactions according to the client interface.
+// Client implements all common HTTP methods providing a network agnostic API.
 type Client struct {
 	httpClient *BaseClient
 }

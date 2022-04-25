@@ -37,6 +37,9 @@ type RPCClient interface {
 }
 
 // BaseClient is a gRPC client for the Flow Access API exposing all grpc specific methods.
+//
+// Use this client if you need advance access to the HTTP API. If you
+// don't require special methods use the Client instead.
 type BaseClient struct {
 	rpcClient RPCClient
 	close     func() error

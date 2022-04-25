@@ -40,9 +40,10 @@ const TestnetHost = "access.devnet.nodes.onflow.org:9000"
 const CanarynetHost = "access.canary.nodes.onflow.org:9000"
 const MainnetHost = "access.mainnet.nodes.onflow.org:9000"
 
-// NewClient create a client by passing the gRPC handler.
-func NewClient(url string) (*Client, error) {
-	client, err := NewBaseClient(url, grpc.WithTransportCredentials(insecure.NewCredentials()))
+// NewClient creates an gRPC client exposing all the common access APIs.
+// Client will use provided host for connection.
+func NewClient(host string) (*Client, error) {
+	client, err := NewBaseClient(host, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +51,7 @@ func NewClient(url string) (*Client, error) {
 	return &Client{client}, nil
 }
 
-// Client complies with the client interface and hides any gRPC specific options.
+// Client implements all common gRPC methods providing a network agnostic API.
 type Client struct {
 	grpc *BaseClient
 }

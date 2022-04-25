@@ -56,7 +56,7 @@ func main() {
 	fmt.Println("Block ID:", latestBlock.BlockHeader.ID.String())
 
 	// initialize http specific client
-	httpClient, err := http.NewHTTPClient(http.EmulatorHost)
+	httpClient, err := http.NewBaseClient(http.EmulatorHost)
 	examples.Handle(err)
 
 	httpBlocks, err := httpClient.GetBlocksByHeights(

@@ -54,15 +54,15 @@ type httpHandler struct {
 	debug  bool
 }
 
-func newHandler(baseUrl string, debug bool) (*httpHandler, error) {
-	_, err := url.Parse(baseUrl)
+func newHandler(host string, debug bool) (*httpHandler, error) {
+	_, err := url.Parse(host)
 	if err != nil {
 		return nil, err
 	}
 
 	return &httpHandler{
 		client: http.DefaultClient,
-		base:   baseUrl,
+		base:   host,
 		debug:  debug,
 	}, nil
 }
