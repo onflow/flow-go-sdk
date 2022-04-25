@@ -127,7 +127,9 @@ func HTTPToBlockSeals(seals []models.BlockSeal) ([]*flow.BlockSeal, error) {
 
 		flowSeal[i] = &flow.BlockSeal{
 			BlockID:                    flow.HexToID(seal.BlockId),
-			ExecutionReceiptID:         flow.HexToID(seal.ResultId), // todo this needs to be changed to resultID https://github.com/onflow/flow-go/blob/3683183977f2ea769836d8a31997701b3dbced83/model/flow/seal.go#L42
+			// TODO: this needs to be changed to resultID
+			// https://github.com/onflow/flow-go/blob/3683183977f2ea769836d8a31997701b3dbced83/model/flow/seal.go#L42
+			ExecutionReceiptID:         flow.HexToID(seal.ResultId),
 			ExecutionReceiptSignatures: nil,                         // todo this is deprecated, should be removed
 			ResultApprovalSignatures:   signatures,
 		}
