@@ -266,7 +266,7 @@ func Handle(err error) {
 }
 
 func NewFlowGRPCClient() *grpc.BaseClient {
-	c, err := grpc.NewClient("127.0.0.1:3569")
+	c, err := grpc.NewClient(grpc.EmulatorHost)
 	Handle(err)
 	return c
 }

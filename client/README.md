@@ -27,7 +27,7 @@ var flowClient client.Client
 flowClient, err := http.NewClient(http.EmulatorHost)
 
 // initialize a gPRC emulator client
-flowClient, err = grpc.NewDefaultEmulatorClient()
+flowClient, err = grpc.NewClient(grpc.EmulatorHost)
 ```
 
 **Network Specific Usage** if you require some network specific usage you can also 
