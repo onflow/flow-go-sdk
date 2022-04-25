@@ -35,11 +35,11 @@ import (
 )
 
 func clientTest(
-	f func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient),
+	f func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client),
 ) func(t *testing.T) {
 	return func(t *testing.T) {
 		h := &mockHandler{}
-		client := &BaseClient{
+		client := &Client{
 			&HTTPClient{h},
 		}
 		f(context.Background(), t, h, client)
@@ -68,7 +68,7 @@ func TestClient_Factories(t *testing.T) {
 
 func TestBaseClient_GetBlockByID(t *testing.T) {
 	const handlerName = "getBlockByID"
-	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		httpBlock := test.BlockHTTP()
 		expectedBlock, err := convert.HTTPToBlock(&httpBlock)
 		assert.NoError(t, err)
@@ -82,7 +82,7 @@ func TestBaseClient_GetBlockByID(t *testing.T) {
 		assert.Equal(t, block, expectedBlock)
 	}))
 
-	t.Run("Get Block Header", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+	t.Run("Get Block Header", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		httpBlock := test.BlockHTTP()
 		expectedBlock, err := convert.HTTPToBlock(&httpBlock)
 		assert.NoError(t, err)
@@ -96,7 +96,7 @@ func TestBaseClient_GetBlockByID(t *testing.T) {
 		assert.Equal(t, header, &expectedBlock.BlockHeader)
 	}))
 
-	t.Run("Not found", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+	t.Run("Not found", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		handler.
 			On(handlerName, mock.Anything, mock.Anything).
 			Return(nil, HTTPError{
@@ -113,7 +113,7 @@ func TestBaseClient_GetBlockByID(t *testing.T) {
 func TestBaseClient_GetBlockByHeight(t *testing.T) {
 	const handlerName = "getBlocksByHeights"
 
-	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		httpBlock := test.BlockHTTP()
 		expectedBlock, err := convert.HTTPToBlock(&httpBlock)
 		assert.NoError(t, err)
@@ -127,7 +127,7 @@ func TestBaseClient_GetBlockByHeight(t *testing.T) {
 		assert.Equal(t, block, expectedBlock)
 	}))
 
-	t.Run("Not found", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+	t.Run("Not found", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		handler.
 			On(handlerName, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 			Return(nil, HTTPError{
@@ -141,7 +141,7 @@ func TestBaseClient_GetBlockByHeight(t *testing.T) {
 		assert.Nil(t, block)
 	}))
 
-	t.Run("Get Block Header", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+	t.Run("Get Block Header", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		httpBlock := test.BlockHTTP()
 		expectedBlock, err := convert.HTTPToBlock(&httpBlock)
 		assert.NoError(t, err)
@@ -159,7 +159,7 @@ func TestBaseClient_GetBlockByHeight(t *testing.T) {
 func TestBaseClient_GetLatestBlock(t *testing.T) {
 	const handlerName = "getBlocksByHeights"
 
-	t.Run("Block Sealed", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+	t.Run("Block Sealed", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		httpBlock := test.BlockHTTP()
 		expectedBlock, err := convert.HTTPToBlock(&httpBlock)
 		assert.NoError(t, err)
@@ -173,7 +173,7 @@ func TestBaseClient_GetLatestBlock(t *testing.T) {
 		assert.Equal(t, block, expectedBlock)
 	}))
 
-	t.Run("Block Not Sealed", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+	t.Run("Block Not Sealed", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		httpBlock := test.BlockHTTP()
 		expectedBlock, err := convert.HTTPToBlock(&httpBlock)
 		assert.NoError(t, err)
@@ -187,7 +187,7 @@ func TestBaseClient_GetLatestBlock(t *testing.T) {
 		assert.Equal(t, block, expectedBlock)
 	}))
 
-	t.Run("Final Header", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+	t.Run("Final Header", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		httpBlock := test.BlockHTTP()
 		expectedBlock, err := convert.HTTPToBlock(&httpBlock)
 		assert.NoError(t, err)
@@ -201,7 +201,7 @@ func TestBaseClient_GetLatestBlock(t *testing.T) {
 		assert.Equal(t, block, &expectedBlock.BlockHeader)
 	}))
 
-	t.Run("Sealed Header", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+	t.Run("Sealed Header", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		httpBlock := test.BlockHTTP()
 		expectedBlock, err := convert.HTTPToBlock(&httpBlock)
 		assert.NoError(t, err)
@@ -219,7 +219,7 @@ func TestBaseClient_GetLatestBlock(t *testing.T) {
 func TestBaseClient_GetCollection(t *testing.T) {
 	const handlerName = "getCollection"
 
-	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		httpCollection := test.CollectionHTTP()
 		expectedCollection := convert.HTTPToCollection(&httpCollection)
 
@@ -233,7 +233,7 @@ func TestBaseClient_GetCollection(t *testing.T) {
 		assert.Equal(t, collection, expectedCollection)
 	}))
 
-	t.Run("Not Found", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+	t.Run("Not Found", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		handler.
 			On(handlerName, mock.Anything, mock.Anything).
 			Return(nil, HTTPError{
@@ -251,7 +251,7 @@ func TestBaseClient_GetCollection(t *testing.T) {
 func TestBaseClient_SendTransaction(t *testing.T) {
 	const handlerName = "sendTransaction"
 
-	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		httpTx := test.TransactionHTTP()
 		expectedTx, err := convert.HTTPToTransaction(&httpTx)
 		assert.NoError(t, err)
@@ -267,7 +267,7 @@ func TestBaseClient_SendTransaction(t *testing.T) {
 		assert.NoError(t, err)
 	}))
 
-	t.Run("Not Found", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+	t.Run("Not Found", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		handler.On(handlerName, mock.Anything, mock.Anything).Return(HTTPError{
 			Url:     "/",
 			Code:    400,
@@ -283,7 +283,7 @@ func TestBaseClient_SendTransaction(t *testing.T) {
 func TestBaseClient_GetTransaction(t *testing.T) {
 	const handlerName = "getTransaction"
 
-	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		httpTx := test.TransactionHTTP()
 		expectedTx, err := convert.HTTPToTransaction(&httpTx)
 		assert.NoError(t, err)
@@ -297,7 +297,7 @@ func TestBaseClient_GetTransaction(t *testing.T) {
 		assert.Equal(t, tx, expectedTx)
 	}))
 
-	t.Run("Not Found", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+	t.Run("Not Found", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		handler.On(handlerName, mock.Anything, mock.Anything, mock.Anything).Return(nil, HTTPError{
 			Url:     "/",
 			Code:    404,
@@ -313,7 +313,7 @@ func TestBaseClient_GetTransaction(t *testing.T) {
 func TestBaseClient_GetTransactionResult(t *testing.T) {
 	const handlerName = "getTransaction"
 
-	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		httpTx := test.TransactionHTTP()
 		httpTxRes := test.TransactionResultHTTP()
 		httpTx.Result = &httpTxRes
@@ -332,7 +332,7 @@ func TestBaseClient_GetTransactionResult(t *testing.T) {
 		assert.Equal(t, txRes, expectedTxRes)
 	}))
 
-	t.Run("Not Found", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+	t.Run("Not Found", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		handler.On(handlerName, mock.Anything, mock.Anything, true).Return(nil, HTTPError{
 			Url:     "/",
 			Code:    404,
@@ -348,7 +348,7 @@ func TestBaseClient_GetTransactionResult(t *testing.T) {
 func TestBaseClient_GetAccount(t *testing.T) {
 	const handlerName = "getAccount"
 
-	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		httpAccount := test.AccountHTTP()
 		expectedAccount, err := convert.HTTPToAccount(&httpAccount)
 		assert.NoError(t, err)
@@ -366,7 +366,7 @@ func TestBaseClient_GetAccount(t *testing.T) {
 		assert.Equal(t, account, expectedAccount)
 	}))
 
-	t.Run("Not Found", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+	t.Run("Not Found", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		handler.On(handlerName, mock.Anything, mock.Anything, mock.Anything).Return(nil, HTTPError{
 			Url:     "/",
 			Code:    404,
@@ -386,7 +386,7 @@ func TestBaseClient_GetAccount(t *testing.T) {
 func TestBaseClient_GetAccountAtBlockHeight(t *testing.T) {
 	const handlerName = "getAccount"
 
-	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		httpAccount := test.AccountHTTP()
 		expectedAccount, err := convert.HTTPToAccount(&httpAccount)
 		assert.NoError(t, err)
@@ -400,7 +400,7 @@ func TestBaseClient_GetAccountAtBlockHeight(t *testing.T) {
 		assert.Equal(t, account, expectedAccount)
 	}))
 
-	t.Run("Not Found", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+	t.Run("Not Found", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		handler.On(handlerName, mock.Anything, mock.Anything, mock.Anything).Return(nil, HTTPError{
 			Url:     "/",
 			Code:    404,
@@ -415,7 +415,7 @@ func TestBaseClient_GetAccountAtBlockHeight(t *testing.T) {
 
 func TestBaseClient_ExecuteScript(t *testing.T) {
 
-	t.Run("Success Block Height", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+	t.Run("Success Block Height", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		script := []byte(`main() { return "Hello World" }`)
 		encodedScript := base64.StdEncoding.EncodeToString(script)
 		const height uint64 = 10
@@ -433,7 +433,7 @@ func TestBaseClient_ExecuteScript(t *testing.T) {
 		assert.Equal(t, val.String(), "\"Hello World\"")
 	}))
 
-	t.Run("Success Latest Height", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+	t.Run("Success Latest Height", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		script := []byte(`main() { return "Hello World" }`)
 		encodedScript := base64.StdEncoding.EncodeToString(script)
 		response := base64.StdEncoding.EncodeToString([]byte(`{
@@ -450,7 +450,7 @@ func TestBaseClient_ExecuteScript(t *testing.T) {
 		assert.Equal(t, val.String(), "\"Hello World\"")
 	}))
 
-	t.Run("Success Block ID", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+	t.Run("Success Block ID", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		script := []byte(`main() { return "Hello World" }`)
 		encodedScript := base64.StdEncoding.EncodeToString(script)
 		id := flow.HexToID("0x1")
@@ -468,7 +468,7 @@ func TestBaseClient_ExecuteScript(t *testing.T) {
 		assert.Equal(t, val.String(), "\"Hello World\"")
 	}))
 
-	t.Run("Failure", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+	t.Run("Failure", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		handler.
 			On("executeScriptAtBlockID", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 			Return("", HTTPError{
@@ -485,7 +485,7 @@ func TestBaseClient_ExecuteScript(t *testing.T) {
 func TestBaseClient_GetEvents(t *testing.T) {
 	const handlerName = "getEvents"
 
-	t.Run("Get For Height Range", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+	t.Run("Get For Height Range", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		httpEvents := test.BlockEventsHTTP()
 		expectedEvents, err := convert.HTTPToBlockEvents([]models.BlockEvents{httpEvents})
 		const eType = "A.Foo.Bar"
@@ -498,7 +498,7 @@ func TestBaseClient_GetEvents(t *testing.T) {
 		assert.Equal(t, events, expectedEvents)
 	}))
 
-	t.Run("Get For Block IDs", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+	t.Run("Get For Block IDs", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		httpEvents := test.BlockEventsHTTP()
 		expectedEvents, err := convert.HTTPToBlockEvents([]models.BlockEvents{httpEvents})
 		const eType = "A.Foo.Bar"
@@ -511,7 +511,7 @@ func TestBaseClient_GetEvents(t *testing.T) {
 		assert.Equal(t, events, expectedEvents)
 	}))
 
-	t.Run("Get For Block IDs Not Found", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+	t.Run("Get For Block IDs Not Found", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		const eType = "A.Foo.Bar"
 		id := test.IdentifierGenerator().New()
 		handler.
@@ -523,7 +523,7 @@ func TestBaseClient_GetEvents(t *testing.T) {
 		assert.Equal(t, events, []flow.BlockEvents{})
 	}))
 
-	t.Run("Failure", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+	t.Run("Failure", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		handler.
 			On(handlerName, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 			Return(nil, HTTPError{
@@ -537,7 +537,7 @@ func TestBaseClient_GetEvents(t *testing.T) {
 		assert.Nil(t, e)
 	}))
 
-	t.Run("Get For Height Range - Invalid Range", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *BaseClient) {
+	t.Run("Get For Height Range - Invalid Range", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		tests := []struct {
 			in  []uint64
 			err string

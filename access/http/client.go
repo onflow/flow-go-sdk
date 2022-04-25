@@ -34,28 +34,28 @@ const (
 )
 
 // NewClient creates an instance of the client with the provided http handler.
-func NewClient(url string) (*BaseClient, error) {
+func NewClient(url string) (*Client, error) {
 	client, err := NewHTTPClient(url)
 	if err != nil {
 		return nil, err
 	}
-	return &BaseClient{client}, nil
+	return &Client{client}, nil
 }
 
-// BaseClient implementing all the network interactions according to the client interface.
-type BaseClient struct {
+// Client implementing all the network interactions according to the client interface.
+type Client struct {
 	httpClient *HTTPClient
 }
 
-func (c *BaseClient) Ping(ctx context.Context) error {
+func (c *Client) Ping(ctx context.Context) error {
 	return c.httpClient.Ping(ctx)
 }
 
-func (c *BaseClient) GetBlockByID(ctx context.Context, blockID flow.Identifier) (*flow.Block, error) {
+func (c *Client) GetBlockByID(ctx context.Context, blockID flow.Identifier) (*flow.Block, error) {
 	return c.httpClient.GetBlockByID(ctx, blockID)
 }
 
-func (c *BaseClient) GetLatestBlockHeader(ctx context.Context, isSealed bool) (*flow.BlockHeader, error) {
+func (c *Client) GetLatestBlockHeader(ctx context.Context, isSealed bool) (*flow.BlockHeader, error) {
 	block, err := c.GetLatestBlock(ctx, isSealed)
 	if err != nil {
 		return nil, err
@@ -64,7 +64,7 @@ func (c *BaseClient) GetLatestBlockHeader(ctx context.Context, isSealed bool) (*
 	return &block.BlockHeader, nil
 }
 
-func (c *BaseClient) GetBlockHeaderByID(ctx context.Context, blockID flow.Identifier) (*flow.BlockHeader, error) {
+func (c *Client) GetBlockHeaderByID(ctx context.Context, blockID flow.Identifier) (*flow.BlockHeader, error) {
 	block, err := c.GetBlockByID(ctx, blockID) // todo optimization: passing the 'select' option to only get the header
 	if err != nil {
 		return nil, err
@@ -73,7 +73,7 @@ func (c *BaseClient) GetBlockHeaderByID(ctx context.Context, blockID flow.Identi
 	return &block.BlockHeader, nil
 }
 
-func (c *BaseClient) GetBlockHeaderByHeight(ctx context.Context, height uint64) (*flow.BlockHeader, error) {
+func (c *Client) GetBlockHeaderByHeight(ctx context.Context, height uint64) (*flow.BlockHeader, error) {
 	block, err := c.GetBlockByHeight(ctx, height) // todo optimization: passing the 'select' option to only get the header
 	if err != nil {
 		return nil, err
@@ -82,7 +82,7 @@ func (c *BaseClient) GetBlockHeaderByHeight(ctx context.Context, height uint64) 
 	return &block.BlockHeader, nil
 }
 
-func (c *BaseClient) GetLatestBlock(ctx context.Context, isSealed bool) (*flow.Block, error) {
+func (c *Client) GetLatestBlock(ctx context.Context, isSealed bool) (*flow.Block, error) {
 	height := FINAL
 	if isSealed {
 		height = SEALED
@@ -99,7 +99,7 @@ func (c *BaseClient) GetLatestBlock(ctx context.Context, isSealed bool) (*flow.B
 	return blocks[0], nil
 }
 
-func (c *BaseClient) GetBlockByHeight(ctx context.Context, height uint64) (*flow.Block, error) {
+func (c *Client) GetBlockByHeight(ctx context.Context, height uint64) (*flow.Block, error) {
 	blocks, err := c.httpClient.GetBlocksByHeights(ctx, HeightQuery{Heights: []uint64{height}})
 	if err != nil {
 		return nil, err
@@ -108,35 +108,35 @@ func (c *BaseClient) GetBlockByHeight(ctx context.Context, height uint64) (*flow
 	return blocks[0], nil
 }
 
-func (c *BaseClient) GetCollection(ctx context.Context, ID flow.Identifier) (*flow.Collection, error) {
+func (c *Client) GetCollection(ctx context.Context, ID flow.Identifier) (*flow.Collection, error) {
 	return c.httpClient.GetCollection(ctx, ID)
 }
 
-func (c *BaseClient) SendTransaction(ctx context.Context, tx flow.Transaction) error {
+func (c *Client) SendTransaction(ctx context.Context, tx flow.Transaction) error {
 	return c.httpClient.SendTransaction(ctx, tx)
 }
 
-func (c *BaseClient) GetTransaction(ctx context.Context, ID flow.Identifier) (*flow.Transaction, error) {
+func (c *Client) GetTransaction(ctx context.Context, ID flow.Identifier) (*flow.Transaction, error) {
 	return c.httpClient.GetTransaction(ctx, ID)
 }
 
-func (c *BaseClient) GetTransactionResult(ctx context.Context, ID flow.Identifier) (*flow.TransactionResult, error) {
+func (c *Client) GetTransactionResult(ctx context.Context, ID flow.Identifier) (*flow.TransactionResult, error) {
 	return c.httpClient.GetTransactionResult(ctx, ID)
 }
 
 // GetAccount is an alias for GetAccountAtLatestBlock.
-func (c *BaseClient) GetAccount(ctx context.Context, address flow.Address) (*flow.Account, error) {
+func (c *Client) GetAccount(ctx context.Context, address flow.Address) (*flow.Account, error) {
 	return c.GetAccountAtLatestBlock(ctx, address)
 }
 
-func (c *BaseClient) GetAccountAtLatestBlock(ctx context.Context, address flow.Address) (*flow.Account, error) {
+func (c *Client) GetAccountAtLatestBlock(ctx context.Context, address flow.Address) (*flow.Account, error) {
 	return c.httpClient.GetAccountAtBlockHeight(
 		ctx,
 		address, HeightQuery{Heights: []uint64{SEALED}},
 	)
 }
 
-func (c *BaseClient) GetAccountAtBlockHeight(
+func (c *Client) GetAccountAtBlockHeight(
 	ctx context.Context,
 	address flow.Address,
 	blockHeight uint64,
@@ -148,7 +148,7 @@ func (c *BaseClient) GetAccountAtBlockHeight(
 	)
 }
 
-func (c *BaseClient) ExecuteScriptAtLatestBlock(
+func (c *Client) ExecuteScriptAtLatestBlock(
 	ctx context.Context,
 	script []byte,
 	arguments []cadence.Value,
@@ -161,7 +161,7 @@ func (c *BaseClient) ExecuteScriptAtLatestBlock(
 	)
 }
 
-func (c *BaseClient) ExecuteScriptAtBlockID(
+func (c *Client) ExecuteScriptAtBlockID(
 	ctx context.Context,
 	blockID flow.Identifier,
 	script []byte,
@@ -170,7 +170,7 @@ func (c *BaseClient) ExecuteScriptAtBlockID(
 	return c.httpClient.ExecuteScriptAtBlockID(ctx, blockID, script, arguments)
 }
 
-func (c *BaseClient) ExecuteScriptAtBlockHeight(
+func (c *Client) ExecuteScriptAtBlockHeight(
 	ctx context.Context,
 	height uint64,
 	script []byte,
@@ -184,7 +184,7 @@ func (c *BaseClient) ExecuteScriptAtBlockHeight(
 	)
 }
 
-func (c *BaseClient) GetEventsForHeightRange(
+func (c *Client) GetEventsForHeightRange(
 	ctx context.Context,
 	eventType string,
 	startHeight uint64,
@@ -200,7 +200,7 @@ func (c *BaseClient) GetEventsForHeightRange(
 	)
 }
 
-func (c *BaseClient) GetEventsForBlockIDs(
+func (c *Client) GetEventsForBlockIDs(
 	ctx context.Context,
 	eventType string,
 	blockIDs []flow.Identifier,
@@ -208,10 +208,10 @@ func (c *BaseClient) GetEventsForBlockIDs(
 	return c.httpClient.GetEventsForBlockIDs(ctx, eventType, blockIDs)
 }
 
-func (c *BaseClient) GetLatestProtocolStateSnapshot(ctx context.Context) ([]byte, error) {
+func (c *Client) GetLatestProtocolStateSnapshot(ctx context.Context) ([]byte, error) {
 	return c.httpClient.GetLatestProtocolStateSnapshot(ctx)
 }
 
-func (c *BaseClient) GetExecutionResultForBlockID(ctx context.Context, blockID flow.Identifier) (*flow.ExecutionResult, error) {
+func (c *Client) GetExecutionResultForBlockID(ctx context.Context, blockID flow.Identifier) (*flow.ExecutionResult, error) {
 	return c.httpClient.GetExecutionResultForBlockID(ctx, blockID)
 }
