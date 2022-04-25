@@ -24,7 +24,7 @@ implementations like so:
 var flowClient client.Client
 
 // initialize an http emulator client
-flowClient, err := http.NewDefaultEmulatorClient(false)
+flowClient, err := http.NewClient(http.EmulatorHost)
 
 // initialize a gPRC emulator client
 flowClient, err = grpc.NewDefaultEmulatorClient()

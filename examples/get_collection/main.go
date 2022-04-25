@@ -50,7 +50,7 @@ func printCollection(collection *flow.Collection, err error) {
 }
 
 func prepareDemo() flow.Identifier {
-	flowClient, err := http.NewDefaultEmulatorClient(false)
+	flowClient, err := http.NewClient(http.EmulatorHost)
 	examples.Handle(err)
 
 	examples.RandomAccount(flowClient)

@@ -89,7 +89,7 @@ pub fun main(
 
 func UserSignatureDemo() {
 	ctx := context.Background()
-	flowClient, err := http.NewDefaultEmulatorClient(false)
+	flowClient, err := http.NewClient(http.EmulatorHost)
 	examples.Handle(err)
 
 	// create the keys

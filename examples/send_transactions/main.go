@@ -32,7 +32,7 @@ func main() {
 }
 
 func demo() {
-	flowClient, err := http.NewDefaultEmulatorClient(false)
+	flowClient, err := http.NewClient(http.EmulatorHost)
 	examples.Handle(err)
 
 	serviceAcctAddr, serviceAcctKey, serviceSigner := examples.ServiceAccount(flowClient)
