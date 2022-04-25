@@ -427,7 +427,7 @@ func HTTPToExecutionResults(result models.ExecutionResult) *flow.ExecutionResult
 		}
 	}
 
-	// todo there is missing data on the http api, make sure this is consistent
+	// TODO: there is missing data on the HTTP API, make sure this is consistent
 	return &flow.ExecutionResult{
 		PreviousResultID: flow.EmptyID,
 		BlockID:          flow.HexToID(result.BlockId),
