@@ -48,7 +48,7 @@ Read more about this in the docs.
 
 ### Testing
 The testing suite is using mock network handlers which can be generated 
-running the following command in the project root directory:
+by running the following command in the project root directory:
 ```
 make generate
 ```
