@@ -38,7 +38,7 @@ func main() {
 	var flowClient client.Client
 
 	// initialize a http emulator client
-	flowClient, err := http.NewDefaultEmulatorClient(false)
+	flowClient, err := http.NewClient(http.EmulatorHost)
 	examples.Handle(err)
 
 	latestBlock, err := flowClient.GetLatestBlock(ctx, true)
@@ -47,7 +47,7 @@ func main() {
 	fmt.Println("Block ID:", latestBlock.BlockHeader.ID.String())
 
 	// initialize a gPRC emulator client
-	flowClient, err = grpc.NewDefaultEmulatorClient()
+	flowClient, err = grpc.NewClient(grpc.EmulatorHost)
 	examples.Handle(err)
 
 	latestBlock, err = flowClient.GetLatestBlock(ctx, true)

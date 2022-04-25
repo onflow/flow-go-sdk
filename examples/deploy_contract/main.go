@@ -41,7 +41,7 @@ func main() {
 func DeployContractDemo() {
 	// Connect to an emulator running locally
 	ctx := context.Background()
-	flowClient, err := http.NewDefaultEmulatorClient(false)
+	flowClient, err := http.NewClient(http.EmulatorHost)
 	examples.Handle(err)
 
 	serviceAcctAddr, serviceAcctKey, serviceSigner := examples.ServiceAccount(flowClient)

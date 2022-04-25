@@ -49,19 +49,19 @@ func clientTest(
 
 func TestClient_Factories(t *testing.T) {
 
-	client, err := NewDefaultEmulatorClient(false)
+	client, err := NewClient(EmulatorHost)
 	assert.NoError(t, err)
 	assert.NotNil(t, client)
 
-	client, err = NewDefaultMainnetClient()
+	client, err = NewClient(EmulatorHost)
 	assert.NoError(t, err)
 	assert.NotNil(t, client)
 
-	client, err = NewDefaultTestnetClient()
+	client, err = NewClient(EmulatorHost)
 	assert.NoError(t, err)
 	assert.NotNil(t, client)
 
-	client, err = NewDefaultCanaryClient()
+	client, err = NewClient(EmulatorHost)
 	assert.NoError(t, err)
 	assert.NotNil(t, client)
 }

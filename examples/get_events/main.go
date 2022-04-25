@@ -37,7 +37,7 @@ func main() {
 
 func demo(deployedContract *flow.Account, runScriptTx *flow.Transaction) {
 	ctx := context.Background()
-	flowClient, err := http.NewDefaultEmulatorClient(false)
+	flowClient, err := http.NewClient(http.EmulatorHost)
 	examples.Handle(err)
 
 	// Query for account creation events by type
@@ -73,7 +73,7 @@ func printEvent(events []flow.Event) {
 
 func preapreDemo() (*flow.Account, *flow.Transaction) {
 	ctx := context.Background()
-	flowClient, err := http.NewDefaultEmulatorClient(false)
+	flowClient, err := http.NewClient(http.EmulatorHost)
 	examples.Handle(err)
 
 	acctAddr, acctKey, acctSigner := examples.RandomAccount(flowClient)

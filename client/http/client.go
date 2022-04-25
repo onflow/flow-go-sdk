@@ -42,26 +42,6 @@ func NewClient(url string) (*BaseClient, error) {
 	return &BaseClient{client}, nil
 }
 
-// NewDefaultEmulatorClient creates a new client for connecting to the emulator AN API.
-func NewDefaultEmulatorClient(debug bool) (*BaseClient, error) {
-	return NewClient(EmulatorHost)
-}
-
-// NewDefaultTestnetClient creates a new client for connecting to the testnet AN API.
-func NewDefaultTestnetClient() (*BaseClient, error) {
-	return NewClient(TestnetHost)
-}
-
-// NewDefaultCanaryClient creates a new client for connecting to the canary AN API.
-func NewDefaultCanaryClient() (*BaseClient, error) {
-	return NewClient(CanarynetHost)
-}
-
-// NewDefaultMainnetClient creates a new client for connecting to the mainnet AN API.
-func NewDefaultMainnetClient() (*BaseClient, error) {
-	return NewClient(MainnetHost)
-}
-
 // BaseClient implementing all the network interactions according to the client interface.
 type BaseClient struct {
 	httpClient *HTTPClient

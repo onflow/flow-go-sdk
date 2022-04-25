@@ -37,7 +37,7 @@ func main() {
 func demo() {
 	ctx := context.Background()
 	var flowClient client.Client
-	flowClient, err := http.NewDefaultEmulatorClient(false)
+	flowClient, err := http.NewClient(http.EmulatorHost)
 	examples.Handle(err)
 
 	examples.RandomAccount(flowClient)

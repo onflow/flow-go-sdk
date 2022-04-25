@@ -36,7 +36,7 @@ func main() {
 
 func demo() {
 	ctx := context.Background()
-	flowClient, err := http.NewDefaultEmulatorClient(false)
+	flowClient, err := http.NewClient(http.EmulatorHost)
 	examples.Handle(err)
 
 	script := []byte(`

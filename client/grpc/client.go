@@ -55,26 +55,6 @@ type BaseClient struct {
 	grpc *GRPCClient
 }
 
-// NewDefaultEmulatorClient creates a client for accessing default local emulator network using gRPC.
-func NewDefaultEmulatorClient() (*BaseClient, error) {
-	return NewClient(EmulatorHost)
-}
-
-// NewDefaultTestnetClient creates a client for accessing default testnet AN using gRPC.
-func NewDefaultTestnetClient() (*BaseClient, error) {
-	return NewClient(TestnetHost)
-}
-
-// NewDefaultCanaryClient creates a client for accessing default canary AN using gRPC.
-func NewDefaultCanaryClient() (*BaseClient, error) {
-	return NewClient(CanarynetHost)
-}
-
-// NewDefaultMainnetClient creates a client for accessing default mainnet AN using gRPC.
-func NewDefaultMainnetClient() (*BaseClient, error) {
-	return NewClient(MainnetHost)
-}
-
 func (c *BaseClient) Ping(ctx context.Context) error {
 	return c.grpc.Ping(ctx)
 }
