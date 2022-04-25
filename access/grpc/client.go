@@ -41,89 +41,89 @@ const CanarynetHost = "access.canary.nodes.onflow.org:9000"
 const MainnetHost = "access.mainnet.nodes.onflow.org:9000"
 
 // NewClient create a client by passing the gRPC handler.
-func NewClient(url string) (*BaseClient, error) {
+func NewClient(url string) (*Client, error) {
 	client, err := NewGRPCClient(url, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err
 	}
 
-	return &BaseClient{client}, nil
+	return &Client{client}, nil
 }
 
-// BaseClient complies with the client interface and hides any gRPC specific options.
-type BaseClient struct {
+// Client complies with the client interface and hides any gRPC specific options.
+type Client struct {
 	grpc *GRPCClient
 }
 
-func (c *BaseClient) Ping(ctx context.Context) error {
+func (c *Client) Ping(ctx context.Context) error {
 	return c.grpc.Ping(ctx)
 }
 
-func (c *BaseClient) GetLatestBlockHeader(ctx context.Context, isSealed bool) (*flow.BlockHeader, error) {
+func (c *Client) GetLatestBlockHeader(ctx context.Context, isSealed bool) (*flow.BlockHeader, error) {
 	return c.grpc.GetLatestBlockHeader(ctx, isSealed)
 }
 
-func (c *BaseClient) GetBlockHeaderByID(ctx context.Context, blockID flow.Identifier) (*flow.BlockHeader, error) {
+func (c *Client) GetBlockHeaderByID(ctx context.Context, blockID flow.Identifier) (*flow.BlockHeader, error) {
 	return c.grpc.GetBlockHeaderByID(ctx, blockID)
 }
 
-func (c *BaseClient) GetBlockHeaderByHeight(ctx context.Context, height uint64) (*flow.BlockHeader, error) {
+func (c *Client) GetBlockHeaderByHeight(ctx context.Context, height uint64) (*flow.BlockHeader, error) {
 	return c.grpc.GetBlockHeaderByHeight(ctx, height)
 }
 
-func (c *BaseClient) GetLatestBlock(ctx context.Context, isSealed bool) (*flow.Block, error) {
+func (c *Client) GetLatestBlock(ctx context.Context, isSealed bool) (*flow.Block, error) {
 	return c.grpc.GetLatestBlock(ctx, isSealed)
 }
 
-func (c *BaseClient) GetBlockByID(ctx context.Context, blockID flow.Identifier) (*flow.Block, error) {
+func (c *Client) GetBlockByID(ctx context.Context, blockID flow.Identifier) (*flow.Block, error) {
 	return c.grpc.GetBlockByID(ctx, blockID)
 }
 
-func (c *BaseClient) GetBlockByHeight(ctx context.Context, height uint64) (*flow.Block, error) {
+func (c *Client) GetBlockByHeight(ctx context.Context, height uint64) (*flow.Block, error) {
 	return c.grpc.GetBlockByHeight(ctx, height)
 }
 
-func (c *BaseClient) GetCollection(ctx context.Context, colID flow.Identifier) (*flow.Collection, error) {
+func (c *Client) GetCollection(ctx context.Context, colID flow.Identifier) (*flow.Collection, error) {
 	return c.grpc.GetCollection(ctx, colID)
 }
 
-func (c *BaseClient) SendTransaction(ctx context.Context, tx flow.Transaction) error {
+func (c *Client) SendTransaction(ctx context.Context, tx flow.Transaction) error {
 	return c.grpc.SendTransaction(ctx, tx)
 }
 
-func (c *BaseClient) GetTransaction(ctx context.Context, txID flow.Identifier) (*flow.Transaction, error) {
+func (c *Client) GetTransaction(ctx context.Context, txID flow.Identifier) (*flow.Transaction, error) {
 	return c.grpc.GetTransaction(ctx, txID)
 }
 
-func (c *BaseClient) GetTransactionResult(ctx context.Context, txID flow.Identifier) (*flow.TransactionResult, error) {
+func (c *Client) GetTransactionResult(ctx context.Context, txID flow.Identifier) (*flow.TransactionResult, error) {
 	return c.grpc.GetTransactionResult(ctx, txID)
 }
 
-func (c *BaseClient) GetAccount(ctx context.Context, address flow.Address) (*flow.Account, error) {
+func (c *Client) GetAccount(ctx context.Context, address flow.Address) (*flow.Account, error) {
 	return c.grpc.GetAccount(ctx, address)
 }
 
-func (c *BaseClient) GetAccountAtLatestBlock(ctx context.Context, address flow.Address) (*flow.Account, error) {
+func (c *Client) GetAccountAtLatestBlock(ctx context.Context, address flow.Address) (*flow.Account, error) {
 	return c.grpc.GetAccountAtLatestBlock(ctx, address)
 }
 
-func (c *BaseClient) GetAccountAtBlockHeight(ctx context.Context, address flow.Address, blockHeight uint64) (*flow.Account, error) {
+func (c *Client) GetAccountAtBlockHeight(ctx context.Context, address flow.Address, blockHeight uint64) (*flow.Account, error) {
 	return c.grpc.GetAccountAtBlockHeight(ctx, address, blockHeight)
 }
 
-func (c *BaseClient) ExecuteScriptAtLatestBlock(ctx context.Context, script []byte, arguments []cadence.Value) (cadence.Value, error) {
+func (c *Client) ExecuteScriptAtLatestBlock(ctx context.Context, script []byte, arguments []cadence.Value) (cadence.Value, error) {
 	return c.grpc.ExecuteScriptAtLatestBlock(ctx, script, arguments)
 }
 
-func (c *BaseClient) ExecuteScriptAtBlockID(ctx context.Context, blockID flow.Identifier, script []byte, arguments []cadence.Value) (cadence.Value, error) {
+func (c *Client) ExecuteScriptAtBlockID(ctx context.Context, blockID flow.Identifier, script []byte, arguments []cadence.Value) (cadence.Value, error) {
 	return c.grpc.ExecuteScriptAtBlockID(ctx, blockID, script, arguments)
 }
 
-func (c *BaseClient) ExecuteScriptAtBlockHeight(ctx context.Context, height uint64, script []byte, arguments []cadence.Value) (cadence.Value, error) {
+func (c *Client) ExecuteScriptAtBlockHeight(ctx context.Context, height uint64, script []byte, arguments []cadence.Value) (cadence.Value, error) {
 	return c.grpc.ExecuteScriptAtBlockHeight(ctx, height, script, arguments)
 }
 
-func (c *BaseClient) GetEventsForHeightRange(ctx context.Context, eventType string, startHeight uint64, endHeight uint64) ([]flow.BlockEvents, error) {
+func (c *Client) GetEventsForHeightRange(ctx context.Context, eventType string, startHeight uint64, endHeight uint64) ([]flow.BlockEvents, error) {
 	return c.grpc.GetEventsForHeightRange(ctx, EventRangeQuery{
 		Type:        eventType,
 		StartHeight: startHeight,
@@ -131,14 +131,14 @@ func (c *BaseClient) GetEventsForHeightRange(ctx context.Context, eventType stri
 	})
 }
 
-func (c *BaseClient) GetEventsForBlockIDs(ctx context.Context, eventType string, blockIDs []flow.Identifier) ([]flow.BlockEvents, error) {
+func (c *Client) GetEventsForBlockIDs(ctx context.Context, eventType string, blockIDs []flow.Identifier) ([]flow.BlockEvents, error) {
 	return c.grpc.GetEventsForBlockIDs(ctx, eventType, blockIDs)
 }
 
-func (c *BaseClient) GetLatestProtocolStateSnapshot(ctx context.Context) ([]byte, error) {
+func (c *Client) GetLatestProtocolStateSnapshot(ctx context.Context) ([]byte, error) {
 	return c.grpc.GetLatestProtocolStateSnapshot(ctx)
 }
 
-func (c *BaseClient) GetExecutionResultForBlockID(ctx context.Context, blockID flow.Identifier) (*flow.ExecutionResult, error) {
+func (c *Client) GetExecutionResultForBlockID(ctx context.Context, blockID flow.Identifier) (*flow.ExecutionResult, error) {
 	return c.grpc.GetExecutionResultForBlockID(ctx, blockID)
 }

@@ -265,7 +265,7 @@ func Handle(err error) {
 	}
 }
 
-func NewFlowGRPCClient() *grpc.BaseClient {
+func NewFlowGRPCClient() *grpc.Client {
 	c, err := grpc.NewClient(grpc.EmulatorHost)
 	Handle(err)
 	return c
