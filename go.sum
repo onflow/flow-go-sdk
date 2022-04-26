@@ -140,6 +140,8 @@ github.com/fogleman/gg v1.2.1-0.20190220221249-0403632d5b90/go.mod h1:R/bRT+9gY/
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
 github.com/fxamacker/cbor/v2 v2.3.1-0.20211029162100-5d5d7c3edd41 h1:adk2SdM72B9LVdNPVgLDO+UBdGW5JmDIJEdzlI2ZYC8=
 github.com/fxamacker/cbor/v2 v2.3.1-0.20211029162100-5d5d7c3edd41/go.mod h1:TA1xS00nchWmaBnEIxPSE5oHLuJBAVvqrtAnWBwBCVo=
+github.com/fxamacker/cbor/v2 v2.4.1-0.20220314011055-12f5cb4b5eb0 h1:4i+hJzGuDJs2qYo2rFjNrEYyzQdzjJOzNUR9p20VHyo=
+github.com/fxamacker/cbor/v2 v2.4.1-0.20220314011055-12f5cb4b5eb0/go.mod h1:TA1xS00nchWmaBnEIxPSE5oHLuJBAVvqrtAnWBwBCVo=
 github.com/fxamacker/circlehash v0.2.0 h1:IFBaLm/4NChHcIptw/A7Ha/DemC8M9jGbjWzsN6XDrc=
 github.com/fxamacker/circlehash v0.2.0/go.mod h1:3aq3OfVvsWtkWMb6A1owjOQFA+TLsD5FgJflnaQwtMM=
 github.com/gballet/go-libpcsclite v0.0.0-20190607065134-2772fd86a8ff/go.mod h1:x7DCsMOv1taUwEWCzT4cmDeAkigA5/QCwUodaVOe8Ww=
@@ -293,6 +295,8 @@ github.com/onflow/atree v0.2.0 h1:2Ea0PEDuOL48oOUlVEb7ry8W8HCkRUEnNQZ0W9IfIAk=
 github.com/onflow/atree v0.2.0/go.mod h1:f4/LWn5dJiD63/BK35gnw8sNYWAXHapuekslfrmKvLo=
 github.com/onflow/cadence v0.23.3 h1:Hau2tiEyXkEt/9ZdQw+sr8CBofXwJ6rBqT7iWi/7vrM=
 github.com/onflow/cadence v0.23.3/go.mod h1:Y++seAx3qsNjjZYTQhClD86D5aF951cMHVPL94Z64J8=
+github.com/onflow/cadence v0.23.5-0.20220420174150-b0d71c8d0c3b h1:WZz7HYGUJF9CEVnMdd24Xb7CinF11M6FPOc6wOZ1IbE=
+github.com/onflow/cadence v0.23.5-0.20220420174150-b0d71c8d0c3b/go.mod h1:9aMe+SF+4xIeBWUED6DlJbx50O5ez9lApJKiT0Nqlmw=
 github.com/onflow/flow-go/crypto v0.24.3 h1:5puosmiy853m1GPmBLJr4PiLVcCzE4n5o60hRPo9kYA=
 github.com/onflow/flow-go/crypto v0.24.3/go.mod h1:dkVL98P6GHR48iD9zCB6XlnkJX8IQd00FKgt1reV90w=
 github.com/onflow/flow/protobuf/go/flow v0.2.2 h1:EVhA0w3lu+BG7RK39ojIJVghLH998iP7YC0V/Op0KnU=
