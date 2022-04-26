@@ -30,12 +30,15 @@ import (
 	"github.com/onflow/flow-go-sdk/crypto"
 )
 
+var _ crypto.Signer = (*Signer)(nil)
+
 // Signer is a Google Cloud KMS implementation of crypto.Signer.
 type Signer struct {
-	ctx      context.Context
-	client   *kms.KeyManagementClient
-	key      Key
-	hashAlgo crypto.HashAlgorithm
+	ctx       context.Context
+	client    *kms.KeyManagementClient
+	key       Key
+	hashAlgo  crypto.HashAlgorithm
+	publicKey crypto.PublicKey
 }
 
 // SignerForKey returns a new Google Cloud KMS signer for an asymmetric key version.
@@ -43,16 +46,17 @@ func (c *Client) SignerForKey(
 	ctx context.Context,
 	key Key,
 ) (*Signer, error) {
-	_, hashAlgo, err := c.GetPublicKey(ctx, key)
+	pk, hashAlgo, err := c.GetPublicKey(ctx, key)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Signer{
-		ctx:      ctx,
-		client:   c.client,
-		key:      key,
-		hashAlgo: hashAlgo,
+		ctx:       ctx,
+		client:    c.client,
+		key:       key,
+		hashAlgo:  hashAlgo,
+		publicKey: pk,
 	}, nil
 }
 
@@ -131,4 +135,8 @@ func rightPad(b []byte, length int) []byte {
 	padded := make([]byte, length)
 	copy(padded[length-len(b):], b)
 	return padded
+}
+
+func (s *Signer) PublicKey() crypto.PublicKey {
+	return s.publicKey
 }

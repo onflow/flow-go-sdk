@@ -103,6 +103,8 @@ type PublicKey = crypto.PublicKey
 type Signer interface {
 	// Sign signs the given message with this signer.
 	Sign(message []byte) ([]byte, error)
+	// PublicKey returns the verification public key corresponding to the signer
+	PublicKey() PublicKey
 }
 
 // An InMemorySigner is a signer that generates signatures using an in-memory private key.
@@ -113,6 +115,8 @@ type InMemorySigner struct {
 	PrivateKey PrivateKey
 	Hasher     Hasher
 }
+
+var _ Signer = (*InMemorySigner)(nil)
 
 // NewInMemorySigner initializes and returns a new in-memory signer with the provided private key
 // and hasher.
@@ -127,6 +131,10 @@ func NewInMemorySigner(privateKey PrivateKey, hashAlgo HashAlgorithm) InMemorySi
 
 func (s InMemorySigner) Sign(message []byte) ([]byte, error) {
 	return s.PrivateKey.Sign(message, s.Hasher)
+}
+
+func (s InMemorySigner) PublicKey() PublicKey {
+	return s.PrivateKey.PublicKey()
 }
 
 // NaiveSigner is an alias for InMemorySigner.
