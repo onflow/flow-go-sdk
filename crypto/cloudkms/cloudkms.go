@@ -64,7 +64,6 @@ func (k Key) ResourceID() string {
 	)
 }
 
-// KeyFromResourceID returns a `Key` from a resource ID.
 func KeyFromResourceID(resourceID string) (Key, error) {
 	key := Key{}
 
@@ -104,8 +103,7 @@ func NewClient(ctx context.Context, opts ...option.ClientOption) (*Client, error
 
 // GetPublicKey fetches the public key portion of a KMS asymmetric signing key version.
 //
-// KMS keys of the type `CryptoKeyVersion_EC_SIGN_P256_SHA256` and `CryptoKeyVersion_EC_SIGN_SECP256K1_SHA256`
-// are the only keys supported by the SDK.
+// ECDSA_P256 is currently the only Flow signature algorithm supported by Google Cloud KMS.
 //
 // Ref: https://cloud.google.com/kms/docs/retrieve-public-key
 func (c *Client) GetPublicKey(ctx context.Context, key Key) (crypto.PublicKey, crypto.HashAlgorithm, error) {
@@ -156,25 +154,22 @@ func (c *Client) KMSClient() *kms.KeyManagementClient {
 	return c.client
 }
 
-// ParseSignatureAlgorithm returns the `SignatureAlgorithm` corresponding to the input KMS key type.
 func ParseSignatureAlgorithm(algo kmspb.CryptoKeyVersion_CryptoKeyVersionAlgorithm) crypto.SignatureAlgorithm {
 	if algo == kmspb.CryptoKeyVersion_EC_SIGN_P256_SHA256 {
 		return crypto.ECDSA_P256
 	}
 
-	if algo == kmspb.CryptoKeyVersion_EC_SIGN_SECP256K1_SHA256 {
-		return crypto.ECDSA_secp256k1
-	}
-
-	return crypto.UnknownSignatureAlgorithm
+	// TODO: update this once Google KMS API supports ECDSA_secp256k1
+	// https://github.com/onflow/flow-go-sdk/issues/193
+	return crypto.ECDSA_secp256k1
 }
 
-// ParseHashAlgorithm returns the `HashAlgorithm` corresponding to the input KMS key type.
 func ParseHashAlgorithm(algo kmspb.CryptoKeyVersion_CryptoKeyVersionAlgorithm) crypto.HashAlgorithm {
-	if algo == kmspb.CryptoKeyVersion_EC_SIGN_P256_SHA256 || algo == kmspb.CryptoKeyVersion_EC_SIGN_SECP256K1_SHA256 {
+	if algo == kmspb.CryptoKeyVersion_EC_SIGN_P256_SHA256 {
 		return crypto.SHA2_256
 	}
 
-	// the function can be extended to return SHA3-256 if it becomes supported by KMS.
-	return crypto.UnknownHashAlgorithm
+	// TODO: update this once Google KMS API supports ECDSA_secp256k1
+	// https://github.com/onflow/flow-go-sdk/issues/193
+	return crypto.SHA2_256
 }
