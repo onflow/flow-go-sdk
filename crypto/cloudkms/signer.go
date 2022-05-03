@@ -127,7 +127,7 @@ func curveOrder(curve crypto.SignatureAlgorithm) int {
 	case crypto.ECDSA_secp256k1:
 		return 32
 	default:
-		return 0 // or panic? this only happens if there is an implementation bug
+		panic("the curve is not supported")
 	}
 }
 
