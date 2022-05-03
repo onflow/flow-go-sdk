@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/crypto/cloudkms"
 )
 
@@ -66,6 +67,9 @@ func gcloudApplicationSignin(kms cloudkms.Key) error {
 	return nil
 }
 
+// TestManualKMSSigning tests signing using a KMS key.
+// This tests requires access to KMS and cannot be run by CI. Please use this test manually
+// when making any change to the KMS signing code.
 func TestManualKMSSigning(t *testing.T) {
 	key := cloudkms.Key{
 		ProjectID:  "dl-flow",
@@ -84,12 +88,25 @@ func TestManualKMSSigning(t *testing.T) {
 	err := gcloudApplicationSignin(key)
 	require.NoError(t, err)
 
+	// initialize the client
 	ctx := context.Background()
 	cl, err := cloudkms.NewClient(ctx)
 	require.NoError(t, err)
+
 	// Get the public key
 	pk, _, err := cl.GetPublicKey(ctx, key)
 	require.NoError(t, err)
-	fmt.Println(pk)
-	// TODO: finish the test: sign and verify
+
+	// Sign
+	msg := []byte("random_message")
+	signer, err := cl.SignerForKey(ctx, key)
+	require.NoError(t, err)
+	sig, err := signer.Sign(msg)
+	require.NoError(t, err)
+
+	// verify
+	hasher := crypto.NewSHA2_256()
+	valid, err := pk.Verify(sig, msg, hasher)
+	require.NoError(t, err)
+	assert.True(t, valid)
 }
