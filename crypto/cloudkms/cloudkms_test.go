@@ -86,9 +86,13 @@ func gcloudApplicationSignin(kms cloudkms.Key) error {
 }
 
 // TestManualKMSSigning tests signing using a KMS key.
-// This tests requires access to KMS and cannot be run by CI. Please use this test manually
+// This tests requires access to KMS and cannot be run by CI.
+// Please use this test manually by commenting t.Skip(),
 // when making any change to the KMS signing code.
 func TestManualKMSSigning(t *testing.T) {
+	// to comment when testing manually
+	t.Skip()
+
 	key := cloudkms.Key{
 		ProjectID:  "dl-flow",
 		LocationID: "us-east1",

@@ -93,8 +93,9 @@ func (s *Signer) Sign(message []byte) ([]byte, error) {
 }
 
 func checksum(data []byte) *wrapperspb.Int64Value {
-	// compute the checksum
-	checksum := crc32.ChecksumIEEE(data)
+	// compute CRC32
+	table := crc32.MakeTable(crc32.Castagnoli)
+	checksum := crc32.Checksum(data, table)
 	val := wrapperspb.Int64(int64(checksum))
 	return val
 }
