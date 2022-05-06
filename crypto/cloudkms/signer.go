@@ -35,10 +35,13 @@ var _ crypto.Signer = (*Signer)(nil)
 
 // Signer is a Google Cloud KMS implementation of crypto.Signer.
 type Signer struct {
-	ctx       context.Context
-	client    *kms.KeyManagementClient
-	key       Key
-	hashAlgo  crypto.HashAlgorithm
+	ctx    context.Context
+	client *kms.KeyManagementClient
+	key    Key
+	// ECDSA is the only algorithm supported by this package. The signature algorithm
+	// therefore represents the elliptic curve used. The curve is needed to parse the kms signature.
+	curve crypto.SignatureAlgorithm
+	// public key for easier access
 	publicKey crypto.PublicKey
 }
 
@@ -49,11 +52,6 @@ func (c *Client) SignerForKey(
 	ctx context.Context,
 	key Key,
 ) (*Signer, error) {
-	pk, hashAlgo, err := c.GetPublicKey(ctx, key)
-	if err != nil {
-		return nil, err
-	}
-
 	pk, _, err := c.GetPublicKey(ctx, key)
 	if err != nil {
 		return nil, err
@@ -63,7 +61,7 @@ func (c *Client) SignerForKey(
 		ctx:       ctx,
 		client:    c.client,
 		key:       key,
-		hashAlgo:  hashAlgo,
+		curve:     pk.Algorithm(),
 		publicKey: pk,
 	}, nil
 }
@@ -78,17 +76,14 @@ func (s *Signer) Sign(message []byte) ([]byte, error) {
 		Data:       message,
 		DataCrc32C: checksum(message),
 	}
-
 	result, err := s.client.AsymmetricSign(s.ctx, request)
 	if err != nil {
 		return nil, fmt.Errorf("cloudkms: failed to sign: %w", err)
 	}
-
 	sig, err := parseSignature(result.Signature, s.curve)
 	if err != nil {
 		return nil, fmt.Errorf("cloudkms: failed to parse signature: %w", err)
 	}
-
 	return sig, nil
 }
 
