@@ -97,4 +97,7 @@ type Client interface {
 
 	// GetExecutionResultForBlockID gets the execution results at the block ID.
 	GetExecutionResultForBlockID(ctx context.Context, blockID flow.Identifier) (*flow.ExecutionResult, error)
+
+	// Close stops the client connection to the access node.
+	Close() error
 }

@@ -216,3 +216,8 @@ func (c *Client) GetLatestProtocolStateSnapshot(ctx context.Context) ([]byte, er
 func (c *Client) GetExecutionResultForBlockID(ctx context.Context, blockID flow.Identifier) (*flow.ExecutionResult, error) {
 	return c.httpClient.GetExecutionResultForBlockID(ctx, blockID)
 }
+
+func (c *Client) Close() error {
+	// Close method is not required by the HTTP as the connection is setup and tear down with every request.
+	return nil
+}
