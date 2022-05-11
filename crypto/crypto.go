@@ -53,11 +53,31 @@ func StringToSignatureAlgorithm(s string) SignatureAlgorithm {
 	}
 }
 
-// CompatibleAlgorithms returns true if the signature and hash algorithms is a valid pair for a signing key
-// supported by the package.
-//
-// The package currently supports ECDSA with the 2 curves P-256 and secp256k1. Both curves can be paired with
-// a supported hash function of 256-bits output (SHA2-256, SHA3-256, Keccak256)
+// HashAlgorithm is an identifier for a hash algorithm.
+type HashAlgorithm = hash.HashingAlgorithm
+
+const (
+	UnknownHashAlgorithm HashAlgorithm = hash.UnknownHashingAlgorithm
+	SHA2_256                           = hash.SHA2_256
+	SHA2_384                           = hash.SHA2_384
+	SHA3_256                           = hash.SHA3_256
+	SHA3_384                           = hash.SHA3_384
+)
+
+// StringToHashAlgorithm converts a string to a HashAlgorithm.
+func StringToHashAlgorithm(s string) HashAlgorithm {
+	switch s {
+	case SHA2_256.String():
+		return SHA2_256
+	case SHA3_256.String():
+		return SHA3_256
+
+	default:
+		return UnknownHashAlgorithm
+	}
+}
+
+// CompatibleAlgorithms returns true if the signature and hash algorithms are compatible.
 func CompatibleAlgorithms(sigAlgo SignatureAlgorithm, hashAlgo HashAlgorithm) bool {
 	switch sigAlgo {
 	case ECDSA_P256:
@@ -67,8 +87,6 @@ func CompatibleAlgorithms(sigAlgo SignatureAlgorithm, hashAlgo HashAlgorithm) bo
 		case SHA2_256:
 			fallthrough
 		case SHA3_256:
-			fallthrough
-		case Keccak256:
 			return true
 		}
 	}
@@ -101,15 +119,8 @@ type InMemorySigner struct {
 var _ Signer = (*InMemorySigner)(nil)
 
 // NewInMemorySigner initializes and returns a new in-memory signer with the provided private key
-// and hashing algorithm.
+// and hasher.
 func NewInMemorySigner(privateKey PrivateKey, hashAlgo HashAlgorithm) InMemorySigner {
-	// check compatibility to form a signing key
-	if !CompatibleAlgorithms(privateKey.Algorithm(), hashAlgo) {
-		// TODO: panic?
-		return InMemorySigner{}
-	}
-
-	// The error is ignored because the hash algorithm is valid at this point
 	hasher, _ := NewHasher(hashAlgo)
 
 	return InMemorySigner{

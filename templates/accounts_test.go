@@ -33,13 +33,15 @@ func TestCreateAccount(t *testing.T) {
 		contractLen := 1000
 		contractCode := make([]byte, contractLen)
 
-		tx := templates.CreateAccount(
+		tx, err := templates.CreateAccount(
 			[]*flow.AccountKey{},
 			[]templates.Contract{{
 				Name:   "contract",
 				Source: string(contractCode),
 			}},
 			flow.HexToAddress("01"))
+
+		require.NoError(t, err)
 
 		txSize := len(tx.Script)
 		argumentsSize := 0

@@ -88,7 +88,8 @@ func ModifyAccountDemo() {
 		SetWeight(flow.AccountKeyWeightThreshold)
 
 	// create a new account without any contracts
-	createAccountTx := templates.CreateAccount([]*flow.AccountKey{myAcctKey}, nil, serviceAcctAddr)
+	createAccountTx, err := templates.CreateAccount([]*flow.AccountKey{myAcctKey}, nil, serviceAcctAddr)
+	examples.Handle(err)
 	prepareAndSendTx(ctx, flowClient, *createAccountTx)
 
 	acc, err := flowClient.GetAccount(ctx, serviceAcctAddr)
@@ -133,7 +134,8 @@ func ModifyAccountDemo() {
 		SetHashAlgo(crypto.SHA3_256).
 		SetWeight(flow.AccountKeyWeightThreshold)
 
-	addKeyTx := templates.AddAccountKey(serviceAcctAddr, newAcctKey)
+	addKeyTx, err := templates.AddAccountKey(serviceAcctAddr, newAcctKey)
+	examples.Handle(err)
 	prepareAndSendTx(ctx, flowClient, *addKeyTx)
 
 	acc, _ = flowClient.GetAccount(ctx, serviceAcctAddr)

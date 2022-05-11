@@ -155,13 +155,14 @@ func CreateAccountWithContracts(flowClient access.Client, publicKeys []*flow.Acc
 
 	referenceBlockID := GetReferenceBlockId(flowClient)
 
-	createAccountTx := templates.CreateAccount(publicKeys, contracts, serviceAcctAddr)
+	createAccountTx, err := templates.CreateAccount(publicKeys, contracts, serviceAcctAddr)
+	Handle(err)
 	createAccountTx.
 		SetProposalKey(serviceAcctAddr, serviceAcctKey.Index, serviceAcctKey.SequenceNumber).
 		SetReferenceBlockID(referenceBlockID).
 		SetPayer(serviceAcctAddr)
 
-	err := createAccountTx.SignEnvelope(serviceAcctAddr, serviceAcctKey.Index, serviceSigner)
+	err = createAccountTx.SignEnvelope(serviceAcctAddr, serviceAcctKey.Index, serviceSigner)
 	Handle(err)
 
 	ctx := context.Background()

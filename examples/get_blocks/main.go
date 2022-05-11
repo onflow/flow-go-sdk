@@ -63,5 +63,4 @@ func printBlock(block *flow.Block, err error) {
 	fmt.Printf("\nID: %s\n", block.ID)
 	fmt.Printf("height: %d\n", block.Height)
 	fmt.Printf("timestamp: %s\n\n", block.Timestamp)
-	fmt.Printf("Signatures: %s\n", block.Signatures)
 }

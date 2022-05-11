@@ -49,7 +49,8 @@ func AddAccountKeyDemo() {
 		SetHashAlgo(crypto.SHA3_256).
 		SetWeight(flow.AccountKeyWeightThreshold)
 
-	addKeyTx := templates.AddAccountKey(acctAddr, myAcctKey)
+	addKeyTx, err := templates.AddAccountKey(acctAddr, myAcctKey)
+	examples.Handle(err)
 
 	referenceBlockID := examples.GetReferenceBlockId(flowClient)
 
