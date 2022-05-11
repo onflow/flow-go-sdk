@@ -21,6 +21,7 @@ package templates
 import (
 	"encoding/hex"
 	"fmt"
+
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/cadence/runtime"
@@ -85,8 +86,6 @@ func newHashAlgoValue(hashAlgo crypto.HashAlgorithm) (cadence.Enum, error) {
 		hashAlgoValue = sema.HashAlgorithmSHA3_256
 	case crypto.SHA3_384:
 		hashAlgoValue = sema.HashAlgorithmSHA3_384
-	case crypto.Keccak256:
-		hashAlgoValue = sema.HashAlgorithmKECCAK_256
 	default:
 		return cadence.Enum{}, fmt.Errorf("cannot encode hash algorithm to cadence value: unsupported hash algorithm: %v", hashAlgo)
 	}

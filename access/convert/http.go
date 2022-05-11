@@ -126,13 +126,10 @@ func HTTPToBlockSeals(seals []models.BlockSeal) ([]*flow.BlockSeal, error) {
 		}
 
 		flowSeal[i] = &flow.BlockSeal{
-			BlockID:                    flow.HexToID(seal.BlockId),
+			BlockID: flow.HexToID(seal.BlockId),
 			// TODO: this needs to be changed to resultID
 			// https://github.com/onflow/flow-go/blob/3683183977f2ea769836d8a31997701b3dbced83/model/flow/seal.go#L42
-			ExecutionReceiptID:         flow.HexToID(seal.ResultId),
-			// TODO: this is deprecated, should be removed
-			ExecutionReceiptSignatures: nil,
-			ResultApprovalSignatures:   signatures,
+			ExecutionReceiptID: flow.HexToID(seal.ResultId),
 		}
 	}
 
@@ -170,15 +167,9 @@ func HTTPToBlock(block *models.Block) (*flow.Block, error) {
 		return nil, err
 	}
 
-	signature, err := base64.StdEncoding.DecodeString(block.Header.ParentVoterSignature)
-	if err != nil {
-		return nil, err
-	}
-
 	return &flow.Block{
 		BlockHeader:  *HTTPToBlockHeader(block.Header),
 		BlockPayload: *payload,
-		Signatures:   [][]byte{signature},
 	}, nil
 }
 
