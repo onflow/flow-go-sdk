@@ -190,7 +190,10 @@ tx := flow.NewTransaction().
 
 ```go
 // 通过你的私钥构造一个签名器，通过哈希算法完成签名
-mySigner := crypto.NewInMemorySigner(myPrivateKey, myAccountKey.HashAlgo)
+mySigner, err := crypto.NewInMemorySigner(myPrivateKey, myAccountKey.HashAlgo)
+if err != nil {
+    panic("failed to create a signer")
+}
 
 err := tx.SignEnvelope(myAddress, myAccountKey.Index, mySigner)
 if err != nil {

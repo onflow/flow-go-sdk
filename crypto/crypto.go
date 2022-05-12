@@ -94,11 +94,13 @@ var _ Signer = (*InMemorySigner)(nil)
 
 // NewInMemorySigner initializes and returns a new in-memory signer with the provided private key
 // and hashing algorithm.
-func NewInMemorySigner(privateKey PrivateKey, hashAlgo HashAlgorithm) InMemorySigner {
+//
+// It returns an error if the signature and hashing algorithms are not compatible.
+func NewInMemorySigner(privateKey PrivateKey, hashAlgo HashAlgorithm) (InMemorySigner, error) {
 	// check compatibility to form a signing key
 	if !CompatibleAlgorithms(privateKey.Algorithm(), hashAlgo) {
-		// TODO: panic?
-		return InMemorySigner{}
+		return InMemorySigner{}, fmt.Errorf("signature algorithm %s and hashing algorithm are incompatible %s",
+			privateKey.Algorithm(), hashAlgo)
 	}
 
 	// The error is ignored because the hash algorithm is valid at this point
@@ -107,7 +109,7 @@ func NewInMemorySigner(privateKey PrivateKey, hashAlgo HashAlgorithm) InMemorySi
 	return InMemorySigner{
 		PrivateKey: privateKey,
 		Hasher:     hasher,
-	}
+	}, nil
 }
 
 func (s InMemorySigner) Sign(message []byte) ([]byte, error) {
@@ -122,7 +124,7 @@ func (s InMemorySigner) PublicKey() PublicKey {
 type NaiveSigner = InMemorySigner
 
 // NewNaiveSigner is an alias for NewInMemorySigner.
-func NewNaiveSigner(privateKey PrivateKey, hashAlgo HashAlgorithm) NaiveSigner {
+func NewNaiveSigner(privateKey PrivateKey, hashAlgo HashAlgorithm) (NaiveSigner, error) {
 	return NewInMemorySigner(privateKey, hashAlgo)
 }
 
