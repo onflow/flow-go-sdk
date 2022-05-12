@@ -3,7 +3,8 @@ module github.com/onflow/flow-go-sdk
 go 1.13
 
 require (
-	cloud.google.com/go/kms v1.4.0
+	cloud.google.com/go/iam v0.3.0 // indirect
+	cloud.google.com/go/kms v1.0.0
 	github.com/ethereum/go-ethereum v1.9.9
 	github.com/onflow/cadence v0.21.3-0.20220419065337-d5202c162010
 	github.com/onflow/flow-go/crypto v0.24.3

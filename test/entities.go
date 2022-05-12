@@ -130,7 +130,6 @@ func BlockGenerator() *Blocks {
 
 func (g *Blocks) New() *flow.Block {
 	header := g.headers.New()
-	signatures := g.signatures.New()
 
 	guarantees := []*flow.CollectionGuarantee{
 		g.guarantees.New(),
@@ -150,7 +149,6 @@ func (g *Blocks) New() *flow.Block {
 	return &flow.Block{
 		BlockHeader:  header,
 		BlockPayload: payload,
-		Signatures:   signatures,
 	}
 }
 
@@ -228,10 +226,8 @@ func BlockSealGenerator() *BlockSeals {
 
 func (g *BlockSeals) New() *flow.BlockSeal {
 	return &flow.BlockSeal{
-		BlockID:                    g.ids.New(),
-		ExecutionReceiptID:         g.ids.New(),
-		ExecutionReceiptSignatures: [][]byte{},
-		ResultApprovalSignatures:   [][]byte{},
+		BlockID:            g.ids.New(),
+		ExecutionReceiptID: g.ids.New(),
 	}
 }
 

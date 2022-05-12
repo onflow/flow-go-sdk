@@ -49,7 +49,8 @@ func CreateAccountDemo() {
 		SetWeight(flow.AccountKeyWeightThreshold)
 
 	referenceBlockID := examples.GetReferenceBlockId(flowClient)
-	createAccountTx := templates.CreateAccount([]*flow.AccountKey{myAcctKey}, nil, serviceAcctAddr)
+	createAccountTx, err := templates.CreateAccount([]*flow.AccountKey{myAcctKey}, nil, serviceAcctAddr)
+	examples.Handle(err)
 	createAccountTx.SetProposalKey(
 		serviceAcctAddr,
 		serviceAcctKey.Index,
