@@ -95,7 +95,14 @@ func (g *AccountKeys) NewWithSigner() (*flow.AccountKey, crypto.Signer) {
 		SequenceNumber: 42,
 	}
 
-	return &accountKey, crypto.NewInMemorySigner(privateKey, accountKey.HashAlgo)
+	// error here is nil since ECDSA_P256 and SHA3_256 are compatible,
+	// but keeping the error check for sanity
+	signer, err := crypto.NewInMemorySigner(privateKey, accountKey.HashAlgo)
+	if err != nil {
+		panic(err)
+	}
+
+	return &accountKey, signer
 }
 
 type Addresses struct {

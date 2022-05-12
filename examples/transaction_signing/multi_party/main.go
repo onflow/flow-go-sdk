@@ -49,7 +49,8 @@ func MultiPartySingleSignatureDemo() {
 		SetHashAlgo(crypto.SHA3_256).
 		SetWeight(flow.AccountKeyWeightThreshold)
 
-	key1Signer := crypto.NewInMemorySigner(privateKey1, key1.HashAlgo)
+	key1Signer, err := crypto.NewInMemorySigner(privateKey1, key1.HashAlgo)
+	examples.Handle(err)
 
 	key3 := flow.NewAccountKey().
 		SetPublicKey(privateKey3.PublicKey()).
@@ -57,7 +58,8 @@ func MultiPartySingleSignatureDemo() {
 		SetHashAlgo(crypto.SHA3_256).
 		SetWeight(flow.AccountKeyWeightThreshold)
 
-	key3Signer := crypto.NewInMemorySigner(privateKey3, key3.HashAlgo)
+	key3Signer, err := crypto.NewInMemorySigner(privateKey3, key3.HashAlgo)
+	examples.Handle(err)
 
 	account1 := examples.CreateAccount(flowClient, []*flow.AccountKey{key1})
 	account2 := examples.CreateAccount(flowClient, []*flow.AccountKey{key3})
