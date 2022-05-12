@@ -93,21 +93,15 @@ func TestManualKMSSigning(t *testing.T) {
 	// to comment when testing manually
 	t.Skip()
 
-	key := cloudkms.Key{
-		ProjectID:  "dl-flow",
-		LocationID: "us-east1",
-		KeyRingID:  "testnet_keyring",
-		KeyID:      "sdk_test",
-		KeyVersion: "1",
-	}
-
-	// id is copied from the kms key: https://console.cloud.google.com/security/kms/key/manage/us-east1/testnet_keyring/sdk_test?project=dl-flow
-	// this test insures the key exists in the kms keyring
-	id := "projects/dl-flow/locations/us-east1/keyRings/testnet_keyring/cryptoKeys/sdk_test/cryptoKeyVersions/1"
-	require.Equal(t, key.ResourceID(), id)
+	// KMS_TEST_KEY_RESOURCE_ID is an env var containing the resource ID of a KMS key you
+	// have permissions to use.
+	id := os.Getenv(`KMS_TEST_KEY_RESOURCE_ID`)
+	fmt.Println(id)
+	key, err := cloudkms.KeyFromResourceID(id)
+	require.NoError(t, err)
 
 	// get google kms permission
-	err := gcloudApplicationSignin(key)
+	err = gcloudApplicationSignin(key)
 	require.NoError(t, err)
 
 	// initialize the client
