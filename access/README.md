@@ -29,7 +29,11 @@ flowClient, err := http.NewClient(http.EmulatorHost)
 flowClient, err = grpc.NewClient(grpc.EmulatorHost)
 ```
 
-**Network Specific Usage** if you require some network specific usage you can also 
+**Transport-Specific Features**
+
+Rather than using a generic version of the HTTP or gRPC client, you instantiate a base HTTP or gRPC client to use specific features of either API format.
+
+For example, use `grpc.NewGRPCClient` to set custom gRPC transport credentials.
 instantiate the client like so:
 ```go
 // initialize http specific client
