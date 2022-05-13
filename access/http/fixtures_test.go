@@ -16,11 +16,13 @@
  * limitations under the License.
  */
 
-package test
+package http
 
 import (
 	"encoding/base64"
 	"fmt"
+
+	"github.com/onflow/flow-go-sdk/test"
 
 	"github.com/onflow/flow-go/engine/access/rest/models"
 )
@@ -34,7 +36,7 @@ func ContractHTTP() (string, string) {
 func AccountHTTP() models.Account {
 	name, source := ContractHTTP()
 	return models.Account{
-		Address: AddressGenerator().New().String(),
+		Address: test.AddressGenerator().New().String(),
 		Balance: "10",
 		Keys: []models.AccountPublicKey{
 			AccountKeyHTTP(),
@@ -46,7 +48,7 @@ func AccountHTTP() models.Account {
 }
 
 func AccountKeyHTTP() models.AccountPublicKey {
-	key := AccountKeyGenerator().New()
+	key := test.AccountKeyGenerator().New()
 	sigAlgo := models.SigningAlgorithm(key.SigAlgo.String())
 	hashAlgo := models.HashingAlgorithm(key.HashAlgo.String())
 
@@ -62,7 +64,7 @@ func AccountKeyHTTP() models.AccountPublicKey {
 }
 
 func BlockHTTP() models.Block {
-	block := BlockGenerator().New()
+	block := test.BlockGenerator().New()
 
 	return models.Block{
 		Header: &models.BlockHeader{
@@ -88,7 +90,7 @@ func BlockHTTP() models.Block {
 }
 
 func CollectionHTTP() models.Collection {
-	collection := CollectionGenerator().New()
+	collection := test.CollectionGenerator().New()
 
 	return models.Collection{
 		Id: collection.ID().String(),
@@ -101,7 +103,7 @@ func CollectionHTTP() models.Collection {
 }
 
 func TransactionHTTP() models.Transaction {
-	tx := TransactionGenerator().New()
+	tx := test.TransactionGenerator().New()
 
 	args := make([]string, len(tx.Arguments))
 	for i, a := range tx.Arguments {
@@ -144,7 +146,7 @@ func TransactionHTTP() models.Transaction {
 }
 
 func TransactionResultHTTP() models.TransactionResult {
-	txr := TransactionResultGenerator().New()
+	txr := test.TransactionResultGenerator().New()
 	status := models.SEALED
 
 	return models.TransactionResult{
@@ -167,7 +169,7 @@ func EventsHTTP(n int) []models.Event {
 	events := make([]models.Event, n)
 
 	for i := 0; i < n; i++ {
-		e := EventGenerator().New()
+		e := test.EventGenerator().New()
 		events[i] = models.Event{
 			Type_:            e.Type,
 			TransactionId:    e.TransactionID.String(),
@@ -181,7 +183,7 @@ func EventsHTTP(n int) []models.Event {
 }
 
 func BlockEventsHTTP() models.BlockEvents {
-	block := BlockGenerator().New()
+	block := test.BlockGenerator().New()
 	events := EventsHTTP(4)
 
 	return models.BlockEvents{
