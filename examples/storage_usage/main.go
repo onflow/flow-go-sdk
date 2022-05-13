@@ -66,7 +66,8 @@ func StorageUsageDemo() {
 		SetHashAlgo(crypto.SHA3_256).
 		SetWeight(flow.AccountKeyWeightThreshold)
 
-	keySigner := crypto.NewInMemorySigner(privateKey, key.HashAlgo)
+	keySigner, err := crypto.NewInMemorySigner(privateKey, key.HashAlgo)
+	examples.Handle(err)
 
 	demoAccount := examples.CreateAccountWithContracts(flowClient,
 		[]*flow.AccountKey{key}, []templates.Contract{{

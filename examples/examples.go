@@ -94,7 +94,8 @@ func ServiceAccount(flowClient access.Client) (flow.Address, *flow.AccountKey, c
 	Handle(err)
 
 	accountKey := acc.Keys[0]
-	signer := crypto.NewInMemorySigner(privateKey, accountKey.HashAlgo)
+	signer, err := crypto.NewInMemorySigner(privateKey, accountKey.HashAlgo)
+	Handle(err)
 	return addr, accountKey, signer
 }
 
@@ -139,7 +140,8 @@ func RandomAccount(flowClient access.Client) (flow.Address, *flow.AccountKey, cr
 
 	account := CreateAccount(flowClient, []*flow.AccountKey{accountKey})
 	FundAccountInEmulator(flowClient, account.Address, 10.0)
-	signer := crypto.NewInMemorySigner(privateKey, accountKey.HashAlgo)
+	signer, err := crypto.NewInMemorySigner(privateKey, accountKey.HashAlgo)
+	Handle(err)
 	return account.Address, account.Keys[0], signer
 }
 

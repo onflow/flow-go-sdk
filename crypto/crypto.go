@@ -53,40 +53,14 @@ func StringToSignatureAlgorithm(s string) SignatureAlgorithm {
 	}
 }
 
-// HashAlgorithm is an identifier for a hash algorithm.
-type HashAlgorithm = hash.HashingAlgorithm
-
-const (
-	UnknownHashAlgorithm HashAlgorithm = hash.UnknownHashingAlgorithm
-	SHA2_256                           = hash.SHA2_256
-	SHA2_384                           = hash.SHA2_384
-	SHA3_256                           = hash.SHA3_256
-	SHA3_384                           = hash.SHA3_384
-)
-
-// StringToHashAlgorithm converts a string to a HashAlgorithm.
-func StringToHashAlgorithm(s string) HashAlgorithm {
-	switch s {
-	case SHA2_256.String():
-		return SHA2_256
-	case SHA3_256.String():
-		return SHA3_256
-
-	default:
-		return UnknownHashAlgorithm
-	}
-}
-
-// CompatibleAlgorithms returns true if the signature and hash algorithms are compatible.
+// CompatibleAlgorithms returns true if the signature and hash algorithms is a valid pair for a signing key
+// supported by the package.
+//
+// The package currently supports ECDSA with the 2 curves P-256 and secp256k1. Both curves can be paired with
+// a supported hash function of 256-bits output (SHA2-256, SHA3-256, Keccak256)
 func CompatibleAlgorithms(sigAlgo SignatureAlgorithm, hashAlgo HashAlgorithm) bool {
-	switch sigAlgo {
-	case ECDSA_P256:
-		fallthrough
-	case ECDSA_secp256k1:
-		switch hashAlgo {
-		case SHA2_256:
-			fallthrough
-		case SHA3_256:
+	if sigAlgo == ECDSA_P256 || sigAlgo == ECDSA_secp256k1 {
+		if hashAlgo == SHA2_256 || hashAlgo == SHA3_256 || hashAlgo == Keccak256 {
 			return true
 		}
 	}
@@ -119,14 +93,23 @@ type InMemorySigner struct {
 var _ Signer = (*InMemorySigner)(nil)
 
 // NewInMemorySigner initializes and returns a new in-memory signer with the provided private key
-// and hasher.
-func NewInMemorySigner(privateKey PrivateKey, hashAlgo HashAlgorithm) InMemorySigner {
+// and hashing algorithm.
+//
+// It returns an error if the signature and hashing algorithms are not compatible.
+func NewInMemorySigner(privateKey PrivateKey, hashAlgo HashAlgorithm) (InMemorySigner, error) {
+	// check compatibility to form a signing key
+	if !CompatibleAlgorithms(privateKey.Algorithm(), hashAlgo) {
+		return InMemorySigner{}, fmt.Errorf("signature algorithm %s and hashing algorithm are incompatible %s",
+			privateKey.Algorithm(), hashAlgo)
+	}
+
+	// The error is ignored because the hash algorithm is valid at this point
 	hasher, _ := NewHasher(hashAlgo)
 
 	return InMemorySigner{
 		PrivateKey: privateKey,
 		Hasher:     hasher,
-	}
+	}, nil
 }
 
 func (s InMemorySigner) Sign(message []byte) ([]byte, error) {
@@ -141,7 +124,7 @@ func (s InMemorySigner) PublicKey() PublicKey {
 type NaiveSigner = InMemorySigner
 
 // NewNaiveSigner is an alias for NewInMemorySigner.
-func NewNaiveSigner(privateKey PrivateKey, hashAlgo HashAlgorithm) NaiveSigner {
+func NewNaiveSigner(privateKey PrivateKey, hashAlgo HashAlgorithm) (NaiveSigner, error) {
 	return NewInMemorySigner(privateKey, hashAlgo)
 }
 

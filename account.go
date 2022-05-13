@@ -95,15 +95,22 @@ func (a AccountKey) Encode() []byte {
 	return mustRLPEncode(&temp)
 }
 
+// accountCompatibleAlgorithms returns true if the signature and hash algorithms are a valid pair
+// for a key on a Flow account.
+func accountCompatibleAlgorithms(sigAlgo crypto.SignatureAlgorithm, hashAlgo crypto.HashAlgorithm) bool {
+	return (sigAlgo == crypto.ECDSA_P256 || sigAlgo == crypto.ECDSA_secp256k1) &&
+		(hashAlgo == crypto.SHA2_256 || hashAlgo == crypto.SHA3_256)
+}
+
 // Validate returns an error if this account key is invalid.
 //
 // An account key can be invalid for the following reasons:
-// - It specifies an incompatible signature/hash algorithm pairing
-// - It specifies a valid key weight
+// - It specifies an incompatible signature/hash algorithm pair with regards to Flow accounts
+// - It specifies an invalid key weight
 func (a AccountKey) Validate() error {
-	if !crypto.CompatibleAlgorithms(a.SigAlgo, a.HashAlgo) {
+	if !accountCompatibleAlgorithms(a.SigAlgo, a.HashAlgo) {
 		return errors.Errorf(
-			"signing algorithm (%s) is incompatible with hashing algorithm (%s)",
+			"signing algorithm (%s) and hashing algorithm (%s) are not a valid pair for a Flow account key",
 			a.SigAlgo,
 			a.HashAlgo,
 		)

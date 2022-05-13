@@ -51,7 +51,8 @@ func DeployContractDemo() {
 		FromPrivateKey(myPrivateKey).
 		SetHashAlgo(crypto.SHA3_256).
 		SetWeight(flow.AccountKeyWeightThreshold)
-	mySigner := crypto.NewInMemorySigner(myPrivateKey, myAcctKey.HashAlgo)
+	mySigner, err := crypto.NewInMemorySigner(myPrivateKey, myAcctKey.HashAlgo)
+	examples.Handle(err)
 
 	referenceBlockID := examples.GetReferenceBlockId(flowClient)
 	createAccountTx, err := templates.CreateAccount([]*flow.AccountKey{myAcctKey}, nil, serviceAcctAddr)

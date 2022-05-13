@@ -110,8 +110,10 @@ func UserSignatureDemo() {
 	message := append(toAddress.Bytes(), fromAddress.Bytes()...)
 	message = append(message, amount.ToBigEndianBytes()...)
 
-	signerAlice := crypto.NewInMemorySigner(privateKeyAlice, crypto.SHA3_256)
-	signerBob := crypto.NewInMemorySigner(privateKeyBob, crypto.SHA3_256)
+	signerAlice, err := crypto.NewInMemorySigner(privateKeyAlice, crypto.SHA3_256)
+	examples.Handle(err)
+	signerBob, err := crypto.NewInMemorySigner(privateKeyBob, crypto.SHA3_256)
+	examples.Handle(err)
 
 	// sign the message with Alice and Bob
 	signatureAlice, err := flow.SignUserMessage(signerAlice, message)

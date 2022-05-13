@@ -108,7 +108,8 @@ func UserSignatureValidateAny() {
 	// create the message that will be signed with one key
 	message := []byte("ananas")
 
-	signerAlice := crypto.NewInMemorySigner(privateKeyAlice, crypto.SHA3_256)
+	signerAlice, err := crypto.NewInMemorySigner(privateKeyAlice, crypto.SHA3_256)
+	examples.Handle(err)
 
 	// sign the message only with Alice
 	signatureAlice, err := flow.SignUserMessage(signerAlice, message)
