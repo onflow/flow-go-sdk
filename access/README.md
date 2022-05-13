@@ -1,7 +1,6 @@
-
-## Client Package
-Client package implements network communication with the access nodes APIs. 
-It also defines a `Client` interface exposing all the common API interactions.  
+## Access Package
+The access package implements network communication with the access nodes APIs. 
+It also defines an `access.Client` interface exposing all the common API interactions.  
 
 ### Design
 Each implementation (currently `grpc` and `http`) include the following parts:
@@ -21,7 +20,7 @@ implementations like so:
 **General Usage**
 ```go
 // common client interface
-var flowClient client.Client
+var flowClient access.Client
 
 // initialize an http emulator client
 flowClient, err := http.NewClient(http.EmulatorHost)
@@ -30,7 +29,11 @@ flowClient, err := http.NewClient(http.EmulatorHost)
 flowClient, err = grpc.NewClient(grpc.EmulatorHost)
 ```
 
-**Network Specific Usage** if you require some network specific usage you can also 
+**Transport-Specific Features**
+
+Rather than using a generic version of the HTTP or gRPC client, you instantiate a base HTTP or gRPC client to use specific features of either API format.
+
+For example, use `grpc.NewGRPCClient` to set custom gRPC transport credentials.
 instantiate the client like so:
 ```go
 // initialize http specific client
