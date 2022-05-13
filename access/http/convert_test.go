@@ -31,7 +31,7 @@ import (
 func Test_ConvertBlock(t *testing.T) {
 	httpBlock := BlockHTTP()
 
-	block, err := HTTPToBlock(&httpBlock)
+	block, err := toBlock(&httpBlock)
 
 	assert.NoError(t, err)
 	assert.Equal(t, block.ID.String(), httpBlock.Header.Id)
@@ -47,7 +47,7 @@ func Test_ConvertAccount(t *testing.T) {
 	httpAccount := AccountHTTP()
 	contractName, contractCode := ContractHTTP()
 
-	account, err := HTTPToAccount(&httpAccount)
+	account, err := toAccount(&httpAccount)
 
 	assert.NoError(t, err)
 	assert.Equal(t, account.Address.String(), httpAccount.Address)
@@ -61,7 +61,7 @@ func Test_ConvertAccount(t *testing.T) {
 func Test_ConvertCollection(t *testing.T) {
 	httpColl := CollectionHTTP()
 
-	collection := HTTPToCollection(&httpColl)
+	collection := toCollection(&httpColl)
 
 	assert.Len(t, collection.TransactionIDs, len(httpColl.Transactions))
 	assert.Equal(t, collection.TransactionIDs[0].String(), httpColl.Transactions[0].Id)
@@ -71,7 +71,7 @@ func Test_ConvertTransaction(t *testing.T) {
 	httpTx := TransactionHTTP()
 	script, _ := base64.StdEncoding.DecodeString(httpTx.Script)
 
-	tx, err := HTTPToTransaction(&httpTx)
+	tx, err := toTransaction(&httpTx)
 
 	auths := make([]string, len(tx.Authorizers))
 	for i, a := range tx.Authorizers {
@@ -101,7 +101,7 @@ func Test_ConvertTransaction(t *testing.T) {
 
 func Test_ConvertTransactionResult(t *testing.T) {
 	httpTxr := TransactionResultHTTP()
-	txr, err := HTTPToTransactionResult(&httpTxr)
+	txr, err := toTransactionResult(&httpTxr)
 
 	assert.NoError(t, err)
 	assert.Equal(t, txr.Status, flow.TransactionStatusSealed)
