@@ -30,7 +30,6 @@ import (
 
 	"github.com/onflow/cadence"
 	"github.com/onflow/flow-go-sdk"
-	"github.com/onflow/flow-go-sdk/access/convert"
 	"github.com/onflow/flow-go/engine/access/rest/models"
 )
 
@@ -181,7 +180,7 @@ func (c *BaseClient) GetBlockByID(ctx context.Context, blockID flow.Identifier, 
 		return nil, err
 	}
 
-	return convert.HTTPToBlock(block)
+	return HTTPToBlock(block)
 }
 
 // GetBlocksByHeights requests the blocks by the specified block query.
@@ -211,7 +210,7 @@ func (c *BaseClient) GetBlocksByHeights(
 		return nil, err
 	}
 
-	return convert.HTTPToBlocks(httpBlocks)
+	return HTTPToBlocks(httpBlocks)
 }
 
 func (c *BaseClient) GetCollection(
@@ -224,7 +223,7 @@ func (c *BaseClient) GetCollection(
 		return nil, err
 	}
 
-	return convert.HTTPToCollection(collection), nil
+	return HTTPToCollection(collection), nil
 }
 
 func (c *BaseClient) SendTransaction(
@@ -232,7 +231,7 @@ func (c *BaseClient) SendTransaction(
 	tx flow.Transaction,
 	opts ...queryOpts,
 ) error {
-	convertedTx, err := convert.TransactionToHTTP(tx)
+	convertedTx, err := TransactionToHTTP(tx)
 	if err != nil {
 		return err
 	}
@@ -250,7 +249,7 @@ func (c *BaseClient) GetTransaction(
 		return nil, err
 	}
 
-	return convert.HTTPToTransaction(tx)
+	return HTTPToTransaction(tx)
 }
 
 func (c *BaseClient) GetTransactionResult(
@@ -263,7 +262,7 @@ func (c *BaseClient) GetTransactionResult(
 		return nil, err
 	}
 
-	return convert.HTTPToTransactionResult(tx.Result)
+	return HTTPToTransactionResult(tx.Result)
 }
 
 func (c *BaseClient) GetAccountAtBlockHeight(
@@ -281,7 +280,7 @@ func (c *BaseClient) GetAccountAtBlockHeight(
 		return nil, err
 	}
 
-	return convert.HTTPToAccount(account)
+	return HTTPToAccount(account)
 }
 
 func (c *BaseClient) ExecuteScriptAtBlockID(
@@ -291,17 +290,17 @@ func (c *BaseClient) ExecuteScriptAtBlockID(
 	arguments []cadence.Value,
 	opts ...queryOpts,
 ) (cadence.Value, error) {
-	args, err := convert.CadenceArgsToHTTP(arguments)
+	args, err := CadenceArgsToHTTP(arguments)
 	if err != nil {
 		return nil, err
 	}
 
-	result, err := c.handler.executeScriptAtBlockID(ctx, blockID.String(), convert.ScriptToHTTP(script), args, opts...)
+	result, err := c.handler.executeScriptAtBlockID(ctx, blockID.String(), ScriptToHTTP(script), args, opts...)
 	if err != nil {
 		return nil, err
 	}
 
-	return convert.HTTPToCadenceValue(result)
+	return HTTPToCadenceValue(result)
 }
 
 func (c *BaseClient) ExecuteScriptAtBlockHeight(
@@ -311,7 +310,7 @@ func (c *BaseClient) ExecuteScriptAtBlockHeight(
 	arguments []cadence.Value,
 	opts ...queryOpts,
 ) (cadence.Value, error) {
-	args, err := convert.CadenceArgsToHTTP(arguments)
+	args, err := CadenceArgsToHTTP(arguments)
 	if err != nil {
 		return nil, err
 	}
@@ -323,7 +322,7 @@ func (c *BaseClient) ExecuteScriptAtBlockHeight(
 	result, err := c.handler.executeScriptAtBlockHeight(
 		ctx,
 		blockQuery.heightsString(),
-		convert.ScriptToHTTP(script),
+		ScriptToHTTP(script),
 		args,
 		opts...,
 	)
@@ -331,7 +330,7 @@ func (c *BaseClient) ExecuteScriptAtBlockHeight(
 		return nil, err
 	}
 
-	return convert.HTTPToCadenceValue(result)
+	return HTTPToCadenceValue(result)
 }
 
 func (c *BaseClient) GetEventsForHeightRange(
@@ -359,7 +358,7 @@ func (c *BaseClient) GetEventsForHeightRange(
 		return nil, err
 	}
 
-	return convert.HTTPToBlockEvents(events)
+	return HTTPToBlockEvents(events)
 }
 
 func (c *BaseClient) GetEventsForBlockIDs(
@@ -377,7 +376,7 @@ func (c *BaseClient) GetEventsForBlockIDs(
 		return nil, err
 	}
 
-	return convert.HTTPToBlockEvents(events)
+	return HTTPToBlockEvents(events)
 }
 
 func (c *BaseClient) GetLatestProtocolStateSnapshot(ctx context.Context) ([]byte, error) {
@@ -394,5 +393,5 @@ func (c *BaseClient) GetExecutionResultForBlockID(ctx context.Context, blockID f
 		return nil, fmt.Errorf("results not found") // sanity check
 	}
 
-	return convert.HTTPToExecutionResults(results[0]), nil
+	return HTTPToExecutionResults(results[0]), nil
 }

@@ -26,8 +26,6 @@ import (
 
 	"github.com/onflow/flow-go/engine/access/rest/models"
 
-	"github.com/onflow/flow-go-sdk/access/convert"
-
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/test"
 	"github.com/stretchr/testify/assert"
@@ -69,8 +67,8 @@ func TestClient_Factories(t *testing.T) {
 func TestBaseClient_GetBlockByID(t *testing.T) {
 	const handlerName = "getBlockByID"
 	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
-		httpBlock := test.BlockHTTP()
-		expectedBlock, err := convert.HTTPToBlock(&httpBlock)
+		httpBlock := BlockHTTP()
+		expectedBlock, err := HTTPToBlock(&httpBlock)
 		assert.NoError(t, err)
 
 		handler.
@@ -83,8 +81,8 @@ func TestBaseClient_GetBlockByID(t *testing.T) {
 	}))
 
 	t.Run("Get Block Header", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
-		httpBlock := test.BlockHTTP()
-		expectedBlock, err := convert.HTTPToBlock(&httpBlock)
+		httpBlock := BlockHTTP()
+		expectedBlock, err := HTTPToBlock(&httpBlock)
 		assert.NoError(t, err)
 
 		handler.
@@ -114,8 +112,8 @@ func TestBaseClient_GetBlockByHeight(t *testing.T) {
 	const handlerName = "getBlocksByHeights"
 
 	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
-		httpBlock := test.BlockHTTP()
-		expectedBlock, err := convert.HTTPToBlock(&httpBlock)
+		httpBlock := BlockHTTP()
+		expectedBlock, err := HTTPToBlock(&httpBlock)
 		assert.NoError(t, err)
 
 		handler.
@@ -142,8 +140,8 @@ func TestBaseClient_GetBlockByHeight(t *testing.T) {
 	}))
 
 	t.Run("Get Block Header", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
-		httpBlock := test.BlockHTTP()
-		expectedBlock, err := convert.HTTPToBlock(&httpBlock)
+		httpBlock := BlockHTTP()
+		expectedBlock, err := HTTPToBlock(&httpBlock)
 		assert.NoError(t, err)
 
 		handler.
@@ -160,8 +158,8 @@ func TestBaseClient_GetLatestBlock(t *testing.T) {
 	const handlerName = "getBlocksByHeights"
 
 	t.Run("Block Sealed", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
-		httpBlock := test.BlockHTTP()
-		expectedBlock, err := convert.HTTPToBlock(&httpBlock)
+		httpBlock := BlockHTTP()
+		expectedBlock, err := HTTPToBlock(&httpBlock)
 		assert.NoError(t, err)
 
 		handler.
@@ -174,8 +172,8 @@ func TestBaseClient_GetLatestBlock(t *testing.T) {
 	}))
 
 	t.Run("Block Not Sealed", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
-		httpBlock := test.BlockHTTP()
-		expectedBlock, err := convert.HTTPToBlock(&httpBlock)
+		httpBlock := BlockHTTP()
+		expectedBlock, err := HTTPToBlock(&httpBlock)
 		assert.NoError(t, err)
 
 		handler.
@@ -188,8 +186,8 @@ func TestBaseClient_GetLatestBlock(t *testing.T) {
 	}))
 
 	t.Run("Final Header", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
-		httpBlock := test.BlockHTTP()
-		expectedBlock, err := convert.HTTPToBlock(&httpBlock)
+		httpBlock := BlockHTTP()
+		expectedBlock, err := HTTPToBlock(&httpBlock)
 		assert.NoError(t, err)
 
 		handler.
@@ -202,8 +200,8 @@ func TestBaseClient_GetLatestBlock(t *testing.T) {
 	}))
 
 	t.Run("Sealed Header", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
-		httpBlock := test.BlockHTTP()
-		expectedBlock, err := convert.HTTPToBlock(&httpBlock)
+		httpBlock := BlockHTTP()
+		expectedBlock, err := HTTPToBlock(&httpBlock)
 		assert.NoError(t, err)
 
 		handler.
@@ -220,8 +218,8 @@ func TestBaseClient_GetCollection(t *testing.T) {
 	const handlerName = "getCollection"
 
 	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
-		httpCollection := test.CollectionHTTP()
-		expectedCollection := convert.HTTPToCollection(&httpCollection)
+		httpCollection := CollectionHTTP()
+		expectedCollection := HTTPToCollection(&httpCollection)
 
 		handler.
 			On(handlerName, mock.Anything, expectedCollection.ID().String()).
@@ -252,11 +250,11 @@ func TestBaseClient_SendTransaction(t *testing.T) {
 	const handlerName = "sendTransaction"
 
 	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
-		httpTx := test.TransactionHTTP()
-		expectedTx, err := convert.HTTPToTransaction(&httpTx)
+		httpTx := TransactionHTTP()
+		expectedTx, err := HTTPToTransaction(&httpTx)
 		assert.NoError(t, err)
 
-		sentTx, err := convert.TransactionToHTTP(*expectedTx)
+		sentTx, err := TransactionToHTTP(*expectedTx)
 		assert.NoError(t, err)
 
 		handler.
@@ -284,8 +282,8 @@ func TestBaseClient_GetTransaction(t *testing.T) {
 	const handlerName = "getTransaction"
 
 	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
-		httpTx := test.TransactionHTTP()
-		expectedTx, err := convert.HTTPToTransaction(&httpTx)
+		httpTx := TransactionHTTP()
+		expectedTx, err := HTTPToTransaction(&httpTx)
 		assert.NoError(t, err)
 
 		handler.
@@ -314,13 +312,13 @@ func TestBaseClient_GetTransactionResult(t *testing.T) {
 	const handlerName = "getTransaction"
 
 	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
-		httpTx := test.TransactionHTTP()
-		httpTxRes := test.TransactionResultHTTP()
+		httpTx := TransactionHTTP()
+		httpTxRes := TransactionResultHTTP()
 		httpTx.Result = &httpTxRes
-		expectedTx, err := convert.HTTPToTransaction(&httpTx)
+		expectedTx, err := HTTPToTransaction(&httpTx)
 		assert.NoError(t, err)
 
-		expectedTxRes, err := convert.HTTPToTransactionResult(&httpTxRes)
+		expectedTxRes, err := HTTPToTransactionResult(&httpTxRes)
 		assert.NoError(t, err)
 
 		handler.
@@ -349,8 +347,8 @@ func TestBaseClient_GetAccount(t *testing.T) {
 	const handlerName = "getAccount"
 
 	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
-		httpAccount := test.AccountHTTP()
-		expectedAccount, err := convert.HTTPToAccount(&httpAccount)
+		httpAccount := AccountHTTP()
+		expectedAccount, err := HTTPToAccount(&httpAccount)
 		assert.NoError(t, err)
 
 		handler.
@@ -387,8 +385,8 @@ func TestBaseClient_GetAccountAtBlockHeight(t *testing.T) {
 	const handlerName = "getAccount"
 
 	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
-		httpAccount := test.AccountHTTP()
-		expectedAccount, err := convert.HTTPToAccount(&httpAccount)
+		httpAccount := AccountHTTP()
+		expectedAccount, err := HTTPToAccount(&httpAccount)
 		assert.NoError(t, err)
 
 		handler.
@@ -486,8 +484,8 @@ func TestBaseClient_GetEvents(t *testing.T) {
 	const handlerName = "getEvents"
 
 	t.Run("Get For Height Range", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
-		httpEvents := test.BlockEventsHTTP()
-		expectedEvents, err := convert.HTTPToBlockEvents([]models.BlockEvents{httpEvents})
+		httpEvents := BlockEventsHTTP()
+		expectedEvents, err := HTTPToBlockEvents([]models.BlockEvents{httpEvents})
 		const eType = "A.Foo.Bar"
 		handler.
 			On(handlerName, mock.Anything, eType, "0", "5", []string(nil)).
@@ -499,8 +497,8 @@ func TestBaseClient_GetEvents(t *testing.T) {
 	}))
 
 	t.Run("Get For Block IDs", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
-		httpEvents := test.BlockEventsHTTP()
-		expectedEvents, err := convert.HTTPToBlockEvents([]models.BlockEvents{httpEvents})
+		httpEvents := BlockEventsHTTP()
+		expectedEvents, err := HTTPToBlockEvents([]models.BlockEvents{httpEvents})
 		const eType = "A.Foo.Bar"
 		handler.
 			On(handlerName, mock.Anything, eType, "", "", []string{expectedEvents[0].BlockID.String()}).
