@@ -119,7 +119,7 @@ func TestHandler_ResponseFailures(t *testing.T) {
 
 func TestHandler_GetBlockByID(t *testing.T) {
 	t.Run("Success", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
-		b := BlockHTTP()
+		b := blockFlowFixture()
 		httpBlock := []*models.Block{&b}
 
 		const id = "0x1"
@@ -151,7 +151,7 @@ func TestHandler_GetBlockByHeights(t *testing.T) {
 	const heightKey = "height"
 
 	t.Run("Range Height Success", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
-		b := BlockHTTP()
+		b := blockFlowFixture()
 		httpBlock := []*models.Block{&b}
 
 		const (
@@ -172,8 +172,8 @@ func TestHandler_GetBlockByHeights(t *testing.T) {
 	}))
 
 	t.Run("List Height Success", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
-		b1 := BlockHTTP()
-		b2 := BlockHTTP()
+		b1 := blockFlowFixture()
+		b2 := blockFlowFixture()
 		httpBlocks := []*models.Block{&b1, &b2}
 
 		const heights = "1,2"
@@ -252,7 +252,7 @@ func newAccountsURL(address string, query map[string]string) url.URL {
 func TestHandler_GetAccount(t *testing.T) {
 
 	t.Run("Success", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
-		httpAccount := AccountHTTP()
+		httpAccount := accountFlowFixture()
 
 		const height = "sealed"
 		req.SetData(
@@ -294,7 +294,7 @@ func TestHandler_GetCollection(t *testing.T) {
 	const collectionURL = "/collections"
 
 	t.Run("Success", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
-		httpCollection := CollectionHTTP()
+		httpCollection := collectionFlowFixture()
 		id := "0x1"
 
 		collURL, _ := url.Parse(fmt.Sprintf("%s/%s", collectionURL, id))
@@ -364,7 +364,7 @@ func TestHandler_ExecuteScript(t *testing.T) {
 func TestHandler_SendTransaction(t *testing.T) {
 
 	t.Run("Success", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
-		httpTx := TransactionHTTP()
+		httpTx := transactionFlowFixture()
 		u, _ := url.Parse("/transactions")
 
 		req.SetData(*u, httpTx)
@@ -385,7 +385,7 @@ func newTransactionURL(id string, query map[string]string) url.URL {
 func TestHandler_GetTransaction(t *testing.T) {
 
 	t.Run("Success", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
-		httpTx := TransactionHTTP()
+		httpTx := transactionFlowFixture()
 		id := "0x1"
 
 		txURL := newTransactionURL(id, nil)
@@ -397,7 +397,7 @@ func TestHandler_GetTransaction(t *testing.T) {
 	}))
 
 	t.Run("Success With Results", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
-		httpTx := TransactionHTTP()
+		httpTx := transactionFlowFixture()
 		id := "0x1"
 
 		txURL := newTransactionURL(id, map[string]string{
@@ -447,7 +447,7 @@ func TestHandler_GetEvents(t *testing.T) {
 			start     = "1"
 			end       = "3"
 		)
-		httpEvents := []models.BlockEvents{BlockEventsHTTP()}
+		httpEvents := []models.BlockEvents{blockEventsFlowFixture()}
 
 		req.SetData(
 			newEventsURL(map[string]string{
@@ -464,7 +464,7 @@ func TestHandler_GetEvents(t *testing.T) {
 	}))
 
 	t.Run("Get for IDs", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
-		httpEvents := []models.BlockEvents{BlockEventsHTTP()}
+		httpEvents := []models.BlockEvents{blockEventsFlowFixture()}
 
 		const eventType = "A.Foo"
 		ids := []string{"0x1", "0x2"}

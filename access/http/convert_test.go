@@ -29,7 +29,7 @@ import (
 )
 
 func Test_ConvertBlock(t *testing.T) {
-	httpBlock := BlockHTTP()
+	httpBlock := blockFlowFixture()
 
 	block, err := toBlock(&httpBlock)
 
@@ -44,8 +44,8 @@ func Test_ConvertBlock(t *testing.T) {
 }
 
 func Test_ConvertAccount(t *testing.T) {
-	httpAccount := AccountHTTP()
-	contractName, contractCode := ContractHTTP()
+	httpAccount := accountFlowFixture()
+	contractName, contractCode := contractFlowFixture()
 
 	account, err := toAccount(&httpAccount)
 
@@ -59,7 +59,7 @@ func Test_ConvertAccount(t *testing.T) {
 }
 
 func Test_ConvertCollection(t *testing.T) {
-	httpColl := CollectionHTTP()
+	httpColl := collectionFlowFixture()
 
 	collection := toCollection(&httpColl)
 
@@ -68,7 +68,7 @@ func Test_ConvertCollection(t *testing.T) {
 }
 
 func Test_ConvertTransaction(t *testing.T) {
-	httpTx := TransactionHTTP()
+	httpTx := transactionFlowFixture()
 	script, _ := base64.StdEncoding.DecodeString(httpTx.Script)
 
 	tx, err := toTransaction(&httpTx)
@@ -100,7 +100,7 @@ func Test_ConvertTransaction(t *testing.T) {
 }
 
 func Test_ConvertTransactionResult(t *testing.T) {
-	httpTxr := TransactionResultHTTP()
+	httpTxr := transactionResultFlowFixture()
 	txr, err := toTransactionResult(&httpTxr)
 
 	assert.NoError(t, err)

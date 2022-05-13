@@ -27,19 +27,19 @@ import (
 	"github.com/onflow/flow-go/engine/access/rest/models"
 )
 
-func ContractHTTP() (string, string) {
+func contractFlowFixture() (string, string) {
 	return "HelloWorld", base64.StdEncoding.EncodeToString([]byte(`
 		contract HelloWorld {}
 	`))
 }
 
-func AccountHTTP() models.Account {
-	name, source := ContractHTTP()
+func accountFlowFixture() models.Account {
+	name, source := contractFlowFixture()
 	return models.Account{
 		Address: test.AddressGenerator().New().String(),
 		Balance: "10",
 		Keys: []models.AccountPublicKey{
-			AccountKeyHTTP(),
+			accountKeyFlowFixture(),
 		},
 		Contracts:  map[string]string{name: source},
 		Expandable: nil,
@@ -47,7 +47,7 @@ func AccountHTTP() models.Account {
 	}
 }
 
-func AccountKeyHTTP() models.AccountPublicKey {
+func accountKeyFlowFixture() models.AccountPublicKey {
 	key := test.AccountKeyGenerator().New()
 	sigAlgo := models.SigningAlgorithm(key.SigAlgo.String())
 	hashAlgo := models.HashingAlgorithm(key.HashAlgo.String())
@@ -63,7 +63,7 @@ func AccountKeyHTTP() models.AccountPublicKey {
 	}
 }
 
-func BlockHTTP() models.Block {
+func blockFlowFixture() models.Block {
 	block := test.BlockGenerator().New()
 
 	return models.Block{
@@ -89,7 +89,7 @@ func BlockHTTP() models.Block {
 	}
 }
 
-func CollectionHTTP() models.Collection {
+func collectionFlowFixture() models.Collection {
 	collection := test.CollectionGenerator().New()
 
 	return models.Collection{
@@ -102,7 +102,7 @@ func CollectionHTTP() models.Collection {
 	}
 }
 
-func TransactionHTTP() models.Transaction {
+func transactionFlowFixture() models.Transaction {
 	tx := test.TransactionGenerator().New()
 
 	args := make([]string, len(tx.Arguments))
@@ -145,7 +145,7 @@ func TransactionHTTP() models.Transaction {
 	}
 }
 
-func TransactionResultHTTP() models.TransactionResult {
+func transactionResultFlowFixture() models.TransactionResult {
 	txr := test.TransactionResultGenerator().New()
 	status := models.SEALED
 
@@ -165,7 +165,7 @@ func TransactionResultHTTP() models.TransactionResult {
 	}
 }
 
-func EventsHTTP(n int) []models.Event {
+func eventsFlowFixture(n int) []models.Event {
 	events := make([]models.Event, n)
 
 	for i := 0; i < n; i++ {
@@ -182,9 +182,9 @@ func EventsHTTP(n int) []models.Event {
 	return events
 }
 
-func BlockEventsHTTP() models.BlockEvents {
+func blockEventsFlowFixture() models.BlockEvents {
 	block := test.BlockGenerator().New()
-	events := EventsHTTP(4)
+	events := eventsFlowFixture(4)
 
 	return models.BlockEvents{
 		BlockId:        block.ID.String(),
