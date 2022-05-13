@@ -16,27 +16,28 @@
  * limitations under the License.
  */
 
-package convert_test
+package grpc_test
 
 import (
 	"testing"
 	"time"
+
+	"github.com/onflow/flow-go-sdk/access/grpc"
 
 	"github.com/onflow/cadence"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/onflow/flow-go-sdk"
-	"github.com/onflow/flow-go-sdk/access/convert"
 	"github.com/onflow/flow-go-sdk/test"
 )
 
 func TestConvert_Account(t *testing.T) {
 	accountA := test.AccountGenerator().New()
 
-	msg := convert.AccountToMessage(*accountA)
+	msg := grpc.AccountToMessage(*accountA)
 
-	accountB, err := convert.MessageToAccount(msg)
+	accountB, err := grpc.MessageToAccount(msg)
 	require.NoError(t, err)
 
 	assert.Equal(t, *accountA, accountB)
@@ -45,9 +46,9 @@ func TestConvert_Account(t *testing.T) {
 func TestConvert_AccountKey(t *testing.T) {
 	keyA := test.AccountKeyGenerator().New()
 
-	msg := convert.AccountKeyToMessage(keyA)
+	msg := grpc.AccountKeyToMessage(keyA)
 
-	keyB, err := convert.MessageToAccountKey(msg)
+	keyB, err := grpc.MessageToAccountKey(msg)
 	require.NoError(t, err)
 
 	assert.Equal(t, keyA, keyB)
@@ -56,10 +57,10 @@ func TestConvert_AccountKey(t *testing.T) {
 func TestConvert_Block(t *testing.T) {
 	blockA := test.BlockGenerator().New()
 
-	msg, err := convert.BlockToMessage(*blockA)
+	msg, err := grpc.BlockToMessage(*blockA)
 	require.NoError(t, err)
 
-	blockB, err := convert.MessageToBlock(msg)
+	blockB, err := grpc.MessageToBlock(msg)
 	require.NoError(t, err)
 
 	assert.Equal(t, *blockA, blockB)
@@ -67,12 +68,12 @@ func TestConvert_Block(t *testing.T) {
 	t.Run("Without timestamp", func(t *testing.T) {
 		blockA := test.BlockGenerator().New()
 
-		msg, err := convert.BlockToMessage(*blockA)
+		msg, err := grpc.BlockToMessage(*blockA)
 		require.NoError(t, err)
 
 		msg.Timestamp = nil
 
-		blockB, err = convert.MessageToBlock(msg)
+		blockB, err = grpc.MessageToBlock(msg)
 		require.NoError(t, err)
 
 		assert.Equal(t, time.Time{}, blockB.Timestamp)
@@ -82,10 +83,10 @@ func TestConvert_Block(t *testing.T) {
 func TestConvert_BlockHeader(t *testing.T) {
 	headerA := test.BlockHeaderGenerator().New()
 
-	msg, err := convert.BlockHeaderToMessage(headerA)
+	msg, err := grpc.BlockHeaderToMessage(headerA)
 	require.NoError(t, err)
 
-	headerB, err := convert.MessageToBlockHeader(msg)
+	headerB, err := grpc.MessageToBlockHeader(msg)
 	require.NoError(t, err)
 
 	assert.Equal(t, headerA, headerB)
@@ -93,12 +94,12 @@ func TestConvert_BlockHeader(t *testing.T) {
 	t.Run("Without timestamp", func(t *testing.T) {
 		headerA := test.BlockHeaderGenerator().New()
 
-		msg, err := convert.BlockHeaderToMessage(headerA)
+		msg, err := grpc.BlockHeaderToMessage(headerA)
 		require.NoError(t, err)
 
 		msg.Timestamp = nil
 
-		headerB, err = convert.MessageToBlockHeader(msg)
+		headerB, err = grpc.MessageToBlockHeader(msg)
 		require.NoError(t, err)
 
 		assert.Equal(t, time.Time{}, headerB.Timestamp)
@@ -109,10 +110,10 @@ func TestConvert_CadenceValue(t *testing.T) {
 	t.Run("Valid value", func(t *testing.T) {
 		valueA := cadence.NewInt(42)
 
-		msg, err := convert.CadenceValueToMessage(valueA)
+		msg, err := grpc.CadenceValueToMessage(valueA)
 		require.NoError(t, err)
 
-		valueB, err := convert.MessageToCadenceValue(msg)
+		valueB, err := grpc.MessageToCadenceValue(msg)
 		require.NoError(t, err)
 
 		assert.Equal(t, valueA, valueB)
@@ -121,7 +122,7 @@ func TestConvert_CadenceValue(t *testing.T) {
 	t.Run("Invalid message", func(t *testing.T) {
 		msg := []byte("invalid JSON-CDC bytes")
 
-		value, err := convert.MessageToCadenceValue(msg)
+		value, err := grpc.MessageToCadenceValue(msg)
 		assert.Error(t, err)
 		assert.Nil(t, value)
 	})
@@ -130,9 +131,9 @@ func TestConvert_CadenceValue(t *testing.T) {
 func TestConvert_Collection(t *testing.T) {
 	colA := test.CollectionGenerator().New()
 
-	msg := convert.CollectionToMessage(*colA)
+	msg := grpc.CollectionToMessage(*colA)
 
-	colB, err := convert.MessageToCollection(msg)
+	colB, err := grpc.MessageToCollection(msg)
 	require.NoError(t, err)
 
 	assert.Equal(t, *colA, colB)
@@ -141,9 +142,9 @@ func TestConvert_Collection(t *testing.T) {
 func TestConvert_CollectionGuarantee(t *testing.T) {
 	cgA := test.CollectionGuaranteeGenerator().New()
 
-	msg := convert.CollectionGuaranteeToMessage(*cgA)
+	msg := grpc.CollectionGuaranteeToMessage(*cgA)
 
-	cgB, err := convert.MessageToCollectionGuarantee(msg)
+	cgB, err := grpc.MessageToCollectionGuarantee(msg)
 	require.NoError(t, err)
 
 	assert.Equal(t, *cgA, cgB)
@@ -152,9 +153,9 @@ func TestConvert_CollectionGuarantee(t *testing.T) {
 func TestConvert_BlockSeal(t *testing.T) {
 	bsA := test.BlockSealGenerator().New()
 
-	msg := convert.BlockSealToMessage(*bsA)
+	msg := grpc.BlockSealToMessage(*bsA)
 
-	bsB, err := convert.MessageToBlockSeal(msg)
+	bsB, err := grpc.MessageToBlockSeal(msg)
 	require.NoError(t, err)
 
 	assert.Equal(t, *bsA, bsB)
@@ -169,9 +170,9 @@ func TestConvert_CollectionGuarantees(t *testing.T) {
 		cgs.New(),
 	}
 
-	msg := convert.CollectionGuaranteesToMessages(cgsA)
+	msg := grpc.CollectionGuaranteesToMessages(cgsA)
 
-	cgsB, err := convert.MessagesToCollectionGuarantees(msg)
+	cgsB, err := grpc.MessagesToCollectionGuarantees(msg)
 	require.NoError(t, err)
 
 	assert.Equal(t, cgsA, cgsB)
@@ -186,9 +187,9 @@ func TestConvert_BlockSeals(t *testing.T) {
 		bss.New(),
 	}
 
-	msg := convert.BlockSealsToMessages(bssA)
+	msg := grpc.BlockSealsToMessages(bssA)
 
-	bssB, err := convert.MessagesToBlockSeals(msg)
+	bssB, err := grpc.MessagesToBlockSeals(msg)
 	require.NoError(t, err)
 
 	assert.Equal(t, bssA, bssB)
@@ -197,10 +198,10 @@ func TestConvert_BlockSeals(t *testing.T) {
 func TestConvert_Event(t *testing.T) {
 	eventA := test.EventGenerator().New()
 
-	msg, err := convert.EventToMessage(eventA)
+	msg, err := grpc.EventToMessage(eventA)
 	require.NoError(t, err)
 
-	eventB, err := convert.MessageToEvent(msg)
+	eventB, err := grpc.MessageToEvent(msg)
 	require.NoError(t, err)
 
 	assert.Equal(t, eventA, eventB)
@@ -209,8 +210,8 @@ func TestConvert_Event(t *testing.T) {
 func TestConvert_Identifier(t *testing.T) {
 	idA := test.IdentifierGenerator().New()
 
-	msg := convert.IdentifierToMessage(idA)
-	idB := convert.MessageToIdentifier(msg)
+	msg := grpc.IdentifierToMessage(idA)
+	idB := grpc.MessageToIdentifier(msg)
 
 	assert.Equal(t, idA, idB)
 }
@@ -224,8 +225,8 @@ func TestConvert_Identifiers(t *testing.T) {
 		ids.New(),
 	}
 
-	msg := convert.IdentifiersToMessages(idsA)
-	idsB := convert.MessagesToIdentifiers(msg)
+	msg := grpc.IdentifiersToMessages(idsA)
+	idsB := grpc.MessagesToIdentifiers(msg)
 
 	assert.Equal(t, idsA, idsB)
 }
@@ -235,10 +236,10 @@ func TestConvert_Transaction(t *testing.T) {
 		txA := test.TransactionGenerator().New()
 		txA.Arguments = nil
 
-		msg, err := convert.TransactionToMessage(*txA)
+		msg, err := grpc.TransactionToMessage(*txA)
 		require.NoError(t, err)
 
-		txB, err := convert.MessageToTransaction(msg)
+		txB, err := grpc.MessageToTransaction(msg)
 		require.NoError(t, err)
 
 		assert.Equal(t, txA.ID(), txB.ID())
@@ -247,10 +248,10 @@ func TestConvert_Transaction(t *testing.T) {
 	t.Run("With arguments", func(t *testing.T) {
 		txA := test.TransactionGenerator().New()
 
-		msg, err := convert.TransactionToMessage(*txA)
+		msg, err := grpc.TransactionToMessage(*txA)
 		require.NoError(t, err)
 
-		txB, err := convert.MessageToTransaction(msg)
+		txB, err := grpc.MessageToTransaction(msg)
 		require.NoError(t, err)
 
 		assert.Equal(t, txA.ID(), txB.ID())
@@ -260,9 +261,9 @@ func TestConvert_Transaction(t *testing.T) {
 func TestConvert_TransactionResult(t *testing.T) {
 	resultA := test.TransactionResultGenerator().New()
 
-	msg, err := convert.TransactionResultToMessage(resultA)
+	msg, err := grpc.TransactionResultToMessage(resultA)
 
-	resultB, err := convert.MessageToTransactionResult(msg)
+	resultB, err := grpc.MessageToTransactionResult(msg)
 	require.NoError(t, err)
 
 	assert.Equal(t, resultA, resultB)

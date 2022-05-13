@@ -28,7 +28,6 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/onflow/flow-go-sdk"
-	"github.com/onflow/flow-go-sdk/access/convert"
 )
 
 // RPCClient is an RPC client for the Flow Access API.
@@ -131,7 +130,7 @@ func (c *BaseClient) GetBlockHeaderByHeight(
 }
 
 func getBlockHeaderResult(res *access.BlockHeaderResponse) (*flow.BlockHeader, error) {
-	header, err := convert.MessageToBlockHeader(res.GetBlock())
+	header, err := MessageToBlockHeader(res.GetBlock())
 	if err != nil {
 		return nil, newMessageToEntityError(entityBlockHeader, err)
 	}
@@ -191,7 +190,7 @@ func (c *BaseClient) GetBlockByHeight(
 }
 
 func getBlockResult(res *access.BlockResponse) (*flow.Block, error) {
-	block, err := convert.MessageToBlock(res.GetBlock())
+	block, err := MessageToBlock(res.GetBlock())
 	if err != nil {
 		return nil, newMessageToEntityError(entityBlock, err)
 	}
@@ -213,7 +212,7 @@ func (c *BaseClient) GetCollection(
 		return nil, newRPCError(err)
 	}
 
-	result, err := convert.MessageToCollection(res.GetCollection())
+	result, err := MessageToCollection(res.GetCollection())
 	if err != nil {
 		return nil, newMessageToEntityError(entityCollection, err)
 	}
@@ -226,7 +225,7 @@ func (c *BaseClient) SendTransaction(
 	tx flow.Transaction,
 	opts ...grpc.CallOption,
 ) error {
-	txMsg, err := convert.TransactionToMessage(tx)
+	txMsg, err := TransactionToMessage(tx)
 	if err != nil {
 		return newEntityToMessageError(entityTransaction, err)
 	}
@@ -257,7 +256,7 @@ func (c *BaseClient) GetTransaction(
 		return nil, newRPCError(err)
 	}
 
-	result, err := convert.MessageToTransaction(res.GetTransaction())
+	result, err := MessageToTransaction(res.GetTransaction())
 	if err != nil {
 		return nil, newMessageToEntityError(entityTransaction, err)
 	}
@@ -279,7 +278,7 @@ func (c *BaseClient) GetTransactionResult(
 		return nil, newRPCError(err)
 	}
 
-	result, err := convert.MessageToTransactionResult(res)
+	result, err := MessageToTransactionResult(res)
 	if err != nil {
 		return nil, newMessageToEntityError(entityTransactionResult, err)
 	}
@@ -305,7 +304,7 @@ func (c *BaseClient) GetAccountAtLatestBlock(
 		return nil, newRPCError(err)
 	}
 
-	account, err := convert.MessageToAccount(res.GetAccount())
+	account, err := MessageToAccount(res.GetAccount())
 	if err != nil {
 		return nil, newMessageToEntityError(entityAccount, err)
 	}
@@ -329,7 +328,7 @@ func (c *BaseClient) GetAccountAtBlockHeight(
 		return nil, newRPCError(err)
 	}
 
-	account, err := convert.MessageToAccount(res.GetAccount())
+	account, err := MessageToAccount(res.GetAccount())
 	if err != nil {
 		return nil, newMessageToEntityError(entityAccount, err)
 	}
@@ -344,7 +343,7 @@ func (c *BaseClient) ExecuteScriptAtLatestBlock(
 	opts ...grpc.CallOption,
 ) (cadence.Value, error) {
 
-	args, err := convert.CadenceValuesToMessages(arguments)
+	args, err := CadenceValuesToMessages(arguments)
 	if err != nil {
 		return nil, newEntityToMessageError(entityCadenceValue, err)
 	}
@@ -370,7 +369,7 @@ func (c *BaseClient) ExecuteScriptAtBlockID(
 	opts ...grpc.CallOption,
 ) (cadence.Value, error) {
 
-	args, err := convert.CadenceValuesToMessages(arguments)
+	args, err := CadenceValuesToMessages(arguments)
 	if err != nil {
 		return nil, newEntityToMessageError(entityCadenceValue, err)
 	}
@@ -397,7 +396,7 @@ func (c *BaseClient) ExecuteScriptAtBlockHeight(
 	opts ...grpc.CallOption,
 ) (cadence.Value, error) {
 
-	args, err := convert.CadenceValuesToMessages(arguments)
+	args, err := CadenceValuesToMessages(arguments)
 	if err != nil {
 		return nil, newEntityToMessageError(entityCadenceValue, err)
 	}
@@ -417,7 +416,7 @@ func (c *BaseClient) ExecuteScriptAtBlockHeight(
 }
 
 func executeScriptResult(res *access.ExecuteScriptResponse) (cadence.Value, error) {
-	value, err := convert.MessageToCadenceValue(res.GetValue())
+	value, err := MessageToCadenceValue(res.GetValue())
 	if err != nil {
 		return nil, newMessageToEntityError(entityCadenceValue, err)
 	}
@@ -462,7 +461,7 @@ func (c *BaseClient) GetEventsForBlockIDs(
 ) ([]flow.BlockEvents, error) {
 	req := &access.GetEventsForBlockIDsRequest{
 		Type:     eventType,
-		BlockIds: convert.IdentifiersToMessages(blockIDs),
+		BlockIds: IdentifiersToMessages(blockIDs),
 	}
 
 	res, err := c.rpcClient.GetEventsForBlockIDs(ctx, req, opts...)
@@ -483,7 +482,7 @@ func getEventsResult(res *access.EventsResponse) ([]flow.BlockEvents, error) {
 		events := make([]flow.Event, len(eventMessages))
 
 		for i, m := range eventMessages {
-			evt, err := convert.MessageToEvent(m)
+			evt, err := MessageToEvent(m)
 			if err != nil {
 				return nil, newMessageToEntityError(entityEvent, err)
 			}
@@ -514,7 +513,7 @@ func (c *BaseClient) GetLatestProtocolStateSnapshot(ctx context.Context, opts ..
 
 func (c *BaseClient) GetExecutionResultForBlockID(ctx context.Context, blockID flow.Identifier, opts ...grpc.CallOption) (*flow.ExecutionResult, error) {
 	er, err := c.rpcClient.GetExecutionResultForBlockID(ctx, &access.GetExecutionResultForBlockIDRequest{
-		BlockId: convert.IdentifierToMessage(blockID),
+		BlockId: IdentifierToMessage(blockID),
 	}, opts...)
 	if err != nil {
 		return nil, newRPCError(err)

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package convert
+package grpc
 
 import (
 	"errors"
