@@ -42,8 +42,14 @@ const MainnetHost = "access.mainnet.nodes.onflow.org:9000"
 
 // NewClient creates an gRPC client exposing all the common access APIs.
 // Client will use provided host for connection.
-func NewClient(host string) (*Client, error) {
-	client, err := NewBaseClient(host, grpc.WithTransportCredentials(insecure.NewCredentials()))
+func NewClient(host string, opts ...grpc.DialOption) (*Client, error) {
+	var client *BaseClient
+	var err error
+	if len(opts) > 0 {
+		client, err = NewBaseClient(host, opts...)
+	} else {
+		client, err = NewBaseClient(host, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	}
 	if err != nil {
 		return nil, err
 	}
