@@ -12,6 +12,7 @@ require (
 	github.com/onflow/sdks v0.4.4
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.7.1-0.20210824115523-ab6dc3262822
+	github.com/vektra/mockery v1.1.2 // indirect
 	google.golang.org/api v0.70.0
 	google.golang.org/genproto v0.0.0-20220222213610-43724f9ea8cf
 	google.golang.org/grpc v1.44.0
