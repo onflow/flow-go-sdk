@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go/iam v0.3.0 // indirect
 	cloud.google.com/go/kms v1.0.0
 	github.com/ethereum/go-ethereum v1.9.9
-	github.com/onflow/cadence v0.21.3-0.20220419065337-d5202c162010
+	github.com/onflow/cadence v0.21.3-0.20220513161637-08b93d4bb7b9
 	github.com/onflow/flow-go/crypto v0.24.3
 	github.com/onflow/flow/protobuf/go/flow v0.2.2
 	github.com/onflow/sdks v0.4.2
@@ -17,5 +17,3 @@ require (
 	google.golang.org/grpc v1.44.0
 	google.golang.org/protobuf v1.27.1
 )
-
-replace github.com/onflow/cadence => github.com/onflow/cadence v0.21.3-0.20220419065337-d5202c162010
