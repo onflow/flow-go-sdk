@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package convert
+package http
 
 import (
 	"encoding/base64"
@@ -25,12 +25,11 @@ import (
 
 	"github.com/onflow/flow-go-sdk"
 
-	"github.com/onflow/flow-go-sdk/test"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_ConvertBlock(t *testing.T) {
-	httpBlock := test.BlockHTTP()
+	httpBlock := BlockHTTP()
 
 	block, err := HTTPToBlock(&httpBlock)
 
@@ -45,8 +44,8 @@ func Test_ConvertBlock(t *testing.T) {
 }
 
 func Test_ConvertAccount(t *testing.T) {
-	httpAccount := test.AccountHTTP()
-	contractName, contractCode := test.ContractHTTP()
+	httpAccount := AccountHTTP()
+	contractName, contractCode := ContractHTTP()
 
 	account, err := HTTPToAccount(&httpAccount)
 
@@ -60,7 +59,7 @@ func Test_ConvertAccount(t *testing.T) {
 }
 
 func Test_ConvertCollection(t *testing.T) {
-	httpColl := test.CollectionHTTP()
+	httpColl := CollectionHTTP()
 
 	collection := HTTPToCollection(&httpColl)
 
@@ -69,7 +68,7 @@ func Test_ConvertCollection(t *testing.T) {
 }
 
 func Test_ConvertTransaction(t *testing.T) {
-	httpTx := test.TransactionHTTP()
+	httpTx := TransactionHTTP()
 	script, _ := base64.StdEncoding.DecodeString(httpTx.Script)
 
 	tx, err := HTTPToTransaction(&httpTx)
@@ -101,7 +100,7 @@ func Test_ConvertTransaction(t *testing.T) {
 }
 
 func Test_ConvertTransactionResult(t *testing.T) {
-	httpTxr := test.TransactionResultHTTP()
+	httpTxr := TransactionResultHTTP()
 	txr, err := HTTPToTransactionResult(&httpTxr)
 
 	assert.NoError(t, err)

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package convert
+package http
 
 import (
 	"encoding/base64"
