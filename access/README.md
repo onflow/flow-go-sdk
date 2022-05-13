@@ -20,7 +20,7 @@ implementations like so:
 **General Usage**
 ```go
 // common client interface
-var flowClient client.Client
+var flowClient access.Client
 
 // initialize an http emulator client
 flowClient, err := http.NewClient(http.EmulatorHost)
