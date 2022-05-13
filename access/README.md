@@ -1,6 +1,5 @@
-
-## Client Package
-Client package implements network communication with the access nodes APIs. 
+## Access Package
+The access package implements network communication with the access nodes APIs. 
 It also defines a `Client` interface exposing all the common API interactions.  
 
 ### Design
