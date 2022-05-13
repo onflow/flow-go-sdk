@@ -45,7 +45,7 @@ grpcClient, err := grpc.NewGRPCClient(
     grpcOpts.WithTransportCredentials(insecure.NewCredentials()),
 )
 ```
-Read more about this in the docs.
+Read more about this [in the docs](https://docs.onflow.org/flow-go-sdk/).
 
 ## Development
 
