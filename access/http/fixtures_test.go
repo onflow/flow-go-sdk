@@ -187,3 +187,28 @@ func blockEventsFlowFixture() models.BlockEvents {
 		Events:         events,
 	}
 }
+
+func executionResultFlowFixture() models.ExecutionResult {
+	block := test.BlockGenerator().New()
+	events := eventsFlowFixture(4)
+	id := test.IdentifierGenerator().New()
+	prevId := test.IdentifierGenerator().New()
+
+	return models.ExecutionResult{
+		Id:      id.String(),
+		BlockId: block.ID.String(),
+		Events:  events,
+		Chunks: []models.Chunk{{
+			BlockId:              block.ID.String(),
+			CollectionIndex:      block.CollectionGuarantees[0].CollectionID.String(),
+			StartState:           "",
+			EndState:             "",
+			EventCollection:      "",
+			Index:                id.String(),
+			NumberOfTransactions: "2",
+			TotalComputationUsed: "100",
+		}},
+		PreviousResultId: prevId.String(),
+		Links:            nil,
+	}
+}

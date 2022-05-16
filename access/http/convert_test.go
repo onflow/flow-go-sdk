@@ -126,5 +126,9 @@ func Test_EncodeCadenceArgs(t *testing.T) {
 }
 
 func Test_ConvertExecutionResults(t *testing.T) {
-
+	exec := executionResultFlowFixture()
+	res := toExecutionResults(exec)
+	assert.Equal(t, res.BlockID.String(), exec.BlockId)
+	assert.Equal(t, res.Chunks[0].BlockID.String(), exec.Chunks[0].BlockId)
+	assert.Len(t, res.Chunks, 1)
 }
