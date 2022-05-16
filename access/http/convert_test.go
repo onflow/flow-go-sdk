@@ -124,3 +124,7 @@ func Test_EncodeCadenceArgs(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, res, []string{"eyJ0eXBlIjoiU3RyaW5nIiwidmFsdWUiOiJIZWxsbyJ9Cg==", "eyJ0eXBlIjoiU3RyaW5nIiwidmFsdWUiOiJXb3JsZCJ9Cg=="})
 }
+
+func Test_ConvertExecutionResults(t *testing.T) {
+
+}

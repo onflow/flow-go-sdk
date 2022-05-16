@@ -416,11 +416,25 @@ func toExecutionResults(result models.ExecutionResult) *flow.ExecutionResult {
 		}
 	}
 
-	// TODO: there is missing data on the HTTP API, make sure this is consistent
+	chunks := make([]*flow.Chunk, len(result.Chunks))
+
+	for i, chunk := range result.Chunks {
+		chunks[i] = &flow.Chunk{
+			CollectionIndex:      uint(mustToUint(chunk.CollectionIndex)),
+			StartState:           flow.HexToStateCommitment(chunk.StartState),
+			EventCollection:      crypto.Hash(chunk.EventCollection),
+			BlockID:              flow.HexToID(chunk.BlockId),
+			TotalComputationUsed: mustToUint(chunk.TotalComputationUsed),
+			NumberOfTransactions: uint16(mustToUint(chunk.NumberOfTransactions)),
+			Index:                mustToUint(chunk.Index),
+			EndState:             flow.HexToStateCommitment(chunk.EndState),
+		}
+	}
+
 	return &flow.ExecutionResult{
-		PreviousResultID: flow.EmptyID,
+		PreviousResultID: flow.HexToID(result.PreviousResultId),
 		BlockID:          flow.HexToID(result.BlockId),
-		Chunks:           nil,
+		Chunks:           chunks,
 		ServiceEvents:    events,
 	}
 }
