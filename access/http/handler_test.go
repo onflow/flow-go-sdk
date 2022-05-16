@@ -27,7 +27,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/onflow/flow-go/engine/access/rest/models"
+	"github.com/onflow/flow-go-sdk/access/http/models"
 
 	"github.com/stretchr/testify/assert"
 )
