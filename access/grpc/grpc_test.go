@@ -81,7 +81,7 @@ func TestClient_GetLatestBlockHeader(t *testing.T) {
 	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
 		expectedHeader := blocks.New().BlockHeader
 
-		b, err := BlockHeaderToMessage(expectedHeader)
+		b, err := blockHeaderToMessage(expectedHeader)
 		require.NoError(t, err)
 
 		response := &access.BlockHeaderResponse{
@@ -115,7 +115,7 @@ func TestClient_GetBlockHeaderByID(t *testing.T) {
 		blockID := ids.New()
 		expectedHeader := blocks.New().BlockHeader
 
-		b, err := BlockHeaderToMessage(expectedHeader)
+		b, err := blockHeaderToMessage(expectedHeader)
 		require.NoError(t, err)
 
 		response := &access.BlockHeaderResponse{
@@ -149,7 +149,7 @@ func TestClient_GetBlockHeaderByHeight(t *testing.T) {
 	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
 		expectedHeader := blocks.New().BlockHeader
 
-		b, err := BlockHeaderToMessage(expectedHeader)
+		b, err := blockHeaderToMessage(expectedHeader)
 		require.NoError(t, err)
 
 		response := &access.BlockHeaderResponse{
@@ -181,7 +181,7 @@ func TestClient_GetLatestBlock(t *testing.T) {
 	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
 		expectedBlock := blocks.New()
 
-		b, err := BlockToMessage(*expectedBlock)
+		b, err := blockToMessage(*expectedBlock)
 		require.NoError(t, err)
 
 		response := &access.BlockResponse{
@@ -215,7 +215,7 @@ func TestClient_GetBlockByID(t *testing.T) {
 		blockID := ids.New()
 		expectedBlock := blocks.New()
 
-		b, err := BlockToMessage(*expectedBlock)
+		b, err := blockToMessage(*expectedBlock)
 		require.NoError(t, err)
 
 		response := &access.BlockResponse{
@@ -249,7 +249,7 @@ func TestClient_GetBlockByHeight(t *testing.T) {
 	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
 		expectedBlock := blocks.New()
 
-		b, err := BlockToMessage(*expectedBlock)
+		b, err := blockToMessage(*expectedBlock)
 		require.NoError(t, err)
 
 		response := &access.BlockResponse{
@@ -283,7 +283,7 @@ func TestClient_GetCollection(t *testing.T) {
 		colID := ids.New()
 		expectedCol := cols.New()
 		response := &access.CollectionResponse{
-			Collection: CollectionToMessage(*expectedCol),
+			Collection: collectionToMessage(*expectedCol),
 		}
 
 		rpc.On("GetCollectionByID", ctx, mock.Anything).Return(response, nil)
@@ -343,7 +343,7 @@ func TestClient_GetTransaction(t *testing.T) {
 		txID := ids.New()
 		expectedTx := txs.New()
 
-		txMsg, err := TransactionToMessage(*expectedTx)
+		txMsg, err := transactionToMessage(*expectedTx)
 		require.NoError(t, err)
 
 		response := &access.TransactionResponse{
@@ -378,7 +378,7 @@ func TestClient_GetTransactionResult(t *testing.T) {
 	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
 		txID := ids.New()
 		expectedResult := results.New()
-		response, _ := TransactionResultToMessage(expectedResult)
+		response, _ := transactionResultToMessage(expectedResult)
 
 		rpc.On("GetTransactionResult", ctx, mock.Anything).Return(response, nil)
 
@@ -409,7 +409,7 @@ func TestClient_GetAccountAtLatestBlock(t *testing.T) {
 	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
 		expectedAccount := accounts.New()
 		response := &access.AccountResponse{
-			Account: AccountToMessage(*expectedAccount),
+			Account: accountToMessage(*expectedAccount),
 		}
 
 		rpc.On("GetAccountAtLatestBlock", ctx, mock.Anything).Return(response, nil)
@@ -441,7 +441,7 @@ func TestClient_GetAccountAtBlockHeight(t *testing.T) {
 	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
 		expectedAccount := accounts.New()
 		response := &access.AccountResponse{
-			Account: AccountToMessage(*expectedAccount),
+			Account: accountToMessage(*expectedAccount),
 		}
 
 		rpc.On("GetAccountAtBlockHeight", ctx, mock.Anything).Return(response, nil)
@@ -655,10 +655,10 @@ func TestClient_GetEventsForHeightRange(t *testing.T) {
 		clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
 			eventA, eventB, eventC, eventD := events.New(), events.New(), events.New(), events.New()
 
-			eventAMsg, _ := EventToMessage(eventA)
-			eventBMsg, _ := EventToMessage(eventB)
-			eventCMsg, _ := EventToMessage(eventC)
-			eventDMsg, _ := EventToMessage(eventD)
+			eventAMsg, _ := eventToMessage(eventA)
+			eventBMsg, _ := eventToMessage(eventB)
+			eventCMsg, _ := eventToMessage(eventC)
+			eventDMsg, _ := eventToMessage(eventD)
 
 			response := &access.EventsResponse{
 				Results: []*access.EventsResponse_Result{
@@ -751,10 +751,10 @@ func TestClient_GetEventsForBlockIDs(t *testing.T) {
 			blockIDA, blockIDB := ids.New(), ids.New()
 			eventA, eventB, eventC, eventD := events.New(), events.New(), events.New(), events.New()
 
-			eventAMsg, _ := EventToMessage(eventA)
-			eventBMsg, _ := EventToMessage(eventB)
-			eventCMsg, _ := EventToMessage(eventC)
-			eventDMsg, _ := EventToMessage(eventD)
+			eventAMsg, _ := eventToMessage(eventA)
+			eventBMsg, _ := eventToMessage(eventB)
+			eventCMsg, _ := eventToMessage(eventC)
+			eventDMsg, _ := eventToMessage(eventD)
 
 			response := &access.EventsResponse{
 				Results: []*access.EventsResponse_Result{
