@@ -5,7 +5,7 @@ package http
 import (
 	context "context"
 
-	models "github.com/onflow/flow-go/engine/access/rest/models"
+	models "github.com/onflow/flow-go-sdk/access/http/models"
 	mock "github.com/stretchr/testify/mock"
 )
 
