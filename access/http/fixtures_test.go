@@ -78,10 +78,13 @@ func blockFlowFixture() models.Block {
 				CollectionId: block.CollectionGuarantees[0].CollectionID.String(),
 			}},
 			BlockSeals: []models.BlockSeal{{
-				BlockId:                      block.Seals[0].BlockID.String(),
-				ResultId:                     block.Seals[0].ExecutionReceiptID.String(),
-				FinalState:                   "",
-				AggregatedApprovalSignatures: nil,
+				BlockId:    block.Seals[0].BlockID.String(),
+				ResultId:   block.Seals[0].ExecutionReceiptID.String(),
+				FinalState: "",
+				AggregatedApprovalSignatures: []models.AggregatedSignature{{
+					VerifierSignatures: []string{"dGVzdA=="},
+					SignerIds:          []string{"1"},
+				}},
 			}},
 		},
 		ExecutionResult: nil,

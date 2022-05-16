@@ -23,6 +23,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/onflow/cadence"
+
 	"github.com/onflow/flow-go-sdk"
 
 	"github.com/stretchr/testify/assert"
@@ -112,4 +114,13 @@ func Test_ConvertTransactionResult(t *testing.T) {
 	assert.Equal(t, txr.Events[0].Payload, payload)
 	assert.Equal(t, txr.Events[0].TransactionID.String(), httpTxr.Events[0].TransactionId)
 	assert.Equal(t, fmt.Sprintf("%d", txr.Events[0].TransactionIndex), httpTxr.Events[0].TransactionIndex)
+}
+
+func Test_EncodeCadenceArgs(t *testing.T) {
+	v1, _ := cadence.NewValue("Hello")
+	v2, _ := cadence.NewValue("World")
+
+	res, err := encodeCadenceArgs([]cadence.Value{v1, v2})
+	assert.NoError(t, err)
+	assert.Equal(t, res, []string{"eyJ0eXBlIjoiU3RyaW5nIiwidmFsdWUiOiJIZWxsbyJ9Cg==", "eyJ0eXBlIjoiU3RyaW5nIiwidmFsdWUiOiJXb3JsZCJ9Cg=="})
 }
