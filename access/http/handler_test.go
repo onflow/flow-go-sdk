@@ -541,5 +541,24 @@ func TestHandler_GetExecResult(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, *results, fixture)
 	}))
+}
 
+func TestHandler_URLBuilder(t *testing.T) {
+	t.Run("URL with Query", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
+		expands := []string{"foo", "bar"}
+		selects := []string{"zoo", "moo"}
+		opts := []queryOpts{
+			&ExpandOpts{expands},
+			&SelectOpts{selects},
+		}
+
+		endpoint := "/test"
+		u := handler.mustBuildURL(endpoint, opts...)
+		assert.Equal(t, u.RawQuery, fmt.Sprintf(
+			"expands=%s&select=%s",
+			strings.Join(expands, "%2C"),
+			strings.Join(selects, "%2C"),
+		))
+		assert.Equal(t, u.Path, endpoint)
+	}))
 }
