@@ -22,9 +22,8 @@ import (
 	"encoding/base64"
 	"fmt"
 
+	"github.com/onflow/flow-go-sdk/access/http/models"
 	"github.com/onflow/flow-go-sdk/test"
-
-	"github.com/onflow/flow-go/engine/access/rest/models"
 )
 
 func contractFlowFixture() (string, string) {
@@ -75,10 +74,10 @@ func blockFlowFixture() models.Block {
 			ParentVoterSignature: base64.StdEncoding.EncodeToString([]byte("test")),
 		},
 		Payload: &models.BlockPayload{
-			CollectionGuarantees: models.CollectionGuarantees{{
+			CollectionGuarantees: []models.CollectionGuarantee{{
 				CollectionId: block.CollectionGuarantees[0].CollectionID.String(),
 			}},
-			BlockSeals: models.BlockSeals{{
+			BlockSeals: []models.BlockSeal{{
 				BlockId:                      block.Seals[0].BlockID.String(),
 				ResultId:                     block.Seals[0].ExecutionReceiptID.String(),
 				FinalState:                   "",
@@ -94,11 +93,9 @@ func collectionFlowFixture() models.Collection {
 
 	return models.Collection{
 		Id: collection.ID().String(),
-		Transactions: models.Transactions{
-			models.Transaction{
-				Id: collection.TransactionIDs[0].String(),
-			},
-		},
+		Transactions: []models.Transaction{{
+			Id: collection.TransactionIDs[0].String(),
+		}},
 	}
 }
 
@@ -128,40 +125,34 @@ func transactionFlowFixture() models.Transaction {
 			SequenceNumber: fmt.Sprintf("%d", tx.ProposalKey.SequenceNumber),
 		},
 		Authorizers: auths,
-		PayloadSignatures: models.TransactionSignatures{
-			models.TransactionSignature{
-				Address:   tx.PayloadSignatures[0].Address.String(),
-				KeyIndex:  fmt.Sprintf("%d", tx.PayloadSignatures[0].KeyIndex),
-				Signature: base64.StdEncoding.EncodeToString(tx.PayloadSignatures[0].Signature),
-			},
-		},
-		EnvelopeSignatures: models.TransactionSignatures{
-			models.TransactionSignature{
-				Address:   tx.EnvelopeSignatures[0].Address.String(),
-				KeyIndex:  fmt.Sprintf("%d", tx.EnvelopeSignatures[0].KeyIndex),
-				Signature: base64.StdEncoding.EncodeToString(tx.EnvelopeSignatures[0].Signature),
-			},
-		},
+		PayloadSignatures: []models.TransactionSignature{{
+			Address:   tx.PayloadSignatures[0].Address.String(),
+			KeyIndex:  fmt.Sprintf("%d", tx.PayloadSignatures[0].KeyIndex),
+			Signature: base64.StdEncoding.EncodeToString(tx.PayloadSignatures[0].Signature),
+		}},
+		EnvelopeSignatures: []models.TransactionSignature{{
+			Address:   tx.EnvelopeSignatures[0].Address.String(),
+			KeyIndex:  fmt.Sprintf("%d", tx.EnvelopeSignatures[0].KeyIndex),
+			Signature: base64.StdEncoding.EncodeToString(tx.EnvelopeSignatures[0].Signature),
+		}},
 	}
 }
 
 func transactionResultFlowFixture() models.TransactionResult {
 	txr := test.TransactionResultGenerator().New()
-	status := models.SEALED
+	status := models.SEALED_TransactionStatus
 
 	return models.TransactionResult{
 		Status:       &status,
 		StatusCode:   0,
 		ErrorMessage: txr.Error.Error(),
-		Events: models.Events{
-			models.Event{
-				Type_:            txr.Events[0].Type,
-				TransactionId:    txr.Events[0].TransactionID.String(),
-				TransactionIndex: fmt.Sprintf("%d", txr.Events[0].TransactionIndex),
-				EventIndex:       fmt.Sprintf("%d", txr.Events[0].EventIndex),
-				Payload:          base64.StdEncoding.EncodeToString(txr.Events[0].Payload),
-			},
-		},
+		Events: []models.Event{{
+			Type_:            txr.Events[0].Type,
+			TransactionId:    txr.Events[0].TransactionID.String(),
+			TransactionIndex: fmt.Sprintf("%d", txr.Events[0].TransactionIndex),
+			EventIndex:       fmt.Sprintf("%d", txr.Events[0].EventIndex),
+			Payload:          base64.StdEncoding.EncodeToString(txr.Events[0].Payload),
+		}},
 	}
 }
 

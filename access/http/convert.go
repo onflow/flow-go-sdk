@@ -25,22 +25,20 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pkg/errors"
-
 	"github.com/onflow/cadence"
 	cadenceJSON "github.com/onflow/cadence/encoding/json"
-
-	"github.com/onflow/flow-go-sdk/crypto"
+	"github.com/pkg/errors"
 
 	"github.com/onflow/flow-go-sdk"
-	"github.com/onflow/flow-go/engine/access/rest/models"
+	"github.com/onflow/flow-go-sdk/access/http/models"
+	"github.com/onflow/flow-go-sdk/crypto"
 )
 
 func toAddress(address string) flow.Address {
 	return flow.HexToAddress(address)
 }
 
-func toKeys(keys models.AccountPublicKeys) []*flow.AccountKey {
+func toKeys(keys []models.AccountPublicKey) []*flow.AccountKey {
 	accountKeys := make([]*flow.AccountKey, len(keys))
 
 	for i, key := range keys {
@@ -254,7 +252,7 @@ func toProposalKey(key *models.ProposalKey) flow.ProposalKey {
 	}
 }
 
-func toSignatures(signatures models.TransactionSignatures) []flow.TransactionSignature {
+func toSignatures(signatures []models.TransactionSignature) []flow.TransactionSignature {
 	sigs := make([]flow.TransactionSignature, len(signatures))
 	for i, sig := range signatures {
 		signature, _ := base64.StdEncoding.DecodeString(sig.Signature) // signatures are validated and must be valid
@@ -297,15 +295,15 @@ func toTransaction(tx *models.Transaction) (*flow.Transaction, error) {
 
 func toTransactionStatus(status *models.TransactionStatus) flow.TransactionStatus {
 	switch *status {
-	case models.PENDING:
+	case models.PENDING_TransactionStatus:
 		return flow.TransactionStatusPending
-	case models.SEALED:
+	case models.SEALED_TransactionStatus:
 		return flow.TransactionStatusSealed
-	case models.FINALIZED:
+	case models.FINALIZED_TransactionStatus:
 		return flow.TransactionStatusFinalized
-	case models.EXECUTED:
+	case models.EXECUTED_TransactionStatus:
 		return flow.TransactionStatusExecuted
-	case models.EXPIRED:
+	case models.EXPIRED_TransactionStatus:
 		return flow.TransactionStatusExpired
 	default:
 		return flow.TransactionStatusUnknown
@@ -373,8 +371,8 @@ func toTransactionResult(txr *models.TransactionResult) (*flow.TransactionResult
 	}, nil
 }
 
-func encodeSignatures(signatures []flow.TransactionSignature) models.TransactionSignatures {
-	sigs := make(models.TransactionSignatures, len(signatures))
+func encodeSignatures(signatures []flow.TransactionSignature) []models.TransactionSignature {
+	sigs := make([]models.TransactionSignature, len(signatures))
 	for i, sig := range signatures {
 		sigs[i] = models.TransactionSignature{
 			Address:   sig.Address.String(),

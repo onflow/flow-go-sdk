@@ -26,11 +26,11 @@ import (
 	"math"
 	"strings"
 
-	"github.com/pkg/errors"
+	"github.com/onflow/flow-go-sdk"
+	"github.com/onflow/flow-go-sdk/access/http/models"
 
 	"github.com/onflow/cadence"
-	"github.com/onflow/flow-go-sdk"
-	"github.com/onflow/flow-go/engine/access/rest/models"
+	"github.com/pkg/errors"
 )
 
 // handler interface defines methods needed to be offered by a specific http network implementation.

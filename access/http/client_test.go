@@ -24,10 +24,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/onflow/flow-go/engine/access/rest/models"
-
 	"github.com/onflow/flow-go-sdk"
+	"github.com/onflow/flow-go-sdk/access/http/models"
 	"github.com/onflow/flow-go-sdk/test"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

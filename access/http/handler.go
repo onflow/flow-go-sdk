@@ -29,9 +29,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pkg/errors"
+	"github.com/onflow/flow-go-sdk/access/http/models"
 
-	"github.com/onflow/flow-go/engine/access/rest/models"
+	"github.com/pkg/errors"
 )
 
 type queryOpts interface {
