@@ -25,6 +25,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/onflow/flow-go-sdk/access/http/models"
@@ -508,6 +509,37 @@ func TestHandler_GetEvents(t *testing.T) {
 
 		_, err := handler.getEvents(ctx, eventType, start, end, nil)
 		assert.EqualError(t, err, "get events by type A.Foo failed: events not found")
+	}))
+
+}
+
+func TestHandler_GetExecResult(t *testing.T) {
+	t.Run("Collection by IDs", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
+		fixture := []models.ExecutionResult{executionResultFlowFixture()}
+		ids := []string{"0x1"}
+
+		u, _ := url.Parse("/execution_results")
+		q := u.Query()
+		q.Add("block_ids", strings.Join(ids, ","))
+		u.RawQuery = q.Encode()
+
+		req.SetData(*u, fixture)
+
+		results, err := handler.getExecutionResults(ctx, ids)
+		assert.NoError(t, err)
+		assert.Equal(t, results, fixture)
+	}))
+
+	t.Run("By ID", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
+		fixture := executionResultFlowFixture()
+		id := "0x1"
+
+		u, _ := url.Parse(fmt.Sprintf("/execution_results/%s", id))
+		req.SetData(*u, fixture)
+
+		results, err := handler.getExecutionResultByID(ctx, id)
+		assert.NoError(t, err)
+		assert.Equal(t, *results, fixture)
 	}))
 
 }
