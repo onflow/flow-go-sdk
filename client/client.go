@@ -17,10 +17,12 @@
  */
 
 // Package client provides grpc API implementation.
-// Deprecated: client is deprecated use access instead.
+//
+// Deprecated: client is deprecated use access package instead.
 package client
 
 import (
+	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/access/grpc"
 	"github.com/onflow/flow/protobuf/go/flow/access"
 )
@@ -49,6 +51,29 @@ type Client = grpc.BaseClient
 // An RPCClient is an RPC client for the Flow Access API.
 //
 // Deprecated: use access.client instead.
+// Read more in the migration guide:
+// https://github.com/onflow/flow-go-sdk/blob/main/docs/migration-v0.25.0.md
 type RPCClient interface {
 	access.AccessAPIClient
 }
+
+// BlockEvents are the events that occurred in a specific block.
+//
+// Deprecated: use flow.BlockEvents instead.
+// Read more in the migration guide:
+// https://github.com/onflow/flow-go-sdk/blob/main/docs/migration-v0.25.0.md
+type BlockEvents = flow.BlockEvents
+
+// EventRangeQuery defines a query for Flow events.
+//
+// Deprecated: use grpc.EventRangeQuery instead.
+// Read more in the migration guide:
+// https://github.com/onflow/flow-go-sdk/blob/main/docs/migration-v0.25.0.md
+type EventRangeQuery = grpc.EventRangeQuery
+
+// RPCError is an error returned by an RPC call to an Access API.
+//
+// Deprecated: use grpc.RPCError instead.
+// Read more in the migration guide:
+// https://github.com/onflow/flow-go-sdk/blob/main/docs/migration-v0.25.0.md
+type RPCError = grpc.RPCError
