@@ -459,7 +459,7 @@ err = tx.SignEnvelope(account2.Address, key4.Index, key4Signer)
 You can submit a transaction to the network using the Access API client.
 
 ```go
-import "github.com/onflow/flow-go-sdk/client"
+import "github.com/onflow/flow-go-sdk/access"
 
 // connect to an emulator running locally
 c, err := client.New("localhost:3569")
@@ -571,7 +571,7 @@ myID := ID.Int()
 You can query events with the `GetEventsForHeightRange` function:
 
 ```go
-import "github.com/onflow/flow-go-sdk/client"
+import "github.com/onflow/flow-go-sdk/access"
 
 blocks, err := c.GetEventsForHeightRange(ctx, client.EventRangeQuery{
     Type:       "flow.AccountCreated",

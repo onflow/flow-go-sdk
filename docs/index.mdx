@@ -42,24 +42,39 @@ import "github.com/onflow/flow-go-sdk"
 ## Connect
 [<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130" />](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#New)
 
-The library uses gRPC to communicate with the access nodes and it must be configured with correct access node API URL.
+The Go SDK library uses HTTP or gRPC APIs to communicate with the access nodes and it must be configured with correct access node API URL.
+The library provides default factories for connecting to Flow AN APIs and you can easily switch between HTTP or gRPC if you use the provided client interface.
 
-📖 **Access API URLs** can be found [here](https://docs.onflow.org/access-api/#flow-access-node-endpoints). An error will be returned if the host is unreachable.
-The Access Nodes APIs hosted by DapperLabs are accessible at:
-- Testnet `access.devnet.nodes.onflow.org:9000`
-- Mainnet `access.mainnet.nodes.onflow.org:9000`
+You can check more examples for creating clients in the examples:
+**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130" />](https://github.com/onflow/flow-go-sdk/blob/master/examples/rest_grpc_clients/main.go)**
 
-For local development use the [flow emulator](https://github.com/onflow/flow-emulator) which once start provides a gRPC access endpoint at `127.0.0.1:3569`.
-
-Example:
+Basic Example:
 ```go
-testnet := "access.devnet.nodes.onflow.org:9000"
+// common client interface
+var flowClient client.Client
 
-flow, err := client.New(testnet)
-if err != nil {
-	panic("failed to establish connection with the Access API")
-}
+// initialize an http emulator client
+flowClient, err := http.NewClient(http.EmulatorHost)
+
+// initialize a gPRC emulator client
+flowClient, err = grpc.NewClient(grpc.EmulatorHost)
 ```
+
+You can also initialize an HTTP client or gRPC client directly which will offer you access to network specific options,
+but be aware you won't be able to easily switch between those since they don't implement a common interface. This is only
+advisable if the implementation needs the access to those advanced options.
+Advanced Example:
+```go
+// initialize http specific client
+httpClient, err := http.NewHTTPClient(http.EMULATOR_URL)
+
+// initialize grpc specific client
+grpcClient, err := grpc.NewGRPCClient(
+    grpc.EMULATOR_URL,
+    grpcOpts.WithTransportCredentials(insecure.NewCredentials()),
+)
+```
+
 
 ## Querying the Flow Network
 After you have established a connection with an access node, you can query the
@@ -267,20 +282,12 @@ func demo(deployedContract *flow.Account, runScriptTx *flow.Transaction) {
     flowClient := examples.NewFlowClient()
 
     // Query for account creation events by type
-    result, err := flowClient.GetEventsForHeightRange(ctx, client.EventRangeQuery{
-        Type:        "flow.AccountCreated",
-        StartHeight: 0,
-        EndHeight:   100,
-    })
+    result, err := flowClient.GetEventsForHeightRange(ctx, "flow.AccountCreated", 0, 30)
     printEvents(result, err)
 
     // Query for our custom event by type
     customType := fmt.Sprintf("AC.%s.EventDemo.EventDemo.Add", deployedContract.Address.Hex())
-    result, err = flowClient.GetEventsForHeightRange(ctx, client.EventRangeQuery{
-        Type:        customType,
-        StartHeight: 0,
-        EndHeight:   10,
-    })
+    result, err = flowClient.GetEventsForHeightRange(ctx, customType, 0, 10)
     printEvents(result, err)
 
     // Get events directly from transaction result
@@ -518,7 +525,7 @@ transaction(greeting: String) {
 }
 ```
 
-**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130" />]()**
+**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130" />](https://github.com/onflow/flow-go-sdk/blob/master/examples/transaction_signing/single_party/main.go)**
 ```go
 import (
   "context"
@@ -543,10 +550,7 @@ func main() {
   var accessAPIHost string
 
   // Establish a connection with an access node
-  flowClient, err := client.New(accessAPIHost)
-  if err != nil {
-    panic("failed to establish connection with Access API")
-  }
+  flowClient := examples.NewFlowClient()
 
   // Get the latest sealed block to use as a reference block
   latestBlock, err := flowClient.GetLatestBlockHeader(context.Background(), true)
@@ -883,7 +887,7 @@ func demo(tx *flow.Transaction) {
 
     err := flowClient.SendTransaction(ctx, *tx)
     if err != nil {
-        panic(err)
+        fmt.Println("error sending transaction", err)
     }
 }
 ```
@@ -923,10 +927,7 @@ var (
 var accessAPIHost string
 
 // Establish a connection with an access node
-flowClient, err := client.New(accessAPIHost)
-if err != nil {
-    panic("failed to establish connection with Access API")
-}
+flowClient := examples.NewFlowClient()
 
 // Use the templates package to create a new account creation transaction
 tx := templates.CreateAccount([]*flow.AccountKey{accountKey}, nil, creatorAddress)

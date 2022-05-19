@@ -22,20 +22,25 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/onflow/flow-go-sdk/access"
+
+	"github.com/onflow/flow-go-sdk/access/http"
+
 	"github.com/onflow/flow-go-sdk"
-	"github.com/onflow/flow-go-sdk/client"
 	"github.com/onflow/flow-go-sdk/examples"
-	"google.golang.org/grpc"
 )
 
 func main() {
-	prepareDemo()
 	demo()
 }
 
 func demo() {
 	ctx := context.Background()
-	flowClient := examples.NewFlowClient()
+	var flowClient access.Client
+	flowClient, err := http.NewClient(http.EmulatorHost)
+	examples.Handle(err)
+
+	examples.RandomAccount(flowClient)
 
 	// get the latest sealed block
 	isSealed := true
@@ -58,17 +63,4 @@ func printBlock(block *flow.Block, err error) {
 	fmt.Printf("\nID: %s\n", block.ID)
 	fmt.Printf("height: %d\n", block.Height)
 	fmt.Printf("timestamp: %s\n\n", block.Timestamp)
-}
-
-func prepareDemo() {
-	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
-	examples.Handle(err)
-	defer func() {
-		err := flowClient.Close()
-		if err != nil {
-			panic(err)
-		}
-	}()
-
-	examples.RandomAccount(flowClient)
 }

@@ -22,6 +22,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/onflow/flow-go-sdk/access/http"
+
 	"github.com/onflow/cadence"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/examples"
@@ -34,7 +36,8 @@ func main() {
 
 func demo() {
 	ctx := context.Background()
-	flowClient := examples.NewFlowClient()
+	flowClient, err := http.NewClient(http.EmulatorHost)
+	examples.Handle(err)
 
 	script := []byte(`
 		pub fun main(a: Int): Int {

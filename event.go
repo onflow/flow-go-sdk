@@ -20,6 +20,7 @@ package flow
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/onflow/cadence"
 	"github.com/onflow/flow-go-sdk/crypto"
@@ -89,6 +90,14 @@ func (e *Event) Fingerprint() []byte {
 		TransactionIndex: uint32(e.TransactionIndex),
 		Payload:          e.Payload[:],
 	})
+}
+
+// BlockEvents are the events that occurred in a specific block.
+type BlockEvents struct {
+	BlockID        Identifier
+	Height         uint64
+	BlockTimestamp time.Time
+	Events         []Event
 }
 
 // CalculateEventsHash calculates hash of the events, in a way compatible with the events hash

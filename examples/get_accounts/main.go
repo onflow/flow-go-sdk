@@ -22,20 +22,22 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/onflow/flow-go-sdk/access/http"
+
 	"github.com/onflow/flow-go-sdk"
-	"github.com/onflow/flow-go-sdk/client"
 	"github.com/onflow/flow-go-sdk/examples"
-	"google.golang.org/grpc"
 )
 
 func main() {
-	prepareDemo()
 	demo()
 }
 
 func demo() {
 	ctx := context.Background()
-	flowClient := examples.NewFlowClient()
+	flowClient, err := http.NewClient(http.EmulatorHost)
+	examples.Handle(err)
+
+	examples.RandomAccount(flowClient)
 
 	// get account from the latest block
 	address := flow.HexToAddress("f8d6e0586b0a20c7")
@@ -54,17 +56,4 @@ func printAccount(account *flow.Account, err error) {
 	fmt.Printf("\nBalance: %d", account.Balance)
 	fmt.Printf("\nContracts: %d", len(account.Contracts))
 	fmt.Printf("\nKeys: %d\n", len(account.Keys))
-}
-
-func prepareDemo() {
-	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
-	examples.Handle(err)
-	defer func() {
-		err := flowClient.Close()
-		if err != nil {
-			panic(err)
-		}
-	}()
-
-	examples.RandomAccount(flowClient)
 }
