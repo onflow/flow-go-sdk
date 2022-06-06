@@ -692,3 +692,19 @@ func TestTransaction_RLPMessages(t *testing.T) {
 		})
 	}
 }
+
+func Test_Foo(t *testing.T) {
+	out := []byte(`464c4f572d56302e302d7472616e73616374696f6e0000000000000000000000f9011af8d0b86c0a2020202020207472616e73616374696f6e28613a2055466978363429207b0a20202020202020207072657061726528616363743a20417574684163636f756e7429207b0a202020202020202020206c6f672861290a20202020202020207d0a2020202020207d0a20202020e1a07b2274797065223a22554669783634222c2276616c7565223a2236342e30227da021cfcd7999e81155e53002e984ff6ebb41057d8bab07892da3e0e76f8914d8353288b7c864739f6aa87f804f88cb1cf3196916f9e2c988b7c864739f6aa87ff846f8448080b8400b5592d7512429901c27953b4fdb6601b7afa48c38045b03a86580f41c7027c74f4f6aea781f0a814e81c5f81bb509bbf0a8732b61af1d6d689dad8b730ece97`)
+	sig = []byte(`0b5592d7512429901c27953b4fdb6601b7afa48c38045b03a86580f41c7027c74f4f6aea781f0a814e81c5f81bb509bbf0a8732b61af1d6d689dad8b730ece97`)
+
+	tx := flow.NewTransaction().
+		SetScript([]byte(`\n      transaction(a: UFix64) {\n        prepare(acct: AuthAccount) {\n          log(a)\n        }\n      }\n    `)).
+		SetReferenceBlockID(flow.HexToID("21cfcd7999e81155e53002e984ff6ebb41057d8bab07892da3e0e76f8914d835")).
+		SetGasLimit(50).
+		SetProposalKey(flow.HexToAddress("0xb7c864739f6aa87f"), 0, 79).
+		SetPayer(flow.HexToAddress("0xcb1cf3196916f9e2")).
+		AddAuthorizer(flow.HexToAddress("0xb7c864739f6aa87f")).
+		AddPayloadSignature(flow.HexToAddress("0xb7c864739f6aa87f"), 0, sig)
+
+	assert.Equal(t, fmt.Sprintf("%x", tx.EnvelopeMessage()), fmt.Sprintf("%x", out))
+}
