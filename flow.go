@@ -22,9 +22,8 @@ import (
 	"encoding/hex"
 	"sync"
 
-	"github.com/ethereum/go-ethereum/rlp"
-
 	"github.com/onflow/flow-go-sdk/crypto"
+	"github.com/onflow/flow-go-sdk/rlp/rlp"
 )
 
 // An Identifier is a 32-byte unique identifier for an entity.

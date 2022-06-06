@@ -24,9 +24,9 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
+	"github.com/onflow/flow-go-sdk/rlp/rlp"
 
 	"github.com/onflow/flow-go-sdk/crypto"
 )
