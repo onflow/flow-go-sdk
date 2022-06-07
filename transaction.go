@@ -369,6 +369,13 @@ func (t *Transaction) payloadCanonicalForm() payloadCanonicalForm {
 		authorizers[i] = auth.Bytes()
 	}
 
+	// note(sideninja): This is a temporary workaround until cadence defines canonical format addressing the issue https://github.com/onflow/flow-go-sdk/issues/286
+	for i, arg := range t.Arguments {
+		if arg[len(arg)-1] == byte(10) { // extra new line character
+			t.Arguments[i] = arg[:len(arg)-1]
+		}
+	}
+
 	return payloadCanonicalForm{
 		Script:                    t.Script,
 		Arguments:                 t.Arguments,
