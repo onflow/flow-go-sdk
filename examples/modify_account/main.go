@@ -24,10 +24,9 @@ import (
 
 	"github.com/onflow/flow-go-sdk/templates"
 
-	"google.golang.org/grpc"
-
 	"github.com/onflow/flow-go-sdk"
-	"github.com/onflow/flow-go-sdk/client"
+	"github.com/onflow/flow-go-sdk/access"
+	"github.com/onflow/flow-go-sdk/access/grpc"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/examples"
 )
@@ -36,7 +35,7 @@ func main() {
 	ModifyAccountDemo()
 }
 
-func prepareAndSendTx(ctx context.Context, client *client.Client, key *flow.AccountKey, tx flow.Transaction) {
+func prepareAndSendTx(ctx context.Context, client access.Client, tx flow.Transaction) {
 	serviceAcctAddr, serviceAcctKey, serviceSigner := examples.ServiceAccount(client)
 	tx.SetProposalKey(
 		serviceAcctAddr,
@@ -77,7 +76,7 @@ func contractsString(contracts map[string][]byte) string {
 
 func ModifyAccountDemo() {
 	ctx := context.Background()
-	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
+	flowClient, err := grpc.NewClient("127.0.0.1:3569")
 	examples.Handle(err)
 
 	serviceAcctAddr, _, _ := examples.ServiceAccount(flowClient)
@@ -91,7 +90,7 @@ func ModifyAccountDemo() {
 	// create a new account without any contracts
 	createAccountTx, err := templates.CreateAccount([]*flow.AccountKey{myAcctKey}, nil, serviceAcctAddr)
 	examples.Handle(err)
-	prepareAndSendTx(ctx, flowClient, myAcctKey, *createAccountTx)
+	prepareAndSendTx(ctx, flowClient, *createAccountTx)
 
 	acc, err := flowClient.GetAccount(ctx, serviceAcctAddr)
 	examples.Handle(err)
@@ -105,7 +104,7 @@ func ModifyAccountDemo() {
 			Source: "pub contract Foo {}",
 		},
 	)
-	prepareAndSendTx(ctx, flowClient, myAcctKey, *addContractTx)
+	prepareAndSendTx(ctx, flowClient, *addContractTx)
 
 	acc, _ = flowClient.GetAccount(ctx, serviceAcctAddr)
 
@@ -118,13 +117,13 @@ func ModifyAccountDemo() {
 			Source: "pub contract Foo { pub fun hello() {} }",
 		},
 	)
-	prepareAndSendTx(ctx, flowClient, myAcctKey, *updateTx)
+	prepareAndSendTx(ctx, flowClient, *updateTx)
 
 	acc, _ = flowClient.GetAccount(ctx, serviceAcctAddr)
 	fmt.Printf("\nContract 'Foo' after update: %s", acc.Contracts["Foo"])
 
 	removeContractTx := templates.RemoveAccountContract(serviceAcctAddr, "Foo")
-	prepareAndSendTx(ctx, flowClient, myAcctKey, *removeContractTx)
+	prepareAndSendTx(ctx, flowClient, *removeContractTx)
 
 	acc, _ = flowClient.GetAccount(ctx, serviceAcctAddr)
 	fmt.Printf("\nDeployed contracts on the account after 'Foo' removal: %s", contractsString((acc.Contracts)))
@@ -137,13 +136,13 @@ func ModifyAccountDemo() {
 
 	addKeyTx, err := templates.AddAccountKey(serviceAcctAddr, newAcctKey)
 	examples.Handle(err)
-	prepareAndSendTx(ctx, flowClient, myAcctKey, *addKeyTx)
+	prepareAndSendTx(ctx, flowClient, *addKeyTx)
 
 	acc, _ = flowClient.GetAccount(ctx, serviceAcctAddr)
 	fmt.Printf("\nAccount keys after adding new key: %s", keysString(acc.Keys))
 
 	removeKeyTx := templates.RemoveAccountKey(serviceAcctAddr, 1)
-	prepareAndSendTx(ctx, flowClient, myAcctKey, *removeKeyTx)
+	prepareAndSendTx(ctx, flowClient, *removeKeyTx)
 
 	acc, _ = flowClient.GetAccount(ctx, serviceAcctAddr)
 	fmt.Printf("\nAccount keys after removing the last key: %s", keysString(acc.Keys))

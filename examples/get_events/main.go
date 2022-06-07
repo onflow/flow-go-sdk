@@ -22,12 +22,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/onflow/flow-go-sdk/access/http"
+
 	"github.com/onflow/flow-go-sdk/templates"
 
-	"google.golang.org/grpc"
-
 	"github.com/onflow/flow-go-sdk"
-	"github.com/onflow/flow-go-sdk/client"
 	"github.com/onflow/flow-go-sdk/examples"
 )
 
@@ -38,23 +37,16 @@ func main() {
 
 func demo(deployedContract *flow.Account, runScriptTx *flow.Transaction) {
 	ctx := context.Background()
-	flowClient := examples.NewFlowClient()
+	flowClient, err := http.NewClient(http.EmulatorHost)
+	examples.Handle(err)
 
 	// Query for account creation events by type
-	result, err := flowClient.GetEventsForHeightRange(ctx, client.EventRangeQuery{
-		Type:        "flow.AccountCreated",
-		StartHeight: 0,
-		EndHeight:   100,
-	})
+	result, err := flowClient.GetEventsForHeightRange(ctx, "flow.AccountCreated", 0, 30)
 	printEvents(result, err)
 
 	// Query for our custom event by type
 	customType := fmt.Sprintf("AC.%s.EventDemo.EventDemo.Add", deployedContract.Address.Hex())
-	result, err = flowClient.GetEventsForHeightRange(ctx, client.EventRangeQuery{
-		Type:        customType,
-		StartHeight: 0,
-		EndHeight:   10,
-	})
+	result, err = flowClient.GetEventsForHeightRange(ctx, customType, 0, 10)
 	printEvents(result, err)
 
 	// Get events directly from transaction result
@@ -63,7 +55,7 @@ func demo(deployedContract *flow.Account, runScriptTx *flow.Transaction) {
 	printEvent(txResult.Events)
 }
 
-func printEvents(result []client.BlockEvents, err error) {
+func printEvents(result []flow.BlockEvents, err error) {
 	examples.Handle(err)
 
 	for _, block := range result {
@@ -81,15 +73,8 @@ func printEvent(events []flow.Event) {
 
 func preapreDemo() (*flow.Account, *flow.Transaction) {
 	ctx := context.Background()
-
-	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
+	flowClient, err := http.NewClient(http.EmulatorHost)
 	examples.Handle(err)
-	defer func() {
-		err := flowClient.Close()
-		if err != nil {
-			panic(err)
-		}
-	}()
 
 	acctAddr, acctKey, acctSigner := examples.RandomAccount(flowClient)
 
@@ -116,6 +101,7 @@ func preapreDemo() (*flow.Account, *flow.Transaction) {
 		import EventDemo from 0x%s
 
 		transaction {
+			prepare(auth: AuthAccount) {}
 			execute {
 				EventDemo.add(x: 2, y: 3)
 			}
@@ -126,6 +112,7 @@ func preapreDemo() (*flow.Account, *flow.Transaction) {
 	runScriptTx := flow.NewTransaction().
 		SetScript([]byte(script)).
 		SetPayer(acctAddr).
+		AddAuthorizer(acctAddr).
 		SetReferenceBlockID(referenceBlockID).
 		SetProposalKey(acctAddr, acctKey.Index, acctKey.SequenceNumber)
 

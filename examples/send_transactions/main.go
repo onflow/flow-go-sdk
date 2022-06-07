@@ -21,44 +21,39 @@ package main
 import (
 	"context"
 
+	"github.com/onflow/flow-go-sdk/access/http"
+
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/examples"
 )
 
 func main() {
-	tx := prepareDemo()
-	demo(tx)
+	demo()
 }
 
-func demo(tx *flow.Transaction) {
-	ctx := context.Background()
-	flowClient := examples.NewFlowClient()
-
-	err := flowClient.SendTransaction(ctx, *tx)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func prepareDemo() *flow.Transaction {
-	flowClient := examples.NewFlowClient()
-	defer func() {
-		err := flowClient.Close()
-		if err != nil {
-			panic(err)
-		}
-	}()
+func demo() {
+	flowClient, err := http.NewClient(http.EmulatorHost)
+	examples.Handle(err)
 
 	serviceAcctAddr, serviceAcctKey, serviceSigner := examples.ServiceAccount(flowClient)
 
 	tx := flow.NewTransaction().
 		SetPayer(serviceAcctAddr).
 		SetProposalKey(serviceAcctAddr, serviceAcctKey.Index, serviceAcctKey.SequenceNumber).
-		SetScript([]byte("transaction {}")).
+		SetScript([]byte(`transaction {
+
+  prepare(acc: AuthAccount) {}
+
+  execute {
+    log("test")
+  }
+}`)).
+		AddAuthorizer(serviceAcctAddr).
 		SetReferenceBlockID(examples.GetReferenceBlockId(flowClient))
 
-	err := tx.SignEnvelope(serviceAcctAddr, serviceAcctKey.Index, serviceSigner)
+	err = tx.SignEnvelope(serviceAcctAddr, serviceAcctKey.Index, serviceSigner)
 	examples.Handle(err)
 
-	return tx
+	err = flowClient.SendTransaction(context.Background(), *tx)
+	examples.Handle(err)
 }

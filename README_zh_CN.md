@@ -190,9 +190,12 @@ tx := flow.NewTransaction().
 
 ```go
 // 通过你的私钥构造一个签名器，通过哈希算法完成签名
-mySigner := crypto.NewInMemorySigner(myPrivateKey, myAccountKey.HashAlgo)
+mySigner, err := crypto.NewInMemorySigner(myPrivateKey, myAccountKey.HashAlgo)
+if err != nil {
+    panic("failed to create a signer")
+}
 
-err := tx.SignEnvelope(myAddress, myAccountKey.Index, mySigner)
+err = tx.SignEnvelope(myAddress, myAccountKey.Index, mySigner)
 if err != nil {
     panic("failed to sign transaction")
 }
@@ -465,7 +468,7 @@ err = tx.SignEnvelope(account2.Address, key4.Index, key4Signer)
 You can submit a transaction to the network using the Access API client.
 
 ```go
-import "github.com/onflow/flow-go-sdk/client"
+import "github.com/onflow/flow-go-sdk/access"
 
 // 连接本地服务
 c, err := client.New("localhost:3569")
@@ -585,7 +588,7 @@ myID := ID.Int()
 你可以查询事件与' GetEventsForHeightRange '函数:
 
 ```go
-import "github.com/onflow/flow-go-sdk/client"
+import "github.com/onflow/flow-go-sdk/access"
 
 blocks, err := c.GetEventsForHeightRange(ctx, client.EventRangeQuery{
     Type:       "flow.AccountCreated",

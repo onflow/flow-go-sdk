@@ -22,10 +22,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/onflow/flow-go-sdk/access/http"
+
 	"github.com/onflow/flow-go-sdk"
-	"github.com/onflow/flow-go-sdk/client"
 	"github.com/onflow/flow-go-sdk/examples"
-	"google.golang.org/grpc"
 )
 
 func main() {
@@ -35,7 +35,7 @@ func main() {
 
 func demo(exampleCollectionID flow.Identifier) {
 	ctx := context.Background()
-	flowClient := examples.NewFlowClient()
+	flowClient := examples.NewFlowGRPCClient()
 
 	// get collection by ID
 	collection, err := flowClient.GetCollection(ctx, exampleCollectionID)
@@ -50,14 +50,8 @@ func printCollection(collection *flow.Collection, err error) {
 }
 
 func prepareDemo() flow.Identifier {
-	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
+	flowClient, err := http.NewClient(http.EmulatorHost)
 	examples.Handle(err)
-	defer func() {
-		err := flowClient.Close()
-		if err != nil {
-			panic(err)
-		}
-	}()
 
 	examples.RandomAccount(flowClient)
 

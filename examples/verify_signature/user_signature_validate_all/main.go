@@ -23,11 +23,10 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/onflow/cadence"
-	"google.golang.org/grpc"
+	"github.com/onflow/flow-go-sdk/access/http"
 
+	"github.com/onflow/cadence"
 	"github.com/onflow/flow-go-sdk"
-	"github.com/onflow/flow-go-sdk/client"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/examples"
 )
@@ -92,7 +91,7 @@ pub fun main(
 
 func UserSignatureValidateAll() {
 	ctx := context.Background()
-	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
+	flowClient, err := http.NewClient(http.EmulatorHost)
 	examples.Handle(err)
 
 	privateKeyAlice := examples.RandomPrivateKey()
@@ -113,8 +112,10 @@ func UserSignatureValidateAll() {
 	// create the message that will be signed
 	message := []byte("ananas")
 
-	signerAlice := crypto.NewInMemorySigner(privateKeyAlice, crypto.SHA3_256)
-	signerBob := crypto.NewInMemorySigner(privateKeyBob, crypto.SHA3_256)
+	signerAlice, err := crypto.NewInMemorySigner(privateKeyAlice, crypto.SHA3_256)
+	examples.Handle(err)
+	signerBob, err := crypto.NewInMemorySigner(privateKeyBob, crypto.SHA3_256)
+	examples.Handle(err)
 
 	// sign the message with Alice and Bob
 	signatureAlice, err := flow.SignUserMessage(signerAlice, message)

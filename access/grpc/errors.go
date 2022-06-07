@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package client
+package grpc
 
 import (
 	"fmt"

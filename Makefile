@@ -26,3 +26,8 @@ check-tidy: generate
 .PHONY: check-headers
 check-headers:
 	@./check-headers.sh
+
+.PHONY: generate-openapi
+generate-openapi:
+	swagger-codegen generate -l go -i https://raw.githubusercontent.com/onflow/flow/master/openapi/access.yaml -D packageName=models,modelDocs=false,models -o access/http/models;
+	go fmt ./access/http/models

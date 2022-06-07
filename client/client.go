@@ -16,577 +16,64 @@
  * limitations under the License.
  */
 
-// Package client provides a Go client for the Flow Access gRPC API.
+// Package client provides grpc API implementation.
 //
-// The Access API provides a set of methods that can be used to submit transactions
-// and read state from Flow. This client is compatible with the Access API implemented by the
-// Access Node role, as well as the mock Access API exposed by the Flow Emulator.
-//
-// The full Access API specification is here: https://docs.onflow.org/access-api/
+// Deprecated: client is deprecated use access package instead.
 package client
 
-//go:generate go run github.com/vektra/mockery/cmd/mockery -name RPCClient -filename=mock_client_test.go -structname=MockRPCClient -output=. -outpkg=client_test
-
 import (
-	"context"
-	"time"
-
-	"github.com/onflow/cadence"
-	"github.com/onflow/flow/protobuf/go/flow/access"
-	"google.golang.org/grpc"
-
 	"github.com/onflow/flow-go-sdk"
-	"github.com/onflow/flow-go-sdk/client/convert"
+	"github.com/onflow/flow-go-sdk/access/grpc"
+	"github.com/onflow/flow/protobuf/go/flow/access"
 )
 
+// New creates an gRPC client exposing all the common access APIs.
+//
+// Deprecated: use grpc.NewClient instead.
+// Read more in the migration guide:
+// https://github.com/onflow/flow-go-sdk/blob/main/docs/migration-v0.25.0.md
+var New = grpc.NewBaseClient
+
+// NewFromRPCClient initializes a Flow client using a pre-configured gRPC provider.
+//
+// Deprecated: use grpc.NewFromRPCClient instead.
+// Read more in the migration guide:
+// https://github.com/onflow/flow-go-sdk/blob/main/docs/migration-v0.25.0.md
+var NewFromRPCClient = grpc.NewFromRPCClient
+
+// Client is an gRPC client implementing all API access functions.
+//
+// Deprecated: migrate to access.Client instead or use grpc.BaseClient for grpc specific operations.
+// Read more in the migration guide:
+// https://github.com/onflow/flow-go-sdk/blob/main/docs/migration-v0.25.0.md
+type Client = grpc.BaseClient
+
 // An RPCClient is an RPC client for the Flow Access API.
+//
+// Deprecated: use access.client instead.
+// Read more in the migration guide:
+// https://github.com/onflow/flow-go-sdk/blob/main/docs/migration-v0.25.0.md
 type RPCClient interface {
 	access.AccessAPIClient
 }
 
-// A Client is a gRPC Client for the Flow Access API.
-type Client struct {
-	rpcClient RPCClient
-	close     func() error
-}
-
-// New initializes a Flow client with the default gRPC provider.
+// BlockEvents are the events that occurred in a specific block.
 //
-// An error will be returned if the host is unreachable.
-func New(addr string, opts ...grpc.DialOption) (*Client, error) {
-	conn, err := grpc.Dial(addr, opts...)
-	if err != nil {
-		return nil, err
-	}
-
-	grpcClient := access.NewAccessAPIClient(conn)
-
-	return &Client{
-		rpcClient: grpcClient,
-		close:     func() error { return conn.Close() },
-	}, nil
-}
-
-// NewFromRPCClient initializes a Flow client using a pre-configured gRPC provider.
-func NewFromRPCClient(rpcClient RPCClient) *Client {
-	return &Client{
-		rpcClient: rpcClient,
-		close:     func() error { return nil },
-	}
-}
-
-// Close closes the client connection.
-func (c *Client) Close() error {
-	return c.close()
-}
-
-// Ping is used to check if the access node is alive and healthy.
-func (c *Client) Ping(ctx context.Context, opts ...grpc.CallOption) error {
-	_, err := c.rpcClient.Ping(ctx, &access.PingRequest{}, opts...)
-	return err
-}
-
-// GetLatestBlockHeader gets the latest sealed or unsealed block header.
-func (c *Client) GetLatestBlockHeader(
-	ctx context.Context,
-	isSealed bool,
-	opts ...grpc.CallOption,
-) (*flow.BlockHeader, error) {
-
-	req := &access.GetLatestBlockHeaderRequest{
-		IsSealed: isSealed,
-	}
-
-	res, err := c.rpcClient.GetLatestBlockHeader(ctx, req, opts...)
-	if err != nil {
-		return nil, newRPCError(err)
-	}
-
-	return getBlockHeaderResult(res)
-}
-
-// GetBlockHeaderByID gets a block header by ID.
-func (c *Client) GetBlockHeaderByID(
-	ctx context.Context,
-	blockID flow.Identifier,
-	opts ...grpc.CallOption,
-) (*flow.BlockHeader, error) {
-	req := &access.GetBlockHeaderByIDRequest{
-		Id: blockID.Bytes(),
-	}
-
-	res, err := c.rpcClient.GetBlockHeaderByID(ctx, req, opts...)
-	if err != nil {
-		return nil, newRPCError(err)
-	}
-
-	return getBlockHeaderResult(res)
-}
-
-// GetBlockHeaderByHeight gets a block header by height.
-func (c *Client) GetBlockHeaderByHeight(
-	ctx context.Context,
-	height uint64,
-	opts ...grpc.CallOption,
-) (*flow.BlockHeader, error) {
-	req := &access.GetBlockHeaderByHeightRequest{
-		Height: height,
-	}
-
-	res, err := c.rpcClient.GetBlockHeaderByHeight(ctx, req, opts...)
-	if err != nil {
-		return nil, newRPCError(err)
-	}
-
-	return getBlockHeaderResult(res)
-}
-
-func getBlockHeaderResult(res *access.BlockHeaderResponse) (*flow.BlockHeader, error) {
-	header, err := convert.MessageToBlockHeader(res.GetBlock())
-	if err != nil {
-		return nil, newMessageToEntityError(entityBlockHeader, err)
-	}
-
-	return &header, nil
-}
-
-// GetLatestBlock gets the full payload of the latest sealed or unsealed block.
-func (c *Client) GetLatestBlock(
-	ctx context.Context,
-	isSealed bool,
-	opts ...grpc.CallOption,
-) (*flow.Block, error) {
-	req := &access.GetLatestBlockRequest{
-		IsSealed: isSealed,
-	}
-
-	res, err := c.rpcClient.GetLatestBlock(ctx, req, opts...)
-	if err != nil {
-		return nil, newRPCError(err)
-	}
-
-	return getBlockResult(res)
-}
-
-// GetBlockByID gets a full block by ID.
-func (c *Client) GetBlockByID(
-	ctx context.Context,
-	blockID flow.Identifier,
-	opts ...grpc.CallOption,
-) (*flow.Block, error) {
-	req := &access.GetBlockByIDRequest{
-		Id: blockID.Bytes(),
-	}
-
-	res, err := c.rpcClient.GetBlockByID(ctx, req, opts...)
-	if err != nil {
-		return nil, newRPCError(err)
-	}
-
-	return getBlockResult(res)
-}
-
-// GetBlockByHeight gets a full block by height.
-func (c *Client) GetBlockByHeight(
-	ctx context.Context,
-	height uint64,
-	opts ...grpc.CallOption,
-) (*flow.Block, error) {
-	req := &access.GetBlockByHeightRequest{
-		Height: height,
-	}
-
-	res, err := c.rpcClient.GetBlockByHeight(ctx, req, opts...)
-	if err != nil {
-		return nil, newRPCError(err)
-	}
-
-	return getBlockResult(res)
-}
-
-func getBlockResult(res *access.BlockResponse) (*flow.Block, error) {
-	block, err := convert.MessageToBlock(res.GetBlock())
-	if err != nil {
-		return nil, newMessageToEntityError(entityBlock, err)
-	}
-
-	return &block, nil
-}
-
-// GetCollection gets a collection by ID.
-func (c *Client) GetCollection(
-	ctx context.Context,
-	colID flow.Identifier,
-	opts ...grpc.CallOption,
-) (*flow.Collection, error) {
-	req := &access.GetCollectionByIDRequest{
-		Id: colID.Bytes(),
-	}
-
-	res, err := c.rpcClient.GetCollectionByID(ctx, req, opts...)
-	if err != nil {
-		return nil, newRPCError(err)
-	}
-
-	result, err := convert.MessageToCollection(res.GetCollection())
-	if err != nil {
-		return nil, newMessageToEntityError(entityCollection, err)
-	}
-
-	return &result, nil
-}
-
-// SendTransaction submits a transaction to the network.
-func (c *Client) SendTransaction(
-	ctx context.Context,
-	tx flow.Transaction,
-	opts ...grpc.CallOption,
-) error {
-	txMsg, err := convert.TransactionToMessage(tx)
-	if err != nil {
-		return newEntityToMessageError(entityTransaction, err)
-	}
-
-	req := &access.SendTransactionRequest{
-		Transaction: txMsg,
-	}
-
-	_, err = c.rpcClient.SendTransaction(ctx, req, opts...)
-	if err != nil {
-		return newRPCError(err)
-	}
-
-	return nil
-}
-
-// GetTransaction gets a transaction by ID.
-func (c *Client) GetTransaction(
-	ctx context.Context,
-	txID flow.Identifier,
-	opts ...grpc.CallOption,
-) (*flow.Transaction, error) {
-	req := &access.GetTransactionRequest{
-		Id: txID.Bytes(),
-	}
-
-	res, err := c.rpcClient.GetTransaction(ctx, req, opts...)
-	if err != nil {
-		return nil, newRPCError(err)
-	}
-
-	result, err := convert.MessageToTransaction(res.GetTransaction())
-	if err != nil {
-		return nil, newMessageToEntityError(entityTransaction, err)
-	}
-
-	return &result, nil
-}
-
-// GetTransactionResult gets the result of a transaction.
-func (c *Client) GetTransactionResult(
-	ctx context.Context,
-	txID flow.Identifier,
-	opts ...grpc.CallOption,
-) (*flow.TransactionResult, error) {
-	req := &access.GetTransactionRequest{
-		Id: txID.Bytes(),
-	}
-
-	res, err := c.rpcClient.GetTransactionResult(ctx, req, opts...)
-	if err != nil {
-		return nil, newRPCError(err)
-	}
-
-	result, err := convert.MessageToTransactionResult(res)
-	if err != nil {
-		return nil, newMessageToEntityError(entityTransactionResult, err)
-	}
-
-	return &result, nil
-}
-
-// GetAccount is an alias for GetAccountAtLatestBlock.
-func (c *Client) GetAccount(ctx context.Context, address flow.Address, opts ...grpc.CallOption) (*flow.Account, error) {
-	return c.GetAccountAtLatestBlock(ctx, address, opts...)
-}
-
-// GetAccountAtLatestBlock gets an account by address at the latest sealed block.
-func (c *Client) GetAccountAtLatestBlock(
-	ctx context.Context,
-	address flow.Address,
-	opts ...grpc.CallOption,
-) (*flow.Account, error) {
-	req := &access.GetAccountAtLatestBlockRequest{
-		Address: address.Bytes(),
-	}
-
-	res, err := c.rpcClient.GetAccountAtLatestBlock(ctx, req, opts...)
-	if err != nil {
-		return nil, newRPCError(err)
-	}
-
-	account, err := convert.MessageToAccount(res.GetAccount())
-	if err != nil {
-		return nil, newMessageToEntityError(entityAccount, err)
-	}
-
-	return &account, nil
-}
-
-// GetAccountAtBlockHeight gets an account by address at the given block height
-func (c *Client) GetAccountAtBlockHeight(
-	ctx context.Context,
-	address flow.Address,
-	blockHeight uint64,
-	opts ...grpc.CallOption,
-) (*flow.Account, error) {
-	req := &access.GetAccountAtBlockHeightRequest{
-		Address:     address.Bytes(),
-		BlockHeight: blockHeight,
-	}
-
-	res, err := c.rpcClient.GetAccountAtBlockHeight(ctx, req, opts...)
-	if err != nil {
-		return nil, newRPCError(err)
-	}
-
-	account, err := convert.MessageToAccount(res.GetAccount())
-	if err != nil {
-		return nil, newMessageToEntityError(entityAccount, err)
-	}
-
-	return &account, nil
-}
-
-// ExecuteScriptAtLatestBlock executes a read-only Cadence script against the latest sealed execution state.
-func (c *Client) ExecuteScriptAtLatestBlock(
-	ctx context.Context,
-	script []byte,
-	arguments []cadence.Value,
-	opts ...grpc.CallOption,
-) (cadence.Value, error) {
-
-	args, err := convert.CadenceValuesToMessages(arguments)
-	if err != nil {
-		return nil, newEntityToMessageError(entityCadenceValue, err)
-	}
-
-	req := &access.ExecuteScriptAtLatestBlockRequest{
-		Script:    script,
-		Arguments: args,
-	}
-
-	res, err := c.rpcClient.ExecuteScriptAtLatestBlock(ctx, req, opts...)
-	if err != nil {
-		return nil, newRPCError(err)
-	}
-
-	return executeScriptResult(res)
-}
-
-// ExecuteScriptAtBlockID executes a ready-only Cadence script against the execution state
-// at the block with the given ID.
-func (c *Client) ExecuteScriptAtBlockID(
-	ctx context.Context,
-	blockID flow.Identifier,
-	script []byte,
-	arguments []cadence.Value,
-	opts ...grpc.CallOption,
-) (cadence.Value, error) {
-
-	args, err := convert.CadenceValuesToMessages(arguments)
-	if err != nil {
-		return nil, newEntityToMessageError(entityCadenceValue, err)
-	}
-
-	req := &access.ExecuteScriptAtBlockIDRequest{
-		BlockId:   blockID.Bytes(),
-		Script:    script,
-		Arguments: args,
-	}
-
-	res, err := c.rpcClient.ExecuteScriptAtBlockID(ctx, req, opts...)
-	if err != nil {
-		return nil, newRPCError(err)
-	}
-
-	return executeScriptResult(res)
-}
-
-// ExecuteScriptAtBlockHeight executes a ready-only Cadence script against the execution state
-// at the given block height.
-func (c *Client) ExecuteScriptAtBlockHeight(
-	ctx context.Context,
-	height uint64,
-	script []byte,
-	arguments []cadence.Value,
-	opts ...grpc.CallOption,
-) (cadence.Value, error) {
-
-	args, err := convert.CadenceValuesToMessages(arguments)
-	if err != nil {
-		return nil, newEntityToMessageError(entityCadenceValue, err)
-	}
-
-	req := &access.ExecuteScriptAtBlockHeightRequest{
-		BlockHeight: height,
-		Script:      script,
-		Arguments:   args,
-	}
-
-	res, err := c.rpcClient.ExecuteScriptAtBlockHeight(ctx, req, opts...)
-	if err != nil {
-		return nil, newRPCError(err)
-	}
-
-	return executeScriptResult(res)
-}
-
-func executeScriptResult(res *access.ExecuteScriptResponse) (cadence.Value, error) {
-	value, err := convert.MessageToCadenceValue(res.GetValue())
-	if err != nil {
-		return nil, newMessageToEntityError(entityCadenceValue, err)
-	}
-
-	return value, nil
-}
+// Deprecated: use flow.BlockEvents instead.
+// Read more in the migration guide:
+// https://github.com/onflow/flow-go-sdk/blob/main/docs/migration-v0.25.0.md
+type BlockEvents = flow.BlockEvents
 
 // EventRangeQuery defines a query for Flow events.
-type EventRangeQuery struct {
-	// The event type to search for.
-	Type string
-	// The block height to begin looking for events (inclusive).
-	StartHeight uint64
-	// The block height to end looking for events (inclusive).
-	EndHeight uint64
-}
+//
+// Deprecated: use grpc.EventRangeQuery instead.
+// Read more in the migration guide:
+// https://github.com/onflow/flow-go-sdk/blob/main/docs/migration-v0.25.0.md
+type EventRangeQuery = grpc.EventRangeQuery
 
-// BlockEvents are the events that occurred in a specific block.
-type BlockEvents struct {
-	BlockID        flow.Identifier
-	Height         uint64
-	BlockTimestamp time.Time
-	Events         []flow.Event
-}
-
-// GetEventsForHeightRange retrieves events for all sealed blocks between the start and end block
-// heights (inclusive) with the given type.
-func (c *Client) GetEventsForHeightRange(
-	ctx context.Context,
-	query EventRangeQuery,
-	opts ...grpc.CallOption,
-) ([]BlockEvents, error) {
-	req := &access.GetEventsForHeightRangeRequest{
-		Type:        query.Type,
-		StartHeight: query.StartHeight,
-		EndHeight:   query.EndHeight,
-	}
-
-	res, err := c.rpcClient.GetEventsForHeightRange(ctx, req, opts...)
-	if err != nil {
-		return nil, newRPCError(err)
-	}
-
-	return getEventsResult(res)
-}
-
-// GetEventsForBlockIDs retrieves events with the given type from the specified block IDs.
-func (c *Client) GetEventsForBlockIDs(
-	ctx context.Context,
-	eventType string,
-	blockIDs []flow.Identifier,
-	opts ...grpc.CallOption,
-) ([]BlockEvents, error) {
-	req := &access.GetEventsForBlockIDsRequest{
-		Type:     eventType,
-		BlockIds: convert.IdentifiersToMessages(blockIDs),
-	}
-
-	res, err := c.rpcClient.GetEventsForBlockIDs(ctx, req, opts...)
-	if err != nil {
-		return nil, newRPCError(err)
-	}
-
-	return getEventsResult(res)
-}
-
-func getEventsResult(res *access.EventsResponse) ([]BlockEvents, error) {
-	resultMessages := res.GetResults()
-
-	results := make([]BlockEvents, len(resultMessages))
-	for i, result := range resultMessages {
-		eventMessages := result.GetEvents()
-
-		events := make([]flow.Event, len(eventMessages))
-
-		for i, m := range eventMessages {
-			evt, err := convert.MessageToEvent(m)
-			if err != nil {
-				return nil, newMessageToEntityError(entityEvent, err)
-			}
-
-			events[i] = evt
-		}
-
-		blockTimestamp := result.BlockTimestamp.AsTime()
-		results[i] = BlockEvents{
-			BlockID:        flow.HashToID(result.GetBlockId()),
-			Height:         result.GetBlockHeight(),
-			BlockTimestamp: blockTimestamp,
-			Events:         events,
-		}
-	}
-
-	return results, nil
-}
-
-// GetLatestProtocolStateSnapshot retrieves the latest snapshot of the protocol
-// state in serialized form. This is used to generate a root snapshot file
-// used by Flow nodes to bootstrap their local protocol state database.
-func (c *Client) GetLatestProtocolStateSnapshot(ctx context.Context, opts ...grpc.CallOption) ([]byte, error) {
-	res, err := c.rpcClient.GetLatestProtocolStateSnapshot(ctx, &access.GetLatestProtocolStateSnapshotRequest{}, opts...)
-	if err != nil {
-		return nil, newRPCError(err)
-	}
-
-	return res.GetSerializedSnapshot(), nil
-}
-
-func (c *Client) GetExecutionResultForBlockID(ctx context.Context, blockID flow.Identifier, opts ...grpc.CallOption) (*flow.ExecutionResult, error) {
-	er, err := c.rpcClient.GetExecutionResultForBlockID(ctx, &access.GetExecutionResultForBlockIDRequest{
-		BlockId: convert.IdentifierToMessage(blockID),
-	}, opts...)
-	if err != nil {
-		return nil, newRPCError(err)
-	}
-
-	chunks := make([]*flow.Chunk, len(er.ExecutionResult.Chunks))
-	serviceEvents := make([]*flow.ServiceEvent, len(er.ExecutionResult.ServiceEvents))
-
-	for i, chunk := range er.ExecutionResult.Chunks {
-		chunks[i] = &flow.Chunk{
-			CollectionIndex:      uint(chunk.CollectionIndex),
-			StartState:           flow.BytesToStateCommitment(chunk.StartState),
-			EventCollection:      flow.BytesToHash(chunk.EventCollection),
-			BlockID:              flow.BytesToID(chunk.BlockId),
-			TotalComputationUsed: chunk.TotalComputationUsed,
-			NumberOfTransactions: uint16(chunk.NumberOfTransactions),
-			Index:                chunk.Index,
-			EndState:             flow.BytesToStateCommitment(chunk.EndState),
-		}
-	}
-
-	for i, serviceEvent := range er.ExecutionResult.ServiceEvents {
-		serviceEvents[i] = &flow.ServiceEvent{
-			Type:    serviceEvent.Type,
-			Payload: serviceEvent.Payload,
-		}
-	}
-
-	return &flow.ExecutionResult{
-		PreviousResultID: flow.BytesToID(er.ExecutionResult.PreviousResultId),
-		BlockID:          flow.BytesToID(er.ExecutionResult.BlockId),
-		Chunks:           chunks,
-		ServiceEvents:    serviceEvents,
-	}, nil
-}
+// RPCError is an error returned by an RPC call to an Access API.
+//
+// Deprecated: use grpc.RPCError instead.
+// Read more in the migration guide:
+// https://github.com/onflow/flow-go-sdk/blob/main/docs/migration-v0.25.0.md
+type RPCError = grpc.RPCError

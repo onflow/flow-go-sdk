@@ -22,12 +22,11 @@ import (
 	"context"
 	"fmt"
 
-	"google.golang.org/grpc"
+	"github.com/onflow/flow-go-sdk/access/http"
 
 	"github.com/onflow/cadence"
 
 	"github.com/onflow/flow-go-sdk"
-	"github.com/onflow/flow-go-sdk/client"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/examples"
 	"github.com/onflow/flow-go-sdk/templates"
@@ -42,7 +41,7 @@ func main() {
 func DeployContractDemo() {
 	// Connect to an emulator running locally
 	ctx := context.Background()
-	flowClient, err := client.New("127.0.0.1:3569", grpc.WithInsecure())
+	flowClient, err := http.NewClient(http.EmulatorHost)
 	examples.Handle(err)
 
 	serviceAcctAddr, serviceAcctKey, serviceSigner := examples.ServiceAccount(flowClient)
@@ -52,7 +51,8 @@ func DeployContractDemo() {
 		FromPrivateKey(myPrivateKey).
 		SetHashAlgo(crypto.SHA3_256).
 		SetWeight(flow.AccountKeyWeightThreshold)
-	mySigner := crypto.NewInMemorySigner(myPrivateKey, myAcctKey.HashAlgo)
+	mySigner, err := crypto.NewInMemorySigner(myPrivateKey, myAcctKey.HashAlgo)
+	examples.Handle(err)
 
 	referenceBlockID := examples.GetReferenceBlockId(flowClient)
 	createAccountTx, err := templates.CreateAccount([]*flow.AccountKey{myAcctKey}, nil, serviceAcctAddr)
