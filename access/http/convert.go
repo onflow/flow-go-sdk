@@ -241,7 +241,7 @@ func encodeCadenceValue(value string) (cadence.Value, error) {
 		return nil, err
 	}
 
-	return cadenceJSON.Decode(decoded)
+	return cadenceJSON.Decode(nil, decoded)
 }
 
 func toProposalKey(key *models.ProposalKey) flow.ProposalKey {
@@ -318,7 +318,7 @@ func toEvents(events []models.Event) ([]flow.Event, error) {
 			return nil, err
 		}
 
-		event, err := cadenceJSON.Decode(payload)
+		event, err := cadenceJSON.Decode(nil, payload)
 		if err != nil {
 			return nil, err
 		}

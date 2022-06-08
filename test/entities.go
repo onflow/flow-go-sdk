@@ -278,7 +278,7 @@ func (g *Events) New() flow.Event {
 			cadence.String("foo"),
 		}).WithType(testEventType)
 
-	typeID := location.TypeID(identifier)
+	typeID := location.TypeID(nil, identifier)
 
 	payload, err := jsoncdc.Encode(testEvent)
 	if err != nil {
