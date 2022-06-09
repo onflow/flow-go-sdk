@@ -10,6 +10,7 @@ require (
 	github.com/onflow/sdks v0.4.4
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.7.1
+	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5 // indirect
 	golang.org/x/tools v0.1.5 // indirect
 	google.golang.org/api v0.70.0
 	google.golang.org/genproto v0.0.0-20220222213610-43724f9ea8cf

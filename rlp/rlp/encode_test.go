@@ -26,7 +26,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/common/math"
+	"github.com/onflow/flow-go-sdk/rlp/common/math"
 )
 
 type testEncoder struct {

@@ -21,7 +21,7 @@ import (
 	"encoding/hex"
 	"errors"
 
-	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/onflow/flow-go-sdk/rlp/common/hexutil"
 )
 
 // FromHex returns the bytes represented by the hexadecimal string s.
