@@ -24,7 +24,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/onflow/flow-go-sdk/rlp/rlp"
+	"github.com/onflow/flow-go-sdk/encoding/rlp"
 )
 
 // AccountProofNonceMinLenBytes is the minimum length of account proof nonces in bytes.

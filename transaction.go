@@ -26,7 +26,7 @@ import (
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
-	"github.com/onflow/flow-go-sdk/rlp/rlp"
+	"github.com/onflow/flow-go-sdk/encoding/rlp"
 
 	"github.com/onflow/flow-go-sdk/crypto"
 )

@@ -23,7 +23,7 @@ import (
 	"sync"
 
 	"github.com/onflow/flow-go-sdk/crypto"
-	"github.com/onflow/flow-go-sdk/rlp/rlp"
+	"github.com/onflow/flow-go-sdk/encoding/rlp"
 )
 
 // An Identifier is a 32-byte unique identifier for an entity.
