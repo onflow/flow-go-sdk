@@ -26,6 +26,8 @@ import (
 	"math"
 	"strings"
 
+	"github.com/onflow/cadence/encoding/json"
+
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/access/http/models"
 
@@ -154,7 +156,7 @@ func NewBaseClient(host string) (*BaseClient, error) {
 		return nil, err
 	}
 
-	return &BaseClient{handler}, nil
+	return &BaseClient{handler: handler}, nil
 }
 
 // BaseClient provides an API specific to the HTTP.
@@ -162,7 +164,12 @@ func NewBaseClient(host string) (*BaseClient, error) {
 // Use this client if you need advance access to the HTTP API. If you
 // don't require special methods use the Client instead.
 type BaseClient struct {
-	handler handler
+	handler     handler
+	jsonOptions []json.Option
+}
+
+func (c *BaseClient) SetJSONOptions(options []json.Option) {
+	c.jsonOptions = options
 }
 
 func (c *BaseClient) Ping(ctx context.Context) error {
@@ -262,7 +269,7 @@ func (c *BaseClient) GetTransactionResult(
 		return nil, err
 	}
 
-	return toTransactionResult(tx.Result)
+	return toTransactionResult(tx.Result, c.jsonOptions)
 }
 
 func (c *BaseClient) GetAccountAtBlockHeight(
@@ -295,12 +302,18 @@ func (c *BaseClient) ExecuteScriptAtBlockID(
 		return nil, err
 	}
 
-	result, err := c.handler.executeScriptAtBlockID(ctx, blockID.String(), encodeScript(script), args, opts...)
+	result, err := c.handler.executeScriptAtBlockID(
+		ctx,
+		blockID.String(),
+		encodeScript(script),
+		args,
+		opts...,
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	return encodeCadenceValue(result)
+	return decodeCadenceValue(result, c.jsonOptions)
 }
 
 func (c *BaseClient) ExecuteScriptAtBlockHeight(
@@ -330,7 +343,7 @@ func (c *BaseClient) ExecuteScriptAtBlockHeight(
 		return nil, err
 	}
 
-	return encodeCadenceValue(result)
+	return decodeCadenceValue(result, c.jsonOptions)
 }
 
 func (c *BaseClient) GetEventsForHeightRange(
@@ -358,7 +371,7 @@ func (c *BaseClient) GetEventsForHeightRange(
 		return nil, err
 	}
 
-	return toBlockEvents(events)
+	return toBlockEvents(events, c.jsonOptions)
 }
 
 func (c *BaseClient) GetEventsForBlockIDs(
@@ -376,7 +389,7 @@ func (c *BaseClient) GetEventsForBlockIDs(
 		return nil, err
 	}
 
-	return toBlockEvents(events)
+	return toBlockEvents(events, c.jsonOptions)
 }
 
 func (c *BaseClient) GetLatestProtocolStateSnapshot(ctx context.Context) ([]byte, error) {

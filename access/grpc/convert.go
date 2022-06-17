@@ -211,8 +211,8 @@ func cadenceValuesToMessages(values []cadence.Value) ([][]byte, error) {
 	return msgs, nil
 }
 
-func messageToCadenceValue(m []byte) (cadence.Value, error) {
-	v, err := jsoncdc.Decode(nil, m)
+func messageToCadenceValue(m []byte, options []jsoncdc.Option) (cadence.Value, error) {
+	v, err := jsoncdc.Decode(nil, m, options...)
 	if err != nil {
 		return nil, fmt.Errorf("convert: %w", err)
 	}
@@ -337,8 +337,8 @@ func eventToMessage(e flow.Event) (*entities.Event, error) {
 	}, nil
 }
 
-func messageToEvent(m *entities.Event) (flow.Event, error) {
-	value, err := messageToCadenceValue(m.GetPayload())
+func messageToEvent(m *entities.Event, options []jsoncdc.Option) (flow.Event, error) {
+	value, err := messageToCadenceValue(m.GetPayload(), options)
 	if err != nil {
 		return flow.Event{}, err
 	}
@@ -503,12 +503,12 @@ func transactionResultToMessage(result flow.TransactionResult) (*access.Transact
 	}, nil
 }
 
-func messageToTransactionResult(m *access.TransactionResultResponse) (flow.TransactionResult, error) {
+func messageToTransactionResult(m *access.TransactionResultResponse, options []jsoncdc.Option) (flow.TransactionResult, error) {
 	eventMessages := m.GetEvents()
 
 	events := make([]flow.Event, len(eventMessages))
 	for i, eventMsg := range eventMessages {
-		event, err := messageToEvent(eventMsg)
+		event, err := messageToEvent(eventMsg, options)
 		if err != nil {
 			return flow.TransactionResult{}, err
 		}

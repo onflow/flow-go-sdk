@@ -235,13 +235,13 @@ func encodeCadenceArgs(args []cadence.Value) ([]string, error) {
 	return encArgs, nil
 }
 
-func encodeCadenceValue(value string) (cadence.Value, error) {
+func decodeCadenceValue(value string, options []cadenceJSON.Option) (cadence.Value, error) {
 	decoded, err := base64.StdEncoding.DecodeString(value)
 	if err != nil {
 		return nil, err
 	}
 
-	return cadenceJSON.Decode(nil, decoded)
+	return cadenceJSON.Decode(nil, decoded, options...)
 }
 
 func toProposalKey(key *models.ProposalKey) flow.ProposalKey {
@@ -310,7 +310,7 @@ func toTransactionStatus(status *models.TransactionStatus) flow.TransactionStatu
 	}
 }
 
-func toEvents(events []models.Event) ([]flow.Event, error) {
+func toEvents(events []models.Event, options []cadenceJSON.Option) ([]flow.Event, error) {
 	flowEvents := make([]flow.Event, len(events))
 	for i, e := range events {
 		payload, err := base64.StdEncoding.DecodeString(e.Payload)
@@ -318,7 +318,7 @@ func toEvents(events []models.Event) ([]flow.Event, error) {
 			return nil, err
 		}
 
-		event, err := cadenceJSON.Decode(nil, payload)
+		event, err := cadenceJSON.Decode(nil, payload, options...)
 		if err != nil {
 			return nil, err
 		}
@@ -335,10 +335,10 @@ func toEvents(events []models.Event) ([]flow.Event, error) {
 	return flowEvents, nil
 }
 
-func toBlockEvents(blockEvents []models.BlockEvents) ([]flow.BlockEvents, error) {
+func toBlockEvents(blockEvents []models.BlockEvents, options []cadenceJSON.Option) ([]flow.BlockEvents, error) {
 	blocks := make([]flow.BlockEvents, len(blockEvents))
 	for i, block := range blockEvents {
-		events, err := toEvents(block.Events)
+		events, err := toEvents(block.Events, options)
 		if err != nil {
 			return nil, err
 		}
@@ -353,8 +353,8 @@ func toBlockEvents(blockEvents []models.BlockEvents) ([]flow.BlockEvents, error)
 	return blocks, nil
 }
 
-func toTransactionResult(txr *models.TransactionResult) (*flow.TransactionResult, error) {
-	events, err := toEvents(txr.Events)
+func toTransactionResult(txr *models.TransactionResult, options []cadenceJSON.Option) (*flow.TransactionResult, error) {
+	events, err := toEvents(txr.Events, options)
 	if err != nil {
 		return nil, err
 	}

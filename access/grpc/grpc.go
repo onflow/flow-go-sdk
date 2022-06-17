@@ -24,6 +24,7 @@ import (
 	"context"
 
 	"github.com/onflow/cadence"
+	"github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/flow/protobuf/go/flow/access"
 	"google.golang.org/grpc"
 
@@ -40,8 +41,9 @@ type RPCClient interface {
 // Use this client if you need advance access to the HTTP API. If you
 // don't require special methods use the Client instead.
 type BaseClient struct {
-	rpcClient RPCClient
-	close     func() error
+	rpcClient   RPCClient
+	close       func() error
+	jsonOptions []json.Option
 }
 
 // NewBaseClient creates a new gRPC handler for network communication.
@@ -65,6 +67,10 @@ func NewFromRPCClient(rpcClient RPCClient) *BaseClient {
 		rpcClient: rpcClient,
 		close:     func() error { return nil },
 	}
+}
+
+func (c *BaseClient) SetJSONOptions(options []json.Option) {
+	c.jsonOptions = options
 }
 
 // Close closes the client connection.
@@ -278,7 +284,7 @@ func (c *BaseClient) GetTransactionResult(
 		return nil, newRPCError(err)
 	}
 
-	result, err := messageToTransactionResult(res)
+	result, err := messageToTransactionResult(res, c.jsonOptions)
 	if err != nil {
 		return nil, newMessageToEntityError(entityTransactionResult, err)
 	}
@@ -358,7 +364,7 @@ func (c *BaseClient) ExecuteScriptAtLatestBlock(
 		return nil, newRPCError(err)
 	}
 
-	return executeScriptResult(res)
+	return executeScriptResult(res, c.jsonOptions)
 }
 
 func (c *BaseClient) ExecuteScriptAtBlockID(
@@ -385,7 +391,7 @@ func (c *BaseClient) ExecuteScriptAtBlockID(
 		return nil, newRPCError(err)
 	}
 
-	return executeScriptResult(res)
+	return executeScriptResult(res, c.jsonOptions)
 }
 
 func (c *BaseClient) ExecuteScriptAtBlockHeight(
@@ -412,11 +418,11 @@ func (c *BaseClient) ExecuteScriptAtBlockHeight(
 		return nil, newRPCError(err)
 	}
 
-	return executeScriptResult(res)
+	return executeScriptResult(res, c.jsonOptions)
 }
 
-func executeScriptResult(res *access.ExecuteScriptResponse) (cadence.Value, error) {
-	value, err := messageToCadenceValue(res.GetValue())
+func executeScriptResult(res *access.ExecuteScriptResponse, options []json.Option) (cadence.Value, error) {
+	value, err := messageToCadenceValue(res.GetValue(), options)
 	if err != nil {
 		return nil, newMessageToEntityError(entityCadenceValue, err)
 	}
@@ -450,7 +456,7 @@ func (c *BaseClient) GetEventsForHeightRange(
 		return nil, newRPCError(err)
 	}
 
-	return getEventsResult(res)
+	return getEventsResult(res, c.jsonOptions)
 }
 
 func (c *BaseClient) GetEventsForBlockIDs(
@@ -469,10 +475,10 @@ func (c *BaseClient) GetEventsForBlockIDs(
 		return nil, newRPCError(err)
 	}
 
-	return getEventsResult(res)
+	return getEventsResult(res, c.jsonOptions)
 }
 
-func getEventsResult(res *access.EventsResponse) ([]flow.BlockEvents, error) {
+func getEventsResult(res *access.EventsResponse, options []json.Option) ([]flow.BlockEvents, error) {
 	resultMessages := res.GetResults()
 
 	results := make([]flow.BlockEvents, len(resultMessages))
@@ -482,7 +488,7 @@ func getEventsResult(res *access.EventsResponse) ([]flow.BlockEvents, error) {
 		events := make([]flow.Event, len(eventMessages))
 
 		for i, m := range eventMessages {
-			evt, err := messageToEvent(m)
+			evt, err := messageToEvent(m, options)
 			if err != nil {
 				return nil, newMessageToEntityError(entityEvent, err)
 			}

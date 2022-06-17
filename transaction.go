@@ -151,7 +151,7 @@ func (t *Transaction) AddRawArgument(arg []byte) *Transaction {
 }
 
 // Argument returns the decoded argument at the given index.
-func (t *Transaction) Argument(i int) (cadence.Value, error) {
+func (t *Transaction) Argument(i int, options ...jsoncdc.Option) (cadence.Value, error) {
 	if i < 0 {
 		return nil, fmt.Errorf("argument index must be positive")
 	}
@@ -162,7 +162,7 @@ func (t *Transaction) Argument(i int) (cadence.Value, error) {
 
 	encodedArg := t.Arguments[i]
 
-	arg, err := jsoncdc.Decode(nil, encodedArg)
+	arg, err := jsoncdc.Decode(nil, encodedArg, options...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode argument at index %d: %w", i, err)
 	}

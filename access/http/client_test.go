@@ -38,7 +38,7 @@ func clientTest(
 	return func(t *testing.T) {
 		h := &mockHandler{}
 		client := &Client{
-			&BaseClient{h},
+			&BaseClient{handler: h},
 		}
 		f(context.Background(), t, h, client)
 		h.AssertExpectations(t)
@@ -318,7 +318,7 @@ func TestBaseClient_GetTransactionResult(t *testing.T) {
 		expectedTx, err := toTransaction(&httpTx)
 		assert.NoError(t, err)
 
-		expectedTxRes, err := toTransactionResult(&httpTxRes)
+		expectedTxRes, err := toTransactionResult(&httpTxRes, nil)
 		assert.NoError(t, err)
 
 		handler.
@@ -485,7 +485,7 @@ func TestBaseClient_GetEvents(t *testing.T) {
 
 	t.Run("Get For Height Range", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		httpEvents := blockEventsFlowFixture()
-		expectedEvents, err := toBlockEvents([]models.BlockEvents{httpEvents})
+		expectedEvents, err := toBlockEvents([]models.BlockEvents{httpEvents}, nil)
 		const eType = "A.Foo.Bar"
 		handler.
 			On(handlerName, mock.Anything, eType, "0", "5", []string(nil)).
@@ -498,7 +498,7 @@ func TestBaseClient_GetEvents(t *testing.T) {
 
 	t.Run("Get For Block IDs", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		httpEvents := blockEventsFlowFixture()
-		expectedEvents, err := toBlockEvents([]models.BlockEvents{httpEvents})
+		expectedEvents, err := toBlockEvents([]models.BlockEvents{httpEvents}, nil)
 		const eType = "A.Foo.Bar"
 		handler.
 			On(handlerName, mock.Anything, eType, "", "", []string{expectedEvents[0].BlockID.String()}).

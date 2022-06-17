@@ -103,7 +103,7 @@ func Test_ConvertTransaction(t *testing.T) {
 
 func Test_ConvertTransactionResult(t *testing.T) {
 	httpTxr := transactionResultFlowFixture()
-	txr, err := toTransactionResult(&httpTxr)
+	txr, err := toTransactionResult(&httpTxr, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, txr.Status, flow.TransactionStatusSealed)
