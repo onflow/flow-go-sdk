@@ -365,9 +365,10 @@ func toTransactionResult(txr *models.TransactionResult) (*flow.TransactionResult
 	}
 
 	return &flow.TransactionResult{
-		Status: toTransactionStatus(txr.Status),
-		Error:  txErr,
-		Events: events,
+		Status:  toTransactionStatus(txr.Status),
+		Error:   txErr,
+		Events:  events,
+		BlockID: flow.HexToID(txr.BlockId),
 	}, nil
 }
 
