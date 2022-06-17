@@ -111,7 +111,7 @@ func TestConvert_CadenceValue(t *testing.T) {
 		msg, err := cadenceValueToMessage(valueA)
 		require.NoError(t, err)
 
-		valueB, err := messageToCadenceValue(msg)
+		valueB, err := messageToCadenceValue(msg, nil)
 		require.NoError(t, err)
 
 		assert.Equal(t, valueA, valueB)
@@ -120,7 +120,7 @@ func TestConvert_CadenceValue(t *testing.T) {
 	t.Run("Invalid message", func(t *testing.T) {
 		msg := []byte("invalid JSON-CDC bytes")
 
-		value, err := messageToCadenceValue(msg)
+		value, err := messageToCadenceValue(msg, nil)
 		assert.Error(t, err)
 		assert.Nil(t, value)
 	})
@@ -199,7 +199,7 @@ func TestConvert_Event(t *testing.T) {
 	msg, err := eventToMessage(eventA)
 	require.NoError(t, err)
 
-	eventB, err := messageToEvent(msg)
+	eventB, err := messageToEvent(msg, nil)
 	require.NoError(t, err)
 
 	assert.Equal(t, eventA, eventB)
@@ -261,7 +261,7 @@ func TestConvert_TransactionResult(t *testing.T) {
 
 	msg, err := transactionResultToMessage(resultA)
 
-	resultB, err := messageToTransactionResult(msg)
+	resultB, err := messageToTransactionResult(msg, nil)
 	require.NoError(t, err)
 
 	assert.Equal(t, resultA, resultB)
