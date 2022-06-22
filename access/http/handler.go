@@ -149,7 +149,7 @@ func (h *httpHandler) post(_ context.Context, url *url.URL, body []byte, model i
 		}
 
 		var httpErr HTTPError
-		err = json.Unmarshal(body, &httpErr)
+		err = json.Unmarshal(responseBody, &httpErr)
 		if err != nil {
 			return err
 		}

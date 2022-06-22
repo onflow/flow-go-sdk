@@ -358,7 +358,7 @@ func TestHandler_ExecuteScript(t *testing.T) {
 		)
 
 		_, err := handler.executeScriptAtBlockHeight(ctx, height, script, nil)
-		assert.EqualError(t, err, "executing script main() { return 42; } failed: ") // todo check desc
+		assert.EqualError(t, err, "executing script main() { return 42; } failed: execution failure") // todo check desc
 	}))
 }
 
@@ -375,6 +375,25 @@ func TestHandler_SendTransaction(t *testing.T) {
 
 		err = handler.sendTransaction(ctx, rawTx)
 		assert.NoError(t, err)
+	}))
+
+	t.Run("Invalid Argument", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
+		httpTx := transactionFlowFixture()
+		u, _ := url.Parse("/transactions")
+
+		req.SetErr(
+			*u,
+			models.ModelError{
+				Code:    http.StatusBadRequest,
+				Message: "rpc error: code = InvalidArgument",
+			},
+		)
+
+		rawTx, err := json.Marshal(httpTx)
+		assert.NoError(t, err)
+
+		err = handler.sendTransaction(ctx, rawTx)
+		assert.EqualError(t, err, "rpc error: code = InvalidArgument")
 	}))
 }
 
