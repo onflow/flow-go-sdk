@@ -56,8 +56,9 @@ func NewBaseClient(url string, opts ...grpc.DialOption) (*BaseClient, error) {
 	grpcClient := access.NewAccessAPIClient(conn)
 
 	return &BaseClient{
-		rpcClient: grpcClient,
-		close:     func() error { return conn.Close() },
+		rpcClient:   grpcClient,
+		close:       func() error { return conn.Close() },
+		jsonOptions: []json.Option{json.WithAllowUnstructuredStaticTypes(true)},
 	}, nil
 }
 
