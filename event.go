@@ -30,7 +30,7 @@ import (
 // List of built-in account event types.
 const (
 	EventAccountCreated         string = "flow.AccountCreated"
-	EventAccountAdded           string = "flow.AccountKeyAdded"
+	EventAccountKeyAdded        string = "flow.AccountKeyAdded"
 	EventAccountKeyRemoved      string = "flow.AccountKeyRemoved"
 	EventAccountContractAdded   string = "flow.AccountContractAdded"
 	EventAccountContractUpdated string = "flow.AccountContractUpdated"
