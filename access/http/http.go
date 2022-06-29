@@ -156,7 +156,12 @@ func NewBaseClient(host string) (*BaseClient, error) {
 		return nil, err
 	}
 
-	return &BaseClient{handler: handler}, nil
+	return &BaseClient{
+		handler: handler,
+		jsonOptions: []json.Option{
+			json.WithAllowUnstructuredStaticTypes(true),
+		},
+	}, nil
 }
 
 // BaseClient provides an API specific to the HTTP.
