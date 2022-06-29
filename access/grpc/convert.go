@@ -500,6 +500,7 @@ func transactionResultToMessage(result flow.TransactionResult) (*access.Transact
 		ErrorMessage: errorMsg,
 		Events:       eventMessages,
 		BlockId:      identifierToMessage(result.BlockID),
+		BlockHeight:  result.BlockHeight,
 	}, nil
 }
 
@@ -529,9 +530,10 @@ func messageToTransactionResult(m *access.TransactionResultResponse, options []j
 	}
 
 	return flow.TransactionResult{
-		Status:  flow.TransactionStatus(m.GetStatus()),
-		Error:   err,
-		Events:  events,
-		BlockID: flow.BytesToID(m.GetBlockId()),
+		Status:      flow.TransactionStatus(m.GetStatus()),
+		Error:       err,
+		Events:      events,
+		BlockID:     flow.BytesToID(m.GetBlockId()),
+		BlockHeight: m.BlockHeight,
 	}, nil
 }
