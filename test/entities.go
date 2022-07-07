@@ -421,6 +421,7 @@ func (g *TransactionResults) New() flow.TransactionResult {
 	eventA := g.events.New()
 	eventB := g.events.New()
 	blockID := newIdentifier(1)
+	blockHeight := uint64(42)
 
 	return flow.TransactionResult{
 		Status: flow.TransactionStatusSealed,
@@ -429,6 +430,7 @@ func (g *TransactionResults) New() flow.TransactionResult {
 			eventA,
 			eventB,
 		},
-		BlockID: blockID,
+		BlockID:     blockID,
+		BlockHeight: blockHeight,
 	}
 }
