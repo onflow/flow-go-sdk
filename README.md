@@ -213,7 +213,7 @@ if err != nil {
 ### How Signatures Work in Flow
 
 Flow introduces new concepts that allow for more flexibility when creating and signing transactions. 
-Before trying the examples below, we recommend that you read through the [transaction signature documentation](https://github.com/onflow/flow/blob/master/docs/accounts-and-keys.md#signing-a-transaction).
+Before trying the examples below, we recommend that you read through the [transaction signature documentation](https://github.com/onflow/flow/blob/master/docs/content/concepts/accounts-and-keys.md#signing-a-transaction).
 
 ---
 
