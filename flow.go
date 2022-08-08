@@ -95,14 +95,32 @@ func HashToStateCommitment(hash []byte) StateCommitment {
 // Chain IDs are used used to prevent replay attacks and to support network-specific address generation.
 type ChainID string
 
-// Mainnet is the chain ID for the mainnet node chain.
-const Mainnet ChainID = "flow-mainnet"
+const (
+	// Mainnet is the chain ID for the mainnet chain.
+	Mainnet ChainID = "flow-mainnet"
 
-// Testnet is the chain ID for the testnet node chain.
-const Testnet ChainID = "flow-testnet"
+	// Long-lived test networks
 
-// Emulator is the chain ID for the emulated node chain.
-const Emulator ChainID = "flow-emulator"
+	// Testnet is the chain ID for the testnet chain.
+	Testnet ChainID = "flow-testnet"
+
+	// Stagingnet is the chain ID for internal stagingnet chain.
+	Stagingnet ChainID = "flow-stagingnet"
+
+	// Transient test networks
+
+	// Benchnet is the chain ID for the transient benchmarking chain.
+	Benchnet ChainID = "flow-benchnet"
+	// Localnet is the chain ID for the local development chain.
+	Localnet ChainID = "flow-localnet"
+	// Emulator is the chain ID for the emulated chain.
+	Emulator ChainID = "flow-emulator"
+	// BftTestnet is the chain ID for testing attack vector scenarios.
+	BftTestnet ChainID = "flow-bft-test-net"
+
+	// MonotonicEmulator is the chain ID for the emulated node chain with monotonic address generation.
+	MonotonicEmulator ChainID = "flow-emulator-monotonic"
+)
 
 func (id ChainID) String() string {
 	return string(id)
