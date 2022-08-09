@@ -5,7 +5,7 @@ go 1.18
 require (
 	cloud.google.com/go/kms v1.4.0
 	github.com/ethereum/go-ethereum v1.9.13
-	github.com/onflow/cadence v0.24.2-0.20220627202951-5a06fec82b4a
+	github.com/onflow/cadence v0.24.2-0.20220809210222-ca00ab32c421
 	github.com/onflow/flow-go/crypto v0.24.3
 	github.com/onflow/flow/protobuf/go/flow v0.3.1
 	github.com/onflow/sdks v0.4.4
@@ -29,7 +29,7 @@ require (
 	github.com/go-test/deep v1.0.5 // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/google/go-cmp v0.5.7 // indirect
+	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/googleapis/gax-go/v2 v2.1.1 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.14 // indirect
 	github.com/logrusorgru/aurora v0.0.0-20200102142835-e9ef32dff381 // indirect
@@ -42,11 +42,13 @@ require (
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/zeebo/blake3 v0.2.3 // indirect
 	go.opencensus.io v0.23.0 // indirect
+	go.opentelemetry.io/otel v1.8.0 // indirect
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
 	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
 	golang.org/x/sys v0.0.0-20220209214540-3681064d5158 // indirect
 	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
