@@ -24,6 +24,7 @@ import (
 	"crypto/rand"
 	"crypto/x509"
 	"encoding/pem"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -145,6 +146,10 @@ wQ86xRvlkcKK2RSaGdKyS4Dy6NAOCucCQOvK09nBhARyqwh3VLooow==
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAECi6YPHhCRPZWg0sUeNAi7QdpH5E8
 hbOhaN5CWXjw0HQAZeXqjoswiWlVH0baBuwAPwFcdk5fG/KW60QvOYPExA==
 -----END PUBLIC KEY-----`
+	const yonderKey = `-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE7krsiebYP+Vj7pPeATdJYfzxF7fn
+RseLMJf1S2MKBT/U7nCkvel0zhLXHetETFwjwiStkvBab3K1R0L9lwCjtw==
+-----END PUBLIC KEY-----`
 
 	expected := map[string]string{
 		pemECDSAKeySECP256K1:  "0x68df8d2271896ae484c7812b17c1b0b653538d0be35c8340c10f3ac51be591c28ad9149a19d2b24b80f2e8d00e0ae70240ebcad3d9c1840472ab087754ba28a3",
@@ -189,5 +194,13 @@ hbOhaN5CWXjw0HQAZeXqjoswiWlVH0baBuwAPwFcdk5fG/KW60QvOYPExA==
 		require.NoError(t, err)
 
 		assert.Equal(t, expected[key], pk.String())
+	})
+
+	t.Run("Yonder key", func(t *testing.T) {
+		key := yonderKey
+		pk, err := crypto.DecodePublicKeyPEM(crypto.ECDSA_P256, key)
+		require.NoError(t, err)
+
+		fmt.Println(pk.String())
 	})
 }
