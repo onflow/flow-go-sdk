@@ -89,6 +89,8 @@ func gcloudApplicationSignin(kms cloudkms.Key) error {
 // This tests requires access to KMS and cannot be run by CI.
 // Please use this test manually by commenting t.Skip(),
 // when making any change to the KMS signing code.
+// This test assumes gcloud CLI is already installed on
+// your machine.
 func TestManualKMSSigning(t *testing.T) {
 	// to comment when testing manually
 	t.Skip()
@@ -113,16 +115,34 @@ func TestManualKMSSigning(t *testing.T) {
 	pk, _, err := cl.GetPublicKey(ctx, key)
 	require.NoError(t, err)
 
-	// Sign
-	msg := []byte("random_message")
+	// signer
 	signer, err := cl.SignerForKey(ctx, key)
 	require.NoError(t, err)
-	sig, err := signer.Sign(msg)
-	require.NoError(t, err)
 
-	// verify
-	hasher := crypto.NewSHA2_256()
-	valid, err := pk.Verify(sig, msg, hasher)
-	require.NoError(t, err)
-	assert.True(t, valid)
+	signAndVerify := func(t *testing.T, msgLen int) {
+		// Sign
+		msg := make([]byte, msgLen)
+		sig, err := signer.Sign(msg)
+		require.NoError(t, err)
+
+		// verify
+		hasher := crypto.NewSHA2_256()
+		valid, err := pk.Verify(sig, msg, hasher)
+		require.NoError(t, err)
+		assert.True(t, valid)
+	}
+
+	kmsPreHashLimit := 65536
+	// google KMS supports signing messages without prehashing
+	// up to 65536 bytes
+	t.Run("short message", func(t *testing.T) {
+		signAndVerify(t, kmsPreHashLimit)
+	})
+
+	// google KMS does not support signing messages longer than 65536
+	// without prehashing
+	t.Run("long message", func(t *testing.T) {
+		signAndVerify(t, kmsPreHashLimit+1)
+	})
+
 }

@@ -43,6 +43,8 @@ type Signer struct {
 	curve crypto.SignatureAlgorithm
 	// public key for easier access
 	publicKey crypto.PublicKey
+	// Hash algorithm associated to the KMS signing key
+	hashAlgo crypto.HashAlgorithm
 }
 
 // SignerForKey returns a new Google Cloud KMS signer for an asymmetric signing key version.
@@ -52,7 +54,7 @@ func (c *Client) SignerForKey(
 	ctx context.Context,
 	key Key,
 ) (*Signer, error) {
-	pk, _, err := c.GetPublicKey(ctx, key)
+	pk, hashAlgo, err := c.GetPublicKey(ctx, key)
 	if err != nil {
 		return nil, err
 	}
@@ -63,6 +65,7 @@ func (c *Client) SignerForKey(
 		key:       key,
 		curve:     pk.Algorithm(),
 		publicKey: pk,
+		hashAlgo:  hashAlgo,
 	}, nil
 }
 
@@ -71,10 +74,32 @@ func (c *Client) SignerForKey(
 // Reference: https://cloud.google.com/kms/docs/create-validate-signatures
 func (s *Signer) Sign(message []byte) ([]byte, error) {
 
-	request := &kmspb.AsymmetricSignRequest{
-		Name:       s.key.ResourceID(),
-		Data:       message,
-		DataCrc32C: checksum(message),
+	// Google KMS supports signing messages without pre-hashing
+	// up to 65536 bytes. Beyond that limit, messages must be
+	// prehashed outside KMS.
+	kmsPreHashLimit := 65536
+
+	var request *kmspb.AsymmetricSignRequest
+	if len(message) <= kmsPreHashLimit {
+		// hash within KMS
+		request = &kmspb.AsymmetricSignRequest{
+			Name:       s.key.ResourceID(),
+			Data:       message,
+			DataCrc32C: checksum(message),
+		}
+	} else {
+		// this is guaranteed to only return supported hash algos by KMS
+		hasher, err := crypto.NewHasher(s.hashAlgo)
+		if err != nil {
+			return nil, fmt.Errorf("cloudkms: failed to sign: %w", err)
+		}
+		// pre-hash outside KMS
+		hash := hasher.ComputeHash(message)
+		request = &kmspb.AsymmetricSignRequest{
+			Name:         s.key.ResourceID(),
+			Digest:       getDigest(s.hashAlgo, hash),
+			DigestCrc32C: checksum(hash),
+		}
 	}
 	result, err := s.client.AsymmetricSign(s.ctx, request)
 	if err != nil {
@@ -130,4 +155,19 @@ func curveOrder(curve crypto.SignatureAlgorithm) int {
 
 func (s *Signer) PublicKey() crypto.PublicKey {
 	return s.publicKey
+}
+
+// returns the Digest structure for the hashing algoroithm and hash value, required by the
+// signing prehash request
+// This function only covers algorithms supported by KMS. It should be extended
+// whenever a new hashing algorithm needs to be supported (for instance SHA3-256)
+func getDigest(algo crypto.HashAlgorithm, hash []byte) *kmspb.Digest {
+	if algo == crypto.SHA2_256 {
+		return &kmspb.Digest{
+			Digest: &kmspb.Digest_Sha256{
+				Sha256: hash,
+			},
+		}
+	}
+	return nil
 }
