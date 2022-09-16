@@ -107,11 +107,13 @@ func chainCustomizer(chain ChainID) uint64 {
 	case Mainnet:
 		return 0
 	case Testnet:
-		return invalidCodeTestnet
-	case Emulator:
-		return invalidCodeEmulator
+		return invalidCodeTestNetwork
+	case Stagingnet:
+		return invalidCodeStagingNetwork
+	case Emulator, Localnet, Benchnet, BftTestnet:
+		return invalidCodeTransientNetwork
 	default:
-		panic("chain ID is invalid")
+		panic(fmt.Sprintf("chain ID [%s] is invalid or does not support linear code address generation", chain))
 	}
 }
 
@@ -261,8 +263,14 @@ func (a *Address) IsValid(chain ChainID) bool {
 // invalid code-words in the [64,45] code
 // these constants are used to generate non-Flow-Mainnet addresses
 const (
-	invalidCodeTestnet  = uint64(0x6834ba37b3980209)
-	invalidCodeEmulator = uint64(0x1cb159857af02018)
+	// invalidCodeTestNetwork is the invalid codeword used for long-lived test networks.
+	invalidCodeTestNetwork = uint64(0x6834ba37b3980209)
+
+	// invalidCodeTransientNetwork  is the invalid codeword used for transient test networks.
+	invalidCodeTransientNetwork = uint64(0x1cb159857af02018)
+
+	// invalidCodeStagingNetwork is the invalid codeword used for Staging network.
+	invalidCodeStagingNetwork = uint64(0x1035ce4eff92ae01)
 )
 
 // Rows of the generator matrix G of the [64,45]-code used for Flow addresses.
