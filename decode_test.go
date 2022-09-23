@@ -22,6 +22,7 @@ import (
 	"testing"
 
 	"github.com/onflow/cadence/runtime/common"
+	"github.com/onflow/cadence/runtime/stdlib"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -31,6 +32,6 @@ import (
 func TestDecodeFlowTypeID(t *testing.T) {
 	location, qualifiedIdentifier, err := common.DecodeTypeID(nil, flow.EventAccountCreated)
 	require.NoError(t, err)
-	assert.Equal(t, common.LocationID("flow"), location.ID())
+	assert.Equal(t, stdlib.FlowLocation{}, location)
 	assert.Equal(t, "AccountCreated", qualifiedIdentifier)
 }
