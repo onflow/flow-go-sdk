@@ -3,8 +3,6 @@ name: Bug Report
 about: Report a problem or bug
 title: ''
 labels: bug
-assignees: psiemens
-
 ---
 
 ## Instructions 
