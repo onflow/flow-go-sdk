@@ -104,8 +104,8 @@ const (
 	// Testnet is the chain ID for the testnet chain.
 	Testnet ChainID = "flow-testnet"
 
-	// Stagingnet is the chain ID for internal stagingnet chain.
-	Stagingnet ChainID = "flow-stagingnet"
+	// Sandboxnet is the chain ID for sandboxnet chain.
+	Sandboxnet ChainID = "flow-sandboxnet"
 
 	// Transient test networks
 

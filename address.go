@@ -108,8 +108,8 @@ func chainCustomizer(chain ChainID) uint64 {
 		return 0
 	case Testnet:
 		return invalidCodeTestNetwork
-	case Stagingnet:
-		return invalidCodeStagingNetwork
+	case Sandboxnet:
+		return invalidCodeSandboxNetwork
 	case Emulator, Localnet, Benchnet, BftTestnet:
 		return invalidCodeTransientNetwork
 	default:
@@ -269,8 +269,8 @@ const (
 	// invalidCodeTransientNetwork  is the invalid codeword used for transient test networks.
 	invalidCodeTransientNetwork = uint64(0x1cb159857af02018)
 
-	// invalidCodeStagingNetwork is the invalid codeword used for Staging network.
-	invalidCodeStagingNetwork = uint64(0x1035ce4eff92ae01)
+	// invalidCodeSandboxNetwork is the invalid codeword used for Sandbox network.
+	invalidCodeSandboxNetwork = uint64(0x1035ce4eff92ae01)
 )
 
 // Rows of the generator matrix G of the [64,45]-code used for Flow addresses.

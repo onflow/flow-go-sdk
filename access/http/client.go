@@ -28,9 +28,9 @@ import (
 
 const (
 	EmulatorHost  = "http://127.0.0.1:8888/v1"
-	TestnetHost   = "https://rest-testnet.onflow.org/v1/"
-	MainnetHost   = "https://rest-mainnet.onflow.org/v1/"
-	CanarynetHost = "https://rest-canary.onflow.org/v1/"
+	TestnetHost   = "https://rest-testnet.onflow.org/v1"
+	MainnetHost   = "https://rest-mainnet.onflow.org/v1"
+	CanarynetHost = "https://rest-canary.onflow.org/v1"
 )
 
 // NewClient creates an HTTP client exposing all the common access APIs.
