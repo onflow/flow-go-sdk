@@ -61,8 +61,14 @@ type Client interface {
 	// GetTransaction gets a transaction by ID.
 	GetTransaction(ctx context.Context, txID flow.Identifier) (*flow.Transaction, error)
 
+	// GetTransactionsByBlockID gets all the transactions for a specified block.
+	GetTransactionsByBlockID(ctx context.Context, blockID flow.Identifier) ([]*flow.Transaction, error)
+
 	// GetTransactionResult gets the result of a transaction.
 	GetTransactionResult(ctx context.Context, txID flow.Identifier) (*flow.TransactionResult, error)
+
+	// GetTransactionResultsByBlockID gets all the transaction results for a specified block.
+	GetTransactionResultsByBlockID(ctx context.Context, blockID flow.Identifier) ([]*flow.TransactionResult, error)
 
 	// GetAccount is an alias for GetAccountAtLatestBlock.
 	GetAccount(ctx context.Context, address flow.Address) (*flow.Account, error)
