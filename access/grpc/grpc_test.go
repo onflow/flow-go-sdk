@@ -371,6 +371,41 @@ func TestClient_GetTransaction(t *testing.T) {
 	}))
 }
 
+func TestClient_GetTransactionsByBlockID(t *testing.T) {
+	txs := test.TransactionGenerator()
+	ids := test.IdentifierGenerator()
+	blockID := ids.New()
+
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+		expectedTx := txs.New()
+
+		txMsg, err := transactionToMessage(*expectedTx)
+		require.NoError(t, err)
+
+		responses := &access.TransactionsResponse{
+			Transactions: []*entities.Transaction{txMsg},
+		}
+
+		rpc.On("GetTransactionsByBlockID", ctx, mock.Anything).Return(responses, nil)
+
+		txs, err := c.GetTransactionsByBlockID(ctx, blockID)
+		require.NoError(t, err)
+
+		assert.Equal(t, len(txs), 1)
+		assert.Equal(t, expectedTx, txs[0])
+	}))
+
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+		rpc.On("GetTransactionsByBlockID", ctx, mock.Anything).
+			Return(nil, errNotFound)
+
+		tx, err := c.GetTransactionsByBlockID(ctx, blockID)
+		assert.Error(t, err)
+		assert.Equal(t, codes.NotFound, status.Code(err))
+		assert.Nil(t, tx)
+	}))
+}
+
 func TestClient_GetTransactionResult(t *testing.T) {
 	results := test.TransactionResultGenerator()
 	ids := test.IdentifierGenerator()
@@ -396,6 +431,42 @@ func TestClient_GetTransactionResult(t *testing.T) {
 			Return(nil, errNotFound)
 
 		result, err := c.GetTransactionResult(ctx, txID)
+		assert.Error(t, err)
+		assert.Equal(t, codes.NotFound, status.Code(err))
+		assert.Nil(t, result)
+	}))
+}
+
+func TestClient_GetTransactionResultsByBlockID(t *testing.T) {
+	resultGenerator := test.TransactionResultGenerator()
+	ids := test.IdentifierGenerator()
+
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+		blockID := ids.New()
+		expectedResult := resultGenerator.New()
+		response, err := transactionResultToMessage(expectedResult)
+		require.NoError(t, err)
+
+		responses := &access.TransactionResultsResponse{
+			TransactionResults: []*access.TransactionResultResponse{response},
+		}
+
+		rpc.On("GetTransactionResultsByBlockID", ctx, mock.Anything).Return(responses, nil)
+
+		results, err := c.GetTransactionResultsByBlockID(ctx, blockID)
+		require.NoError(t, err)
+
+		assert.Equal(t, len(results), 1)
+		assert.Equal(t, expectedResult, *results[0])
+	}))
+
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+		blockID := ids.New()
+
+		rpc.On("GetTransactionResultsByBlockID", ctx, mock.Anything).
+			Return(nil, errNotFound)
+
+		result, err := c.GetTransactionResultsByBlockID(ctx, blockID)
 		assert.Error(t, err)
 		assert.Equal(t, codes.NotFound, status.Code(err))
 		assert.Nil(t, result)
