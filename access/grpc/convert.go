@@ -535,7 +535,7 @@ func messageToTransactionResult(m *access.TransactionResultResponse, options []j
 		Error:         err,
 		Events:        events,
 		BlockID:       flow.BytesToID(m.GetBlockId()),
-		BlockHeight:   m.BlockHeight,
-		TransactionID: flow.BytesToID(m.TransactionId),
+		BlockHeight:   m.GetBlockHeight(),
+		TransactionID: flow.BytesToID(m.GetTransactionId()),
 	}, nil
 }
