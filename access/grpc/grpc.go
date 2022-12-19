@@ -271,6 +271,33 @@ func (c *BaseClient) GetTransaction(
 	return &result, nil
 }
 
+func (c *BaseClient) GetTransactionsByBlockID(
+	ctx context.Context,
+	blockID flow.Identifier,
+	opts ...grpc.CallOption,
+) ([]*flow.Transaction, error) {
+	req := &access.GetTransactionsByBlockIDRequest{
+		BlockId: blockID.Bytes(),
+	}
+
+	res, err := c.rpcClient.GetTransactionsByBlockID(ctx, req, opts...)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	unparsedResults := res.GetTransactions()
+	results := make([]*flow.Transaction, 0, len(unparsedResults))
+	for _, result := range unparsedResults {
+		parsed, err := messageToTransaction(result)
+		if err != nil {
+			return nil, newMessageToEntityError(entityTransaction, err)
+		}
+		results = append(results, &parsed)
+	}
+
+	return results, nil
+}
+
 func (c *BaseClient) GetTransactionResult(
 	ctx context.Context,
 	txID flow.Identifier,
@@ -291,6 +318,34 @@ func (c *BaseClient) GetTransactionResult(
 	}
 
 	return &result, nil
+}
+
+func (c *BaseClient) GetTransactionResultsByBlockID(
+	ctx context.Context,
+	blockID flow.Identifier,
+	opts ...grpc.CallOption,
+) ([]*flow.TransactionResult, error) {
+
+	req := &access.GetTransactionsByBlockIDRequest{
+		BlockId: blockID.Bytes(),
+	}
+
+	res, err := c.rpcClient.GetTransactionResultsByBlockID(ctx, req, opts...)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	unparsedResults := res.GetTransactionResults()
+	results := make([]*flow.TransactionResult, 0, len(unparsedResults))
+	for _, result := range unparsedResults {
+		parsed, err := messageToTransactionResult(result, c.jsonOptions)
+		if err != nil {
+			return nil, newMessageToEntityError(entityTransactionResult, err)
+		}
+		results = append(results, &parsed)
+	}
+
+	return results, nil
 }
 
 func (c *BaseClient) GetAccount(ctx context.Context, address flow.Address, opts ...grpc.CallOption) (*flow.Account, error) {
