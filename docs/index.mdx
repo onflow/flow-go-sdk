@@ -46,7 +46,7 @@ The Go SDK library uses HTTP or gRPC APIs to communicate with the access nodes a
 The library provides default factories for connecting to Flow AN APIs and you can easily switch between HTTP or gRPC if you use the provided client interface.
 
 You can check more examples for creating clients in the examples:
-**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130" />](https://github.com/onflow/flow-go-sdk/blob/master/examples/rest_grpc_clients/main.go)**
+**[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130" />](https://github.com/onflow/flow-go-sdk/blob/master/examples/http_grpc_clients/main.go)**
 
 Basic Example:
 ```go
@@ -452,7 +452,7 @@ Flow, like most blockchains, allows anybody to submit a transaction that mutates
 Transaction data is composed and signed with help of the SDK. The signed payload of transaction then gets submitted to the access node API. If a transaction is invalid or the correct number of authorizing signatures are not provided, it gets rejected.
 
 Executing a transaction requires couple of steps:
-- [Building transaction](#build-transactions).
+- [Building transaction](#build-the-transaction).
 - [Signing transaction](#sign-transactions).
 - [Sending transaction](#send-transactions).
 
@@ -586,7 +586,7 @@ func main() {
 }
 ```
 
-After you have successfully [built a transaction](#build-transactions) the next step in the process is to sign it.
+After you have successfully [built a transaction](#build-the-transaction) the next step in the process is to sign it.
 
 ### Sign Transactions
 [<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130" />](https://pkg.go.dev/github.com/onflow/flow-go-sdk#Transaction.SignEnvelope)
@@ -594,7 +594,7 @@ After you have successfully [built a transaction](#build-transactions) the next 
 Flow introduces new concepts that allow for more flexibility when creating and signing transactions.
 Before trying the examples below, we recommend that you read through the [transaction signature documentation](https://docs.onflow.org/concepts/accounts-and-keys/).
 
-After you have successfully [built a transaction](#build-transactions) the next step in the process is to sign it. Flow transactions have envelope and payload signatures, and you should learn about each in the [signature documentation](https://docs.onflow.org/concepts/accounts-and-keys/#anatomy-of-a-transaction).
+After you have successfully [built a transaction](#build-the-transaction) the next step in the process is to sign it. Flow transactions have envelope and payload signatures, and you should learn about each in the [signature documentation](https://docs.onflow.org/concepts/accounts-and-keys/#anatomy-of-a-transaction).
 
 Quick example of building a transaction:
 ```go
@@ -876,7 +876,7 @@ err = tx.SignEnvelope(account2.Address, key4.Index, key4Signer)
 ### Send Transactions
 [<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/ref.svg" width="130" />](https://pkg.go.dev/github.com/onflow/flow-go-sdk/client#Client.SendTransaction)
 
-After a transaction has been [built](#build-transactions) and [signed](#sign-transactions), it can be sent to the Flow blockchain where it will be executed. If sending was successful you can then [retrieve the transaction result](#get-transactions).
+After a transaction has been [built](#build-the-transaction) and [signed](#sign-transactions), it can be sent to the Flow blockchain where it will be executed. If sending was successful you can then [retrieve the transaction result](#get-transactions).
 
 
 **[<img src="https://raw.githubusercontent.com/onflow/sdks/main/templates/documentation/try.svg" width="130" />](https://github.com/onflow/flow-go-sdk/blob/master/examples/send_transactions/main.go)**
@@ -1013,9 +1013,6 @@ The example above uses an ECDSA key pair on the P-256 (secp256r1) elliptic curve
 
 This is an example of how to construct a FLOW token transfer transaction
 with the Flow Go SDK.
-
-Before using this example, read the [Build a Transaction guide](../building-transactions)
-for a general overview of how Flow transactions are constructed.
 
 ## Cadence Script
 
