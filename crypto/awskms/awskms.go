@@ -19,7 +19,7 @@
 // Package awskms provides a AWS Key Management Service (KMS)
 // implementation of the crypto.Signer interface.
 //
-// The documentation for Google Cloud KMS can be found here: https://cloud.google.com/kms/docs
+// The documentation for AWS KMS can be found here: https://docs.aws.amazon.com/kms/index.html
 package awskms
 
 import (
@@ -39,7 +39,7 @@ const (
 	resourceIDArgumentCount = 5
 )
 
-// Key is a reference to a AWS KMS asymmetric signing key version.
+// Key is a reference to a AWS KMS asymmetric signing key.
 type Key struct {
 	Region  string `json:"region"`
 	Account string `json:"account"`
@@ -85,12 +85,12 @@ func NewClient(cfg aws.Config) *Client {
 	}
 }
 
-// GetPublicKey fetches the public key portion of a KMS asymmetric signing key version.
+// GetPublicKey fetches the public key portion of a KMS asymmetric signing key.
 //
-// KMS keys of the type `CryptoKeyVersion_EC_SIGN_P256_SHA256` and `CryptoKeyVersion_EC_SIGN_SECP256K1_SHA256`
+// KMS keys of the type `KeySpecEccNistP256` and `KeySpecEccSecgP256k1`
 // are the only keys supported by the SDK.
 //
-// Ref: https://cloud.google.com/kms/docs/retrieve-public-key
+// Ref: https://github.com/aws/aws-sdk-go-v2/blob/main/service/kms/api_op_GetPublicKey.go
 func (c *Client) GetPublicKey(ctx context.Context, key Key) (crypto.PublicKey, crypto.HashAlgorithm, error) {
 
 	keyArn := key.ARN()
@@ -142,8 +142,7 @@ func (c *Client) GetPublicKey(ctx context.Context, key Key) (crypto.PublicKey, c
 	return publicKey, hashAlgo, nil
 }
 
-// KMSClient gives access to the KeyManagementClient,
-// e.g. for closing the connection to the Google KMS API
+// KMSClient gives access to the kms.Client
 func (c *Client) KMSClient() *kms.Client {
 	return c.client
 }
@@ -154,7 +153,6 @@ func ParseSignatureAlgorithm(keySpec types.KeySpec) crypto.SignatureAlgorithm {
 		return crypto.ECDSA_P256
 	}
 
-	// not sure if this is the same
 	if keySpec == types.KeySpecEccSecgP256k1 {
 		return crypto.ECDSA_secp256k1
 	}
