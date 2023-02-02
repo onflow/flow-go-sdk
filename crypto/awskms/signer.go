@@ -22,15 +22,11 @@ import (
 	"context"
 	"encoding/asn1"
 	"fmt"
-	"hash/crc32"
 	"math/big"
 
-	// kms "cloud.google.com/go/kms/apiv1"
-	"cloud.google.com/go/kms/apiv1/kmspb"
 	kms "github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/aws/aws-sdk-go-v2/service/kms/types"
 	"github.com/onflow/flow-go-sdk/crypto"
-	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 var _ crypto.Signer = (*Signer)(nil)
@@ -96,12 +92,12 @@ func (s *Signer) Sign(message []byte) ([]byte, error) {
 		}
 		// pre-hash outside KMS
 		hash := hasher.ComputeHash(message)
-		// indicatt the MessageType is digest
+		// indicate the MessageType is digest
 		request = &kms.SignInput{
 			KeyId:            &keyArn,
 			Message:          hash,
 			SigningAlgorithm: types.SigningAlgorithmSpecEcdsaSha256,
-			MessageType: types.MessageTypeDigest,
+			MessageType:      types.MessageTypeDigest,
 		}
 	}
 	result, err := s.client.Sign(s.ctx, request)
@@ -150,19 +146,4 @@ func curveOrder(curve crypto.SignatureAlgorithm) int {
 
 func (s *Signer) PublicKey() crypto.PublicKey {
 	return s.publicKey
-}
-
-// returns the Digest structure for the hashing algoroithm and hash value, required by the
-// signing prehash request
-// This function only covers algorithms supported by KMS. It should be extended
-// whenever a new hashing algorithm needs to be supported (for instance SHA3-256)
-func getDigest(algo crypto.HashAlgorithm, hash []byte) *kmspb.Digest {
-	if algo == crypto.SHA2_256 {
-		return &kmspb.Digest{
-			Digest: &kmspb.Digest_Sha256{
-				Sha256: hash,
-			},
-		}
-	}
-	return nil
 }

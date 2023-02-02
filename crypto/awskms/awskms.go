@@ -60,6 +60,20 @@ func (k Key) ARN() string {
 	)
 }
 
+// Example ARN format: "arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab"
+func KeyFromResourceARN(resourceARN string) (Key, error) {
+	key := Key{}
+	spiltedARN := strings.Split(resourceARN, ":")
+	if len(spiltedARN) != 6 {
+		return key, fmt.Errorf("awskms: wrong format for the resourceARN: %s", resourceARN)
+	}
+
+	key.Region, key.Account = spiltedARN[3], spiltedARN[4]
+	key.KeyID = strings.Split(spiltedARN[5], "/")[1]
+
+	return key, nil
+}
+
 // Client is a client for interacting with the AWS KMS API
 // using types native to the Flow Go SDK.
 type Client struct {

@@ -20,69 +20,32 @@ package awskms_test
 
 import (
 	"context"
-	"fmt"
 	"os"
-	"os/exec"
-	"regexp"
 	"testing"
 
+	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/onflow/flow-go-sdk/crypto"
-	"github.com/onflow/flow-go-sdk/crypto/cloudkms"
+	"github.com/onflow/flow-go-sdk/crypto/awskms"
 )
 
-func TestKeyFromResourceID(t *testing.T) {
-	key := cloudkms.Key{
-		ProjectID:  "my-project",
-		LocationID: "global",
-		KeyRingID:  "flow",
-		KeyID:      "my-account",
-		KeyVersion: "1",
+func TestKeyFromARN(t *testing.T) {
+	key := awskms.Key{
+		Region:  "us-west-2",
+		Account: "111122223333",
+		KeyID:   "1234abcd-12ab-34cd-56ef-1234567890ab",
 	}
 
-	resourceID := key.ResourceID()
+	resourceARN := key.ARN()
 
-	assert.Equal(t, resourceID, "projects/my-project/locations/global/keyRings/flow/cryptoKeys/my-account/cryptoKeyVersions/1")
+	assert.Equal(t, resourceARN, "arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab")
 
-	keyFromResourceID, err := cloudkms.KeyFromResourceID(resourceID)
+	keyFromResourceARN, err := awskms.KeyFromResourceARN(resourceARN)
 	require.NoError(t, err)
 
-	assert.Equal(t, key, keyFromResourceID)
-}
-
-// gcloudApplicationSignin signs in as an application user using gcloud command line tool
-// currently assumes gcloud is already installed on the machine
-// will by default pop a browser window to sign in
-func gcloudApplicationSignin(kms cloudkms.Key) error {
-	googleAppCreds := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
-	if len(googleAppCreds) > 0 {
-		return nil
-	}
-
-	proj := kms.ProjectID
-	if len(proj) == 0 {
-		return fmt.Errorf(
-			"could not get GOOGLE_APPLICATION_CREDENTIALS, no google service account JSON provided but private key type is KMS",
-		)
-	}
-
-	loginCmd := exec.Command("gcloud", "auth", "application-default", "login", fmt.Sprintf("--project=%s", proj))
-
-	output, err := loginCmd.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("Failed to run %q: %s\n", loginCmd.String(), err)
-	}
-
-	squareBracketRegex := regexp.MustCompile(`(?s)\[(.*)\]`)
-	regexResult := squareBracketRegex.FindAllStringSubmatch(string(output), -1)
-	// Should only be one value. Second index since first index contains the square brackets
-	googleApplicationCreds := regexResult[0][1]
-
-	os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", googleApplicationCreds)
-
-	return nil
+	assert.Equal(t, key, keyFromResourceARN)
 }
 
 // TestManualKMSSigning tests signing using a KMS key.
@@ -95,20 +58,26 @@ func TestManualKMSSigning(t *testing.T) {
 	// to comment when testing manually
 	t.Skip()
 
-	// KMS_TEST_KEY_RESOURCE_ID is an env var containing the resource ID of a KMS key you
+	// KMS_TEST_KEY_RESOURCE_ARN is an env var containing the resource ARN of a KMS key you
 	// have permissions to use.
-	id := os.Getenv(`KMS_TEST_KEY_RESOURCE_ID`)
-	fmt.Println(id)
-	key, err := cloudkms.KeyFromResourceID(id)
-	require.NoError(t, err)
-
-	// get google kms permission
-	err = gcloudApplicationSignin(key)
+	os.Setenv("KMS_TEST_KEY_RESOURCE_ARN", "")
+	id := os.Getenv(`KMS_TEST_KEY_RESOURCE_ARN`)
+	t.Log(id)
+	key, err := awskms.KeyFromResourceARN(id)
 	require.NoError(t, err)
 
 	// initialize the client
 	ctx := context.Background()
-	cl, err := cloudkms.NewClient(ctx)
+	// AWS SDK uses the default credential chain to find the credentials.
+	// You need to export env variables, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and AWS_SESSION_TOKEN
+	os.Setenv("AWS_ACCESS_KEY_ID", "")
+	os.Setenv("AWS_SECRET_ACCESS_KEY", "")
+	os.Setenv("AWS_SESSION_TOKEN", "")
+
+	defaultCfg, err := config.LoadDefaultConfig(ctx)
+	require.NoError(t, err)
+
+	cl := awskms.NewClient(defaultCfg)
 	require.NoError(t, err)
 
 	// Get the public key
@@ -132,14 +101,14 @@ func TestManualKMSSigning(t *testing.T) {
 		assert.True(t, valid)
 	}
 
-	kmsPreHashLimit := 65536
-	// google KMS supports signing messages without prehashing
-	// up to 65536 bytes
+	kmsPreHashLimit := 4096
+	// AWS KMS supports signing messages without prehashing
+	// up to 4096 bytes
 	t.Run("short message", func(t *testing.T) {
 		signAndVerify(t, kmsPreHashLimit)
 	})
 
-	// google KMS does not support signing messages longer than 65536
+	// google KMS does not support signing messages longer than 4096
 	// without prehashing
 	t.Run("long message", func(t *testing.T) {
 		signAndVerify(t, kmsPreHashLimit+1)
