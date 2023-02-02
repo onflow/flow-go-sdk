@@ -31,9 +31,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	kms "github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/aws/aws-sdk-go-v2/service/kms/types"
-
-	// kmspb "google.golang.org/genproto/googleapis/cloud/kms/v1"
-
 	"github.com/onflow/flow-go-sdk/crypto"
 )
 
