@@ -39,6 +39,12 @@ const (
 	resourceIDArgumentCount = 5
 )
 
+// Client is a client for interacting with the AWS KMS API
+// using types native to the Flow Go SDK.
+type Client struct {
+	client *kms.Client
+}
+
 // Key is a reference to a AWS KMS asymmetric signing key.
 type Key struct {
 	Region  string `json:"region"`
@@ -69,12 +75,6 @@ func KeyFromResourceARN(resourceARN string) (Key, error) {
 	key.KeyID = strings.Split(spiltedARN[5], "/")[1]
 
 	return key, nil
-}
-
-// Client is a client for interacting with the AWS KMS API
-// using types native to the Flow Go SDK.
-type Client struct {
-	client *kms.Client
 }
 
 // NewClient creates a new AWS KMS client.
