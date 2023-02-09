@@ -101,7 +101,7 @@ func (c *Client) GetPublicKey(ctx context.Context, key Key) (crypto.PublicKey, c
 	if err != nil {
 		return nil,
 			crypto.UnknownHashAlgorithm,
-			fmt.Errorf("awskms: failed to fetch public key from KMS API: %v", err)
+			fmt.Errorf("awskms: failed to fetch public key from KMS API: %w", err)
 	}
 
 	sigAlgo := ParseSignatureAlgorithm(result.KeySpec)
