@@ -35,7 +35,7 @@ import (
 )
 
 const (
-	resouceArnFormat        = "arn:aws:kms:%s:%s:key/%s"
+	resouceArnFormat = "arn:aws:kms:%s:%s:key/%s"
 )
 
 // Client is a client for interacting with the AWS KMS API
@@ -104,7 +104,7 @@ func (c *Client) GetPublicKey(ctx context.Context, key Key) (crypto.PublicKey, c
 			fmt.Errorf("awskms: failed to fetch public key from KMS API: %w", err)
 	}
 
-	sigAlgo := ParseSignatureAlgorithm(result.KeySpec)
+	sigAlgo := parseSignatureAlgorithm(result.KeySpec)
 	if sigAlgo == crypto.UnknownSignatureAlgorithm {
 		return nil,
 			crypto.UnknownHashAlgorithm,
@@ -114,7 +114,7 @@ func (c *Client) GetPublicKey(ctx context.Context, key Key) (crypto.PublicKey, c
 			)
 	}
 
-	hashAlgo := ParseHashAlgorithm(result.KeySpec)
+	hashAlgo := parseHashAlgorithm(result.KeySpec)
 	if hashAlgo == crypto.UnknownHashAlgorithm {
 		return nil,
 			crypto.UnknownHashAlgorithm,
@@ -147,7 +147,7 @@ func (c *Client) KMSClient() *kms.Client {
 }
 
 // ParseSignatureAlgorithm returns the `SignatureAlgorithm` corresponding to the input KMS key type.
-func ParseSignatureAlgorithm(keySpec types.KeySpec) crypto.SignatureAlgorithm {
+func parseSignatureAlgorithm(keySpec types.KeySpec) crypto.SignatureAlgorithm {
 	if keySpec == types.KeySpecEccNistP256 {
 		return crypto.ECDSA_P256
 	}
@@ -160,7 +160,7 @@ func ParseSignatureAlgorithm(keySpec types.KeySpec) crypto.SignatureAlgorithm {
 }
 
 // ParseHashAlgorithm returns the `HashAlgorithm` corresponding to the input KMS key type.
-func ParseHashAlgorithm(keySpec types.KeySpec) crypto.HashAlgorithm {
+func parseHashAlgorithm(keySpec types.KeySpec) crypto.HashAlgorithm {
 	if keySpec == types.KeySpecEccNistP256 || keySpec == types.KeySpecEccSecgP256k1 {
 		return crypto.SHA2_256
 	}

@@ -25,6 +25,7 @@ import (
 
 	kms "cloud.google.com/go/kms/apiv1"
 	"github.com/onflow/flow-go-sdk/crypto"
+	internal "github.com/onflow/flow-go-sdk/crypto/kms_internal"
 	kmspb "google.golang.org/genproto/googleapis/cloud/kms/v1"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
@@ -103,7 +104,7 @@ func (s *Signer) Sign(message []byte) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("cloudkms: failed to sign: %w", err)
 	}
-	sig, err := crypto.ParseSignature(result.Signature, s.curve)
+	sig, err := internal.ParseSignature(result.Signature, s.curve)
 	if err != nil {
 		return nil, fmt.Errorf("cloudkms: failed to parse signature: %w", err)
 	}

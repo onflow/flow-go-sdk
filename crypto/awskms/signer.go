@@ -25,6 +25,7 @@ import (
 	kms "github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/aws/aws-sdk-go-v2/service/kms/types"
 	"github.com/onflow/flow-go-sdk/crypto"
+	internal "github.com/onflow/flow-go-sdk/crypto/kms_internal"
 )
 
 var _ crypto.Signer = (*Signer)(nil)
@@ -102,7 +103,7 @@ func (s *Signer) Sign(message []byte) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("awskms: failed to sign: %w", err)
 	}
-	sig, err := crypto.ParseSignature(result.Signature, s.curve)
+	sig, err := internal.ParseSignature(result.Signature, s.curve)
 	if err != nil {
 		return nil, fmt.Errorf("awskms: failed to parse signature: %w", err)
 	}

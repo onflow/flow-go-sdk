@@ -120,7 +120,7 @@ func (c *Client) GetPublicKey(ctx context.Context, key Key) (crypto.PublicKey, c
 			fmt.Errorf("cloudkms: failed to fetch public key from KMS API: %v", err)
 	}
 
-	sigAlgo := ParseSignatureAlgorithm(result.Algorithm)
+	sigAlgo := parseSignatureAlgorithm(result.Algorithm)
 	if sigAlgo == crypto.UnknownSignatureAlgorithm {
 		return nil,
 			crypto.UnknownHashAlgorithm,
@@ -130,7 +130,7 @@ func (c *Client) GetPublicKey(ctx context.Context, key Key) (crypto.PublicKey, c
 			)
 	}
 
-	hashAlgo := ParseHashAlgorithm(result.Algorithm)
+	hashAlgo := parseHashAlgorithm(result.Algorithm)
 	if hashAlgo == crypto.UnknownHashAlgorithm {
 		return nil,
 			crypto.UnknownHashAlgorithm,
@@ -157,7 +157,7 @@ func (c *Client) KMSClient() *kms.KeyManagementClient {
 }
 
 // ParseSignatureAlgorithm returns the `SignatureAlgorithm` corresponding to the input KMS key type.
-func ParseSignatureAlgorithm(algo kmspb.CryptoKeyVersion_CryptoKeyVersionAlgorithm) crypto.SignatureAlgorithm {
+func parseSignatureAlgorithm(algo kmspb.CryptoKeyVersion_CryptoKeyVersionAlgorithm) crypto.SignatureAlgorithm {
 	if algo == kmspb.CryptoKeyVersion_EC_SIGN_P256_SHA256 {
 		return crypto.ECDSA_P256
 	}
@@ -170,7 +170,7 @@ func ParseSignatureAlgorithm(algo kmspb.CryptoKeyVersion_CryptoKeyVersionAlgorit
 }
 
 // ParseHashAlgorithm returns the `HashAlgorithm` corresponding to the input KMS key type.
-func ParseHashAlgorithm(algo kmspb.CryptoKeyVersion_CryptoKeyVersionAlgorithm) crypto.HashAlgorithm {
+func parseHashAlgorithm(algo kmspb.CryptoKeyVersion_CryptoKeyVersionAlgorithm) crypto.HashAlgorithm {
 	if algo == kmspb.CryptoKeyVersion_EC_SIGN_P256_SHA256 || algo == kmspb.CryptoKeyVersion_EC_SIGN_SECP256K1_SHA256 {
 		return crypto.SHA2_256
 	}
