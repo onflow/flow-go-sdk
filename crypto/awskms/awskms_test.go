@@ -52,8 +52,7 @@ func TestKeyFromARN(t *testing.T) {
 // This tests requires access to KMS and cannot be run by CI.
 // Please use this test manually by commenting t.Skip(),
 // when making any change to the KMS signing code.
-// This test assumes gcloud CLI is already installed on
-// your machine.
+// AWS Credentials are required to run this test.
 func TestManualKMSSigning(t *testing.T) {
 	// to comment when testing manually
 	t.Skip()

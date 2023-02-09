@@ -20,9 +20,7 @@ package awskms
 
 import (
 	"context"
-	"encoding/asn1"
 	"fmt"
-	"math/big"
 
 	kms "github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/aws/aws-sdk-go-v2/service/kms/types"
@@ -104,44 +102,11 @@ func (s *Signer) Sign(message []byte) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("awskms: failed to sign: %w", err)
 	}
-	sig, err := parseSignature(result.Signature, s.curve)
+	sig, err := crypto.ParseSignature(result.Signature, s.curve)
 	if err != nil {
 		return nil, fmt.Errorf("awskms: failed to parse signature: %w", err)
 	}
 	return sig, nil
-}
-
-// parseSignature parses an asn1 stucture (R,S) into a slice of bytes as required by the `Siger.Sign` method.
-func parseSignature(kmsSignature []byte, curve crypto.SignatureAlgorithm) ([]byte, error) {
-	var parsedSig struct{ R, S *big.Int }
-	if _, err := asn1.Unmarshal(kmsSignature, &parsedSig); err != nil {
-		return nil, fmt.Errorf("asn1.Unmarshal: %w", err)
-	}
-
-	curveOrderLen := curveOrder(curve)
-	signature := make([]byte, 2*curveOrderLen)
-
-	// left pad R and S with zeroes
-	rBytes := parsedSig.R.Bytes()
-	sBytes := parsedSig.S.Bytes()
-	copy(signature[curveOrderLen-len(rBytes):], rBytes)
-	copy(signature[len(signature)-len(sBytes):], sBytes)
-
-	return signature, nil
-}
-
-// returns the curve order size in bytes (used to padd R and S of the ECDSA signature)
-// Only P-256 and secp256k1 are supported. The calling function should make sure
-// the function is only called with one of the 2 curves.
-func curveOrder(curve crypto.SignatureAlgorithm) int {
-	switch curve {
-	case crypto.ECDSA_P256:
-		return 32
-	case crypto.ECDSA_secp256k1:
-		return 32
-	default:
-		panic("the curve is not supported")
-	}
 }
 
 func (s *Signer) PublicKey() crypto.PublicKey {

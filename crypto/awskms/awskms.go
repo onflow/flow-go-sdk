@@ -36,7 +36,6 @@ import (
 
 const (
 	resouceArnFormat        = "arn:aws:kms:%s:%s:key/%s"
-	resourceIDArgumentCount = 5
 )
 
 // Client is a client for interacting with the AWS KMS API
