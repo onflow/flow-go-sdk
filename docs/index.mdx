@@ -529,14 +529,14 @@ transaction(greeting: String) {
 ```go
 import (
   "context"
-  "ioutil"
+  "os"
   "github.com/onflow/flow-go-sdk"
   "github.com/onflow/flow-go-sdk/client"
 )
 
 func main() {
 
-  greeting, err := outil.ReadFile("Greeting2.cdc")
+  greeting, err := os.ReadFile("Greeting2.cdc")
   if err != nil {
     panic("failed to load Cadence script")
   }
