@@ -59,7 +59,7 @@ func TestManualKMSSigning(t *testing.T) {
 
 	// KMS_TEST_KEY_RESOURCE_ARN is an env var containing the resource ARN of a KMS key you
 	// have permissions to use.
-	os.Setenv("KMS_TEST_KEY_RESOURCE_ARN", "")
+	//os.Setenv("KMS_TEST_KEY_RESOURCE_ARN", "")
 	id := os.Getenv(`KMS_TEST_KEY_RESOURCE_ARN`)
 	t.Log(id)
 	key, err := awskms.KeyFromResourceARN(id)
@@ -68,13 +68,15 @@ func TestManualKMSSigning(t *testing.T) {
 	// initialize the client
 	ctx := context.Background()
 	// AWS SDK uses the default credential chain to find the credentials.
-	// You need to export env variables, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and AWS_SESSION_TOKEN
-	os.Setenv("AWS_ACCESS_KEY_ID", "")
-	os.Setenv("AWS_SECRET_ACCESS_KEY", "")
-	os.Setenv("AWS_SESSION_TOKEN", "")
+	// You either need to export env variables, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and AWS_SESSION_TOKEN
+	// or to install the aws kms CLI tool and set up your credentials (for instance in ~/.aws/credentials)
+	//os.Setenv("AWS_ACCESS_KEY_ID", "")
+	//os.Setenv("AWS_SECRET_ACCESS_KEY", "")
+	//os.Setenv("AWS_SESSION_TOKEN", "")
 
 	defaultCfg, err := config.LoadDefaultConfig(ctx)
 	require.NoError(t, err)
+	defaultCfg.Region = key.Region
 
 	cl := awskms.NewClient(defaultCfg)
 	require.NoError(t, err)
