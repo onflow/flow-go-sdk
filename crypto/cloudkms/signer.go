@@ -25,7 +25,7 @@ import (
 
 	kms "cloud.google.com/go/kms/apiv1"
 	"github.com/onflow/flow-go-sdk/crypto"
-	internal "github.com/onflow/flow-go-sdk/crypto/kms_internal"
+	"github.com/onflow/flow-go-sdk/crypto/internal"
 	kmspb "google.golang.org/genproto/googleapis/cloud/kms/v1"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
