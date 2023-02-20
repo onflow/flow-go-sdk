@@ -5,10 +5,10 @@ go 1.18
 require (
 	cloud.google.com/go/kms v1.4.0
 	github.com/ethereum/go-ethereum v1.9.13
-	github.com/onflow/cadence v0.34.0
-	github.com/onflow/flow-go/crypto v0.24.3
+	github.com/onflow/cadence v0.31.3
+	github.com/onflow/flow-go/crypto v0.24.4
 	github.com/onflow/flow/protobuf/go/flow v0.3.1
-	github.com/onflow/sdks v0.4.4
+	github.com/onflow/sdks v0.5.0
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.7.5
 	google.golang.org/api v0.70.0
