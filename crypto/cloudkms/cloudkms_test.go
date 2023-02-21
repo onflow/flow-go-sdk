@@ -98,7 +98,7 @@ func TestManualKMSSigning(t *testing.T) {
 	// KMS_TEST_KEY_RESOURCE_ID is an env var containing the resource ID of a KMS key you
 	// have permissions to use.
 	id := os.Getenv(`KMS_TEST_KEY_RESOURCE_ID`)
-	fmt.Println(id)
+	t.Log(id)
 	key, err := cloudkms.KeyFromResourceID(id)
 	require.NoError(t, err)
 

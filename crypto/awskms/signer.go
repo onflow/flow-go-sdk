@@ -25,7 +25,7 @@ import (
 	kms "github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/aws/aws-sdk-go-v2/service/kms/types"
 	"github.com/onflow/flow-go-sdk/crypto"
-	internal "github.com/onflow/flow-go-sdk/crypto/kms_internal"
+	"github.com/onflow/flow-go-sdk/crypto/internal"
 )
 
 var _ crypto.Signer = (*Signer)(nil)

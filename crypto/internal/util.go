@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package kms_internal
+package internal
 
 import (
 	"encoding/asn1"
@@ -57,4 +57,3 @@ func curveOrder(curve crypto.SignatureAlgorithm) int {
 		panic("the curve is not supported")
 	}
 }
-
