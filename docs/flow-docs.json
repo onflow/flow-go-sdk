@@ -1,0 +1,21 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "displayName": "Flow Go SDK",
+    "sidebars": {
+      "": [
+        {
+          "title": "Flow Go SDK",
+          "items": [
+            {
+              "title": "Getting Started",
+              "href": ""
+            },
+            {
+                "title": "Error Codes",
+                "href": "error-codes"
+              }
+          ]
+        }
+      ]
+    }
+  }
