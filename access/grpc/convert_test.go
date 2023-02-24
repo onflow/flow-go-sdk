@@ -202,6 +202,8 @@ func TestConvert_Event(t *testing.T) {
 	eventB, err := messageToEvent(msg, nil)
 	require.NoError(t, err)
 
+	_ = eventB.Value.Type().ID()
+
 	assert.Equal(t, eventA, eventB)
 }
 
@@ -263,6 +265,10 @@ func TestConvert_TransactionResult(t *testing.T) {
 
 	resultB, err := messageToTransactionResult(msg, nil)
 	require.NoError(t, err)
+
+	for _, event := range resultB.Events {
+		_ = event.Value.Type().ID()
+	}
 
 	assert.Equal(t, resultA, resultB)
 }
