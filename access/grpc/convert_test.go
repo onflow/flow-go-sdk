@@ -202,6 +202,8 @@ func TestConvert_Event(t *testing.T) {
 	eventB, err := messageToEvent(msg, nil)
 	require.NoError(t, err)
 
+	// Force evaluation of type ID, which is cached in type.
+	// Necessary for equality check below
 	_ = eventB.Value.Type().ID()
 
 	assert.Equal(t, eventA, eventB)
@@ -266,6 +268,8 @@ func TestConvert_TransactionResult(t *testing.T) {
 	resultB, err := messageToTransactionResult(msg, nil)
 	require.NoError(t, err)
 
+	// Force evaluation of type ID, which is cached in type.
+	// Necessary for equality check below
 	for _, event := range resultB.Events {
 		_ = event.Value.Type().ID()
 	}
