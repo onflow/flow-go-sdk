@@ -420,6 +420,12 @@ func TestClient_GetTransactionResult(t *testing.T) {
 		result, err := c.GetTransactionResult(ctx, txID)
 		require.NoError(t, err)
 
+		// Force evaluation of type ID, which is cached in type.
+		// Necessary for equality check below
+		for _, event := range result.Events {
+			_ = event.Value.Type().ID()
+		}
+
 		assert.Equal(t, expectedResult, *result)
 
 	}))
@@ -455,6 +461,14 @@ func TestClient_GetTransactionResultsByBlockID(t *testing.T) {
 
 		results, err := c.GetTransactionResultsByBlockID(ctx, blockID)
 		require.NoError(t, err)
+
+		// Force evaluation of type ID, which is cached in type.
+		// Necessary for equality check below
+		for _, result := range results {
+			for _, event := range result.Events {
+				_ = event.Value.Type().ID()
+			}
+		}
 
 		assert.Equal(t, len(results), 1)
 		assert.Equal(t, expectedResult, *results[0])
@@ -763,6 +777,14 @@ func TestClient_GetEventsForHeightRange(t *testing.T) {
 			})
 			require.NoError(t, err)
 
+			// Force evaluation of type ID, which is cached in type.
+			// Necessary for equality check below
+			for _, block := range blocks {
+				for _, event := range block.Events {
+					_ = event.Value.Type().ID()
+				}
+			}
+
 			assert.Len(t, blocks, len(response.Results))
 
 			assert.Equal(t, response.Results[0].BlockId, blocks[0].BlockID.Bytes())
@@ -854,6 +876,14 @@ func TestClient_GetEventsForBlockIDs(t *testing.T) {
 
 			blocks, err := c.GetEventsForBlockIDs(ctx, "foo", []flow.Identifier{blockIDA, blockIDB})
 			require.NoError(t, err)
+
+			// Force evaluation of type ID, which is cached in type.
+			// Necessary for equality checks below
+			for _, block := range blocks {
+				for _, event := range block.Events {
+					_ = event.Value.Type().ID()
+				}
+			}
 
 			assert.Len(t, blocks, len(response.Results))
 
