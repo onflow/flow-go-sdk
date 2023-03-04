@@ -27,7 +27,6 @@ import (
 	"fmt"
 
 	"github.com/onflow/flow-go/crypto"
-	"github.com/onflow/flow-go/crypto/hash"
 )
 
 // SignatureAlgorithm is an identifier for a signature algorithm (and parameters if applicable).
@@ -128,13 +127,10 @@ func NewNaiveSigner(privateKey PrivateKey, hashAlgo HashAlgorithm) (NaiveSigner,
 	return NewInMemorySigner(privateKey, hashAlgo)
 }
 
-// MinSeedLength is the generic minimum seed length required to make sure there is
-// enough entropy to generate keys targeting 128 bits of security.
-// (this is not a guarantee though).
-//
-// This minimum is used when the seed source is not necessarily a CSPRG and the seed
-// should be expanded before being passed to the key generation process.
-const MinSeedLength = 32
+// MinSeedLength is the generic minimum seed length.
+// It is recommended to use seeds with enough entropy, preferably from a secure RNG.
+// The key generation process extracts and expands the entropy of the seed.
+const MinSeedLength = crypto.KeyGenSeedMinLen
 
 func keyGenerationKMACTag(sigAlgo SignatureAlgorithm) []byte {
 	return []byte(fmt.Sprintf("%s Key Generation", sigAlgo))
@@ -152,31 +148,9 @@ func GeneratePrivateKey(sigAlgo SignatureAlgorithm, seed []byte) (PrivateKey, er
 		)
 	}
 
-	// expand the seed and uniformize its entropy
-	var seedLen int
-	switch sigAlgo {
-	case ECDSA_P256:
-		seedLen = crypto.KeyGenSeedMinLenECDSAP256
-	case ECDSA_secp256k1:
-		seedLen = crypto.KeyGenSeedMinLenECDSASecp256k1
-	default:
-		return nil, fmt.Errorf(
-			"crypto: Go SDK does not support key generation for %s algorithm",
-			sigAlgo,
-		)
-	}
-
-	generationTag := keyGenerationKMACTag(sigAlgo)
-	customizer := []byte("")
-	hasher, err := hash.NewKMAC_128(generationTag, customizer, seedLen)
-	if err != nil {
-		return nil, err
-	}
-
-	hashedSeed := hasher.ComputeHash(seed)
-
 	// generate the key
-	privKey, err := crypto.GeneratePrivateKey(sigAlgo, hashedSeed)
+	// (input seed entropy is extracted and expanded in the key generation function)
+	privKey, err := crypto.GeneratePrivateKey(sigAlgo, seed)
 	if err != nil {
 		return nil, err
 	}
