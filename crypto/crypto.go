@@ -84,6 +84,9 @@ type Signer interface {
 //
 // InMemorySigner implements simple signing that does not protect the private key against
 // any tampering or side channel attacks.
+// The implementation is pure software and does not include any isolation or secure-hardware protecion.
+// InMemorySigner should not be used for sensitive keys (for instance production keys) unless extra protection measures
+// are taken.
 type InMemorySigner struct {
 	PrivateKey PrivateKey
 	Hasher     Hasher
@@ -137,6 +140,10 @@ func keyGenerationKMACTag(sigAlgo SignatureAlgorithm) []byte {
 }
 
 // GeneratePrivateKey generates a private key with the specified signature algorithm from the given seed.
+// Note that the output key is directly mapped from the seed. The seed is therefore equivalent to the private key.
+// This implementation is pure software and does not include any isolation or secure-hardware protecion.
+// The function should not be used for sensitive keys (for instance production keys) unless extra protection measures
+// are taken.
 func GeneratePrivateKey(sigAlgo SignatureAlgorithm, seed []byte) (PrivateKey, error) {
 	// check the seed has minimum entropy
 	if len(seed) < MinSeedLength {
