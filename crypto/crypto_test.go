@@ -48,10 +48,10 @@ func TestGeneratePrivateKey(t *testing.T) {
 	// key algorithm that does not represent any valid algorithm
 	invalidAlgo := crypto.SignatureAlgorithm(-42)
 
-	emptySeed := makeSeed(0)
-	shortSeed := makeSeed(crypto.MinSeedLength / 2)
-	equalSeed := makeSeed(crypto.MinSeedLength)
-	longSeed := makeSeed(crypto.MinSeedLength * 2)
+	emptySeed := makeSeed(t, 0)
+	shortSeed := makeSeed(t, crypto.MinSeedLength/2)
+	equalSeed := makeSeed(t, crypto.MinSeedLength)
+	longSeed := makeSeed(t, crypto.MinSeedLength*2)
 
 	for _, sigAlgo := range supportedAlgos {
 
@@ -91,18 +91,14 @@ func TestGeneratePrivateKey(t *testing.T) {
 
 			t.Run("Deterministic generation", func(t *testing.T) {
 				trials := 50
-
-				var skA crypto.PrivateKey
-				var err error
-
-				skA, err = crypto.GeneratePrivateKey(sigAlgo, longSeed)
-				require.NoError(t, err)
-
 				for i := 0; i < trials; i++ {
-					skB, err := crypto.GeneratePrivateKey(sigAlgo, longSeed)
+					_, err := rand.Read(equalSeed)
 					require.NoError(t, err)
-					assert.Equal(t, skA, skB) // key should be same each time
-					skA = skB
+					skA, err := crypto.GeneratePrivateKey(sigAlgo, equalSeed)
+					require.NoError(t, err)
+					skB, err := crypto.GeneratePrivateKey(sigAlgo, equalSeed)
+					require.NoError(t, err)
+					assert.True(t, skA.Equals(skB)) // key should be same each time
 				}
 			})
 		})
@@ -127,11 +123,10 @@ func TestGeneratePrivateKey(t *testing.T) {
 	})
 }
 
-func makeSeed(l int) []byte {
+func makeSeed(t *testing.T, l int) []byte {
 	seed := make([]byte, l)
-	for i, _ := range seed {
-		seed[i] = byte(i)
-	}
+	_, err := rand.Read(seed)
+	require.NoError(t, err)
 	return seed
 }
 
