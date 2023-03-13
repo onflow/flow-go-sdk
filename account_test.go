@@ -53,7 +53,7 @@ func TestAccountKey(t *testing.T) {
 			Revoked:        false,
 		}
 
-		assert.Equal(t, privateKey.PublicKey(), key.PublicKey)
+		assert.True(t, privateKey.PublicKey().Equals(key.PublicKey))
 		assert.Equal(t, privateKey.Algorithm(), key.SigAlgo)
 		assert.Equal(t, crypto.SHA3_256, key.HashAlgo)
 		assert.Equal(t, key.Weight, weight)
