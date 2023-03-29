@@ -124,7 +124,7 @@ func blockToMessage(b flow.Block) (*entities.Block, error) {
 	}, nil
 }
 
-func messageToBlock(m *entities.Block) (flow.Block, error) {
+func messageToBlock(m *entities.Block, status flow.BlockStatus) (flow.Block, error) {
 	var timestamp time.Time
 	var err error
 
@@ -157,6 +157,7 @@ func messageToBlock(m *entities.Block) (flow.Block, error) {
 	return flow.Block{
 		BlockHeader:  *header,
 		BlockPayload: *payload,
+		Status:       status,
 	}, nil
 }
 

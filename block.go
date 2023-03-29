@@ -24,6 +24,7 @@ import "time"
 type Block struct {
 	BlockHeader
 	BlockPayload
+	Status BlockStatus
 }
 
 // BlockHeader is a summary of a full block.
@@ -45,6 +46,17 @@ const (
 	// BlockStatusSealed is the status of a sealed block.
 	BlockStatusSealed
 )
+
+func BlockStatusFromString(s string) BlockStatus {
+	switch s {
+	case "BlockStatusFinalized":
+		return BlockStatusFinalized
+	case "BlockStatusSealed":
+		return BlockStatusSealed
+	default:
+		return BlockStatusUnknown
+	}
+}
 
 // BlockPayload is the full contents of a block.
 //

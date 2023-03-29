@@ -149,14 +149,14 @@ func (c *BaseClient) GetLatestBlock(
 	ctx context.Context,
 	isSealed bool,
 	opts ...grpc.CallOption,
-) (*flow.Block, flow.BlockStatus, error) {
+) (*flow.Block, error) {
 	req := &access.GetLatestBlockRequest{
 		IsSealed: isSealed,
 	}
 
 	res, err := c.rpcClient.GetLatestBlock(ctx, req, opts...)
 	if err != nil {
-		return nil, flow.BlockStatusUnknown, newRPCError(err)
+		return nil, newRPCError(err)
 	}
 
 	return getBlockResult(res)
@@ -166,14 +166,14 @@ func (c *BaseClient) GetBlockByID(
 	ctx context.Context,
 	blockID flow.Identifier,
 	opts ...grpc.CallOption,
-) (*flow.Block, flow.BlockStatus, error) {
+) (*flow.Block, error) {
 	req := &access.GetBlockByIDRequest{
 		Id: blockID.Bytes(),
 	}
 
 	res, err := c.rpcClient.GetBlockByID(ctx, req, opts...)
 	if err != nil {
-		return nil, flow.BlockStatusUnknown, newRPCError(err)
+		return nil, newRPCError(err)
 	}
 
 	return getBlockResult(res)
@@ -183,26 +183,26 @@ func (c *BaseClient) GetBlockByHeight(
 	ctx context.Context,
 	height uint64,
 	opts ...grpc.CallOption,
-) (*flow.Block, flow.BlockStatus, error) {
+) (*flow.Block, error) {
 	req := &access.GetBlockByHeightRequest{
 		Height: height,
 	}
 
 	res, err := c.rpcClient.GetBlockByHeight(ctx, req, opts...)
 	if err != nil {
-		return nil, flow.BlockStatusUnknown, newRPCError(err)
+		return nil, newRPCError(err)
 	}
 
 	return getBlockResult(res)
 }
 
-func getBlockResult(res *access.BlockResponse) (*flow.Block, flow.BlockStatus, error) {
-	block, err := messageToBlock(res.GetBlock())
+func getBlockResult(res *access.BlockResponse) (*flow.Block, error) {
+	block, err := messageToBlock(res.GetBlock(), flow.BlockStatus(res.GetBlockStatus()))
 	if err != nil {
-		return nil, flow.BlockStatusUnknown, newMessageToEntityError(entityBlock, err)
+		return nil, newMessageToEntityError(entityBlock, err)
 	}
 
-	return &block, flow.BlockStatus(res.GetBlockStatus()), nil
+	return &block, nil
 }
 
 func (c *BaseClient) GetCollection(

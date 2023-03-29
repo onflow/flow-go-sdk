@@ -168,6 +168,7 @@ func toBlock(block *models.Block) (*flow.Block, error) {
 	return &flow.Block{
 		BlockHeader:  *toBlockHeader(block.Header),
 		BlockPayload: *payload,
+		Status:       flow.BlockStatusFromString(block.BlockStatus),
 	}, nil
 }
 

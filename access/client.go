@@ -35,13 +35,13 @@ type Client interface {
 	Ping(ctx context.Context) error
 
 	// GetLatestBlockHeader gets the latest sealed or unsealed block header.
-	GetLatestBlockHeader(ctx context.Context, isSealed bool) (*flow.BlockHeader, error)
+	GetLatestBlockHeader(ctx context.Context, isSealed bool) (*flow.BlockHeader, flow.BlockStatus, error)
 
 	// GetBlockHeaderByID gets a block header by ID.
-	GetBlockHeaderByID(ctx context.Context, blockID flow.Identifier) (*flow.BlockHeader, error)
+	GetBlockHeaderByID(ctx context.Context, blockID flow.Identifier) (*flow.BlockHeader, flow.BlockStatus, error)
 
 	// GetBlockHeaderByHeight gets a block header by height.
-	GetBlockHeaderByHeight(ctx context.Context, height uint64) (*flow.BlockHeader, error)
+	GetBlockHeaderByHeight(ctx context.Context, height uint64) (*flow.BlockHeader, flow.BlockStatus, error)
 
 	// GetLatestBlock gets the full payload of the latest sealed or unsealed block.
 	GetLatestBlock(ctx context.Context, isSealed bool) (*flow.Block, error)

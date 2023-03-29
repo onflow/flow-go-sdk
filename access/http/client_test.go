@@ -89,7 +89,7 @@ func TestBaseClient_GetBlockByID(t *testing.T) {
 			On(handlerName, mock.Anything, httpBlock.Header.Id).
 			Return(&httpBlock, nil)
 
-		header, err := client.GetBlockHeaderByID(ctx, flow.HexToID(httpBlock.Header.Id))
+		header, _, err := client.GetBlockHeaderByID(ctx, flow.HexToID(httpBlock.Header.Id))
 		assert.NoError(t, err)
 		assert.Equal(t, header, &expectedBlock.BlockHeader)
 	}))
@@ -148,7 +148,7 @@ func TestBaseClient_GetBlockByHeight(t *testing.T) {
 			On(handlerName, mock.Anything, httpBlock.Header.Height, "", "").
 			Return([]*models.Block{&httpBlock}, nil)
 
-		block, err := client.GetBlockHeaderByHeight(ctx, expectedBlock.Height)
+		block, _, err := client.GetBlockHeaderByHeight(ctx, expectedBlock.Height)
 		assert.NoError(t, err)
 		assert.Equal(t, block, &expectedBlock.BlockHeader)
 	}))
@@ -194,7 +194,7 @@ func TestBaseClient_GetLatestBlock(t *testing.T) {
 			On(handlerName, mock.Anything, "final", "", "").
 			Return([]*models.Block{&httpBlock}, nil)
 
-		block, err := client.GetLatestBlockHeader(ctx, false)
+		block, _, err := client.GetLatestBlockHeader(ctx, false)
 		assert.NoError(t, err)
 		assert.Equal(t, block, &expectedBlock.BlockHeader)
 	}))
@@ -208,7 +208,7 @@ func TestBaseClient_GetLatestBlock(t *testing.T) {
 			On(handlerName, mock.Anything, "sealed", "", "").
 			Return([]*models.Block{&httpBlock}, nil)
 
-		block, err := client.GetLatestBlockHeader(ctx, true)
+		block, _, err := client.GetLatestBlockHeader(ctx, true)
 		assert.NoError(t, err)
 		assert.Equal(t, block, &expectedBlock.BlockHeader)
 	}))

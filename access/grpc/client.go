@@ -78,15 +78,15 @@ func (c *Client) GetBlockHeaderByHeight(ctx context.Context, height uint64) (*fl
 	return c.grpc.GetBlockHeaderByHeight(ctx, height)
 }
 
-func (c *Client) GetLatestBlock(ctx context.Context, isSealed bool) (*flow.Block, flow.BlockStatus, error) {
+func (c *Client) GetLatestBlock(ctx context.Context, isSealed bool) (*flow.Block, error) {
 	return c.grpc.GetLatestBlock(ctx, isSealed)
 }
 
-func (c *Client) GetBlockByID(ctx context.Context, blockID flow.Identifier) (*flow.Block, flow.BlockStatus, error) {
+func (c *Client) GetBlockByID(ctx context.Context, blockID flow.Identifier) (*flow.Block, error) {
 	return c.grpc.GetBlockByID(ctx, blockID)
 }
 
-func (c *Client) GetBlockByHeight(ctx context.Context, height uint64) (*flow.Block, flow.BlockStatus, error) {
+func (c *Client) GetBlockByHeight(ctx context.Context, height uint64) (*flow.Block, error) {
 	return c.grpc.GetBlockByHeight(ctx, height)
 }
 

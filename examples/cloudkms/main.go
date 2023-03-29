@@ -70,7 +70,7 @@ func GoogleCloudKMSDemo() {
 		panic(err)
 	}
 
-	latestBlock, err := flowClient.GetLatestBlockHeader(ctx, true)
+	latestBlock, _, err := flowClient.GetLatestBlockHeader(ctx, true)
 	if err != nil {
 		panic(err)
 	}

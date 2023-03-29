@@ -190,7 +190,7 @@ func TestClient_GetLatestBlock(t *testing.T) {
 
 		rpc.On("GetLatestBlock", ctx, mock.Anything).Return(response, nil)
 
-		block, _, err := c.GetLatestBlock(ctx, true)
+		block, err := c.GetLatestBlock(ctx, true)
 		require.NoError(t, err)
 
 		assert.Equal(t, expectedBlock, block)
@@ -200,7 +200,7 @@ func TestClient_GetLatestBlock(t *testing.T) {
 		rpc.On("GetLatestBlock", ctx, mock.Anything).
 			Return(nil, errInternal)
 
-		block, _, err := c.GetLatestBlock(ctx, true)
+		block, err := c.GetLatestBlock(ctx, true)
 		assert.Error(t, err)
 		assert.Equal(t, codes.Internal, status.Code(err))
 		assert.Nil(t, block)
@@ -224,7 +224,7 @@ func TestClient_GetBlockByID(t *testing.T) {
 
 		rpc.On("GetBlockByID", ctx, mock.Anything).Return(response, nil)
 
-		block, _, err := c.GetBlockByID(ctx, blockID)
+		block, err := c.GetBlockByID(ctx, blockID)
 		require.NoError(t, err)
 
 		assert.Equal(t, expectedBlock, block)
@@ -236,7 +236,7 @@ func TestClient_GetBlockByID(t *testing.T) {
 		rpc.On("GetBlockByID", ctx, mock.Anything).
 			Return(nil, errNotFound)
 
-		block, _, err := c.GetBlockByID(ctx, blockID)
+		block, err := c.GetBlockByID(ctx, blockID)
 		assert.Error(t, err)
 		assert.Equal(t, codes.NotFound, status.Code(err))
 		assert.Nil(t, block)
@@ -258,7 +258,7 @@ func TestClient_GetBlockByHeight(t *testing.T) {
 
 		rpc.On("GetBlockByHeight", ctx, mock.Anything).Return(response, nil)
 
-		block, _, err := c.GetBlockByHeight(ctx, 42)
+		block, err := c.GetBlockByHeight(ctx, 42)
 		require.NoError(t, err)
 
 		assert.Equal(t, expectedBlock, block)
@@ -268,7 +268,7 @@ func TestClient_GetBlockByHeight(t *testing.T) {
 		rpc.On("GetBlockByHeight", ctx, mock.Anything).
 			Return(nil, errNotFound)
 
-		block, _, err := c.GetBlockByHeight(ctx, 42)
+		block, err := c.GetBlockByHeight(ctx, 42)
 		assert.Error(t, err)
 		assert.Equal(t, codes.NotFound, status.Code(err))
 		assert.Nil(t, block)
