@@ -58,7 +58,7 @@ func TestConvert_Block(t *testing.T) {
 	msg, err := blockToMessage(*blockA)
 	require.NoError(t, err)
 
-	blockB, err := messageToBlock(msg, flow.BlockStatusUnknown)
+	blockB, err := messageToBlock(msg)
 	require.NoError(t, err)
 
 	assert.Equal(t, *blockA, blockB)
@@ -71,7 +71,7 @@ func TestConvert_Block(t *testing.T) {
 
 		msg.Timestamp = nil
 
-		blockB, err = messageToBlock(msg, flow.BlockStatusUnknown)
+		blockB, err = messageToBlock(msg)
 		require.NoError(t, err)
 
 		assert.Equal(t, time.Time{}, blockB.Timestamp)

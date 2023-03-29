@@ -90,7 +90,7 @@ func TestClient_GetLatestBlockHeader(t *testing.T) {
 
 		rpc.On("GetLatestBlockHeader", ctx, mock.Anything).Return(response, nil)
 
-		header, _, err := c.GetLatestBlockHeader(ctx, true)
+		header, err := c.GetLatestBlockHeader(ctx, true)
 		require.NoError(t, err)
 
 		assert.Equal(t, expectedHeader, *header)
@@ -100,7 +100,7 @@ func TestClient_GetLatestBlockHeader(t *testing.T) {
 		rpc.On("GetLatestBlockHeader", ctx, mock.Anything).
 			Return(nil, errInternal)
 
-		header, _, err := c.GetLatestBlockHeader(ctx, true)
+		header, err := c.GetLatestBlockHeader(ctx, true)
 		assert.Error(t, err)
 		assert.Equal(t, codes.Internal, status.Code(err))
 		assert.Nil(t, header)
@@ -124,7 +124,7 @@ func TestClient_GetBlockHeaderByID(t *testing.T) {
 
 		rpc.On("GetBlockHeaderByID", ctx, mock.Anything).Return(response, nil)
 
-		header, _, err := c.GetBlockHeaderByID(ctx, blockID)
+		header, err := c.GetBlockHeaderByID(ctx, blockID)
 		require.NoError(t, err)
 
 		assert.Equal(t, expectedHeader, *header)
@@ -136,7 +136,7 @@ func TestClient_GetBlockHeaderByID(t *testing.T) {
 		rpc.On("GetBlockHeaderByID", ctx, mock.Anything).
 			Return(nil, errNotFound)
 
-		header, _, err := c.GetBlockHeaderByID(ctx, blockID)
+		header, err := c.GetBlockHeaderByID(ctx, blockID)
 		assert.Error(t, err)
 		assert.Equal(t, codes.NotFound, status.Code(err))
 		assert.Nil(t, header)
@@ -158,7 +158,7 @@ func TestClient_GetBlockHeaderByHeight(t *testing.T) {
 
 		rpc.On("GetBlockHeaderByHeight", ctx, mock.Anything).Return(response, nil)
 
-		header, _, err := c.GetBlockHeaderByHeight(ctx, 42)
+		header, err := c.GetBlockHeaderByHeight(ctx, 42)
 		require.NoError(t, err)
 
 		assert.Equal(t, expectedHeader, *header)
@@ -168,7 +168,7 @@ func TestClient_GetBlockHeaderByHeight(t *testing.T) {
 		rpc.On("GetBlockHeaderByHeight", ctx, mock.Anything).
 			Return(nil, errNotFound)
 
-		header, _, err := c.GetBlockHeaderByHeight(ctx, 42)
+		header, err := c.GetBlockHeaderByHeight(ctx, 42)
 		assert.Error(t, err)
 		assert.Equal(t, codes.NotFound, status.Code(err))
 		assert.Nil(t, header)
