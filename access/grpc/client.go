@@ -66,27 +66,27 @@ func (c *Client) Ping(ctx context.Context) error {
 	return c.grpc.Ping(ctx)
 }
 
-func (c *Client) GetLatestBlockHeader(ctx context.Context, isSealed bool) (*flow.BlockHeader, error) {
+func (c *Client) GetLatestBlockHeader(ctx context.Context, isSealed bool) (*flow.BlockHeader, flow.BlockStatus, error) {
 	return c.grpc.GetLatestBlockHeader(ctx, isSealed)
 }
 
-func (c *Client) GetBlockHeaderByID(ctx context.Context, blockID flow.Identifier) (*flow.BlockHeader, error) {
+func (c *Client) GetBlockHeaderByID(ctx context.Context, blockID flow.Identifier) (*flow.BlockHeader, flow.BlockStatus, error) {
 	return c.grpc.GetBlockHeaderByID(ctx, blockID)
 }
 
-func (c *Client) GetBlockHeaderByHeight(ctx context.Context, height uint64) (*flow.BlockHeader, error) {
+func (c *Client) GetBlockHeaderByHeight(ctx context.Context, height uint64) (*flow.BlockHeader, flow.BlockStatus, error) {
 	return c.grpc.GetBlockHeaderByHeight(ctx, height)
 }
 
-func (c *Client) GetLatestBlock(ctx context.Context, isSealed bool) (*flow.Block, error) {
+func (c *Client) GetLatestBlock(ctx context.Context, isSealed bool) (*flow.Block, flow.BlockStatus, error) {
 	return c.grpc.GetLatestBlock(ctx, isSealed)
 }
 
-func (c *Client) GetBlockByID(ctx context.Context, blockID flow.Identifier) (*flow.Block, error) {
+func (c *Client) GetBlockByID(ctx context.Context, blockID flow.Identifier) (*flow.Block, flow.BlockStatus, error) {
 	return c.grpc.GetBlockByID(ctx, blockID)
 }
 
-func (c *Client) GetBlockByHeight(ctx context.Context, height uint64) (*flow.Block, error) {
+func (c *Client) GetBlockByHeight(ctx context.Context, height uint64) (*flow.Block, flow.BlockStatus, error) {
 	return c.grpc.GetBlockByHeight(ctx, height)
 }
 

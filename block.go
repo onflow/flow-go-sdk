@@ -34,6 +34,18 @@ type BlockHeader struct {
 	Timestamp time.Time
 }
 
+// BlockStatus represents the status of a block.
+type BlockStatus int
+
+const (
+	// BlockStatusUnknown indicates that the block status is not known.
+	BlockStatusUnknown BlockStatus = iota
+	// BlockStatusFinalized is the status of a finalized block.
+	BlockStatusFinalized
+	// BlockStatusSealed is the status of a sealed block.
+	BlockStatusSealed
+)
+
 // BlockPayload is the full contents of a block.
 //
 // A payload contains the collection guarantees and seals for a block.
