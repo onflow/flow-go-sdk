@@ -24,7 +24,6 @@ import "time"
 type Block struct {
 	BlockHeader
 	BlockPayload
-	Status BlockStatus
 }
 
 // BlockHeader is a summary of a full block.
@@ -33,6 +32,7 @@ type BlockHeader struct {
 	ParentID  Identifier
 	Height    uint64
 	Timestamp time.Time
+	Status    BlockStatus
 }
 
 // BlockStatus represents the status of a block.

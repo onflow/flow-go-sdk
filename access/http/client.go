@@ -57,31 +57,30 @@ func (c *Client) GetBlockByID(ctx context.Context, blockID flow.Identifier) (*fl
 	return c.httpClient.GetBlockByID(ctx, blockID)
 }
 
-func (c *Client) GetLatestBlockHeader(ctx context.Context, isSealed bool) (*flow.BlockHeader, flow.BlockStatus, error) {
+func (c *Client) GetLatestBlockHeader(ctx context.Context, isSealed bool) (*flow.BlockHeader, error) {
 	block, err := c.GetLatestBlock(ctx, isSealed)
 	if err != nil {
-		return nil, flow.BlockStatusUnknown, err
+		return nil, err
 	}
-
-	return &block.BlockHeader, block.Status, nil
+	return &block.BlockHeader, nil
 }
 
-func (c *Client) GetBlockHeaderByID(ctx context.Context, blockID flow.Identifier) (*flow.BlockHeader, flow.BlockStatus, error) {
+func (c *Client) GetBlockHeaderByID(ctx context.Context, blockID flow.Identifier) (*flow.BlockHeader, error) {
 	block, err := c.GetBlockByID(ctx, blockID) // todo optimization: passing the 'select' option to only get the header
 	if err != nil {
-		return nil, flow.BlockStatusUnknown, err
+		return nil, err
 	}
 
-	return &block.BlockHeader, block.Status, nil
+	return &block.BlockHeader, nil
 }
 
-func (c *Client) GetBlockHeaderByHeight(ctx context.Context, height uint64) (*flow.BlockHeader, flow.BlockStatus, error) {
+func (c *Client) GetBlockHeaderByHeight(ctx context.Context, height uint64) (*flow.BlockHeader, error) {
 	block, err := c.GetBlockByHeight(ctx, height) // todo optimization: passing the 'select' option to only get the header
 	if err != nil {
-		return nil, flow.BlockStatusUnknown, err
+		return nil, err
 	}
 
-	return &block.BlockHeader, block.Status, nil
+	return &block.BlockHeader, nil
 }
 
 func (c *Client) GetLatestBlock(ctx context.Context, isSealed bool) (*flow.Block, error) {

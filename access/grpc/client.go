@@ -66,15 +66,15 @@ func (c *Client) Ping(ctx context.Context) error {
 	return c.grpc.Ping(ctx)
 }
 
-func (c *Client) GetLatestBlockHeader(ctx context.Context, isSealed bool) (*flow.BlockHeader, flow.BlockStatus, error) {
+func (c *Client) GetLatestBlockHeader(ctx context.Context, isSealed bool) (*flow.BlockHeader, error) {
 	return c.grpc.GetLatestBlockHeader(ctx, isSealed)
 }
 
-func (c *Client) GetBlockHeaderByID(ctx context.Context, blockID flow.Identifier) (*flow.BlockHeader, flow.BlockStatus, error) {
+func (c *Client) GetBlockHeaderByID(ctx context.Context, blockID flow.Identifier) (*flow.BlockHeader, error) {
 	return c.grpc.GetBlockHeaderByID(ctx, blockID)
 }
 
-func (c *Client) GetBlockHeaderByHeight(ctx context.Context, height uint64) (*flow.BlockHeader, flow.BlockStatus, error) {
+func (c *Client) GetBlockHeaderByHeight(ctx context.Context, height uint64) (*flow.BlockHeader, error) {
 	return c.grpc.GetBlockHeaderByHeight(ctx, height)
 }
 
