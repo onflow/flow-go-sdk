@@ -49,9 +49,9 @@ const (
 
 func BlockStatusFromString(s string) BlockStatus {
 	switch s {
-	case "BlockStatusFinalized":
+	case "BLOCK_FINALIZED":
 		return BlockStatusFinalized
-	case "BlockStatusSealed":
+	case "BLOCK_SEALED":
 		return BlockStatusSealed
 	default:
 		return BlockStatusUnknown
