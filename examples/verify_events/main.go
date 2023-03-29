@@ -43,7 +43,7 @@ func VerifyEventsDemo() {
 	flowClient, err := http.NewClient(http.EmulatorHost)
 	examples.Handle(err)
 
-	latestBlockHeader, _, err := flowClient.GetLatestBlockHeader(ctx, true)
+	latestBlockHeader, err := flowClient.GetLatestBlockHeader(ctx, true)
 	examples.Handle(err)
 
 	block, err := flowClient.GetBlockByID(ctx, latestBlockHeader.ID)

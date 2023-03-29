@@ -76,7 +76,7 @@ func main() {
 	)
 	examples.Handle(err)
 
-	grpcBlock, _, err := grpcClient.GetLatestBlockHeader(ctx, true)
+	grpcBlock, err := grpcClient.GetLatestBlockHeader(ctx, true)
 	examples.Handle(err)
 
 	fmt.Println("Block ID:", grpcBlock.ID.String())
