@@ -141,7 +141,7 @@ func getBlockHeaderResult(res *access.BlockHeaderResponse) (*flow.BlockHeader, e
 	if err != nil {
 		return nil, newMessageToEntityError(entityBlockHeader, err)
 	}
-
+	header.Status = flow.BlockStatus(res.GetBlockStatus())
 	return &header, nil
 }
 
@@ -201,7 +201,7 @@ func getBlockResult(res *access.BlockResponse) (*flow.Block, error) {
 	if err != nil {
 		return nil, newMessageToEntityError(entityBlock, err)
 	}
-
+	block.BlockHeader.Status = flow.BlockStatus(res.GetBlockStatus())
 	return &block, nil
 }
 

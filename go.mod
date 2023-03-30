@@ -10,14 +10,14 @@ require (
 	github.com/ethereum/go-ethereum v1.10.22
 	github.com/onflow/cadence v0.37.0
 	github.com/onflow/flow-go/crypto v0.24.7
-	github.com/onflow/flow/protobuf/go/flow v0.3.1
+	github.com/onflow/flow/protobuf/go/flow v0.3.2-0.20221202093946-932d1c70e288
 	github.com/onflow/sdks v0.5.0
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.8.1
 	google.golang.org/api v0.70.0
 	google.golang.org/genproto v0.0.0-20220222213610-43724f9ea8cf
-	google.golang.org/grpc v1.44.0
-	google.golang.org/protobuf v1.27.1
+	google.golang.org/grpc v1.51.0
+	google.golang.org/protobuf v1.28.1
 )
 
 require (

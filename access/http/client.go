@@ -62,7 +62,6 @@ func (c *Client) GetLatestBlockHeader(ctx context.Context, isSealed bool) (*flow
 	if err != nil {
 		return nil, err
 	}
-
 	return &block.BlockHeader, nil
 }
 
