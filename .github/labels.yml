@@ -19,6 +19,6 @@
 - color: c2e0c6
   description: A feature we want the help from community
   name: Help wanted
-- color: c2e0c6
+- color: cccccc
   description: The issue was not well defined, waiting for more information from the submittor
   name: Needs information
