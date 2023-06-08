@@ -36,44 +36,39 @@ func main() {
 
 func demo() {
 	ctx := context.Background()
-	flowClient, err := http.NewClient(http.EmulatorHost)
+	flowClient, err := http.NewClient(http.TestnetHost)
 	examples.Handle(err)
 
 	script := []byte(`
-		pub fun main(a: Int): Int {
-			return a + 10
+		import Weekday from 0x2a37a78609bba037
+		import MetadataViews from 0x631e88ae7f1d7c20
+		
+		pub fun main(address: Address, nftId: UInt64): AnyStruct? {
+			let collectionRef = getAccount(address).getCapability<&{MetadataViews.ResolverCollection, Weekday.WeekdayCollectionPublic}>(Weekday.WeekdayCollectionPublicPath).borrow() 
+		
+			if let _collectionRef = collectionRef {
+		
+				let ids = _collectionRef.getIDs()
+		
+				if ids.contains(nftId) {
+					let nftViewResolver = _collectionRef.borrowViewResolver(id: nftId)
+				
+					return nftViewResolver.resolveView(Type<MetadataViews.NFTView>())
+				}
+			}
+		
+			return nil
 		}
 	`)
-	args := []cadence.Value{cadence.NewInt(5)}
+
+	args := []cadence.Value{
+		cadence.BytesToAddress(flow.HexToAddress("0x2a37a78609bba037").Bytes()),
+		cadence.UInt64(1),
+	}
 	value, err := flowClient.ExecuteScriptAtLatestBlock(ctx, script, args)
 
 	examples.Handle(err)
 	fmt.Printf("\nValue: %s", value.String())
-
-	complexScript := []byte(`
-		pub struct User {
-			pub var balance: UFix64
-			pub var address: Address
-			pub var name: String
-
-			init(name: String, address: Address, balance: UFix64) {
-				self.name = name
-				self.address = address
-				self.balance = balance
-			}
-		}
-
-		pub fun main(name: String): User {
-			return User(
-				name: name,
-				address: 0x1,
-				balance: 10.0
-			)
-		}
-	`)
-	args = []cadence.Value{cadence.String("Dete")}
-	value, err = flowClient.ExecuteScriptAtLatestBlock(ctx, complexScript, args)
-	printComplexScript(value, err)
 }
 
 type User struct {
