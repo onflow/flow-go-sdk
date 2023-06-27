@@ -27,7 +27,6 @@ import (
 	"fmt"
 
 	"github.com/onflow/flow-go/crypto"
-	"github.com/onflow/flow-go/crypto/hash"
 )
 
 // SignatureAlgorithm is an identifier for a signature algorithm (and parameters if applicable).
@@ -85,6 +84,9 @@ type Signer interface {
 //
 // InMemorySigner implements simple signing that does not protect the private key against
 // any tampering or side channel attacks.
+// The implementation is pure software and does not include any isolation or secure-hardware protecion.
+// InMemorySigner should not be used for sensitive keys (for instance production keys) unless extra protection measures
+// are taken.
 type InMemorySigner struct {
 	PrivateKey PrivateKey
 	Hasher     Hasher
@@ -128,19 +130,20 @@ func NewNaiveSigner(privateKey PrivateKey, hashAlgo HashAlgorithm) (NaiveSigner,
 	return NewInMemorySigner(privateKey, hashAlgo)
 }
 
-// MinSeedLength is the generic minimum seed length required to make sure there is
-// enough entropy to generate keys targeting 128 bits of security.
-// (this is not a guarantee though).
-//
-// This minimum is used when the seed source is not necessarily a CSPRG and the seed
-// should be expanded before being passed to the key generation process.
-const MinSeedLength = 32
+// MinSeedLength is the generic minimum seed length.
+// It is recommended to use seeds with enough entropy, preferably from a secure RNG.
+// The key generation process extracts and expands the entropy of the seed.
+const MinSeedLength = crypto.KeyGenSeedMinLen
 
 func keyGenerationKMACTag(sigAlgo SignatureAlgorithm) []byte {
 	return []byte(fmt.Sprintf("%s Key Generation", sigAlgo))
 }
 
 // GeneratePrivateKey generates a private key with the specified signature algorithm from the given seed.
+// Note that the output key is directly mapped from the seed. The seed is therefore equivalent to the private key.
+// This implementation is pure software and does not include any isolation or secure-hardware protecion.
+// The function should not be used for sensitive keys (for instance production keys) unless extra protection measures
+// are taken.
 func GeneratePrivateKey(sigAlgo SignatureAlgorithm, seed []byte) (PrivateKey, error) {
 	// check the seed has minimum entropy
 	if len(seed) < MinSeedLength {
@@ -152,31 +155,9 @@ func GeneratePrivateKey(sigAlgo SignatureAlgorithm, seed []byte) (PrivateKey, er
 		)
 	}
 
-	// expand the seed and uniformize its entropy
-	var seedLen int
-	switch sigAlgo {
-	case ECDSA_P256:
-		seedLen = crypto.KeyGenSeedMinLenECDSAP256
-	case ECDSA_secp256k1:
-		seedLen = crypto.KeyGenSeedMinLenECDSASecp256k1
-	default:
-		return nil, fmt.Errorf(
-			"crypto: Go SDK does not support key generation for %s algorithm",
-			sigAlgo,
-		)
-	}
-
-	generationTag := keyGenerationKMACTag(sigAlgo)
-	customizer := []byte("")
-	hasher, err := hash.NewKMAC_128(generationTag, customizer, seedLen)
-	if err != nil {
-		return nil, err
-	}
-
-	hashedSeed := hasher.ComputeHash(seed)
-
 	// generate the key
-	privKey, err := crypto.GeneratePrivateKey(sigAlgo, hashedSeed)
+	// (input seed entropy is extracted and expanded in the key generation function)
+	privKey, err := crypto.GeneratePrivateKey(sigAlgo, seed)
 	if err != nil {
 		return nil, err
 	}

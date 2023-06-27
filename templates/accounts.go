@@ -21,6 +21,7 @@ package templates
 import (
 	"encoding/hex"
 	"fmt"
+	"strings"
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
@@ -123,11 +124,13 @@ func newPublicKeyValue(pubKey crypto.PublicKey) (cadence.Struct, error) {
 //
 // example:
 // ```go
-// 	key := AccountKeyToCadenceCryptoKey(accountKey)
+//
+//	key := AccountKeyToCadenceCryptoKey(accountKey)
 //
 //	return flow.NewTransaction().
 //		SetScript([]byte(templates.AddAccountKey)).
 //		AddRawArgument(jsoncdc.MustEncode(key))
+//
 // ```
 func AccountKeyToCadenceCryptoKey(key *flow.AccountKey) (cadence.Value, error) {
 	weight, _ := cadence.NewUFix64(fmt.Sprintf("%d.0", key.Weight))
@@ -178,6 +181,16 @@ func AccountKeyToCadenceCryptoKey(key *flow.AccountKey) (cadence.Value, error) {
 // The final argument is the address of the account that will pay the account creation fee.
 // This account is added as a transaction authorizer and therefore must sign the resulting transaction.
 func CreateAccount(accountKeys []*flow.AccountKey, contracts []Contract, payer flow.Address) (*flow.Transaction, error) {
+	return CreateAccountAndFund(accountKeys, contracts, payer, "", "")
+}
+
+func CreateAccountAndFund(
+	accountKeys []*flow.AccountKey,
+	contracts []Contract,
+	payer flow.Address,
+	amount string,
+	network flow.ChainID,
+) (*flow.Transaction, error) {
 	keyList := make([]cadence.Value, len(accountKeys))
 
 	contractKeyPairs := make([]cadence.KeyValuePair, len(contracts))
@@ -199,12 +212,52 @@ func CreateAccount(accountKeys []*flow.AccountKey, contracts []Contract, payer f
 
 	cadencePublicKeys := cadence.NewArray(keyList)
 	cadenceContracts := cadence.NewDictionary(contractKeyPairs)
+	script := templates.CreateAccount
 
-	return flow.NewTransaction().
-		SetScript([]byte(templates.CreateAccount)).
-		AddAuthorizer(payer).
-		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
-		AddRawArgument(jsoncdc.MustEncode(cadenceContracts)), nil
+	args := [][]byte{
+		jsoncdc.MustEncode(cadencePublicKeys),
+		jsoncdc.MustEncode(cadenceContracts),
+	}
+
+	// if we have provided amount and network then we do funding as well
+	if amount != "" && network == flow.Mainnet || network == flow.Testnet {
+		script = templates.CreateAccountFunding
+		// replace the imports on supported networks
+		replaces := map[flow.ChainID]map[string]string{
+			flow.Testnet: {
+				"FlowToken":     "0x7e60df042a9c0868", // https://developers.flow.com/flow/core-contracts/flow-token
+				"FungibleToken": "0x9a0766d93b6608b7", // https://developers.flow.com/flow/core-contracts/fungible-token
+			},
+			flow.Mainnet: {
+				"FlowToken":     "0x1654653399040a61",
+				"FungibleToken": "0xf233dcee88fe0abe",
+			},
+		}[network]
+
+		for contract, address := range replaces {
+			script = strings.ReplaceAll(
+				script,
+				fmt.Sprintf(`"%s"`, contract),
+				fmt.Sprintf(`%s from %s`, contract, address),
+			)
+		}
+
+		val, err := cadence.NewUFix64(amount)
+		if err != nil {
+			return nil, err
+		}
+		args = append(args, jsoncdc.MustEncode(val))
+	}
+
+	tx := flow.NewTransaction().
+		SetScript([]byte(script)).
+		AddAuthorizer(payer)
+
+	for _, arg := range args {
+		tx.AddRawArgument(arg)
+	}
+
+	return tx, nil
 }
 
 // UpdateAccountContract generates a transaction that updates a contract deployed at an account.

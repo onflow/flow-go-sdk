@@ -32,6 +32,30 @@ type BlockHeader struct {
 	ParentID  Identifier
 	Height    uint64
 	Timestamp time.Time
+	Status    BlockStatus
+}
+
+// BlockStatus represents the status of a block.
+type BlockStatus int
+
+const (
+	// BlockStatusUnknown indicates that the block status is not known.
+	BlockStatusUnknown BlockStatus = iota
+	// BlockStatusFinalized is the status of a finalized block.
+	BlockStatusFinalized
+	// BlockStatusSealed is the status of a sealed block.
+	BlockStatusSealed
+)
+
+func BlockStatusFromString(s string) BlockStatus {
+	switch s {
+	case "BLOCK_FINALIZED":
+		return BlockStatusFinalized
+	case "BLOCK_SEALED":
+		return BlockStatusSealed
+	default:
+		return BlockStatusUnknown
+	}
 }
 
 // BlockPayload is the full contents of a block.

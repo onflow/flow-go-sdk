@@ -20,6 +20,7 @@ package http
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/onflow/cadence"
 
@@ -61,7 +62,6 @@ func (c *Client) GetLatestBlockHeader(ctx context.Context, isSealed bool) (*flow
 	if err != nil {
 		return nil, err
 	}
-
 	return &block.BlockHeader, nil
 }
 
@@ -121,8 +121,16 @@ func (c *Client) GetTransaction(ctx context.Context, ID flow.Identifier) (*flow.
 	return c.httpClient.GetTransaction(ctx, ID)
 }
 
+func (c *Client) GetTransactionsByBlockID(ctx context.Context, blockID flow.Identifier) ([]*flow.Transaction, error) {
+	return nil, fmt.Errorf("not implemented")
+}
+
 func (c *Client) GetTransactionResult(ctx context.Context, ID flow.Identifier) (*flow.TransactionResult, error) {
 	return c.httpClient.GetTransactionResult(ctx, ID)
+}
+
+func (c *Client) GetTransactionResultsByBlockID(ctx context.Context, blockID flow.Identifier) ([]*flow.TransactionResult, error) {
+	return nil, fmt.Errorf("not implemented")
 }
 
 // GetAccount is an alias for GetAccountAtLatestBlock.

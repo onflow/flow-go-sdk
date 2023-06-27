@@ -87,12 +87,13 @@ func toAccount(account *models.Account) (*flow.Account, error) {
 	}, nil
 }
 
-func toBlockHeader(header *models.BlockHeader) *flow.BlockHeader {
+func toBlockHeader(header *models.BlockHeader, blockStatus string) *flow.BlockHeader {
 	return &flow.BlockHeader{
 		ID:        flow.HexToID(header.Id),
 		ParentID:  flow.HexToID(header.ParentId),
 		Height:    mustToUint(header.Height),
 		Timestamp: header.Timestamp,
+		Status:    flow.BlockStatusFromString(blockStatus),
 	}
 }
 
@@ -166,7 +167,7 @@ func toBlock(block *models.Block) (*flow.Block, error) {
 	}
 
 	return &flow.Block{
-		BlockHeader:  *toBlockHeader(block.Header),
+		BlockHeader:  *toBlockHeader(block.Header, block.BlockStatus),
 		BlockPayload: *payload,
 	}, nil
 }

@@ -16,26 +16,24 @@
  * limitations under the License.
  */
 
-package cloudkms
+package awskms
 
 import (
 	"context"
 	"fmt"
-	"hash/crc32"
 
-	kms "cloud.google.com/go/kms/apiv1"
+	kms "github.com/aws/aws-sdk-go-v2/service/kms"
+	"github.com/aws/aws-sdk-go-v2/service/kms/types"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/crypto/internal"
-	kmspb "google.golang.org/genproto/googleapis/cloud/kms/v1"
-	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 var _ crypto.Signer = (*Signer)(nil)
 
-// Signer is a Google Cloud KMS implementation of crypto.Signer.
+// Signer is a AWS KMS implementation of crypto.Signer.
 type Signer struct {
 	ctx    context.Context
-	client *kms.KeyManagementClient
+	client *kms.Client
 	key    Key
 	// ECDSA is the only algorithm supported by this package. The signature algorithm
 	// therefore represents the elliptic curve used. The curve is needed to parse the kms signature.
@@ -46,7 +44,7 @@ type Signer struct {
 	hashAlgo crypto.HashAlgorithm
 }
 
-// SignerForKey returns a new Google Cloud KMS signer for an asymmetric signing key version.
+// SignerForKey returns a new AWS KMS signer for an asymmetric signing key version.
 //
 // Only ECDSA keys on P-256 and secp256k1 curves and SHA2-256 are supported.
 func (c *Client) SignerForKey(
@@ -70,70 +68,48 @@ func (c *Client) SignerForKey(
 
 // Sign signs the given message using the KMS signing key for this signer.
 //
-// Reference: https://cloud.google.com/kms/docs/create-validate-signatures
+// Reference: https://github.com/aws/aws-sdk-go-v2/blob/main/service/kms/api_op_Sign.go
 func (s *Signer) Sign(message []byte) ([]byte, error) {
 
-	// Google KMS supports signing messages without pre-hashing
-	// up to 65536 bytes. Beyond that limit, messages must be
-	// prehashed outside KMS.
-	kmsPreHashLimit := 65536
+	keyArn := s.key.ARN()
+	// AWS KMS supports signing messages without pre-hashing
+	// up to 4096 bytes. Beyond that limit, messages must be prehashed outside KMS.
+	kmsPreHashLimit := 4096
+	var request *kms.SignInput
 
-	var request *kmspb.AsymmetricSignRequest
 	if len(message) <= kmsPreHashLimit {
-		// hash within KMS
-		request = &kmspb.AsymmetricSignRequest{
-			Name:       s.key.ResourceID(),
-			Data:       message,
-			DataCrc32C: checksum(message),
+		request = &kms.SignInput{
+			KeyId:            &keyArn,
+			Message:          message,
+			SigningAlgorithm: types.SigningAlgorithmSpecEcdsaSha256,
 		}
 	} else {
 		// this is guaranteed to only return supported hash algos by KMS
 		hasher, err := crypto.NewHasher(s.hashAlgo)
 		if err != nil {
-			return nil, fmt.Errorf("cloudkms: failed to sign: %w", err)
+			return nil, fmt.Errorf("awskms: failed to sign: %w", err)
 		}
 		// pre-hash outside KMS
 		hash := hasher.ComputeHash(message)
-		request = &kmspb.AsymmetricSignRequest{
-			Name:         s.key.ResourceID(),
-			Digest:       getDigest(s.hashAlgo, hash),
-			DigestCrc32C: checksum(hash),
+		// indicate the MessageType is digest
+		request = &kms.SignInput{
+			KeyId:            &keyArn,
+			Message:          hash,
+			SigningAlgorithm: types.SigningAlgorithmSpecEcdsaSha256,
+			MessageType:      types.MessageTypeDigest,
 		}
 	}
-	result, err := s.client.AsymmetricSign(s.ctx, request)
+	result, err := s.client.Sign(s.ctx, request)
 	if err != nil {
-		return nil, fmt.Errorf("cloudkms: failed to sign: %w", err)
+		return nil, fmt.Errorf("awskms: failed to sign: %w", err)
 	}
 	sig, err := internal.ParseSignature(result.Signature, s.curve)
 	if err != nil {
-		return nil, fmt.Errorf("cloudkms: failed to parse signature: %w", err)
+		return nil, fmt.Errorf("awskms: failed to parse signature: %w", err)
 	}
 	return sig, nil
 }
 
-func checksum(data []byte) *wrapperspb.Int64Value {
-	// compute CRC32
-	table := crc32.MakeTable(crc32.Castagnoli)
-	checksum := crc32.Checksum(data, table)
-	val := wrapperspb.Int64(int64(checksum))
-	return val
-}
-
 func (s *Signer) PublicKey() crypto.PublicKey {
 	return s.publicKey
-}
-
-// returns the Digest structure for the hashing algoroithm and hash value, required by the
-// signing prehash request
-// This function only covers algorithms supported by KMS. It should be extended
-// whenever a new hashing algorithm needs to be supported (for instance SHA3-256)
-func getDigest(algo crypto.HashAlgorithm, hash []byte) *kmspb.Digest {
-	if algo == crypto.SHA2_256 {
-		return &kmspb.Digest{
-			Digest: &kmspb.Digest_Sha256{
-				Sha256: hash,
-			},
-		}
-	}
-	return nil
 }
