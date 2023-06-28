@@ -127,3 +127,10 @@ type AccountCreatedEvent Event
 func (evt AccountCreatedEvent) Address() Address {
 	return BytesToAddress(evt.Value.Fields[0].(cadence.Address).Bytes())
 }
+
+// EventFilter is used to filter events based on given parameters.
+type EventFilter struct {
+	EventTypes []string
+	Addresses  []string
+	Contracts  []string
+}

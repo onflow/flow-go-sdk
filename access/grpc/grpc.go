@@ -22,10 +22,13 @@ package grpc
 
 import (
 	"context"
+	"fmt"
+	"io"
 
 	"github.com/onflow/cadence"
 	"github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/flow/protobuf/go/flow/access"
+	executiondata "github.com/onflow/flow/protobuf/go/flow/executiondata"
 	"google.golang.org/grpc"
 
 	"github.com/onflow/flow-go-sdk"
@@ -36,14 +39,20 @@ type RPCClient interface {
 	access.AccessAPIClient
 }
 
+// ExecutionDataRPCClient is an RPC client for the Flow ExecutionData API.
+type ExecutionDataRPCClient interface {
+	executiondata.ExecutionDataAPIClient
+}
+
 // BaseClient is a gRPC client for the Flow Access API exposing all grpc specific methods.
 //
 // Use this client if you need advance access to the HTTP API. If you
 // don't require special methods use the Client instead.
 type BaseClient struct {
-	rpcClient   RPCClient
-	close       func() error
-	jsonOptions []json.Option
+	rpcClient           RPCClient
+	executionDataClient ExecutionDataRPCClient
+	close               func() error
+	jsonOptions         []json.Option
 }
 
 // NewBaseClient creates a new gRPC handler for network communication.
@@ -55,10 +64,13 @@ func NewBaseClient(url string, opts ...grpc.DialOption) (*BaseClient, error) {
 
 	grpcClient := access.NewAccessAPIClient(conn)
 
+	execDataClient := executiondata.NewExecutionDataAPIClient(conn)
+
 	return &BaseClient{
-		rpcClient:   grpcClient,
-		close:       func() error { return conn.Close() },
-		jsonOptions: []json.Option{json.WithAllowUnstructuredStaticTypes(true)},
+		rpcClient:           grpcClient,
+		executionDataClient: execDataClient,
+		close:               func() error { return conn.Close() },
+		jsonOptions:         []json.Option{json.WithAllowUnstructuredStaticTypes(true)},
 	}, nil
 }
 
@@ -610,4 +622,150 @@ func (c *BaseClient) GetExecutionResultForBlockID(ctx context.Context, blockID f
 		Chunks:           chunks,
 		ServiceEvents:    serviceEvents,
 	}, nil
+}
+
+func (c *BaseClient) GetExecutionDataByBlockID(
+	ctx context.Context,
+	blockID flow.Identifier,
+	opts ...grpc.CallOption,
+) (*flow.ExecutionData, error) {
+
+	ed, err := c.executionDataClient.GetExecutionDataByBlockID(ctx, &executiondata.GetExecutionDataByBlockIDRequest{
+		BlockId: identifierToMessage(blockID),
+	}, opts...)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	return messageToBlockExecutionData(ed.GetBlockExecutionData())
+
+}
+
+func (c *BaseClient) SubscribeExecutionData(
+	ctx context.Context,
+	startBlockID flow.Identifier,
+	startHeight uint64,
+	opts ...grpc.CallOption,
+) (<-chan flow.ExecutionDataStreamResponse, <-chan error, error) {
+
+	if startBlockID != flow.EmptyID && startHeight > 0 {
+		return nil, nil, fmt.Errorf("cannot specify both start block ID and start height")
+	}
+
+	req := executiondata.SubscribeExecutionDataRequest{}
+	if startBlockID != flow.EmptyID {
+		req.StartBlockId = startBlockID[:]
+	}
+	if startHeight > 0 {
+		req.StartBlockHeight = startHeight
+	}
+
+	stream, err := c.executionDataClient.SubscribeExecutionData(ctx, &req, opts...)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	sub := make(chan flow.ExecutionDataStreamResponse)
+	errChan := make(chan error)
+
+	go func() {
+		defer close(sub)
+		defer close(errChan)
+
+		for {
+			resp, err := stream.Recv()
+			if err == io.EOF {
+				return
+			}
+			if err != nil {
+				errChan <- fmt.Errorf("error receiving execution data: %w", err)
+				continue
+			}
+
+			execData, err := messageToBlockExecutionData(resp.GetBlockExecutionData())
+			if err != nil {
+				errChan <- fmt.Errorf("error converting execution data: %w", err)
+				return
+			}
+
+			//log.Printf("received execution data for block %d %x with %d chunks", resp.BlockHeight, execData.BlockID, len(execData.ChunkExecutionDatas))
+
+			sub <- flow.ExecutionDataStreamResponse{
+				Height:        resp.BlockHeight,
+				ExecutionData: execData,
+			}
+		}
+	}()
+
+	return sub, errChan, nil
+}
+
+func (c *BaseClient) SubscribeEvents(
+	ctx context.Context,
+	startBlockID flow.Identifier,
+	startHeight uint64,
+	filter flow.EventFilter,
+	opts ...grpc.CallOption,
+) (<-chan flow.BlockEvents, <-chan error, error) {
+
+	if startBlockID != flow.EmptyID && startHeight > 0 {
+		return nil, nil, fmt.Errorf("cannot specify both start block ID and start height")
+	}
+
+	req := executiondata.SubscribeEventsRequest{
+		Filter: &executiondata.EventFilter{
+			EventType: filter.EventTypes,
+			Address:   filter.Addresses,
+			Contract:  filter.Contracts,
+		},
+	}
+	if startBlockID != flow.EmptyID {
+		req.StartBlockId = startBlockID[:]
+	}
+	if startHeight > 0 {
+		req.StartBlockHeight = startHeight
+	}
+
+	stream, err := c.executionDataClient.SubscribeEvents(ctx, &req, opts...)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	sub := make(chan flow.BlockEvents)
+	errChan := make(chan error)
+
+	go func() {
+		defer close(sub)
+		defer close(errChan)
+
+		for {
+			resp, err := stream.Recv()
+			if err == io.EOF {
+				return
+			}
+			if err != nil {
+				errChan <- fmt.Errorf("error receiving execution data: %w", err)
+				continue
+			}
+
+			events := make([]flow.Event, len(resp.GetEvents()))
+			for _, ev := range resp.GetEvents() {
+				res, err := messageToEvent(ev, nil)
+				if err != nil {
+					errChan <- err
+					continue
+				}
+				events = append(events, res)
+			}
+
+			sub <- flow.BlockEvents{
+				Height:         resp.GetBlockHeight(),
+				BlockID:        messageToIdentifier(resp.GetBlockId()),
+				Events:         events,
+				BlockTimestamp: resp.GetBlockTimestamp().AsTime(),
+			}
+		}
+	}()
+
+	return sub, errChan, nil
 }

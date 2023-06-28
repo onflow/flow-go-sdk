@@ -102,6 +102,15 @@ type Client interface {
 	// GetExecutionResultForBlockID gets the execution results at the block ID.
 	GetExecutionResultForBlockID(ctx context.Context, blockID flow.Identifier) (*flow.ExecutionResult, error)
 
+	// GetExecutionDataByBlockID returns execution data for a specific block ID.
+	GetExecutionDataByBlockID(ctx context.Context, blockID flow.Identifier) (*flow.ExecutionData, error)
+
+	// SubscribeExecutionData subscribes to execution data updates starting at the given block ID or height.
+	SubscribeExecutionData(ctx context.Context, startBlockID flow.Identifier, startHeight uint64) (<-chan flow.ExecutionDataStreamResponse, <-chan error, error)
+
+	// SubscribeEvents subscribes to events starting at the given block ID or height.
+	SubscribeEvents(ctx context.Context, startBlockID flow.Identifier, startHeight uint64, filter flow.EventFilter) (<-chan flow.BlockEvents, <-chan error, error)
+
 	// Close stops the client connection to the access node.
 	Close() error
 }

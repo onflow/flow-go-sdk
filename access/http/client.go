@@ -225,6 +225,18 @@ func (c *Client) GetExecutionResultForBlockID(ctx context.Context, blockID flow.
 	return c.httpClient.GetExecutionResultForBlockID(ctx, blockID)
 }
 
+func (c *Client) GetExecutionDataByBlockID(ctx context.Context, blockID flow.Identifier) (*flow.ExecutionData, error) {
+	return nil, fmt.Errorf("not implemented")
+}
+
+func (c *Client) SubscribeExecutionData(ctx context.Context, startBlockID flow.Identifier, startHeight uint64) (<-chan flow.ExecutionDataStreamResponse, <-chan error, error) {
+	return nil, nil, fmt.Errorf("not implemented")
+}
+
+func (c *Client) SubscribeEvents(ctx context.Context, startBlockID flow.Identifier, startHeight uint64, filter flow.EventFilter) (<-chan flow.BlockEvents, <-chan error, error) {
+	return nil, nil, fmt.Errorf("not implemented")
+}
+
 func (c *Client) Close() error {
 	// Close method is not required by the HTTP as the connection is setup and tear down with every request.
 	return nil

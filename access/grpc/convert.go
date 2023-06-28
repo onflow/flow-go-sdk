@@ -539,3 +539,107 @@ func messageToTransactionResult(m *access.TransactionResultResponse, options []j
 		TransactionID: flow.BytesToID(m.GetTransactionId()),
 	}, nil
 }
+
+func messageToBlockExecutionData(
+	m *entities.BlockExecutionData,
+) (*flow.ExecutionData, error) {
+	if m == nil {
+		return nil, errEmptyMessage
+	}
+
+	chunks := make([]*flow.ChunkExecutionData, len(m.ChunkExecutionData))
+	for i, chunk := range m.GetChunkExecutionData() {
+		convertedChunk, err := messageToChunkExecutionData(chunk)
+		if err != nil {
+			return nil, err
+		}
+		chunks[i] = convertedChunk
+	}
+
+	return &flow.ExecutionData{
+		BlockID:            messageToIdentifier(m.GetBlockId()),
+		ChunkExecutionData: chunks,
+	}, nil
+}
+
+func messageToChunkExecutionData(
+	m *entities.ChunkExecutionData,
+) (*flow.ChunkExecutionData, error) {
+
+	transactions, err := messageToExecutionDataCollection(m.GetCollection())
+	if err != nil {
+		return nil, err
+	}
+
+	var trieUpdate *flow.TrieUpdate
+	if m.GetTrieUpdate() != nil {
+		trieUpdate, err = messageToTrieUpdate(m.GetTrieUpdate())
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	events := make([]*flow.Event, len(m.GetEvents()))
+
+	for i, ev := range m.GetEvents() {
+		res, err := messageToEvent(ev, nil)
+		if err != nil {
+			return nil, err
+		}
+		events[i] = &res
+	}
+
+	return &flow.ChunkExecutionData{
+		Transactions: transactions,
+		Events:       events,
+		TrieUpdate:   trieUpdate,
+	}, nil
+}
+
+func messageToExecutionDataCollection(
+	m *entities.ExecutionDataCollection,
+) ([]*flow.Transaction, error) {
+	messages := m.GetTransactions()
+	transactions := make([]*flow.Transaction, len(messages))
+	for i, message := range messages {
+		transaction, err := messageToTransaction(message)
+		if err != nil {
+			return nil, fmt.Errorf("could not convert transaction %d: %w", i, err)
+		}
+		transactions[i] = &transaction
+	}
+
+	if len(transactions) == 0 {
+		return nil, nil
+	}
+
+	return transactions, nil
+}
+
+func messageToTrieUpdate(
+	m *entities.TrieUpdate,
+) (*flow.TrieUpdate, error) {
+	rootHash := m.GetRootHash()
+	paths := m.GetPaths()
+
+	payloads := make([]*flow.Payload, len(m.Payloads))
+	for i, payload := range m.GetPayloads() {
+		keyParts := make([]*flow.KeyPart, len(payload.GetKeyPart()))
+		for j, keypart := range payload.GetKeyPart() {
+			keyParts[j] = &flow.KeyPart{
+				Type:  uint16(keypart.GetType()),
+				Value: keypart.GetValue(),
+			}
+		}
+		payloads[i] = &flow.Payload{
+			KeyPart: keyParts,
+			Value:   payload.GetValue(),
+		}
+	}
+
+	return &flow.TrieUpdate{
+		RootHash: rootHash,
+		Paths:    paths,
+		Payloads: payloads,
+	}, nil
+}

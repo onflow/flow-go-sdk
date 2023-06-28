@@ -10,7 +10,7 @@ require (
 	github.com/ethereum/go-ethereum v1.9.13
 	github.com/onflow/cadence v0.39.8
 	github.com/onflow/flow-go/crypto v0.24.7
-	github.com/onflow/flow/protobuf/go/flow v0.3.2-0.20221202093946-932d1c70e288
+	github.com/onflow/flow/protobuf/go/flow v0.3.2-0.20230330183547-d0dd18f6f20d
 	github.com/onflow/sdks v0.5.0
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.8.2

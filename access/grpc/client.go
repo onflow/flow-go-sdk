@@ -158,6 +158,18 @@ func (c *Client) GetExecutionResultForBlockID(ctx context.Context, blockID flow.
 	return c.grpc.GetExecutionResultForBlockID(ctx, blockID)
 }
 
+func (c *Client) GetExecutionDataByBlockID(ctx context.Context, blockID flow.Identifier) (*flow.ExecutionData, error) {
+	return c.grpc.GetExecutionDataByBlockID(ctx, blockID)
+}
+
+func (c *Client) SubscribeExecutionData(ctx context.Context, startBlockID flow.Identifier, startHeight uint64) (<-chan flow.ExecutionDataStreamResponse, <-chan error, error) {
+	return c.grpc.SubscribeExecutionData(ctx, startBlockID, startHeight)
+}
+
+func (c *Client) SubscribeEvents(ctx context.Context, startBlockID flow.Identifier, startHeight uint64, filter flow.EventFilter) (<-chan flow.BlockEvents, <-chan error, error) {
+	return c.grpc.SubscribeEvents(ctx, startBlockID, startHeight, filter)
+}
+
 func (c *Client) Close() error {
 	return c.grpc.Close()
 }
