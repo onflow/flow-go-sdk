@@ -21,7 +21,7 @@ package crypto
 import (
 	"fmt"
 
-	"github.com/onflow/flow-go/crypto/hash"
+	"github.com/onflow/crypto/hash"
 )
 
 type Hasher = hash.Hasher
