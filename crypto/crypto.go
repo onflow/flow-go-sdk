@@ -26,7 +26,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/onflow/crypto"
+	"github.com/onflow/flow-go/crypto"
 )
 
 // SignatureAlgorithm is an identifier for a signature algorithm (and parameters if applicable).

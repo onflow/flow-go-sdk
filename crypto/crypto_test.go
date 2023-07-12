@@ -29,8 +29,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	fgcrypto "github.com/onflow/crypto"
 	"github.com/onflow/flow-go-sdk/crypto"
+	fgcrypto "github.com/onflow/flow-go/crypto"
 )
 
 func TestGeneratePrivateKey(t *testing.T) {
