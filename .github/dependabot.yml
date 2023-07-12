@@ -10,5 +10,5 @@ updates:
     schedule:
       interval: "weekly"
     ignore:
-      - dependency-name: "github.com/onflow/crypto"
+      - dependency-name: "github.com/onflow/flow-go/crypto"
       - dependency-name: "github.com/onflow/cadence"
