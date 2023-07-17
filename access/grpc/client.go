@@ -110,6 +110,9 @@ func (c *Client) GetTransactionResult(ctx context.Context, txID flow.Identifier)
 	return c.grpc.GetTransactionResult(ctx, txID)
 }
 
+func (c *Client) GetTransactionResultByIndex(ctx context.Context, blockID flow.Identifier, index uint32) (*flow.TransactionResult, error) {
+	return c.grpc.GetTransactionResultByIndex(ctx, blockID, index)
+}
 func (c *Client) GetTransactionResultsByBlockID(ctx context.Context, blockID flow.Identifier) ([]*flow.TransactionResult, error) {
 	return c.grpc.GetTransactionResultsByBlockID(ctx, blockID)
 }

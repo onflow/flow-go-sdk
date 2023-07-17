@@ -320,6 +320,31 @@ func (c *BaseClient) GetTransactionResult(
 	return &result, nil
 }
 
+func (c *BaseClient) GetTransactionResultByIndex(
+	ctx context.Context,
+	blockID flow.Identifier,
+	index uint32,
+	opts ...grpc.CallOption,
+) (*flow.TransactionResult, error) {
+
+	//GetTransactionResultByIndex(ctx context.Context, in *GetTransactionByIndexRequest, opts ...grpc.CallOption) (*TransactionResultResponse, error)
+	req := &access.GetTransactionByIndexRequest{
+		BlockId: blockID.Bytes(),
+		Index:   index,
+	}
+
+	res, err := c.rpcClient.GetTransactionResultByIndex(ctx, req, opts...)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	parsed, err := messageToTransactionResult(res, c.jsonOptions)
+	if err != nil {
+		return nil, newMessageToEntityError(entityTransactionResult, err)
+	}
+	return &parsed, nil
+}
+
 func (c *BaseClient) GetTransactionResultsByBlockID(
 	ctx context.Context,
 	blockID flow.Identifier,
