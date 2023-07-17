@@ -4,8 +4,8 @@ go 1.18
 
 require (
 	cloud.google.com/go/kms v1.9.0
-	github.com/aws/aws-sdk-go-v2 v1.17.7
-	github.com/aws/aws-sdk-go-v2/config v1.18.19
+	github.com/aws/aws-sdk-go-v2 v1.19.0
+	github.com/aws/aws-sdk-go-v2/config v1.18.28
 	github.com/aws/aws-sdk-go-v2/service/kms v1.20.1
 	github.com/ethereum/go-ethereum v1.9.13
 	github.com/onflow/cadence v0.39.14
@@ -24,15 +24,15 @@ require (
 	cloud.google.com/go/compute v1.18.0 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	cloud.google.com/go/iam v0.12.0 // indirect
-	github.com/aws/aws-sdk-go-v2/credentials v1.13.18 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.13.1 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.31 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.25 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.32 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.25 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sso v1.12.6 // indirect
-	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.14.6 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sts v1.18.7 // indirect
+	github.com/aws/aws-sdk-go-v2/credentials v1.13.27 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.13.5 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.35 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.29 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.36 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.29 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.12.13 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.14.13 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sts v1.19.3 // indirect
 	github.com/aws/smithy-go v1.13.5 // indirect
 	github.com/bits-and-blooms/bitset v1.5.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.2.1 // indirect
