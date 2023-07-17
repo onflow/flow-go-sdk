@@ -327,7 +327,6 @@ func (c *BaseClient) GetTransactionResultByIndex(
 	opts ...grpc.CallOption,
 ) (*flow.TransactionResult, error) {
 
-	//GetTransactionResultByIndex(ctx context.Context, in *GetTransactionByIndexRequest, opts ...grpc.CallOption) (*TransactionResultResponse, error)
 	req := &access.GetTransactionByIndexRequest{
 		BlockId: blockID.Bytes(),
 		Index:   index,
