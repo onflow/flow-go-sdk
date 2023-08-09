@@ -615,6 +615,7 @@ type TransactionResult struct {
 	BlockID       Identifier
 	BlockHeight   uint64
 	TransactionID Identifier
+	CollectionID  Identifier
 }
 
 // TransactionStatus represents the status of a transaction.

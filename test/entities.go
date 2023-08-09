@@ -409,28 +409,27 @@ func (g *Transactions) NewUnsigned() *flow.Transaction {
 
 type TransactionResults struct {
 	events *Events
+	ids    *Identifiers
 }
 
 func TransactionResultGenerator() *TransactionResults {
 	return &TransactionResults{
 		events: EventGenerator(),
+		ids:    IdentifierGenerator(),
 	}
 }
 
 func (g *TransactionResults) New() flow.TransactionResult {
-	eventA := g.events.New()
-	eventB := g.events.New()
-	blockID := newIdentifier(1)
-	blockHeight := uint64(42)
-
 	return flow.TransactionResult{
 		Status: flow.TransactionStatusSealed,
 		Error:  errors.New("transaction execution error"),
 		Events: []flow.Event{
-			eventA,
-			eventB,
+			g.events.New(),
+			g.events.New(),
 		},
-		BlockID:     blockID,
-		BlockHeight: blockHeight,
+		BlockID:       g.ids.New(),
+		BlockHeight:   uint64(42),
+		TransactionID: g.ids.New(),
+		CollectionID:  g.ids.New(),
 	}
 }

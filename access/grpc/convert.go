@@ -502,6 +502,7 @@ func transactionResultToMessage(result flow.TransactionResult) (*access.Transact
 		BlockId:       identifierToMessage(result.BlockID),
 		BlockHeight:   result.BlockHeight,
 		TransactionId: identifierToMessage(result.TransactionID),
+		CollectionId:  identifierToMessage(result.CollectionID),
 	}, nil
 }
 
@@ -537,5 +538,6 @@ func messageToTransactionResult(m *access.TransactionResultResponse, options []j
 		BlockID:       flow.BytesToID(m.GetBlockId()),
 		BlockHeight:   m.GetBlockHeight(),
 		TransactionID: flow.BytesToID(m.GetTransactionId()),
+		CollectionID:  flow.BytesToID(m.GetCollectionId()),
 	}, nil
 }
