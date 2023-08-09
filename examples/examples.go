@@ -22,12 +22,13 @@ import (
 	"context"
 	"crypto/rand"
 	"fmt"
-	jsoncdc "github.com/onflow/cadence/encoding/json"
-	"github.com/onflow/flow-cli/flowkit/config"
-	"github.com/spf13/afero"
 	"log"
 	"strings"
 	"time"
+
+	jsoncdc "github.com/onflow/cadence/encoding/json"
+	"github.com/onflow/flow-cli/flowkit/config"
+	"github.com/spf13/afero"
 
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/access"
