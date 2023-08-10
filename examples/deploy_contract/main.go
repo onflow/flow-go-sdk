@@ -32,7 +32,7 @@ import (
 	"github.com/onflow/flow-go-sdk/templates"
 )
 
-const GreatTokenContractFile = "/Users/nmehrubonov/Projects/flow-go-sdk/examples/great-token.cdc"
+const GreatTokenContractFile = "./great-token.cdc"
 
 func main() {
 	DeployContractDemo()
