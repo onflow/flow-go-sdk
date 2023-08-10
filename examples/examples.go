@@ -43,7 +43,7 @@ import (
 	"github.com/onflow/cadence/runtime/sema"
 )
 
-const configPath = "./flow.json"
+const configPath = "/Users/nmehrubonov/Projects/flowchain/buildsquad/flow.json"
 
 var Config *config.Config
 
