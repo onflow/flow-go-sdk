@@ -23,6 +23,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -179,6 +180,14 @@ func CreateAccountWithContracts(flowClient access.Client, publicKeys []*flow.Acc
 		return account
 	}
 	panic("could not find an AccountCreatedEvent")
+}
+
+func ReadFile(name string) string {
+	body, err := os.ReadFile(name)
+	if err != nil {
+		log.Fatalf("unable to read file")
+	}
+	return string(body)
 }
 
 /**
