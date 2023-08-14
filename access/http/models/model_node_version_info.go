@@ -8,8 +8,9 @@
  */
 package models
 
-type TransactionSignature struct {
-	Address   string `json:"address"`
-	KeyIndex  string `json:"key_index"`
-	Signature string `json:"signature"`
+type NodeVersionInfo struct {
+	Semver          string `json:"semver"`
+	Commit          string `json:"commit"`
+	SporkId         string `json:"spork_id"`
+	ProtocolVersion string `json:"protocol_version"`
 }
