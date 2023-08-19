@@ -68,7 +68,7 @@ func ExampleTransaction() {
 	tx := flow.NewTransaction().
 		SetScript([]byte(`transaction { execute { log("Hello, World!") } }`)).
 		SetReferenceBlockID(flow.Identifier{0x01, 0x02}).
-		SetGasLimit(42).
+		SetComputeLimit(42).
 		SetProposalKey(adrian.Address, adrianLaptopKey.Index, adrianLaptopKey.SequenceNumber).
 		SetPayer(blaine.Address).
 		AddAuthorizer(adrian.Address)
@@ -241,7 +241,7 @@ func TestTransaction_SetGasLimit(t *testing.T) {
 	var gasLimit uint64 = 42
 
 	tx := flow.NewTransaction().
-		SetGasLimit(gasLimit)
+		SetComputeLimit(gasLimit)
 
 	assert.Equal(t, gasLimit, tx.GasLimit)
 }
@@ -553,7 +553,7 @@ func baseTx() *flow.Transaction {
 	return flow.NewTransaction().
 		SetScript([]byte(`transaction { execute { log("Hello, World!") } }`)).
 		SetReferenceBlockID(flow.HexToID("f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b")).
-		SetGasLimit(42).
+		SetComputeLimit(42).
 		SetProposalKey(flow.HexToAddress("01"), 4, 10).
 		SetPayer(flow.HexToAddress("01")).
 		AddAuthorizer(flow.HexToAddress("01")).
@@ -614,7 +614,7 @@ func TestTransaction_RLPMessages(t *testing.T) {
 		},
 		{
 			name:     "Zero gas limit",
-			tx:       baseTx().SetGasLimit(0),
+			tx:       baseTx().SetComputeLimit(0),
 			payload:  "f872b07472616e73616374696f6e207b2065786563757465207b206c6f67282248656c6c6f2c20576f726c64212229207d207dc0a0f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b80880000000000000001040a880000000000000001c9880000000000000001",
 			envelope: "f899f872b07472616e73616374696f6e207b2065786563757465207b206c6f67282248656c6c6f2c20576f726c64212229207d207dc0a0f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b80880000000000000001040a880000000000000001c9880000000000000001e4e38004a0f7225388c1d69d57e6251c9fda50cbbf9e05131e5adb81e5aa0422402f048162",
 		},
