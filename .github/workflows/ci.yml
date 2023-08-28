@@ -4,9 +4,13 @@ on:
   push:
     branches:
       - master
+      - 'v**'
+      - 'feature/**'
   pull_request:
     branches:
       - master
+      - 'v**'
+      - 'feature/**'
 
 jobs:
   test:
