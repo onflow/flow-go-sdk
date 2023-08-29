@@ -440,3 +440,9 @@ func toExecutionResults(result models.ExecutionResult) *flow.ExecutionResult {
 		ServiceEvents:    events,
 	}
 }
+
+func toNetworkParameters(params *models.NetworkParameters) *flow.NetworkParameters {
+	return &flow.NetworkParameters{
+		ChainID: flow.ChainID(params.ChainId),
+	}
+}

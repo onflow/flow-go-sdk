@@ -62,6 +62,12 @@ func accountKeyFlowFixture() models.AccountPublicKey {
 	}
 }
 
+func networkParametersFlowFixture() models.NetworkParameters {
+	return models.NetworkParameters{
+		ChainId:  "flow-testnet",
+	}
+}
+
 func blockFlowFixture() models.Block {
 	block := test.BlockGenerator().New()
 
