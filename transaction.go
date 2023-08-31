@@ -183,6 +183,14 @@ func (t *Transaction) SetReferenceBlockID(blockID Identifier) *Transaction {
 	return t
 }
 
+// SetGasLimit sets the gas limit for this transaction.
+//
+// Deprecated: Use SetComputationLimit Instead
+func (t *Transaction) SetGasLimit(limit uint64) *Transaction {
+	t.GasLimit = limit
+	return t
+}
+
 // SetComputeLimit sets the compute limit for this transaction.
 func (t *Transaction) SetComputeLimit(limit uint64) *Transaction {
 	t.GasLimit = limit
