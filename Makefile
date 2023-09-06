@@ -12,7 +12,8 @@ coverage: test
 .PHONY: generate
 generate:
 	go get -d github.com/vektra/mockery/cmd/mockery
-	mockery --name RPCClient --dir=access/grpc --structname MockRPCClient --output access/grpc/mocks
+	$(GOPATH)/bin/mockery --name RPCClient --dir=access/grpc --structname MockRPCClient --output access/grpc/mocks
+
 .PHONY: ci
 ci: check-tidy test coverage
 
