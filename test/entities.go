@@ -394,7 +394,7 @@ func (g *Transactions) NewUnsigned() *flow.Transaction {
 	tx := flow.NewTransaction().
 		SetScript(GreetingScript).
 		SetReferenceBlockID(blockID).
-		SetGasLimit(42).
+		SetComputeLimit(42).
 		SetProposalKey(accountA.Address, proposalKey.Index, proposalKey.SequenceNumber).
 		AddAuthorizer(accountA.Address).
 		SetPayer(accountB.Address)
