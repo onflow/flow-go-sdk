@@ -44,14 +44,11 @@ func demo(deployedContract *flow.Account, runScriptTx *flow.Transaction) {
 	result, err := flowClient.GetEventsForHeightRange(ctx, "flow.AccountCreated", 0, 30)
 	printEvents(result, err)
 
-	// Query for our custom event by type
-	//customType := fmt.Sprintf("AC.%s.EventDemo.EventDemo.Add", deployedContract.Address.Hex())
-
-	customType := flow.NewEvent().
+	customType := flow.NewEventTypeFactory().
 		WithEventName("Add").
 		WithContractName("EventDemo").
 		WithAddress(deployedContract.Address).
-		Build()
+		String()
 
 	result, err = flowClient.GetEventsForHeightRange(ctx, customType, 0, 10)
 	printEvents(result, err)

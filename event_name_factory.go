@@ -22,37 +22,37 @@ import (
 	"fmt"
 )
 
-type eventNameFactory struct {
+type eventTypeFactory struct {
 	address      string
 	contractName string
 	eventName    string
 }
 
-func (f eventNameFactory) WithAddressString(address string) eventNameFactory {
+func (f eventTypeFactory) WithAddressString(address string) eventTypeFactory {
 	f.address = address
 	return f
 }
 
-func (f eventNameFactory) WithAddress(address Address) eventNameFactory {
+func (f eventTypeFactory) WithAddress(address Address) eventTypeFactory {
 	f.address = address.Hex()
 	return f
 }
 
-func (f eventNameFactory) WithContractName(contract string) eventNameFactory {
+func (f eventTypeFactory) WithContractName(contract string) eventTypeFactory {
 	f.contractName = contract
 	return f
 }
 
-func (f eventNameFactory) WithEventName(event string) eventNameFactory {
+func (f eventTypeFactory) WithEventName(event string) eventTypeFactory {
 	f.eventName = event
 	return f
 }
 
-func (f eventNameFactory) Build() string {
+func (f eventTypeFactory) String() string {
 	return fmt.Sprintf("A.%s.%s.%s", f.address, f.contractName, f.eventName)
 }
 
-// NewEvent helper function for constructing event names
-func NewEvent() eventNameFactory {
-	return eventNameFactory{}
+// NewEventTypeFactory helper function for constructing event names
+func NewEventTypeFactory() eventTypeFactory {
+	return eventTypeFactory{}
 }

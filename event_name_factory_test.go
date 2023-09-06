@@ -25,9 +25,9 @@ import (
 )
 
 func TestEventNameFactory(t *testing.T) {
-	assert.Equal(t, "A.7e60df042a9c0868.FlowToken.AccountCreated", NewEvent().
+	assert.Equal(t, "A.7e60df042a9c0868.FlowToken.AccountCreated", NewEventTypeFactory().
 		WithEventName("AccountCreated").
 		WithAddressString("7e60df042a9c0868").
 		WithContractName("FlowToken").
-		Build())
+		String())
 }
