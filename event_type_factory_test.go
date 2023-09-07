@@ -24,7 +24,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestEventNameFactory(t *testing.T) {
+func TestEventTypeFactory(t *testing.T) {
 	assert.Equal(t, "A.7e60df042a9c0868.FlowToken.AccountCreated", NewEventTypeFactory().
 		WithEventName("AccountCreated").
 		WithAddressString("7e60df042a9c0868").
