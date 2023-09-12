@@ -370,6 +370,7 @@ func toTransactionResult(txr *models.TransactionResult, options []cadenceJSON.Op
 		Error:   txErr,
 		Events:  events,
 		BlockID: flow.HexToID(txr.BlockId),
+		CollectionID: flow.HexToID(txr.CollectionId),
 	}, nil
 }
 
