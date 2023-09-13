@@ -53,6 +53,10 @@ func (c *Client) Ping(ctx context.Context) error {
 	return c.httpClient.Ping(ctx)
 }
 
+func (c *Client) GetNetworkParameters(ctx context.Context) (*flow.NetworkParameters, error) {
+	return c.httpClient.GetNetworkParameters(ctx)
+}
+
 func (c *Client) GetBlockByID(ctx context.Context, blockID flow.Identifier) (*flow.Block, error) {
 	return c.httpClient.GetBlockByID(ctx, blockID)
 }

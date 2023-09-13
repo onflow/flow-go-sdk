@@ -66,6 +66,10 @@ func (c *Client) Ping(ctx context.Context) error {
 	return c.grpc.Ping(ctx)
 }
 
+func (c *Client) GetNetworkParameters(ctx context.Context) (*flow.NetworkParameters, error) {
+	return c.grpc.GetNetworkParameters(ctx)
+}
+
 func (c *Client) GetLatestBlockHeader(ctx context.Context, isSealed bool) (*flow.BlockHeader, error) {
 	return c.grpc.GetLatestBlockHeader(ctx, isSealed)
 }

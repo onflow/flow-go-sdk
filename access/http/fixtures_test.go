@@ -62,6 +62,12 @@ func accountKeyFlowFixture() models.AccountPublicKey {
 	}
 }
 
+func networkParametersFlowFixture() models.NetworkParameters {
+	return models.NetworkParameters{
+		ChainId:  "flow-testnet",
+	}
+}
+
 func blockFlowFixture() models.Block {
 	block := test.BlockGenerator().New()
 
@@ -147,6 +153,7 @@ func transactionResultFlowFixture() models.TransactionResult {
 
 	return models.TransactionResult{
 		BlockId:      txr.BlockID.String(),
+		CollectionId: txr.CollectionID.String(),
 		Status:       &status,
 		StatusCode:   0,
 		ErrorMessage: txr.Error.Error(),
