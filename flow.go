@@ -104,9 +104,6 @@ const (
 	// Testnet is the chain ID for the testnet chain.
 	Testnet ChainID = "flow-testnet"
 
-	// Sandboxnet is the chain ID for sandboxnet chain.
-	Sandboxnet ChainID = "flow-sandboxnet"
-
 	// Transient test networks
 
 	// Benchnet is the chain ID for the transient benchmarking chain.
