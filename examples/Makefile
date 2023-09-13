@@ -1,5 +1,5 @@
 .PHONY: all
-all: get-blocks get-accounts get-events get-collection get-transactions execute-script send-transaction create-account add-account-key deploy-contract storage-usage transaction-arguments single-party single-party-multisig multi-party multi-party-multisig user-signature user-signature-validate-all user-signature-validate-any http-grpc-clients modify-account
+all: get-blocks get-accounts get-events get-collection get-network-parameters get-transactions execute-script send-transaction create-account add-account-key deploy-contract storage-usage transaction-arguments single-party single-party-multisig multi-party multi-party-multisig user-signature user-signature-validate-all user-signature-validate-any http-grpc-clients modify-account
 
 .PHONY: create-account
 create-account:
@@ -64,6 +64,10 @@ get-events:
 .PHONY: get-collection
 get-collection:
 	go run ./get_collection/main.go
+
+.PHONY: get-network-parameters
+get-network-parameters:
+	go run ./get_network_parameters/main.go
 
 .PHONY: get-transactions
 get-transactions:
