@@ -79,9 +79,9 @@ func TestClient_Ping(t *testing.T) {
 }
 
 func TestClient_GetNetworkParameters(t *testing.T) {
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		response := &access.GetNetworkParametersResponse{
-			ChainId:    "flow-testnet",
+			ChainId: "flow-testnet",
 		}
 		expectedParams := &flow.NetworkParameters{
 			ChainID: flow.ChainID("flow-testnet"),
@@ -95,7 +95,7 @@ func TestClient_GetNetworkParameters(t *testing.T) {
 		assert.Equal(t, params, expectedParams)
 	}))
 
-	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		rpc.On("GetNetworkParameters", ctx, mock.Anything).
 			Return(nil, errInternal)
 
