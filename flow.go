@@ -123,6 +123,10 @@ func (id ChainID) String() string {
 	return string(id)
 }
 
+type NetworkParameters struct {
+	ChainID          ChainID
+}
+
 // entityHasher is a thread-safe hasher used to hash Flow entities.
 type entityHasher struct {
 	mut    sync.Mutex

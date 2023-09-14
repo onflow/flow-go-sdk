@@ -64,6 +64,37 @@ func TestClient_Factories(t *testing.T) {
 	assert.NotNil(t, client)
 }
 
+func TestBaseClient_GetNetworkParameters(t *testing.T) {
+	const handlerName = "getNetworkParameters"
+
+	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
+		httpParams := networkParametersFlowFixture()
+		expectedParams := toNetworkParameters(&httpParams)
+
+		handler.
+			On(handlerName, mock.Anything).
+			Return(&httpParams, nil)
+
+		params, err := client.GetNetworkParameters(ctx)
+		assert.NoError(t, err)
+		assert.Equal(t, params, expectedParams)
+	}))
+
+	t.Run("Failure", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
+		handler.
+			On(handlerName, mock.Anything).
+			Return(nil, HTTPError{
+				Url:     "/",
+				Code:    400,
+				Message: "bad request",
+			})
+
+		params, err := client.GetNetworkParameters(ctx)
+		assert.EqualError(t, err, "bad request")
+		assert.Nil(t, params)
+	}))
+}
+
 func TestBaseClient_GetBlockByID(t *testing.T) {
 	const handlerName = "getBlockByID"
 	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {

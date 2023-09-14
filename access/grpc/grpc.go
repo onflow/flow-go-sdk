@@ -85,6 +85,16 @@ func (c *BaseClient) Ping(ctx context.Context, opts ...grpc.CallOption) error {
 	return err
 }
 
+func (c *BaseClient) GetNetworkParameters(ctx context.Context, opts ...grpc.CallOption) (*flow.NetworkParameters, error) {
+	res, err := c.rpcClient.GetNetworkParameters(ctx, &access.GetNetworkParametersRequest{}, opts...)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+	return &flow.NetworkParameters{
+		ChainID: flow.ChainID(res.ChainId),
+	}, nil
+}
+
 func (c *BaseClient) GetLatestBlockHeader(
 	ctx context.Context,
 	isSealed bool,

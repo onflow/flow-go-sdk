@@ -38,6 +38,7 @@ import (
 
 // handler interface defines methods needed to be offered by a specific http network implementation.
 type handler interface {
+	getNetworkParameters(ctx context.Context, opts ...queryOpts) (*models.NetworkParameters, error)
 	getBlockByID(ctx context.Context, ID string, opts ...queryOpts) (*models.Block, error)
 	getBlocksByHeights(ctx context.Context, heights string, startHeight string, endHeight string, opts ...queryOpts) ([]*models.Block, error)
 	getAccount(ctx context.Context, address string, height string, opts ...queryOpts) (*models.Account, error)
@@ -185,6 +186,15 @@ func (c *BaseClient) Ping(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (c *BaseClient) GetNetworkParameters(ctx context.Context) (*flow.NetworkParameters, error) {
+	params, err := c.handler.getNetworkParameters(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return toNetworkParameters(params), nil
 }
 
 func (c *BaseClient) GetBlockByID(ctx context.Context, blockID flow.Identifier, opts ...queryOpts) (*flow.Block, error) {

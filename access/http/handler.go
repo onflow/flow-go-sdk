@@ -170,6 +170,16 @@ func (h *httpHandler) post(_ context.Context, url *url.URL, body []byte, model i
 	return nil
 }
 
+func (h *httpHandler) getNetworkParameters(ctx context.Context, opts ...queryOpts) (*models.NetworkParameters, error) {
+	var networkParameters models.NetworkParameters
+	err := h.get(ctx, h.mustBuildURL("/network/parameters", opts...), &networkParameters)
+	if err != nil {
+		return nil, errors.Wrap(err, "get network parameters failed")
+	}
+
+	return &networkParameters, nil
+}
+
 func (h *httpHandler) getBlockByID(ctx context.Context, ID string, opts ...queryOpts) (*models.Block, error) {
 	u := h.mustBuildURL(fmt.Sprintf("/blocks/%s", ID), opts...)
 

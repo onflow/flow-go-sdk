@@ -370,6 +370,7 @@ func toTransactionResult(txr *models.TransactionResult, options []cadenceJSON.Op
 		Error:   txErr,
 		Events:  events,
 		BlockID: flow.HexToID(txr.BlockId),
+		CollectionID: flow.HexToID(txr.CollectionId),
 	}, nil
 }
 
@@ -438,5 +439,11 @@ func toExecutionResults(result models.ExecutionResult) *flow.ExecutionResult {
 		BlockID:          flow.HexToID(result.BlockId),
 		Chunks:           chunks,
 		ServiceEvents:    events,
+	}
+}
+
+func toNetworkParameters(params *models.NetworkParameters) *flow.NetworkParameters {
+	return &flow.NetworkParameters{
+		ChainID: flow.ChainID(params.ChainId),
 	}
 }

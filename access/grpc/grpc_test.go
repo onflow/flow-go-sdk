@@ -78,6 +78,34 @@ func TestClient_Ping(t *testing.T) {
 	}))
 }
 
+func TestClient_GetNetworkParameters(t *testing.T) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+		response := &access.GetNetworkParametersResponse{
+			ChainId:    "flow-testnet",
+		}
+		expectedParams := &flow.NetworkParameters{
+			ChainID: flow.ChainID("flow-testnet"),
+		}
+
+		rpc.On("GetNetworkParameters", ctx, mock.Anything).Return(response, nil)
+
+		params, err := c.GetNetworkParameters(ctx)
+		require.NoError(t, err)
+
+		assert.Equal(t, params, expectedParams)
+	}))
+
+	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+		rpc.On("GetNetworkParameters", ctx, mock.Anything).
+			Return(nil, errInternal)
+
+		params, err := c.GetNetworkParameters(ctx)
+		assert.Error(t, err)
+		assert.Equal(t, codes.Internal, status.Code(err))
+		assert.Nil(t, params)
+	}))
+}
+
 func TestClient_GetLatestBlockHeader(t *testing.T) {
 	blocks := test.BlockGenerator()
 
