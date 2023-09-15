@@ -239,7 +239,7 @@ func GenerateGetNFTIDScript(nftCodeAddr, userAddr flow.Address) []byte {
 
 		pub fun main(): Int {
 			let acct = getAccount(0x%s)
-			let nft = acct.capabilities.get<&GreatToken.GreatNFT>(/public/GreatNFT)!.borrow()!
+			let nft = acct.capabilities.borrow<&GreatToken.GreatNFT>(/public/GreatNFT)!
 			return nft.id()
 		}
 	`

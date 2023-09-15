@@ -207,8 +207,7 @@ transaction(recipient: Address, amount: UFix64) {
 			?? panic("Signer is not the token admin")
 
 		self.tokenReceiver = getAccount(recipient)
-			.capabilities.get<&{FungibleToken.Receiver}>(/public/flowTokenReceiver)!
-			.borrow()
+			.capabilities.borrow<&{FungibleToken.Receiver}>(/public/flowTokenReceiver)
 			?? panic("Unable to borrow receiver reference")
 	}
 
