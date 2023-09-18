@@ -66,6 +66,10 @@ func (c *Client) Ping(ctx context.Context) error {
 	return c.grpc.Ping(ctx)
 }
 
+func (c *Client) GetNetworkParameters(ctx context.Context) (*flow.NetworkParameters, error) {
+	return c.grpc.GetNetworkParameters(ctx)
+}
+
 func (c *Client) GetLatestBlockHeader(ctx context.Context, isSealed bool) (*flow.BlockHeader, error) {
 	return c.grpc.GetLatestBlockHeader(ctx, isSealed)
 }
@@ -110,6 +114,9 @@ func (c *Client) GetTransactionResult(ctx context.Context, txID flow.Identifier)
 	return c.grpc.GetTransactionResult(ctx, txID)
 }
 
+func (c *Client) GetTransactionResultByIndex(ctx context.Context, blockID flow.Identifier, index uint32) (*flow.TransactionResult, error) {
+	return c.grpc.GetTransactionResultByIndex(ctx, blockID, index)
+}
 func (c *Client) GetTransactionResultsByBlockID(ctx context.Context, blockID flow.Identifier) ([]*flow.TransactionResult, error) {
 	return c.grpc.GetTransactionResultsByBlockID(ctx, blockID)
 }

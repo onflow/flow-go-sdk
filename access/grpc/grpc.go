@@ -96,6 +96,16 @@ func (c *BaseClient) Ping(ctx context.Context, opts ...grpc.CallOption) error {
 	return err
 }
 
+func (c *BaseClient) GetNetworkParameters(ctx context.Context, opts ...grpc.CallOption) (*flow.NetworkParameters, error) {
+	res, err := c.rpcClient.GetNetworkParameters(ctx, &access.GetNetworkParametersRequest{}, opts...)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+	return &flow.NetworkParameters{
+		ChainID: flow.ChainID(res.ChainId),
+	}, nil
+}
+
 func (c *BaseClient) GetLatestBlockHeader(
 	ctx context.Context,
 	isSealed bool,
@@ -330,6 +340,30 @@ func (c *BaseClient) GetTransactionResult(
 	}
 
 	return &result, nil
+}
+
+func (c *BaseClient) GetTransactionResultByIndex(
+	ctx context.Context,
+	blockID flow.Identifier,
+	index uint32,
+	opts ...grpc.CallOption,
+) (*flow.TransactionResult, error) {
+
+	req := &access.GetTransactionByIndexRequest{
+		BlockId: blockID.Bytes(),
+		Index:   index,
+	}
+
+	res, err := c.rpcClient.GetTransactionResultByIndex(ctx, req, opts...)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	parsed, err := messageToTransactionResult(res, c.jsonOptions)
+	if err != nil {
+		return nil, newMessageToEntityError(entityTransactionResult, err)
+	}
+	return &parsed, nil
 }
 
 func (c *BaseClient) GetTransactionResultsByBlockID(

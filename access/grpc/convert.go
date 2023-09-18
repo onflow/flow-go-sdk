@@ -23,11 +23,12 @@ import (
 	"fmt"
 	"time"
 
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/flow/protobuf/go/flow/access"
 	"github.com/onflow/flow/protobuf/go/flow/entities"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
@@ -436,7 +437,7 @@ func messageToTransaction(m *entities.Transaction) (flow.Transaction, error) {
 
 	t.SetScript(m.GetScript())
 	t.SetReferenceBlockID(flow.HashToID(m.GetReferenceBlockId()))
-	t.SetGasLimit(m.GetGasLimit())
+	t.SetComputeLimit(m.GetGasLimit())
 
 	for _, arg := range m.GetArguments() {
 		t.AddRawArgument(arg)
@@ -502,6 +503,7 @@ func transactionResultToMessage(result flow.TransactionResult) (*access.Transact
 		BlockId:       identifierToMessage(result.BlockID),
 		BlockHeight:   result.BlockHeight,
 		TransactionId: identifierToMessage(result.TransactionID),
+		CollectionId:  identifierToMessage(result.CollectionID),
 	}, nil
 }
 
@@ -537,6 +539,7 @@ func messageToTransactionResult(m *access.TransactionResultResponse, options []j
 		BlockID:       flow.BytesToID(m.GetBlockId()),
 		BlockHeight:   m.GetBlockHeight(),
 		TransactionID: flow.BytesToID(m.GetTransactionId()),
+		CollectionID:  flow.BytesToID(m.GetCollectionId()),
 	}, nil
 }
 
