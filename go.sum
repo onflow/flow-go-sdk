@@ -208,8 +208,8 @@ github.com/logrusorgru/aurora/v4 v4.0.0 h1:sRjfPpun/63iADiSvGGjgA1cAYegEWMPCJdUp
 github.com/logrusorgru/aurora/v4 v4.0.0/go.mod h1:lP0iIa2nrnT/qoFXcOZSrZQpJ1o6n2CUf/hyHi2Q4ZQ=
 github.com/onflow/atree v0.6.0 h1:j7nQ2r8npznx4NX39zPpBYHmdy45f4xwoi+dm37Jk7c=
 github.com/onflow/atree v0.6.0/go.mod h1:gBHU0M05qCbv9NN0kijLWMgC47gHVNBIp4KmsVFi0tc=
-github.com/onflow/cadence v0.40.0 h1:3pTdkyVTjMx2U5+YZYvIpyw74CSxabjk9PdAZUkJ1GU=
-github.com/onflow/cadence v0.40.0/go.mod h1:OIJLyVBPa339DCBQXBfGaorT4tBjQh9gSKe+ZAIyyh0=
+github.com/onflow/cadence v0.41.1 h1:bS7hAf295r2aCNftWDINpYAIC4OUoieJwQb//MAKcNo=
+github.com/onflow/cadence v0.41.1/go.mod h1:2ggmhENvPPZXRnv9SmqN2xiYvluu4wx/96GCpeRh8lU=
 github.com/onflow/crypto v0.24.9 h1:jYP1qdwid0qCineFzBFlxBchg710A7RuSWpTqxaOdog=
 github.com/onflow/crypto v0.24.9/go.mod h1:J/V7IEVaqjDajvF8K0B/SJPJDgAOP2G+LVLeb0hgmbg=
 github.com/onflow/flow-cli/flowkit v1.4.1 h1:qGFvMKo3HiPrqXGmRG6bAUITwBtoWWlp/murDSyQTaE=
