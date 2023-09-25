@@ -111,7 +111,6 @@ func DeployContractDemo() {
 
 	err = deployContractTx.SignEnvelope(serviceAcctAddr, serviceAcctKey.Index, serviceSigner)
 	examples.Handle(err)
-	examples.Handle(err)
 
 	err = flowClient.SendTransaction(ctx, *deployContractTx)
 	examples.Handle(err)

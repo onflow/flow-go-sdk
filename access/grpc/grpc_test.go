@@ -23,16 +23,19 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/onflow/cadence"
-	jsoncdc "github.com/onflow/cadence/encoding/json"
-	"github.com/onflow/flow/protobuf/go/flow/access"
-	"github.com/onflow/flow/protobuf/go/flow/entities"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	"github.com/onflow/cadence"
+	jsoncdc "github.com/onflow/cadence/encoding/json"
+	"github.com/onflow/flow/protobuf/go/flow/access"
+	"github.com/onflow/flow/protobuf/go/flow/entities"
+
+	"github.com/onflow/flow-go-sdk/access/grpc/mocks"
 
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/test"
@@ -44,11 +47,11 @@ var (
 )
 
 func clientTest(
-	f func(t *testing.T, ctx context.Context, rpc *MockRPCClient, client *BaseClient),
+	f func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, client *BaseClient),
 ) func(t *testing.T) {
 	return func(t *testing.T) {
 		ctx := context.Background()
-		rpc := &MockRPCClient{}
+		rpc := new(mocks.MockRPCClient)
 		c := NewFromRPCClient(rpc)
 		f(t, ctx, rpc, c)
 		rpc.AssertExpectations(t)
@@ -56,7 +59,7 @@ func clientTest(
 }
 
 func TestClient_Ping(t *testing.T) {
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		response := &access.PingResponse{}
 
 		rpc.On("Ping", ctx, mock.Anything).Return(response, nil)
@@ -65,7 +68,7 @@ func TestClient_Ping(t *testing.T) {
 		assert.NoError(t, err)
 	}))
 
-	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		rpc.On("Ping", ctx, mock.Anything).
 			Return(nil, errInternal)
 
@@ -76,9 +79,9 @@ func TestClient_Ping(t *testing.T) {
 }
 
 func TestClient_GetNetworkParameters(t *testing.T) {
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		response := &access.GetNetworkParametersResponse{
-			ChainId:    "flow-testnet",
+			ChainId: "flow-testnet",
 		}
 		expectedParams := &flow.NetworkParameters{
 			ChainID: flow.ChainID("flow-testnet"),
@@ -92,7 +95,7 @@ func TestClient_GetNetworkParameters(t *testing.T) {
 		assert.Equal(t, params, expectedParams)
 	}))
 
-	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		rpc.On("GetNetworkParameters", ctx, mock.Anything).
 			Return(nil, errInternal)
 
@@ -106,7 +109,7 @@ func TestClient_GetNetworkParameters(t *testing.T) {
 func TestClient_GetLatestBlockHeader(t *testing.T) {
 	blocks := test.BlockGenerator()
 
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		expectedHeader := blocks.New().BlockHeader
 
 		b, err := blockHeaderToMessage(expectedHeader)
@@ -124,7 +127,7 @@ func TestClient_GetLatestBlockHeader(t *testing.T) {
 		assert.Equal(t, expectedHeader, *header)
 	}))
 
-	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		rpc.On("GetLatestBlockHeader", ctx, mock.Anything).
 			Return(nil, errInternal)
 
@@ -139,7 +142,7 @@ func TestClient_GetBlockHeaderByID(t *testing.T) {
 	blocks := test.BlockGenerator()
 	ids := test.IdentifierGenerator()
 
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		blockID := ids.New()
 		expectedHeader := blocks.New().BlockHeader
 
@@ -158,7 +161,7 @@ func TestClient_GetBlockHeaderByID(t *testing.T) {
 		assert.Equal(t, expectedHeader, *header)
 	}))
 
-	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		blockID := ids.New()
 
 		rpc.On("GetBlockHeaderByID", ctx, mock.Anything).
@@ -174,7 +177,7 @@ func TestClient_GetBlockHeaderByID(t *testing.T) {
 func TestClient_GetBlockHeaderByHeight(t *testing.T) {
 	blocks := test.BlockGenerator()
 
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		expectedHeader := blocks.New().BlockHeader
 
 		b, err := blockHeaderToMessage(expectedHeader)
@@ -192,7 +195,7 @@ func TestClient_GetBlockHeaderByHeight(t *testing.T) {
 		assert.Equal(t, expectedHeader, *header)
 	}))
 
-	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		rpc.On("GetBlockHeaderByHeight", ctx, mock.Anything).
 			Return(nil, errNotFound)
 
@@ -206,7 +209,7 @@ func TestClient_GetBlockHeaderByHeight(t *testing.T) {
 func TestClient_GetLatestBlock(t *testing.T) {
 	blocks := test.BlockGenerator()
 
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		expectedBlock := blocks.New()
 
 		b, err := blockToMessage(*expectedBlock)
@@ -224,7 +227,7 @@ func TestClient_GetLatestBlock(t *testing.T) {
 		assert.Equal(t, expectedBlock, block)
 	}))
 
-	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		rpc.On("GetLatestBlock", ctx, mock.Anything).
 			Return(nil, errInternal)
 
@@ -239,7 +242,7 @@ func TestClient_GetBlockByID(t *testing.T) {
 	blocks := test.BlockGenerator()
 	ids := test.IdentifierGenerator()
 
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		blockID := ids.New()
 		expectedBlock := blocks.New()
 
@@ -258,7 +261,7 @@ func TestClient_GetBlockByID(t *testing.T) {
 		assert.Equal(t, expectedBlock, block)
 	}))
 
-	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		blockID := ids.New()
 
 		rpc.On("GetBlockByID", ctx, mock.Anything).
@@ -274,7 +277,7 @@ func TestClient_GetBlockByID(t *testing.T) {
 func TestClient_GetBlockByHeight(t *testing.T) {
 	blocks := test.BlockGenerator()
 
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		expectedBlock := blocks.New()
 
 		b, err := blockToMessage(*expectedBlock)
@@ -292,7 +295,7 @@ func TestClient_GetBlockByHeight(t *testing.T) {
 		assert.Equal(t, expectedBlock, block)
 	}))
 
-	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		rpc.On("GetBlockByHeight", ctx, mock.Anything).
 			Return(nil, errNotFound)
 
@@ -307,7 +310,7 @@ func TestClient_GetCollection(t *testing.T) {
 	cols := test.CollectionGenerator()
 	ids := test.IdentifierGenerator()
 
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		colID := ids.New()
 		expectedCol := cols.New()
 		response := &access.CollectionResponse{
@@ -322,7 +325,7 @@ func TestClient_GetCollection(t *testing.T) {
 		assert.Equal(t, expectedCol, col)
 	}))
 
-	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		colID := ids.New()
 
 		rpc.On("GetCollectionByID", ctx, mock.Anything).
@@ -338,7 +341,7 @@ func TestClient_GetCollection(t *testing.T) {
 func TestClient_SendTransaction(t *testing.T) {
 	transactions := test.TransactionGenerator()
 
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		tx := transactions.New()
 
 		response := &access.SendTransactionResponse{
@@ -351,7 +354,7 @@ func TestClient_SendTransaction(t *testing.T) {
 		require.NoError(t, err)
 	}))
 
-	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		tx := transactions.New()
 
 		rpc.On("SendTransaction", ctx, mock.Anything).
@@ -367,7 +370,7 @@ func TestClient_GetTransaction(t *testing.T) {
 	txs := test.TransactionGenerator()
 	ids := test.IdentifierGenerator()
 
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		txID := ids.New()
 		expectedTx := txs.New()
 
@@ -386,7 +389,7 @@ func TestClient_GetTransaction(t *testing.T) {
 		assert.Equal(t, expectedTx, tx)
 	}))
 
-	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		txID := ids.New()
 
 		rpc.On("GetTransaction", ctx, mock.Anything).
@@ -404,7 +407,7 @@ func TestClient_GetTransactionsByBlockID(t *testing.T) {
 	ids := test.IdentifierGenerator()
 	blockID := ids.New()
 
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		expectedTx := txs.New()
 
 		txMsg, err := transactionToMessage(*expectedTx)
@@ -423,7 +426,7 @@ func TestClient_GetTransactionsByBlockID(t *testing.T) {
 		assert.Equal(t, expectedTx, txs[0])
 	}))
 
-	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		rpc.On("GetTransactionsByBlockID", ctx, mock.Anything).
 			Return(nil, errNotFound)
 
@@ -438,7 +441,7 @@ func TestClient_GetTransactionResult(t *testing.T) {
 	results := test.TransactionResultGenerator()
 	ids := test.IdentifierGenerator()
 
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		txID := ids.New()
 		expectedResult := results.New()
 		response, _ := transactionResultToMessage(expectedResult)
@@ -458,7 +461,7 @@ func TestClient_GetTransactionResult(t *testing.T) {
 
 	}))
 
-	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		txID := ids.New()
 
 		rpc.On("GetTransactionResult", ctx, mock.Anything).
@@ -475,7 +478,7 @@ func TestClient_GetTransactionResultsByBlockID(t *testing.T) {
 	resultGenerator := test.TransactionResultGenerator()
 	ids := test.IdentifierGenerator()
 
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		blockID := ids.New()
 		expectedResult := resultGenerator.New()
 		response, err := transactionResultToMessage(expectedResult)
@@ -502,7 +505,7 @@ func TestClient_GetTransactionResultsByBlockID(t *testing.T) {
 		assert.Equal(t, expectedResult, *results[0])
 	}))
 
-	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		blockID := ids.New()
 
 		rpc.On("GetTransactionResultsByBlockID", ctx, mock.Anything).
@@ -519,7 +522,7 @@ func TestClient_GetAccountAtLatestBlock(t *testing.T) {
 	accounts := test.AccountGenerator()
 	addresses := test.AddressGenerator()
 
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		expectedAccount := accounts.New()
 		response := &access.AccountResponse{
 			Account: accountToMessage(*expectedAccount),
@@ -533,7 +536,7 @@ func TestClient_GetAccountAtLatestBlock(t *testing.T) {
 		assert.Equal(t, expectedAccount, account)
 	}))
 
-	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		address := addresses.New()
 
 		rpc.On("GetAccountAtLatestBlock", ctx, mock.Anything).
@@ -551,7 +554,7 @@ func TestClient_GetAccountAtBlockHeight(t *testing.T) {
 	addresses := test.AddressGenerator()
 	height := uint64(42)
 
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		expectedAccount := accounts.New()
 		response := &access.AccountResponse{
 			Account: accountToMessage(*expectedAccount),
@@ -565,7 +568,7 @@ func TestClient_GetAccountAtBlockHeight(t *testing.T) {
 		assert.Equal(t, expectedAccount, account)
 	}))
 
-	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		address := addresses.New()
 
 		rpc.On("GetAccountAtBlockHeight", ctx, mock.Anything).
@@ -579,7 +582,7 @@ func TestClient_GetAccountAtBlockHeight(t *testing.T) {
 }
 
 func TestClient_ExecuteScriptAtLatestBlock(t *testing.T) {
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		expectedValue := cadence.NewInt(42)
 		encodedValue, err := jsoncdc.Encode(expectedValue)
 		require.NoError(t, err)
@@ -597,7 +600,7 @@ func TestClient_ExecuteScriptAtLatestBlock(t *testing.T) {
 		assert.Equal(t, expectedValue, value)
 	}))
 
-	t.Run("Arguments", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Arguments", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		expectedValue := cadence.NewInt(42)
 		encodedValue, err := jsoncdc.Encode(expectedValue)
 		require.NoError(t, err)
@@ -625,7 +628,7 @@ func TestClient_ExecuteScriptAtLatestBlock(t *testing.T) {
 
 	t.Run(
 		"Invalid JSON-CDC",
-		clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+		clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 			response := &access.ExecuteScriptResponse{
 				Value: []byte("invalid JSON-CDC bytes"),
 			}
@@ -638,7 +641,7 @@ func TestClient_ExecuteScriptAtLatestBlock(t *testing.T) {
 		}),
 	)
 
-	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		rpc.On("ExecuteScriptAtLatestBlock", ctx, mock.Anything).
 			Return(nil, errInternal)
 
@@ -652,7 +655,7 @@ func TestClient_ExecuteScriptAtLatestBlock(t *testing.T) {
 func TestClient_ExecuteScriptAtBlockID(t *testing.T) {
 	ids := test.IdentifierGenerator()
 
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		expectedValue := cadence.NewInt(42)
 		encodedValue, err := jsoncdc.Encode(expectedValue)
 		require.NoError(t, err)
@@ -671,7 +674,7 @@ func TestClient_ExecuteScriptAtBlockID(t *testing.T) {
 
 	t.Run(
 		"Invalid JSON-CDC",
-		clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+		clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 			response := &access.ExecuteScriptResponse{
 				Value: []byte("invalid JSON-CDC bytes"),
 			}
@@ -684,7 +687,7 @@ func TestClient_ExecuteScriptAtBlockID(t *testing.T) {
 		}),
 	)
 
-	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		rpc.On("ExecuteScriptAtBlockID", ctx, mock.Anything).
 			Return(nil, errNotFound)
 
@@ -696,7 +699,7 @@ func TestClient_ExecuteScriptAtBlockID(t *testing.T) {
 }
 
 func TestClient_ExecuteScriptAtBlockHeight(t *testing.T) {
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		expectedValue := cadence.NewInt(42)
 		encodedValue, err := jsoncdc.Encode(expectedValue)
 		require.NoError(t, err)
@@ -715,7 +718,7 @@ func TestClient_ExecuteScriptAtBlockHeight(t *testing.T) {
 
 	t.Run(
 		"Invalid JSON-CDC",
-		clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+		clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 			response := &access.ExecuteScriptResponse{
 				Value: []byte("invalid JSON-CDC bytes"),
 			}
@@ -728,7 +731,7 @@ func TestClient_ExecuteScriptAtBlockHeight(t *testing.T) {
 		}),
 	)
 
-	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		rpc.On("ExecuteScriptAtBlockHeight", ctx, mock.Anything).
 			Return(nil, errNotFound)
 
@@ -745,7 +748,7 @@ func TestClient_GetEventsForHeightRange(t *testing.T) {
 
 	t.Run(
 		"Empty result",
-		clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+		clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 			response := &access.EventsResponse{
 				Results: []*access.EventsResponse_Result{},
 			}
@@ -765,7 +768,7 @@ func TestClient_GetEventsForHeightRange(t *testing.T) {
 
 	t.Run(
 		"Non-empty result",
-		clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+		clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 			eventA, eventB, eventC, eventD := events.New(), events.New(), events.New(), events.New()
 
 			eventAMsg, _ := eventToMessage(eventA)
@@ -828,7 +831,7 @@ func TestClient_GetEventsForHeightRange(t *testing.T) {
 		}),
 	)
 
-	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		rpc.On("GetEventsForHeightRange", ctx, mock.Anything).
 			Return(nil, errInternal)
 
@@ -850,7 +853,7 @@ func TestClient_GetEventsForBlockIDs(t *testing.T) {
 
 	t.Run(
 		"Empty result",
-		clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+		clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 			blockIDs := []flow.Identifier{ids.New(), ids.New()}
 
 			response := &access.EventsResponse{
@@ -868,7 +871,7 @@ func TestClient_GetEventsForBlockIDs(t *testing.T) {
 
 	t.Run(
 		"Non-empty result",
-		clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+		clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 			blockIDA, blockIDB := ids.New(), ids.New()
 			eventA, eventB, eventC, eventD := events.New(), events.New(), events.New(), events.New()
 
@@ -928,7 +931,7 @@ func TestClient_GetEventsForBlockIDs(t *testing.T) {
 		}),
 	)
 
-	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		blockIDA, blockIDB := ids.New(), ids.New()
 
 		rpc.On("GetEventsForBlockIDs", ctx, mock.Anything).
@@ -942,7 +945,7 @@ func TestClient_GetEventsForBlockIDs(t *testing.T) {
 }
 
 func TestClient_GetLatestProtocolStateSnapshot(t *testing.T) {
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		expected := &access.ProtocolStateSnapshotResponse{
 			SerializedSnapshot: make([]byte, 128),
 		}
@@ -956,7 +959,7 @@ func TestClient_GetLatestProtocolStateSnapshot(t *testing.T) {
 		assert.Equal(t, expected.SerializedSnapshot, res)
 	}))
 
-	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		rpc.On("GetLatestProtocolStateSnapshot", ctx, mock.Anything).
 			Return(nil, errInternal)
 
@@ -968,7 +971,7 @@ func TestClient_GetLatestProtocolStateSnapshot(t *testing.T) {
 
 func TestClient_GetExecutionResultForBlockID(t *testing.T) {
 	ids := test.IdentifierGenerator()
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		blockID := ids.New()
 		executionResult := &entities.ExecutionResult{
 			PreviousResultId: ids.New().Bytes(),
@@ -1038,7 +1041,7 @@ func TestClient_GetExecutionResultForBlockID(t *testing.T) {
 
 	}))
 
-	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		rpc.On("GetLatestProtocolStateSnapshot", ctx, mock.Anything).
 			Return(nil, errInternal)
 
