@@ -30,6 +30,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	fgcrypto "github.com/onflow/crypto"
+
 	"github.com/onflow/flow-go-sdk/crypto"
 )
 

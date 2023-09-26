@@ -18,7 +18,7 @@
 
 package http
 
-//go:generate go run github.com/vektra/mockery/cmd/mockery --name handler --filename handler_mock_test.go --inpkg
+//go:generate go run github.com/vektra/mockery/cmd/mockery --name handler --structname mockHandler --filename=mock_handler.go --inpkg
 
 import (
 	"context"
@@ -31,8 +31,9 @@ import (
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/access/http/models"
 
-	"github.com/onflow/cadence"
 	"github.com/pkg/errors"
+
+	"github.com/onflow/cadence"
 )
 
 // handler interface defines methods needed to be offered by a specific http network implementation.
