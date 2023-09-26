@@ -19,6 +19,7 @@
 package templates
 
 import (
+	"encoding/hex"
 	"fmt"
 	"strings"
 
@@ -41,6 +42,18 @@ import (
 type Contract struct {
 	Name   string
 	Source string
+}
+
+// Deprecated
+// SourceBytes returns the UTF-8 encoded source code (Source) of the contract.
+func (c Contract) SourceBytes() []byte {
+	return []byte(c.Source)
+}
+
+// Deprecated
+// SourceHex returns the UTF-8 encoded source code (Source) of the contract as a hex string.
+func (c Contract) SourceHex() string {
+	return hex.EncodeToString(c.SourceBytes())
 }
 
 func exportType(t sema.Type) cadence.Type {
