@@ -48,7 +48,7 @@ func TestCreateAccount(t *testing.T) {
 			argumentsSize += len(argument)
 		}
 		require.Less(t, txSize, 1000, "The create account script should not grow over 1kB.")
-		require.Less(t, argumentsSize, len(testContractBody)*2+500,
+		require.Less(t, argumentsSize, len(testContractBody)+500,
 			"The create account argument size should not grow over "+
 				"2 times the contract code (converted to hex) + 500 bytes of extra data.")
 	})
