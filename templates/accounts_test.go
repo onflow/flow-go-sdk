@@ -21,9 +21,10 @@ package templates_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/templates"
-	"github.com/stretchr/testify/require"
 )
 
 func TestCreateAccount(t *testing.T) {

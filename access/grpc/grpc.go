@@ -18,18 +18,18 @@
 
 package grpc
 
-//go:generate go run github.com/vektra/mockery/cmd/mockery --name RPCClient --filename mock_client_test.go --inpkg
+//go:generate go run github.com/vektra/mockery/cmd/mockery --name RPCClient --structname MockRPCClient --output mocks
 
 import (
 	"context"
 	"fmt"
 	"io"
 
+	"google.golang.org/grpc"
+
 	"github.com/onflow/cadence"
 	"github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/flow/protobuf/go/flow/access"
-	executiondata "github.com/onflow/flow/protobuf/go/flow/executiondata"
-	"google.golang.org/grpc"
 
 	"github.com/onflow/flow-go-sdk"
 )

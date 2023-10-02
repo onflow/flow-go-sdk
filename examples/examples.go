@@ -21,11 +21,15 @@ package examples
 import (
 	"context"
 	"crypto/rand"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"log"
 	"os"
+	"strings"
 	"time"
+
+	jsoncdc "github.com/onflow/cadence/encoding/json"
+	"github.com/onflow/flow-cli/flowkit/config"
+	"github.com/spf13/afero"
 
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/access"
@@ -34,69 +38,58 @@ import (
 	"github.com/onflow/flow-go-sdk/templates"
 
 	"github.com/onflow/cadence"
-	jsoncdc "github.com/onflow/cadence/encoding/json"
+	"github.com/onflow/flow-cli/flowkit/config/json"
+
 	"github.com/onflow/cadence/runtime/sema"
 )
 
 const configPath = "./flow.json"
 
-var (
-	conf config
-)
+var Config *config.Config
 
-type config struct {
-	Accounts struct {
-		Service struct {
-			Address string `json:"address"`
-			Key     string `json:"key"`
-		} `json:"emulator-account"`
-	}
-	Contracts map[string]string `json:"contracts"`
-}
-
-// ReadFile reads a file from the file system.
-func ReadFile(path string) string {
-	contents, err := ioutil.ReadFile(path)
-	Handle(err)
-
-	return string(contents)
-}
-
-func readConfig() config {
-	f, err := os.Open(configPath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			fmt.Println("Emulator examples must be run from the flow-go-sdk/examples directory. Please see flow-go-sdk/examples/README.md for more details.")
-		} else {
-			fmt.Printf("Failed to load config from %s: %s\n", configPath, err.Error())
+func First[T any](arr []T, f func(e T) bool) (T, error) {
+	for _, e := range arr {
+		if f(e) {
+			return e, nil
 		}
-
-		os.Exit(1)
 	}
-
-	var conf config
-	err = json.NewDecoder(f).Decode(&conf)
-	Handle(err)
-
-	return conf
+	var nullT T
+	return nullT, fmt.Errorf("not found")
 }
 
 func init() {
-	conf = readConfig()
+	var mockFS = afero.NewOsFs()
+
+	var af = afero.Afero{Fs: mockFS}
+
+	l := config.NewLoader(af)
+
+	l.AddConfigParser(json.NewParser())
+
+	var err error
+	Config, err = l.Load([]string{configPath})
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func ServiceAccount(flowClient access.Client) (flow.Address, *flow.AccountKey, crypto.Signer) {
-	privateKey, err := crypto.DecodePrivateKeyHex(crypto.ECDSA_P256, conf.Accounts.Service.Key)
-	Handle(err)
+	acc := Config.Accounts[0]
+	privateKey, err := crypto.DecodePrivateKeyHex(crypto.ECDSA_P256, strings.Replace(acc.Key.PrivateKey.String(), "0x", "", 1))
+	if err != nil {
+		log.Fatalf("failed to decode private key %s", err)
+	}
 
-	addr := flow.HexToAddress(conf.Accounts.Service.Address)
-	acc, err := flowClient.GetAccount(context.Background(), addr)
-	Handle(err)
-
-	accountKey := acc.Keys[0]
+	account, err := flowClient.GetAccount(context.Background(), acc.Address)
+	if err != nil {
+		log.Fatalf("failed to get account %s", err)
+	}
+	accountKey := account.Keys[0]
 	signer, err := crypto.NewInMemorySigner(privateKey, accountKey.HashAlgo)
-	Handle(err)
-	return addr, accountKey, signer
+	if err != nil {
+		log.Fatalf("failed to create in mem signer: %s", err)
+	}
+	return flow.HexToAddress(acc.Address.Hex()), accountKey, signer
 }
 
 // RandomPrivateKey returns a randomly generated ECDSA P-256 private key.
@@ -189,6 +182,14 @@ func CreateAccountWithContracts(flowClient access.Client, publicKeys []*flow.Acc
 	panic("could not find an AccountCreatedEvent")
 }
 
+func ReadFile(name string) string {
+	body, err := os.ReadFile(name)
+	if err != nil {
+		log.Fatalf("unable to read file")
+	}
+	return string(body)
+}
+
 /**
  * mintTokensToAccountTemplate transaction mints tokens by using the service account (in the emulator)
  * and deposits them to the recipient.
@@ -229,8 +230,19 @@ func FundAccountInEmulator(flowClient access.Client, address flow.Address, amoun
 
 	referenceBlockID := GetReferenceBlockId(flowClient)
 
-	fungibleTokenAddress := flow.HexToAddress(conf.Contracts["FungibleToken"])
-	flowTokenAddress := flow.HexToAddress(conf.Contracts["FlowToken"])
+	fungibleToken, err := First[config.Contract](Config.Contracts, func(e config.Contract) bool {
+		return e.Name == "FungibleToken"
+	})
+
+	Handle(err)
+
+	flowToken, err := First[config.Contract](Config.Contracts, func(e config.Contract) bool {
+		return e.Name == "FlowToken"
+	})
+	Handle(err)
+
+	fungibleTokenAddress := fungibleToken.Aliases[0].Address.Hex()
+	flowTokenAddress := flowToken.Aliases[0].Address.Hex()
 
 	recipient := cadence.NewAddress(address)
 	uintAmount := uint64(amount * sema.Fix64Factor)
@@ -246,7 +258,7 @@ func FundAccountInEmulator(flowClient access.Client, address flow.Address, amoun
 			SetReferenceBlockID(referenceBlockID).
 			SetPayer(serviceAcctAddr)
 
-	err := fundAccountTx.SignEnvelope(serviceAcctAddr, serviceAcctKey.Index, serviceSigner)
+	err = fundAccountTx.SignEnvelope(serviceAcctAddr, serviceAcctKey.Index, serviceSigner)
 	Handle(err)
 
 	ctx := context.Background()

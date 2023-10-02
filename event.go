@@ -24,6 +24,7 @@ import (
 
 	"github.com/onflow/cadence"
 	"github.com/onflow/crypto/hash"
+
 	"github.com/onflow/flow-go-sdk/crypto"
 )
 
