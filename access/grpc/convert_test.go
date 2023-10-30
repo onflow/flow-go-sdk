@@ -23,6 +23,8 @@ import (
 	"time"
 
 	"github.com/onflow/cadence"
+	"github.com/onflow/cadence/encoding/ccf"
+	"github.com/onflow/flow/protobuf/go/flow/entities"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -124,6 +126,17 @@ func TestConvert_CadenceValue(t *testing.T) {
 		assert.Error(t, err)
 		assert.Nil(t, value)
 	})
+
+	t.Run("CCF encoded value", func(t *testing.T) {
+		eventA := test.EventGenerator().
+			WithEncoding(entities.EventEncodingVersion_CCF_V0).
+			New()
+
+		valueB, err := messageToCadenceValue(eventA.Payload, nil)
+		require.NoError(t, err)
+
+		assert.Equal(t, eventA.Value, valueB)
+	})
 }
 
 func TestConvert_Collection(t *testing.T) {
@@ -194,19 +207,45 @@ func TestConvert_BlockSeals(t *testing.T) {
 }
 
 func TestConvert_Event(t *testing.T) {
-	eventA := test.EventGenerator().New()
 
-	msg, err := eventToMessage(eventA)
-	require.NoError(t, err)
+	t.Run("JSON-CDC encoded payload", func(t *testing.T) {
+		eventA := test.EventGenerator().
+			WithEncoding(entities.EventEncodingVersion_JSON_CDC_V0).
+			New()
+		msg, err := eventToMessage(eventA)
+		require.NoError(t, err)
 
-	eventB, err := messageToEvent(msg, nil)
-	require.NoError(t, err)
+		eventB, err := messageToEvent(msg, nil)
+		require.NoError(t, err)
 
-	// Force evaluation of type ID, which is cached in type.
-	// Necessary for equality check below
-	_ = eventB.Value.Type().ID()
+		// Force evaluation of type ID, which is cached in type.
+		// Necessary for equality check below
+		_ = eventB.Value.Type().ID()
 
-	assert.Equal(t, eventA, eventB)
+		assert.Equal(t, eventA, eventB)
+	})
+
+	t.Run("CCF encoded payload", func(t *testing.T) {
+		eventA := test.EventGenerator().
+			WithEncoding(entities.EventEncodingVersion_CCF_V0).
+			New()
+
+		msg, err := eventToMessage(eventA)
+		require.NoError(t, err)
+
+		// explicitly re-encode the payload using CCF
+		msg.Payload, err = ccf.Encode(eventA.Value)
+		require.NoError(t, err)
+
+		eventB, err := messageToEvent(msg, nil)
+		require.NoError(t, err)
+
+		// Force evaluation of type ID, which is cached in type.
+		// Necessary for equality check below
+		_ = eventB.Value.Type().ID()
+
+		assert.Equal(t, eventA, eventB)
+	})
 }
 
 func TestConvert_Identifier(t *testing.T) {

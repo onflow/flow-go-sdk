@@ -26,6 +26,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/onflow/cadence"
+	"github.com/onflow/cadence/encoding/ccf"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/flow/protobuf/go/flow/access"
 	"github.com/onflow/flow/protobuf/go/flow/entities"
@@ -213,6 +214,15 @@ func cadenceValuesToMessages(values []cadence.Value) ([][]byte, error) {
 }
 
 func messageToCadenceValue(m []byte, options []jsoncdc.Option) (cadence.Value, error) {
+	if ccf.HasMsgPrefix(m) {
+		// modern Access nodes support encoding events in CCF format
+		v, err := ccf.Decode(nil, m)
+		if err == nil {
+			return v, nil
+		}
+		return v, nil
+	}
+
 	v, err := jsoncdc.Decode(nil, m, options...)
 	if err != nil {
 		return nil, fmt.Errorf("convert: %w", err)
