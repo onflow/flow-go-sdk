@@ -128,14 +128,15 @@ func TestConvert_CadenceValue(t *testing.T) {
 	})
 
 	t.Run("CCF encoded value", func(t *testing.T) {
-		eventA := test.EventGenerator().
-			WithEncoding(entities.EventEncodingVersion_CCF_V0).
-			New()
+		valueA := cadence.NewInt(42)
 
-		valueB, err := messageToCadenceValue(eventA.Payload, nil)
+		msg, err := ccf.Encode(valueA)
 		require.NoError(t, err)
 
-		assert.Equal(t, eventA.Value, valueB)
+		valueB, err := messageToCadenceValue(msg, nil)
+		require.NoError(t, err)
+
+		assert.Equal(t, valueA, valueB)
 	})
 }
 
