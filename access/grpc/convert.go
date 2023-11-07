@@ -195,7 +195,7 @@ func messageToBlockHeader(m *entities.BlockHeader) (flow.BlockHeader, error) {
 func cadenceValueToMessage(value cadence.Value) ([]byte, error) {
 	b, err := jsoncdc.Encode(value)
 	if err != nil {
-		return nil, fmt.Errorf("convert: %w", err)
+		return nil, fmt.Errorf("jsoncdc convert: %w", err)
 	}
 
 	return b, nil
@@ -206,7 +206,7 @@ func cadenceValuesToMessages(values []cadence.Value) ([][]byte, error) {
 	for i, val := range values {
 		msg, err := cadenceValueToMessage(val)
 		if err != nil {
-			return nil, fmt.Errorf("convert: %w", err)
+			return nil, err
 		}
 		msgs[i] = msg
 	}
@@ -217,15 +217,15 @@ func messageToCadenceValue(m []byte, options []jsoncdc.Option) (cadence.Value, e
 	if ccf.HasMsgPrefix(m) {
 		// modern Access nodes support encoding events in CCF format
 		v, err := ccf.Decode(nil, m)
-		if err == nil {
-			return v, nil
+		if err != nil {
+			return nil, fmt.Errorf("ccf convert: %w", err)
 		}
 		return v, nil
 	}
 
 	v, err := jsoncdc.Decode(nil, m, options...)
 	if err != nil {
-		return nil, fmt.Errorf("convert: %w", err)
+		return nil, fmt.Errorf("jsoncdc convert: %w", err)
 	}
 
 	return v, nil
