@@ -3,16 +3,17 @@ package subgraph
 import (
 	"errors"
 	"fmt"
-	"github.com/onflow/flow-go-sdk/subgraph/transaction_detail"
-	"github.com/onflow/flow-go-sdk/subgraph/transactions"
 	"log"
 
 	gresty "github.com/go-resty/resty/v2"
+
+	"github.com/onflow/flow-go-sdk/subgraph/transaction_detail"
+	"github.com/onflow/flow-go-sdk/subgraph/transactions"
 )
 
 const (
-	flow_subgraph_mainnet = "https://api.findlabs.io/flowdiver/v1/graphql"
-	flow_subgraph_testnet = "https://api.findlabs.io/flowdiver_testnet/v1/graphql"
+	Flow_subgraph_mainnet = "https://api.findlabs.io/flowdiver/v1/graphql"
+	Flow_subgraph_testnet = "https://api.findlabs.io/flowdiver_testnet/v1/graphql"
 )
 
 var errSubGraphHTTPError = errors.New("SubGraph http error")

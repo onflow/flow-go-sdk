@@ -1,13 +1,14 @@
-package subgraph
+package main
 
 import (
 	"encoding/json"
 	"fmt"
-	"testing"
+
+	"github.com/onflow/flow-go-sdk/subgraph"
 )
 
-func TestSubgraphClient_GetTransactionById(t *testing.T) {
-	client, err := NewFlowClient(Flow_subgraph_mainnet)
+func main() {
+	client, err := subgraph.NewFlowClient(subgraph.Flow_subgraph_mainnet)
 	if err != nil {
 		panic(err)
 	}
@@ -18,14 +19,10 @@ func TestSubgraphClient_GetTransactionById(t *testing.T) {
 	}
 
 	printJsonStr(transactionById)
-}
 
-func TestSubgraphClient_GetTransactionsByAddress(t *testing.T) {
-	client, err := NewFlowClient(Flow_subgraph_mainnet)
-	if err != nil {
-		panic(err)
-	}
-	transactionsByAddressReq := client.GetTransactionsByAddressReq(&TransactionListVariables{
+	fmt.Println("--------------------------------------------------")
+
+	transactionsByAddressReq := client.GetTransactionsByAddressReq(&subgraph.TransactionListVariables{
 		Address:           "0x8f4f599546e2d7eb",
 		Limit:             25,
 		Offset:            0,
@@ -44,7 +41,6 @@ func TestSubgraphClient_GetTransactionsByAddress(t *testing.T) {
 		panic(err)
 	}
 	printJsonStr(transactions)
-
 }
 
 func printJsonStr(param interface{}) {
