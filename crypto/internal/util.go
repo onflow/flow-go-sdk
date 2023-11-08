@@ -29,7 +29,7 @@ import (
 func ParseSignature(kmsSignature []byte, curve crypto.SignatureAlgorithm) ([]byte, error) {
 	var parsedSig struct{ R, S *big.Int }
 	if _, err := asn1.Unmarshal(kmsSignature, &parsedSig); err != nil {
-		return nil, fmt.Errorf("asn1.Unmarshal: %w", err)
+		return nil, fmt.Errorf("asn1.Unmarshal: %w", err)                     
 	}
 
 	curveOrderLen := curveOrder(curve)
