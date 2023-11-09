@@ -23,11 +23,13 @@ import (
 	"fmt"
 	"time"
 
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	"github.com/onflow/cadence"
+	"github.com/onflow/cadence/encoding/ccf"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/flow/protobuf/go/flow/access"
 	"github.com/onflow/flow/protobuf/go/flow/entities"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
@@ -193,7 +195,7 @@ func messageToBlockHeader(m *entities.BlockHeader) (flow.BlockHeader, error) {
 func cadenceValueToMessage(value cadence.Value) ([]byte, error) {
 	b, err := jsoncdc.Encode(value)
 	if err != nil {
-		return nil, fmt.Errorf("convert: %w", err)
+		return nil, fmt.Errorf("jsoncdc convert: %w", err)
 	}
 
 	return b, nil
@@ -204,7 +206,7 @@ func cadenceValuesToMessages(values []cadence.Value) ([][]byte, error) {
 	for i, val := range values {
 		msg, err := cadenceValueToMessage(val)
 		if err != nil {
-			return nil, fmt.Errorf("convert: %w", err)
+			return nil, err
 		}
 		msgs[i] = msg
 	}
@@ -212,9 +214,18 @@ func cadenceValuesToMessages(values []cadence.Value) ([][]byte, error) {
 }
 
 func messageToCadenceValue(m []byte, options []jsoncdc.Option) (cadence.Value, error) {
+	if ccf.HasMsgPrefix(m) {
+		// modern Access nodes support encoding events in CCF format
+		v, err := ccf.Decode(nil, m)
+		if err != nil {
+			return nil, fmt.Errorf("ccf convert: %w", err)
+		}
+		return v, nil
+	}
+
 	v, err := jsoncdc.Decode(nil, m, options...)
 	if err != nil {
-		return nil, fmt.Errorf("convert: %w", err)
+		return nil, fmt.Errorf("jsoncdc convert: %w", err)
 	}
 
 	return v, nil
@@ -436,7 +447,7 @@ func messageToTransaction(m *entities.Transaction) (flow.Transaction, error) {
 
 	t.SetScript(m.GetScript())
 	t.SetReferenceBlockID(flow.HashToID(m.GetReferenceBlockId()))
-	t.SetGasLimit(m.GetGasLimit())
+	t.SetComputeLimit(m.GetGasLimit())
 
 	for _, arg := range m.GetArguments() {
 		t.AddRawArgument(arg)

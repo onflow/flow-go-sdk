@@ -25,8 +25,10 @@ import (
 	"time"
 
 	"github.com/onflow/cadence"
+	"github.com/onflow/cadence/encoding/ccf"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/cadence/runtime/common"
+	"github.com/onflow/flow/protobuf/go/flow/entities"
 
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
@@ -239,8 +241,9 @@ func (g *BlockSeals) New() *flow.BlockSeal {
 }
 
 type Events struct {
-	count int
-	ids   *Identifiers
+	count    int
+	ids      *Identifiers
+	encoding entities.EventEncodingVersion
 }
 
 func EventGenerator() *Events {
@@ -248,6 +251,18 @@ func EventGenerator() *Events {
 		count: 1,
 		ids:   IdentifierGenerator(),
 	}
+}
+
+func (g *Events) WithEncoding(encoding entities.EventEncodingVersion) *Events {
+	switch encoding {
+	case entities.EventEncodingVersion_CCF_V0:
+		g.encoding = encoding
+	case entities.EventEncodingVersion_JSON_CDC_V0:
+		g.encoding = encoding
+	default:
+		panic(fmt.Errorf("unsupported event encoding: %v", encoding))
+	}
+	return g
 }
 
 func (g *Events) New() flow.Event {
@@ -280,7 +295,14 @@ func (g *Events) New() flow.Event {
 
 	typeID := location.TypeID(nil, identifier)
 
-	payload, err := jsoncdc.Encode(testEvent)
+	var payload []byte
+	var err error
+	if g.encoding == entities.EventEncodingVersion_CCF_V0 {
+		payload, err = ccf.Encode(testEvent)
+	} else {
+		payload, err = jsoncdc.Encode(testEvent)
+	}
+
 	if err != nil {
 		panic(fmt.Errorf("cannot encode test event: %w", err))
 	}
@@ -394,7 +416,7 @@ func (g *Transactions) NewUnsigned() *flow.Transaction {
 	tx := flow.NewTransaction().
 		SetScript(GreetingScript).
 		SetReferenceBlockID(blockID).
-		SetGasLimit(42).
+		SetComputeLimit(42).
 		SetProposalKey(accountA.Address, proposalKey.Index, proposalKey.SequenceNumber).
 		AddAuthorizer(accountA.Address).
 		SetPayer(accountB.Address)

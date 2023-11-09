@@ -23,8 +23,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/onflow/flow-go-sdk/crypto"
 )
 
 func generateKey() crypto.PrivateKey {

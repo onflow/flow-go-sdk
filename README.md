@@ -1,4 +1,4 @@
-# Flow Go SDK 
+# Flow Go SDK
 
 [![GoDoc](https://godoc.org/github.com/onflow/flow-go-sdk?status.svg)](https://godoc.org/github.com/onflow/flow-go-sdk)
 
@@ -20,6 +20,7 @@ Flow is a new blockchain for open worlds. Read more about it [here](https://gith
   - [Installing](#installing)
   - [Generating Keys](#generating-keys)
     - [Supported Curves](#supported-curves)
+  - [Accessing The Flow Network](#accessing-the-flow-network)
   - [Creating an Account](#creating-an-account)
   - [Signing a Transaction](#signing-a-transaction)
     - [How Signatures Work in Flow](#how-signatures-work-in-flow)
@@ -52,7 +53,7 @@ go get github.com/onflow/flow-go-sdk
 
 ## Generating Keys
 
-Flow uses [ECDSA](https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm) 
+Flow uses [ECDSA](https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm)
 to control access to user accounts. Each key pair can be used in combination with
 the SHA2-256 or SHA3-256 hashing algorithms.
 
@@ -92,6 +93,21 @@ privateKey, err := crypto.GeneratePrivateKey(crypto.ECDSA_secp256k1, seed)
 ```
 
 Here's a full list of the supported signature and hash algorithms: [Flow Signature & Hash Algorithms](https://github.com/onflow/flow/blob/master/docs/content/concepts/accounts-and-keys.md#supported-signature--hash-algorithms)
+
+## Accessing The Flow Network
+
+You can communicate with any Flow Access Node using the Flow Go SDK. This includes official Access Nodes, nodes you run yourself, and hosted nodes. Flow Go SDK supports both gRPC and HTTP methods of communication with Access Nodes.
+
+> It's strongly recommended to use gRPC with Go SDK since it's more efficient and faster.
+
+Here's how to create a new gRPC client for any network:
+
+```go
+// You can also use grpc.TestnetHost and grpc.EmulatorHost
+flowClient, _ := grpc.NewClient(grpc.MainnetHost)
+```
+
+Check out the [http_grpc_clients example](/examples/http_grpc_clients/main.go) to learn more.
 
 ## Creating an Account
 
@@ -189,12 +205,12 @@ tx := flow.NewTransaction().
     SetPayer(myAddress)
 ```
 
-Transaction signing is done through the `crypto.Signer` interface. The simplest 
+Transaction signing is done through the `crypto.Signer` interface. The simplest
 (and least secure) implementation of `crypto.Signer` is `crypto.InMemorySigner`.
 
-Signatures can be generated more securely using keys stored in a hardware device such 
-as an [HSM](https://en.wikipedia.org/wiki/Hardware_security_module). The `crypto.Signer` 
-interface is intended to be flexible enough to support a variety of signer implementations 
+Signatures can be generated more securely using keys stored in a hardware device such
+as an [HSM](https://en.wikipedia.org/wiki/Hardware_security_module). The `crypto.Signer`
+interface is intended to be flexible enough to support a variety of signer implementations
 and is not limited to in-memory implementations.
 
 ```go
@@ -212,7 +228,7 @@ if err != nil {
 
 ### How Signatures Work in Flow
 
-Flow introduces new concepts that allow for more flexibility when creating and signing transactions. 
+Flow introduces new concepts that allow for more flexibility when creating and signing transactions.
 Before trying the examples below, we recommend that you read through the [transaction signature documentation](https://github.com/onflow/flow/blob/master/docs/content/concepts/accounts-and-keys.md#signing-a-transaction).
 
 ---
@@ -237,7 +253,7 @@ key1Signer := getSignerForKey1()
 
 tx := flow.NewTransaction().
     SetScript([]byte(`
-        transaction { 
+        transaction {
             prepare(signer: AuthAccount) { log(signer.address) }
         }
     `)).
@@ -277,7 +293,7 @@ key2Signer := getSignerForKey2()
 
 tx := flow.NewTransaction().
     SetScript([]byte(`
-        transaction { 
+        transaction {
             prepare(signer: AuthAccount) { log(signer.address) }
         }
     `)).
@@ -323,7 +339,7 @@ key3Signer := getSignerForKey3()
 
 tx := flow.NewTransaction().
     SetScript([]byte(`
-        transaction { 
+        transaction {
             prepare(signer: AuthAccount) { log(signer.address) }
         }
     `)).
@@ -428,7 +444,7 @@ key4Signer := getSignerForKey4()
 
 tx := flow.NewTransaction().
     SetScript([]byte(`
-        transaction { 
+        transaction {
             prepare(signer: AuthAccount) { log(signer.address) }
         }
     `)).

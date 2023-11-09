@@ -27,12 +27,16 @@ import (
 	"context"
 
 	"github.com/onflow/cadence"
+
 	"github.com/onflow/flow-go-sdk"
 )
 
 type Client interface {
 	// Ping is used to check if the access node is alive and healthy.
 	Ping(ctx context.Context) error
+
+	// GetNetworkParameters gets the network parameters.
+	GetNetworkParameters(ctx context.Context) (*flow.NetworkParameters, error)
 
 	// GetLatestBlockHeader gets the latest sealed or unsealed block header.
 	GetLatestBlockHeader(ctx context.Context, isSealed bool) (*flow.BlockHeader, error)

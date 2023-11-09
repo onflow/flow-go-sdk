@@ -31,8 +31,9 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/onflow/cadence"
-	"github.com/onflow/flow-go-sdk"
 	"google.golang.org/grpc/credentials/insecure"
+
+	"github.com/onflow/flow-go-sdk"
 )
 
 const EmulatorHost = "127.0.0.1:3569"
@@ -64,6 +65,10 @@ type Client struct {
 
 func (c *Client) Ping(ctx context.Context) error {
 	return c.grpc.Ping(ctx)
+}
+
+func (c *Client) GetNetworkParameters(ctx context.Context) (*flow.NetworkParameters, error) {
+	return c.grpc.GetNetworkParameters(ctx)
 }
 
 func (c *Client) GetLatestBlockHeader(ctx context.Context, isSealed bool) (*flow.BlockHeader, error) {
