@@ -28,6 +28,7 @@ import (
 	"github.com/onflow/cadence"
 	"github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/flow/protobuf/go/flow/access"
+	"github.com/onflow/flow/protobuf/go/flow/entities"
 
 	"github.com/onflow/flow-go-sdk"
 )
@@ -315,7 +316,8 @@ func (c *BaseClient) GetTransactionResult(
 	opts ...grpc.CallOption,
 ) (*flow.TransactionResult, error) {
 	req := &access.GetTransactionRequest{
-		Id: txID.Bytes(),
+		Id:                   txID.Bytes(),
+		EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
 	}
 
 	res, err := c.rpcClient.GetTransactionResult(ctx, req, opts...)
@@ -339,8 +341,9 @@ func (c *BaseClient) GetTransactionResultByIndex(
 ) (*flow.TransactionResult, error) {
 
 	req := &access.GetTransactionByIndexRequest{
-		BlockId: blockID.Bytes(),
-		Index:   index,
+		BlockId:              blockID.Bytes(),
+		Index:                index,
+		EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
 	}
 
 	res, err := c.rpcClient.GetTransactionResultByIndex(ctx, req, opts...)
@@ -362,7 +365,8 @@ func (c *BaseClient) GetTransactionResultsByBlockID(
 ) ([]*flow.TransactionResult, error) {
 
 	req := &access.GetTransactionsByBlockIDRequest{
-		BlockId: blockID.Bytes(),
+		BlockId:              blockID.Bytes(),
+		EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
 	}
 
 	res, err := c.rpcClient.GetTransactionResultsByBlockID(ctx, req, opts...)
@@ -537,9 +541,10 @@ func (c *BaseClient) GetEventsForHeightRange(
 	opts ...grpc.CallOption,
 ) ([]flow.BlockEvents, error) {
 	req := &access.GetEventsForHeightRangeRequest{
-		Type:        query.Type,
-		StartHeight: query.StartHeight,
-		EndHeight:   query.EndHeight,
+		Type:                 query.Type,
+		StartHeight:          query.StartHeight,
+		EndHeight:            query.EndHeight,
+		EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
 	}
 
 	res, err := c.rpcClient.GetEventsForHeightRange(ctx, req, opts...)
@@ -557,8 +562,9 @@ func (c *BaseClient) GetEventsForBlockIDs(
 	opts ...grpc.CallOption,
 ) ([]flow.BlockEvents, error) {
 	req := &access.GetEventsForBlockIDsRequest{
-		Type:     eventType,
-		BlockIds: identifiersToMessages(blockIDs),
+		Type:                 eventType,
+		BlockIds:             identifiersToMessages(blockIDs),
+		EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
 	}
 
 	res, err := c.rpcClient.GetEventsForBlockIDs(ctx, req, opts...)
