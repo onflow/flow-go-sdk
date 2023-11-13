@@ -218,12 +218,12 @@ github.com/mattn/go-isatty v0.0.19 h1:JITubQf0MOLdlGRuRq+jtsDlekdYPia9ZFsB8h/APP
 github.com/mattn/go-isatty v0.0.19/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/onflow/atree v0.6.0 h1:j7nQ2r8npznx4NX39zPpBYHmdy45f4xwoi+dm37Jk7c=
 github.com/onflow/atree v0.6.0/go.mod h1:gBHU0M05qCbv9NN0kijLWMgC47gHVNBIp4KmsVFi0tc=
-github.com/onflow/cadence v0.42.4 h1:KoXnwPCMcjixZv+gHZwWkDiAyVExJhJJe6SebdnHNv8=
-github.com/onflow/cadence v0.42.4/go.mod h1:raU8va8QRyTa/eUbhej4mbyW2ETePfSaywoo36MddgE=
+github.com/onflow/cadence v0.42.5 h1:QCilotmJzfRToLd+02o3N62JIioSr8FfN7cujmR/IXQ=
+github.com/onflow/cadence v0.42.5/go.mod h1:raU8va8QRyTa/eUbhej4mbyW2ETePfSaywoo36MddgE=
 github.com/onflow/crypto v0.24.9 h1:jYP1qdwid0qCineFzBFlxBchg710A7RuSWpTqxaOdog=
 github.com/onflow/crypto v0.24.9/go.mod h1:J/V7IEVaqjDajvF8K0B/SJPJDgAOP2G+LVLeb0hgmbg=
-github.com/onflow/flow-cli/flowkit v1.6.0 h1:yX5K4I6yqWba8OgUN7s90sUF5kQy/IomQJRqICuPPKg=
-github.com/onflow/flow-cli/flowkit v1.6.0/go.mod h1:Z0Ry0nnr8Se3z8/oRWDx0udgJJv5LrGMnBwr9qUIf/c=
+github.com/onflow/flow-cli/flowkit v1.7.0 h1:tVmVguEEJVSO6CcOG/UI3jTkrF056hczeUxSaEMnuZ4=
+github.com/onflow/flow-cli/flowkit v1.7.0/go.mod h1:tPBuuYss8S8carovC49N1YVPIBheF6KD9Vr6Ocg3VpQ=
 github.com/onflow/flow/protobuf/go/flow v0.3.2-0.20231018182244-e72527c55c63 h1:SX8OhYbyKBExhy4qEDR/Hw6MVTBTzlDb8LfCHfFyte4=
 github.com/onflow/flow/protobuf/go/flow v0.3.2-0.20231018182244-e72527c55c63/go.mod h1:NA2pX2nw8zuaxfKphhKsk00kWLwfd+tv8mS23YXO4Sk=
 github.com/onflow/sdks v0.5.0 h1:2HCRibwqDaQ1c9oUApnkZtEAhWiNY2GTpRD5+ftdkN8=
