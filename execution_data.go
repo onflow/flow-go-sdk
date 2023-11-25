@@ -18,20 +18,24 @@
 
 package flow
 
+import "time"
+
 type ExecutionData struct {
 	BlockID            Identifier
 	ChunkExecutionData []*ChunkExecutionData
 }
 
 type ExecutionDataStreamResponse struct {
-	Height        uint64
-	ExecutionData *ExecutionData
+	Height         uint64
+	ExecutionData  *ExecutionData
+	BlockTimestamp time.Time
 }
 
 type ChunkExecutionData struct {
-	Transactions []*Transaction
-	Events       []*Event
-	TrieUpdate   *TrieUpdate
+	Transactions       []*Transaction
+	Events             []*Event
+	TrieUpdate         *TrieUpdate
+	TransactionResults []*LightTransactionResult
 }
 
 type TrieUpdate struct {
@@ -48,4 +52,13 @@ type Payload struct {
 type KeyPart struct {
 	Type  uint16
 	Value []byte
+}
+
+type LightTransactionResult struct {
+	// TransactionID is the ID of the transaction this result was emitted from.
+	TransactionID Identifier
+	// Failed is true if the transaction's execution failed resulting in an error, false otherwise.
+	Failed bool
+	// ComputationUsed is amount of computation used while executing the transaction.
+	ComputationUsed uint64
 }

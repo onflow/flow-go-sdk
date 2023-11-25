@@ -369,6 +369,18 @@ func messageToEvent(m *entities.Event, options []jsoncdc.Option) (flow.Event, er
 	}, nil
 }
 
+func messagesToEvents(m []*entities.Event, options []jsoncdc.Option) ([]flow.Event, error) {
+	events := make([]flow.Event, 0, len(m))
+	for _, ev := range m {
+		res, err := messageToEvent(ev, options)
+		if err != nil {
+			return nil, fmt.Errorf("convert: %w", err)
+		}
+		events = append(events, res)
+	}
+	return events, nil
+}
+
 func identifierToMessage(i flow.Identifier) []byte {
 	return i.Bytes()
 }
@@ -553,6 +565,24 @@ func messageToTransactionResult(m *access.TransactionResultResponse, options []j
 	}, nil
 }
 
+func blockExecutionDataToMessage(
+	execData *flow.ExecutionData,
+) (*entities.BlockExecutionData, error) {
+	chunks := make([]*entities.ChunkExecutionData, len(execData.ChunkExecutionData))
+	for i, chunk := range execData.ChunkExecutionData {
+		convertedChunk, err := chunkExecutionDataToMessage(chunk)
+		if err != nil {
+			return nil, err
+		}
+		chunks[i] = convertedChunk
+	}
+
+	return &entities.BlockExecutionData{
+		BlockId:            identifierToMessage(execData.BlockID),
+		ChunkExecutionData: chunks,
+	}, nil
+}
+
 func messageToBlockExecutionData(
 	m *entities.BlockExecutionData,
 ) (*flow.ExecutionData, error) {
@@ -575,6 +605,53 @@ func messageToBlockExecutionData(
 	}, nil
 }
 
+func chunkExecutionDataToMessage(
+	chunk *flow.ChunkExecutionData,
+) (*entities.ChunkExecutionData, error) {
+
+	transactions, err := executionDataCollectionToMessage(chunk.Transactions)
+	if err != nil {
+		return nil, err
+	}
+
+	var trieUpdate *entities.TrieUpdate
+	if chunk.TrieUpdate != nil {
+		trieUpdate, err = trieUpdateToMessage(chunk.TrieUpdate)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	events := make([]*entities.Event, len(chunk.Events))
+	for i, ev := range chunk.Events {
+		res, err := eventToMessage(*ev)
+		if err != nil {
+			return nil, err
+		}
+
+		// execution data uses CCF encoding
+		res.Payload, err = ccf.Encode(ev.Value)
+		if err != nil {
+			return nil, fmt.Errorf("ccf convert: %w", err)
+		}
+
+		events[i] = res
+	}
+
+	results := make([]*entities.ExecutionDataTransactionResult, len(chunk.TransactionResults))
+	for i, res := range chunk.TransactionResults {
+		result := lightTransactionResultToMessage(res)
+		results[i] = result
+	}
+
+	return &entities.ChunkExecutionData{
+		Collection:         transactions,
+		Events:             events,
+		TrieUpdate:         trieUpdate,
+		TransactionResults: results,
+	}, nil
+}
+
 func messageToChunkExecutionData(
 	m *entities.ChunkExecutionData,
 ) (*flow.ChunkExecutionData, error) {
@@ -593,7 +670,6 @@ func messageToChunkExecutionData(
 	}
 
 	events := make([]*flow.Event, len(m.GetEvents()))
-
 	for i, ev := range m.GetEvents() {
 		res, err := messageToEvent(ev, nil)
 		if err != nil {
@@ -602,10 +678,38 @@ func messageToChunkExecutionData(
 		events[i] = &res
 	}
 
+	results := make([]*flow.LightTransactionResult, len(m.GetTransactionResults()))
+	for i, res := range m.GetTransactionResults() {
+		result := messageToLightTransactionResult(res)
+		results[i] = &result
+	}
+
 	return &flow.ChunkExecutionData{
+		Transactions:       transactions,
+		Events:             events,
+		TrieUpdate:         trieUpdate,
+		TransactionResults: results,
+	}, nil
+}
+
+func executionDataCollectionToMessage(
+	txs []*flow.Transaction,
+) (*entities.ExecutionDataCollection, error) {
+	transactions := make([]*entities.Transaction, len(txs))
+	for i, tx := range txs {
+		transaction, err := transactionToMessage(*tx)
+		if err != nil {
+			return nil, fmt.Errorf("could not convert transaction %d: %w", i, err)
+		}
+		transactions[i] = transaction
+	}
+
+	if len(transactions) == 0 {
+		return nil, nil
+	}
+
+	return &entities.ExecutionDataCollection{
 		Transactions: transactions,
-		Events:       events,
-		TrieUpdate:   trieUpdate,
 	}, nil
 }
 
@@ -627,6 +731,32 @@ func messageToExecutionDataCollection(
 	}
 
 	return transactions, nil
+}
+
+func trieUpdateToMessage(
+	update *flow.TrieUpdate,
+) (*entities.TrieUpdate, error) {
+
+	payloads := make([]*entities.Payload, len(update.Payloads))
+	for i, payload := range update.Payloads {
+		keyParts := make([]*entities.KeyPart, len(payload.KeyPart))
+		for j, keypart := range payload.KeyPart {
+			keyParts[j] = &entities.KeyPart{
+				Type:  uint32(keypart.Type),
+				Value: keypart.Value,
+			}
+		}
+		payloads[i] = &entities.Payload{
+			KeyPart: keyParts,
+			Value:   payload.Value,
+		}
+	}
+
+	return &entities.TrieUpdate{
+		RootHash: update.RootHash,
+		Paths:    update.Paths,
+		Payloads: payloads,
+	}, nil
 }
 
 func messageToTrieUpdate(
@@ -655,4 +785,24 @@ func messageToTrieUpdate(
 		Paths:    paths,
 		Payloads: payloads,
 	}, nil
+}
+
+func lightTransactionResultToMessage(
+	result *flow.LightTransactionResult,
+) *entities.ExecutionDataTransactionResult {
+	return &entities.ExecutionDataTransactionResult{
+		TransactionId:   identifierToMessage(result.TransactionID),
+		Failed:          result.Failed,
+		ComputationUsed: result.ComputationUsed,
+	}
+}
+
+func messageToLightTransactionResult(
+	m *entities.ExecutionDataTransactionResult,
+) flow.LightTransactionResult {
+	return flow.LightTransactionResult{
+		TransactionID:   messageToIdentifier(m.GetTransactionId()),
+		Failed:          m.Failed,
+		ComputationUsed: m.GetComputationUsed(),
+	}
 }
