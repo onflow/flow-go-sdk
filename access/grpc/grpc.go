@@ -51,14 +51,12 @@ type SubscribeOption func(*SubscribeConfig)
 
 type SubscribeConfig struct {
 	heartbeatInterval uint64
-	autoReconnect     bool
 	grpcOpts          []grpc.CallOption
 }
 
 func DefaultSubscribeConfig() *SubscribeConfig {
 	return &SubscribeConfig{
 		heartbeatInterval: 100,
-		autoReconnect:     true,
 	}
 }
 
