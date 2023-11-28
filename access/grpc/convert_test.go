@@ -316,3 +316,26 @@ func TestConvert_TransactionResult(t *testing.T) {
 
 	assert.Equal(t, resultA, resultB)
 }
+
+func TestConvert_ExecutionData(t *testing.T) {
+	executionDataA := test.ExecutionDataGenerator().New()
+
+	msg, err := blockExecutionDataToMessage(executionDataA)
+	require.NoError(t, err)
+
+	executionDataB, err := messageToBlockExecutionData(msg)
+	require.NoError(t, err)
+
+	assert.Equal(t, executionDataA.BlockID[:], executionDataB.BlockID[:])
+	require.NotEmpty(t, executionDataA.ChunkExecutionData)
+
+	// Force evaluation of type ID, which is cached in type.
+	// Necessary for equality check below, otherwise the typeID will be empty
+	for _, chunk := range executionDataB.ChunkExecutionData {
+		for _, event := range chunk.Events {
+			_ = event.Value.Type().ID()
+		}
+	}
+
+	assert.Equal(t, executionDataA, executionDataB)
+}
