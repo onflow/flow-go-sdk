@@ -704,10 +704,6 @@ func executionDataCollectionToMessage(
 		transactions[i] = transaction
 	}
 
-	if len(transactions) == 0 {
-		return nil, nil
-	}
-
 	return &entities.ExecutionDataCollection{
 		Transactions: transactions,
 	}, nil
