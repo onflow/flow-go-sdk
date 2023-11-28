@@ -32,6 +32,8 @@ func main() {
 	demo()
 }
 
+// This is an example of streaming events, and handling reconnect when errors are encountered on the stream.
+
 func demo() {
 	ctx := context.Background()
 	flowClient, err := grpc.NewClient("access.testnet.nodes.onflow.org:9000")
@@ -45,21 +47,52 @@ func demo() {
 	data, errChan, initErr := flowClient.SubscribeEvents(ctx, block.ID, 0, flow.EventFilter{})
 	examples.Handle(initErr)
 
+	reconnect := func(height uint64) {
+		fmt.Printf("Reconnecting at block %d\n", height)
+
+		var err error
+		flowClient, err = grpc.NewClient("access.testnet.nodes.onflow.org:9000")
+		examples.Handle(err)
+
+		data, errChan, err = flowClient.SubscribeEvents(ctx, flow.EmptyID, height, flow.EventFilter{})
+		examples.Handle(err)
+	}
+
+	// track the most recently seen block height. we will use this when reconnecting
+	lastHeight := block.Height
 	for {
 		select {
 		case <-ctx.Done():
 			return
+
 		case eventData, ok := <-data:
 			if !ok {
-				panic("data subscription closed")
+				if ctx.Err() != nil {
+					return // graceful shutdown
+				}
+				// unexpected close
+				reconnect(lastHeight + 1)
+				continue
 			}
+
 			fmt.Printf("~~~ Height: %d ~~~\n", eventData.Height)
 			printEvents(eventData.Events)
+
+			lastHeight = eventData.Height
+
 		case err, ok := <-errChan:
 			if !ok {
-				panic("error channel subscription closed")
+				if ctx.Err() != nil {
+					return // graceful shutdown
+				}
+				// unexpected close
+				reconnect(lastHeight + 1)
+				continue
 			}
+
 			fmt.Printf("~~~ ERROR: %s ~~~\n", err.Error())
+			reconnect(lastHeight + 1)
+			continue
 		}
 	}
 
@@ -67,8 +100,8 @@ func demo() {
 
 func printEvents(events []flow.Event) {
 	for _, event := range events {
-		fmt.Printf("\n\nType: %s", event.Type)
-		fmt.Printf("\nValues: %v", event.Value)
-		fmt.Printf("\nTransaction ID: %s", event.TransactionID)
+		fmt.Printf("\nType: %s\n", event.Type)
+		fmt.Printf("Values: %v\n", event.Value)
+		fmt.Printf("Transaction ID: %s\n", event.TransactionID)
 	}
 }
