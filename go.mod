@@ -9,7 +9,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/kms v1.26.3
 	github.com/ethereum/go-ethereum v1.13.5
 	github.com/onflow/cadence v0.42.5
-	github.com/onflow/crypto v0.24.9
+	github.com/onflow/crypto v0.25.0
 	github.com/onflow/flow-cli/flowkit v1.8.0
 	github.com/onflow/flow/protobuf/go/flow v0.3.2-0.20231018182244-e72527c55c63
 	github.com/onflow/sdks v0.5.0
@@ -79,6 +79,7 @@ require (
 	golang.org/x/text v0.13.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
+	gonum.org/v1/gonum v0.13.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20231016165738-49dd2c1f3d0b // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231030173426-d783a09b4405 // indirect
