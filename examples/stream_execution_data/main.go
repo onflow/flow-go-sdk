@@ -37,13 +37,12 @@ func demo() {
 	flowClient, err := grpc.NewClient("access-003.devnet46.nodes.onflow.org:9000")
 	examples.Handle(err)
 
-	block, err := flowClient.GetLatestBlock(ctx, true)
-	// block, err := flowClient.GetBlockByID(ctx, flow.HexToID("7582cc6e1bb5ca1784e309ca63013e9b7ecf34b74bf7fdb029aa0faa0deb7958err"))
+	header, err := flowClient.GetLatestBlockHeader(ctx, true)
 	examples.Handle(err)
-	fmt.Printf("Block Height: %d\n", block.Height)
-	fmt.Printf("Block ID: %s\n", block.ID)
+	fmt.Printf("Block Height: %d\n", header.Height)
+	fmt.Printf("Block ID: %s\n", header.ID)
 
-	data, errChan, initErr := flowClient.SubscribeExecutionData(ctx, block.ID, 0)
+	data, errChan, initErr := flowClient.SubscribeExecutionDataByBlockID(ctx, header.ID)
 	examples.Handle(initErr)
 
 	for {

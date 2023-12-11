@@ -717,27 +717,36 @@ func (c *BaseClient) GetExecutionDataByBlockID(
 
 }
 
-func (c *BaseClient) SubscribeExecutionData(
+func (c *BaseClient) SubscribeExecutionDataByBlockID(
 	ctx context.Context,
 	startBlockID flow.Identifier,
+	opts ...grpc.CallOption,
+) (<-chan flow.ExecutionDataStreamResponse, <-chan error, error) {
+	req := executiondata.SubscribeExecutionDataRequest{
+		StartBlockId:         startBlockID[:],
+		EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
+	}
+	return c.subscribeExecutionData(ctx, &req, opts...)
+}
+
+func (c *BaseClient) SubscribeExecutionDataByBlockHeight(
+	ctx context.Context,
 	startHeight uint64,
 	opts ...grpc.CallOption,
 ) (<-chan flow.ExecutionDataStreamResponse, <-chan error, error) {
-	if startBlockID != flow.EmptyID && startHeight > 0 {
-		return nil, nil, fmt.Errorf("cannot specify both start block ID and start height")
-	}
-
 	req := executiondata.SubscribeExecutionDataRequest{
+		StartBlockHeight:     startHeight,
 		EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
 	}
-	if startBlockID != flow.EmptyID {
-		req.StartBlockId = startBlockID[:]
-	}
-	if startHeight > 0 {
-		req.StartBlockHeight = startHeight
-	}
+	return c.subscribeExecutionData(ctx, &req, opts...)
+}
 
-	stream, err := c.executionDataClient.SubscribeExecutionData(ctx, &req, opts...)
+func (c *BaseClient) subscribeExecutionData(
+	ctx context.Context,
+	req *executiondata.SubscribeExecutionDataRequest,
+	opts ...grpc.CallOption,
+) (<-chan flow.ExecutionDataStreamResponse, <-chan error, error) {
+	stream, err := c.executionDataClient.SubscribeExecutionData(ctx, req, opts...)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -790,10 +799,35 @@ func (c *BaseClient) SubscribeExecutionData(
 	return sub, errChan, nil
 }
 
-func (c *BaseClient) SubscribeEvents(
+func (c *BaseClient) SubscribeEventsByBlockID(
 	ctx context.Context,
 	startBlockID flow.Identifier,
+	filter flow.EventFilter,
+	opts ...SubscribeOption,
+) (<-chan flow.BlockEvents, <-chan error, error) {
+	req := executiondata.SubscribeEventsRequest{
+		StartBlockId:         startBlockID[:],
+		EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
+	}
+	return c.subscribeEvents(ctx, &req, filter, opts...)
+}
+
+func (c *BaseClient) SubscribeEventsByBlockHeight(
+	ctx context.Context,
 	startHeight uint64,
+	filter flow.EventFilter,
+	opts ...SubscribeOption,
+) (<-chan flow.BlockEvents, <-chan error, error) {
+	req := executiondata.SubscribeEventsRequest{
+		StartBlockHeight:     startHeight,
+		EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
+	}
+	return c.subscribeEvents(ctx, &req, filter, opts...)
+}
+
+func (c *BaseClient) subscribeEvents(
+	ctx context.Context,
+	req *executiondata.SubscribeEventsRequest,
 	filter flow.EventFilter,
 	opts ...SubscribeOption,
 ) (<-chan flow.BlockEvents, <-chan error, error) {
@@ -802,27 +836,14 @@ func (c *BaseClient) SubscribeEvents(
 		apply(conf)
 	}
 
-	if startBlockID != flow.EmptyID && startHeight > 0 {
-		return nil, nil, fmt.Errorf("cannot specify both start block ID and start height")
+	req.Filter = &executiondata.EventFilter{
+		EventType: filter.EventTypes,
+		Address:   filter.Addresses,
+		Contract:  filter.Contracts,
 	}
+	req.HeartbeatInterval = conf.heartbeatInterval
 
-	req := executiondata.SubscribeEventsRequest{
-		Filter: &executiondata.EventFilter{
-			EventType: filter.EventTypes,
-			Address:   filter.Addresses,
-			Contract:  filter.Contracts,
-		},
-		EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
-		HeartbeatInterval:    conf.heartbeatInterval,
-	}
-	if startBlockID != flow.EmptyID {
-		req.StartBlockId = startBlockID[:]
-	}
-	if startHeight > 0 {
-		req.StartBlockHeight = startHeight
-	}
-
-	stream, err := c.executionDataClient.SubscribeEvents(ctx, &req, conf.grpcOpts...)
+	stream, err := c.executionDataClient.SubscribeEvents(ctx, req, conf.grpcOpts...)
 	if err != nil {
 		return nil, nil, err
 	}

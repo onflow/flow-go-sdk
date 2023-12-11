@@ -1070,7 +1070,7 @@ func TestClient_GetExecutionResultForBlockID(t *testing.T) {
 func TestClient_SubscribeExecutionData(t *testing.T) {
 	ids := test.IdentifierGenerator()
 
-	t.Run("Happy Path", executionDataClientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockExecutionDataRPCClient, c *BaseClient) {
+	t.Run("Happy Path - by height", executionDataClientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockExecutionDataRPCClient, c *BaseClient) {
 		responseCount := uint64(1000)
 		startHeight := uint64(10)
 
@@ -1089,7 +1089,7 @@ func TestClient_SubscribeExecutionData(t *testing.T) {
 			Return(stream, nil).
 			Run(assertSubscribeExecutionDataArgs(t, &req))
 
-		eventCh, errCh, err := c.SubscribeExecutionData(ctx, flow.EmptyID, startHeight)
+		eventCh, errCh, err := c.SubscribeExecutionDataByBlockHeight(ctx, startHeight)
 		require.NoError(t, err)
 
 		wg := sync.WaitGroup{}
@@ -1111,10 +1111,46 @@ func TestClient_SubscribeExecutionData(t *testing.T) {
 		wg.Wait()
 	}))
 
-	// Test that SubscribeExecutionData returns an error if both startHeight and startBlockID are set
-	t.Run("Duplicate start block", executionDataClientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockExecutionDataRPCClient, c *BaseClient) {
-		_, _, err := c.SubscribeExecutionData(ctx, ids.New(), 10)
-		require.Error(t, err)
+	t.Run("Happy Path - by block ID", executionDataClientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockExecutionDataRPCClient, c *BaseClient) {
+		responseCount := uint64(1000)
+		startBlockID := ids.New()
+		startHeight := uint64(10)
+
+		req := executiondata.SubscribeExecutionDataRequest{
+			StartBlockId:         startBlockID[:],
+			EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
+		}
+
+		ctx, cancel := context.WithCancel(ctx)
+		stream := &mockExecutionDataStream{ctx: ctx}
+		for i := startHeight; i < startHeight+responseCount; i++ {
+			stream.responses = append(stream.responses, generateExecutionDataResponse(t, ids.New(), i))
+		}
+
+		rpc.On("SubscribeExecutionData", ctx, mock.Anything).
+			Return(stream, nil).
+			Run(assertSubscribeExecutionDataArgs(t, &req))
+
+		eventCh, errCh, err := c.SubscribeExecutionDataByBlockID(ctx, startBlockID)
+		require.NoError(t, err)
+
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go assertNoErrors(t, errCh, wg.Done)
+
+		i := 0
+		for response := range eventCh {
+			assert.Equal(t, stream.responses[i].BlockHeight, response.Height)
+			assert.Equal(t, stream.responses[i].BlockExecutionData.BlockId[:], response.ExecutionData.BlockID[:])
+			assert.Equal(t, stream.responses[i].BlockTimestamp.AsTime(), response.BlockTimestamp)
+			i++
+			if i == len(stream.responses) {
+				cancel()
+				break
+			}
+		}
+
+		wg.Wait()
 	}))
 
 	// Test that SubscribeExecutionData returns an error and closes the subscription if the stream returns an error
@@ -1134,7 +1170,7 @@ func TestClient_SubscribeExecutionData(t *testing.T) {
 			Return(stream, nil).
 			Run(assertSubscribeExecutionDataArgs(t, &req))
 
-		eventCh, errCh, err := c.SubscribeExecutionData(ctx, flow.EmptyID, startHeight)
+		eventCh, errCh, err := c.SubscribeExecutionDataByBlockHeight(ctx, startHeight)
 		require.NoError(t, err)
 
 		wg := sync.WaitGroup{}
@@ -1172,7 +1208,7 @@ func TestClient_SubscribeExecutionData(t *testing.T) {
 			Return(stream, nil).
 			Run(assertSubscribeExecutionDataArgs(t, &req))
 
-		eventCh, errCh, err := c.SubscribeExecutionData(ctx, flow.EmptyID, startHeight)
+		eventCh, errCh, err := c.SubscribeExecutionDataByBlockHeight(ctx, startHeight)
 		require.NoError(t, err)
 
 		wg := sync.WaitGroup{}
@@ -1205,7 +1241,7 @@ func TestClient_SubscribeEvents(t *testing.T) {
 		return res
 	}
 
-	t.Run("Happy Path", executionDataClientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockExecutionDataRPCClient, c *BaseClient) {
+	t.Run("Happy Path - by height", executionDataClientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockExecutionDataRPCClient, c *BaseClient) {
 		responseCount := uint64(1000)
 		startHeight := uint64(10)
 		filter := flow.EventFilter{
@@ -1235,7 +1271,7 @@ func TestClient_SubscribeEvents(t *testing.T) {
 			Return(stream, nil).
 			Run(assertSubscribeEventsArgs(t, &req))
 
-		eventCh, errCh, err := c.SubscribeEvents(ctx, flow.EmptyID, startHeight, filter, WithHeartbeatInterval(req.HeartbeatInterval))
+		eventCh, errCh, err := c.SubscribeEventsByBlockHeight(ctx, startHeight, filter, WithHeartbeatInterval(req.HeartbeatInterval))
 		require.NoError(t, err)
 
 		wg := sync.WaitGroup{}
@@ -1257,10 +1293,57 @@ func TestClient_SubscribeEvents(t *testing.T) {
 		wg.Wait()
 	}))
 
-	// Test that SubscribeEvents returns an error if both startHeight and startBlockID are set
-	t.Run("Duplicate start block", executionDataClientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockExecutionDataRPCClient, c *BaseClient) {
-		_, _, err := c.SubscribeEvents(ctx, ids.New(), 10, flow.EventFilter{})
-		require.Error(t, err)
+	t.Run("Happy Path - by block ID", executionDataClientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockExecutionDataRPCClient, c *BaseClient) {
+		responseCount := uint64(1000)
+		startBlockID := ids.New()
+		startHeight := uint64(10)
+		filter := flow.EventFilter{
+			EventTypes: []string{events.New().Type, events.New().Type},
+			Addresses:  []string{addresses.New().String(), addresses.New().String()},
+			Contracts:  []string{"A.0.B", "A.1.C"},
+		}
+
+		req := executiondata.SubscribeEventsRequest{
+			Filter: &executiondata.EventFilter{
+				EventType: filter.EventTypes,
+				Address:   filter.Addresses,
+				Contract:  filter.Contracts,
+			},
+			EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
+			HeartbeatInterval:    1234,
+			StartBlockId:         startBlockID[:],
+		}
+
+		ctx, cancel := context.WithCancel(ctx)
+		stream := &mockEventStream{ctx: ctx}
+		for i := startHeight; i < startHeight+responseCount; i++ {
+			stream.responses = append(stream.responses, generateEventResponse(t, ids.New(), i, getEvents(2)))
+		}
+
+		rpc.On("SubscribeEvents", ctx, mock.Anything).
+			Return(stream, nil).
+			Run(assertSubscribeEventsArgs(t, &req))
+
+		eventCh, errCh, err := c.SubscribeEventsByBlockID(ctx, startBlockID, filter, WithHeartbeatInterval(req.HeartbeatInterval))
+		require.NoError(t, err)
+
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go assertNoErrors(t, errCh, wg.Done)
+
+		i := 0
+		for response := range eventCh {
+			assert.Equal(t, stream.responses[i].BlockHeight, response.Height)
+			assert.Equal(t, stream.responses[i].BlockId, response.BlockID[:])
+			assert.Equal(t, len(stream.responses[i].Events), len(response.Events))
+			i++
+			if i == len(stream.responses) {
+				cancel()
+				break
+			}
+		}
+
+		wg.Wait()
 	}))
 
 	// Test that SubscribeEvents returns an error and closes the subscription if the stream returns an error
@@ -1287,7 +1370,7 @@ func TestClient_SubscribeEvents(t *testing.T) {
 			Return(stream, nil).
 			Run(assertSubscribeEventsArgs(t, &req))
 
-		eventCh, errCh, err := c.SubscribeEvents(ctx, flow.EmptyID, startHeight, filter)
+		eventCh, errCh, err := c.SubscribeEventsByBlockHeight(ctx, startHeight, filter)
 		require.NoError(t, err)
 
 		wg := sync.WaitGroup{}
@@ -1332,7 +1415,7 @@ func TestClient_SubscribeEvents(t *testing.T) {
 			Return(stream, nil).
 			Run(assertSubscribeEventsArgs(t, &req))
 
-		eventCh, errCh, err := c.SubscribeEvents(ctx, flow.EmptyID, startHeight, filter, WithHeartbeatInterval(req.HeartbeatInterval))
+		eventCh, errCh, err := c.SubscribeEventsByBlockHeight(ctx, startHeight, filter, WithHeartbeatInterval(req.HeartbeatInterval))
 		require.NoError(t, err)
 
 		wg := sync.WaitGroup{}
@@ -1378,27 +1461,27 @@ func generateExecutionDataResponse(t *testing.T, blockID flow.Identifier, height
 	}
 }
 
-func assertSubscribeEventsArgs(t *testing.T, req *executiondata.SubscribeEventsRequest) func(args mock.Arguments) {
+func assertSubscribeEventsArgs(t *testing.T, expected *executiondata.SubscribeEventsRequest) func(args mock.Arguments) {
 	return func(args mock.Arguments) {
 		actual, ok := args.Get(1).(*executiondata.SubscribeEventsRequest)
 		require.True(t, ok)
 
-		assert.Equal(t, req.Filter, actual.Filter)
-		assert.Equal(t, req.EventEncodingVersion, actual.EventEncodingVersion)
-		assert.Equal(t, req.HeartbeatInterval, actual.HeartbeatInterval)
-		assert.Equal(t, req.StartBlockHeight, actual.StartBlockHeight)
-		assert.Equal(t, req.StartBlockId, actual.StartBlockId)
+		assert.Equal(t, expected.Filter, actual.Filter)
+		assert.Equal(t, expected.EventEncodingVersion, actual.EventEncodingVersion)
+		assert.Equal(t, expected.HeartbeatInterval, actual.HeartbeatInterval)
+		assert.Equal(t, expected.StartBlockHeight, actual.StartBlockHeight)
+		assert.Equal(t, expected.StartBlockId, actual.StartBlockId)
 	}
 }
 
-func assertSubscribeExecutionDataArgs(t *testing.T, req *executiondata.SubscribeExecutionDataRequest) func(args mock.Arguments) {
+func assertSubscribeExecutionDataArgs(t *testing.T, expected *executiondata.SubscribeExecutionDataRequest) func(args mock.Arguments) {
 	return func(args mock.Arguments) {
 		actual, ok := args.Get(1).(*executiondata.SubscribeExecutionDataRequest)
 		require.True(t, ok)
 
-		assert.Equal(t, req.EventEncodingVersion, actual.EventEncodingVersion)
-		assert.Equal(t, req.StartBlockHeight, actual.StartBlockHeight)
-		assert.Equal(t, req.StartBlockId, actual.StartBlockId)
+		assert.Equal(t, expected.EventEncodingVersion, actual.EventEncodingVersion)
+		assert.Equal(t, expected.StartBlockHeight, actual.StartBlockHeight)
+		assert.Equal(t, expected.StartBlockId, actual.StartBlockId)
 	}
 }
 

@@ -37,12 +37,12 @@ func demo() {
 	flowClient, err := grpc.NewClient("access.testnet.nodes.onflow.org:9000")
 	examples.Handle(err)
 
-	block, err := flowClient.GetLatestBlock(ctx, true)
+	header, err := flowClient.GetLatestBlockHeader(ctx, true)
 	examples.Handle(err)
-	fmt.Printf("Block Height: %d\n", block.Height)
-	fmt.Printf("Block ID: %s\n", block.ID)
+	fmt.Printf("Block Height: %d\n", header.Height)
+	fmt.Printf("Block ID: %s\n", header.ID)
 
-	data, errChan, initErr := flowClient.SubscribeEvents(ctx, block.ID, 0, flow.EventFilter{})
+	data, errChan, initErr := flowClient.SubscribeEventsByBlockID(ctx, header.ID, flow.EventFilter{})
 	examples.Handle(initErr)
 
 	for {
@@ -62,7 +62,6 @@ func demo() {
 			fmt.Printf("~~~ ERROR: %s ~~~\n", err.Error())
 		}
 	}
-
 }
 
 func printEvents(events []flow.Event) {

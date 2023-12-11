@@ -39,12 +39,12 @@ func demo() {
 	flowClient, err := grpc.NewClient("access.testnet.nodes.onflow.org:9000")
 	examples.Handle(err)
 
-	block, err := flowClient.GetLatestBlock(ctx, true)
+	header, err := flowClient.GetLatestBlockHeader(ctx, true)
 	examples.Handle(err)
-	fmt.Printf("Block Height: %d\n", block.Height)
-	fmt.Printf("Block ID: %s\n", block.ID)
+	fmt.Printf("Block Height: %d\n", header.Height)
+	fmt.Printf("Block ID: %s\n", header.ID)
 
-	data, errChan, initErr := flowClient.SubscribeEvents(ctx, block.ID, 0, flow.EventFilter{})
+	data, errChan, initErr := flowClient.SubscribeEventsByBlockID(ctx, header.ID, flow.EventFilter{})
 	examples.Handle(initErr)
 
 	reconnect := func(height uint64) {
@@ -54,12 +54,12 @@ func demo() {
 		flowClient, err = grpc.NewClient("access.testnet.nodes.onflow.org:9000")
 		examples.Handle(err)
 
-		data, errChan, err = flowClient.SubscribeEvents(ctx, flow.EmptyID, height, flow.EventFilter{})
+		data, errChan, err = flowClient.SubscribeEventsByBlockHeight(ctx, height, flow.EventFilter{})
 		examples.Handle(err)
 	}
 
 	// track the most recently seen block height. we will use this when reconnecting
-	lastHeight := block.Height
+	lastHeight := header.Height
 	for {
 		select {
 		case <-ctx.Done():
