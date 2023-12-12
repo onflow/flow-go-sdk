@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/onflow/crypto"
 	"github.com/onflow/crypto/hash"
 )
 
@@ -118,4 +119,19 @@ func NewKeccak_256() Hasher {
 // NewKeccak_256 returns a new instance of KMAC128
 func NewKMAC_128(key []byte, customizer []byte, outputSize int) (Hasher, error) {
 	return hash.NewKMAC_128(key, customizer, outputSize)
+}
+
+// NewBLSHasher returns a hasher that can be used for BLS signing and verifying.
+// It abstracts the complexities of meeting the right conditions of a BLS
+// hasher.
+//
+// The hasher returned is the the expand-message step in the BLS hash-to-curve.
+// It uses a xof (extendable output function) based on KMAC128. It therefore has
+// a 128-bytes output.
+// The `tag` parameter is a domain separation string.
+//
+// Check https://pkg.go.dev/github.com/onflow/crypto#NewExpandMsgXOFKMAC128 for
+// more info on the hasher generation underneath.
+func NewBLSHasher(tag string) hash.Hasher {
+	return crypto.NewExpandMsgXOFKMAC128(tag)
 }
