@@ -19,6 +19,7 @@
 package crypto
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/onflow/crypto/hash"
@@ -37,6 +38,7 @@ const (
 	SHA3_256                           = hash.SHA3_256
 	SHA3_384                           = hash.SHA3_384
 	Keccak256                          = hash.Keccak_256
+	KMAC128                            = hash.KMAC128
 )
 
 // StringToHashAlgorithm converts a string to a HashAlgorithm.
@@ -52,6 +54,8 @@ func StringToHashAlgorithm(s string) HashAlgorithm {
 		return SHA3_384
 	case Keccak256.String():
 		return Keccak256
+	case KMAC128.String():
+		return KMAC128
 
 	default:
 		return UnknownHashAlgorithm
@@ -61,6 +65,7 @@ func StringToHashAlgorithm(s string) HashAlgorithm {
 // NewHasher initializes and returns a new hasher with the given hash algorithm.
 //
 // This function returns an error if the hash algorithm is invalid.
+// KMAC128 cannot be instantiated with this function. Use `NewKMAC_128` instead.
 func NewHasher(algo HashAlgorithm) (Hasher, error) {
 	switch algo {
 	case SHA2_256:
@@ -73,6 +78,8 @@ func NewHasher(algo HashAlgorithm) (Hasher, error) {
 		return NewSHA3_384(), nil
 	case Keccak256:
 		return NewKeccak_256(), nil
+	case KMAC128:
+		return nil, errors.New("KMAC128 can't be instantiated with this function")
 	default:
 		return nil, fmt.Errorf("invalid hash algorithm %s", algo)
 	}
@@ -101,4 +108,14 @@ func NewSHA3_384() Hasher {
 // NewKeccak_256 returns a new instance of Keccak256 hasher.
 func NewKeccak_256() Hasher {
 	return hash.NewKeccak_256()
+}
+
+// NewKMAC_128 returns a new KMAC instance
+//   - `key` is the KMAC key (the key size is compared to the security level).
+//   - `customizer` is the customization string. It can be left empty if no customization
+//     is required.
+//
+// NewKeccak_256 returns a new instance of KMAC128
+func NewKMAC_128(key []byte, customizer []byte, outputSize int) (Hasher, error) {
+	return hash.NewKMAC_128(key, customizer, outputSize)
 }
