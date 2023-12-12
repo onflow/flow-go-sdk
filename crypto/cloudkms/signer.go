@@ -88,8 +88,8 @@ func (s *Signer) Sign(message []byte) ([]byte, error) {
 			DataCrc32C: checksum(message),
 		}
 	} else {
-		// this is guaranteed to only return supported hash algos by KMS
-		// since `s.hashAlgo` is guaranteed to be supported during signer creation
+		// this is guaranteed to only return supported hash algos by KMS,
+		// since `s.hashAlgo` has been checked when the signer object was created.
 		hasher, err := crypto.NewHasher(s.hashAlgo)
 		if err != nil {
 			return nil, fmt.Errorf("cloudkms: failed to sign: %w", err)

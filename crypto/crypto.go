@@ -118,7 +118,6 @@ func NewInMemorySigner(privateKey PrivateKey, hashAlgo HashAlgorithm) (InMemoryS
 			privateKey.Algorithm(), hashAlgo)
 	}
 
-	// The error is ignored because the hash algorithm is valid at this point
 	hasher, err := NewHasher(hashAlgo)
 	if err != nil {
 		return InMemorySigner{}, fmt.Errorf("signer with hasher %s can't be instantiated with this function", hashAlgo)
