@@ -29,8 +29,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	fgcrypto "github.com/onflow/crypto"
-
 	"github.com/onflow/flow-go-sdk/crypto"
 )
 
@@ -39,11 +37,12 @@ func TestGeneratePrivateKey(t *testing.T) {
 	supportedAlgos := []crypto.SignatureAlgorithm{
 		crypto.ECDSA_P256,
 		crypto.ECDSA_secp256k1,
+		crypto.BLS_BLS12_381,
 	}
 
 	// key algorithms not currently supported by the SDK
 	unsupportedAlgos := []crypto.SignatureAlgorithm{
-		fgcrypto.BLSBLS12381,
+		crypto.UnknownSignatureAlgorithm,
 	}
 
 	// key algorithm that does not represent any valid algorithm

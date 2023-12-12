@@ -104,7 +104,7 @@ func (s *Signer) Sign(message []byte) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("awskms: failed to sign: %w", err)
 	}
-	sig, err := internal.ParseSignature(result.Signature, s.curve)
+	sig, err := internal.ParseECDSASignature(result.Signature, s.curve)
 	if err != nil {
 		return nil, fmt.Errorf("awskms: failed to parse signature: %w", err)
 	}

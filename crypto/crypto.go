@@ -38,6 +38,8 @@ const (
 	ECDSA_P256 = crypto.ECDSAP256
 	// ECDSA_secp256k1 is ECDSA on secp256k1 curve
 	ECDSA_secp256k1 = crypto.ECDSASecp256k1
+	// BLS_BLS12_381 is BLS on BLS12-381 curve
+	BLS_BLS12_381 = crypto.BLSBLS12381
 )
 
 // StringToSignatureAlgorithm converts a string to a SignatureAlgorithm.
@@ -47,6 +49,8 @@ func StringToSignatureAlgorithm(s string) SignatureAlgorithm {
 		return ECDSA_P256
 	case ECDSA_secp256k1.String():
 		return ECDSA_secp256k1
+	case BLS_BLS12_381.String():
+		return BLS_BLS12_381
 	default:
 		return UnknownSignatureAlgorithm
 	}
@@ -64,6 +68,11 @@ func CompatibleAlgorithms(sigAlgo SignatureAlgorithm, hashAlgo HashAlgorithm) bo
 	if sigAlgo == ECDSA_P256 || sigAlgo == ECDSA_secp256k1 {
 		if hashAlgo == SHA2_256 || hashAlgo == SHA3_256 ||
 			hashAlgo == Keccak256 || hashAlgo == KMAC128 {
+			return true
+		}
+	}
+	if sigAlgo == BLS_BLS12_381 {
+		if hashAlgo == KMAC128 {
 			return true
 		}
 	}
