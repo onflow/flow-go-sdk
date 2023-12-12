@@ -57,7 +57,7 @@ func StringToSignatureAlgorithm(s string) SignatureAlgorithm {
 //
 // If the function returns `false`, the inputs cannot be paired. If the function
 // returns `true`, the inputs can be paired, under the condition that variable output size
-// hashers (currently KMAC) are set with a compatible output size.
+// hashers (currently KMAC128) are set with a compatible output size.
 //
 // Signature generation and verification functions would check the hash output constraints.
 func CompatibleAlgorithms(sigAlgo SignatureAlgorithm, hashAlgo HashAlgorithm) bool {
@@ -141,10 +141,6 @@ func NewNaiveSigner(privateKey PrivateKey, hashAlgo HashAlgorithm) (NaiveSigner,
 // It is recommended to use seeds with enough entropy, preferably from a secure RNG.
 // The key generation process extracts and expands the entropy of the seed.
 const MinSeedLength = crypto.KeyGenSeedMinLen
-
-func keyGenerationKMACTag(sigAlgo SignatureAlgorithm) []byte {
-	return []byte(fmt.Sprintf("%s Key Generation", sigAlgo))
-}
 
 // GeneratePrivateKey generates a private key with the specified signature algorithm from the given seed.
 // Note that the output key is directly mapped from the seed. The seed is therefore equivalent to the private key.
