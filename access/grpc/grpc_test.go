@@ -20,12 +20,15 @@ package grpc
 
 import (
 	"context"
+	"io"
 	"math/rand"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -34,6 +37,7 @@ import (
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/flow/protobuf/go/flow/access"
 	"github.com/onflow/flow/protobuf/go/flow/entities"
+	"github.com/onflow/flow/protobuf/go/flow/executiondata"
 
 	"github.com/onflow/flow-go-sdk/access/grpc/mocks"
 
@@ -53,6 +57,18 @@ func clientTest(
 		ctx := context.Background()
 		rpc := new(mocks.MockRPCClient)
 		c := NewFromRPCClient(rpc)
+		f(t, ctx, rpc, c)
+		rpc.AssertExpectations(t)
+	}
+}
+
+func executionDataClientTest(
+	f func(t *testing.T, ctx context.Context, rpc *mocks.MockExecutionDataRPCClient, client *BaseClient),
+) func(t *testing.T) {
+	return func(t *testing.T) {
+		ctx := context.Background()
+		rpc := new(mocks.MockExecutionDataRPCClient)
+		c := NewFromExecutionDataRPCClient(rpc)
 		f(t, ctx, rpc, c)
 		rpc.AssertExpectations(t)
 	}
@@ -1049,4 +1065,482 @@ func TestClient_GetExecutionResultForBlockID(t *testing.T) {
 		assert.Error(t, err)
 		assert.Equal(t, codes.Internal, status.Code(err))
 	}))
+}
+
+func TestClient_SubscribeExecutionData(t *testing.T) {
+	ids := test.IdentifierGenerator()
+
+	t.Run("Happy Path - by height", executionDataClientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockExecutionDataRPCClient, c *BaseClient) {
+		responseCount := uint64(1000)
+		startHeight := uint64(10)
+
+		req := executiondata.SubscribeExecutionDataRequest{
+			StartBlockHeight:     startHeight,
+			EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
+		}
+
+		ctx, cancel := context.WithCancel(ctx)
+		stream := &mockExecutionDataStream{ctx: ctx}
+		for i := startHeight; i < startHeight+responseCount; i++ {
+			stream.responses = append(stream.responses, generateExecutionDataResponse(t, ids.New(), i))
+		}
+
+		rpc.On("SubscribeExecutionData", ctx, mock.Anything).
+			Return(stream, nil).
+			Run(assertSubscribeExecutionDataArgs(t, &req))
+
+		eventCh, errCh, err := c.SubscribeExecutionDataByBlockHeight(ctx, startHeight)
+		require.NoError(t, err)
+
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go assertNoErrors(t, errCh, wg.Done)
+
+		i := 0
+		for response := range eventCh {
+			assert.Equal(t, stream.responses[i].BlockHeight, response.Height)
+			assert.Equal(t, stream.responses[i].BlockExecutionData.BlockId[:], response.ExecutionData.BlockID[:])
+			assert.Equal(t, stream.responses[i].BlockTimestamp.AsTime(), response.BlockTimestamp)
+			i++
+			if i == len(stream.responses) {
+				cancel()
+				break
+			}
+		}
+
+		wg.Wait()
+	}))
+
+	t.Run("Happy Path - by block ID", executionDataClientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockExecutionDataRPCClient, c *BaseClient) {
+		responseCount := uint64(1000)
+		startBlockID := ids.New()
+		startHeight := uint64(10)
+
+		req := executiondata.SubscribeExecutionDataRequest{
+			StartBlockId:         startBlockID[:],
+			EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
+		}
+
+		ctx, cancel := context.WithCancel(ctx)
+		stream := &mockExecutionDataStream{ctx: ctx}
+		for i := startHeight; i < startHeight+responseCount; i++ {
+			stream.responses = append(stream.responses, generateExecutionDataResponse(t, ids.New(), i))
+		}
+
+		rpc.On("SubscribeExecutionData", ctx, mock.Anything).
+			Return(stream, nil).
+			Run(assertSubscribeExecutionDataArgs(t, &req))
+
+		eventCh, errCh, err := c.SubscribeExecutionDataByBlockID(ctx, startBlockID)
+		require.NoError(t, err)
+
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go assertNoErrors(t, errCh, wg.Done)
+
+		i := 0
+		for response := range eventCh {
+			assert.Equal(t, stream.responses[i].BlockHeight, response.Height)
+			assert.Equal(t, stream.responses[i].BlockExecutionData.BlockId[:], response.ExecutionData.BlockID[:])
+			assert.Equal(t, stream.responses[i].BlockTimestamp.AsTime(), response.BlockTimestamp)
+			i++
+			if i == len(stream.responses) {
+				cancel()
+				break
+			}
+		}
+
+		wg.Wait()
+	}))
+
+	// Test that SubscribeExecutionData returns an error and closes the subscription if the stream returns an error
+	t.Run("Returns error from stream", executionDataClientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockExecutionDataRPCClient, c *BaseClient) {
+		startHeight := uint64(10)
+
+		req := executiondata.SubscribeExecutionDataRequest{
+			StartBlockHeight:     startHeight,
+			EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
+		}
+
+		stream := &mockExecutionDataStream{
+			err: status.Error(codes.Internal, "internal error"),
+		}
+
+		rpc.On("SubscribeExecutionData", ctx, mock.Anything).
+			Return(stream, nil).
+			Run(assertSubscribeExecutionDataArgs(t, &req))
+
+		eventCh, errCh, err := c.SubscribeExecutionDataByBlockHeight(ctx, startHeight)
+		require.NoError(t, err)
+
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go assertNoEvents(t, eventCh, wg.Done)
+
+		i := 0
+		for err := range errCh {
+			assert.ErrorIs(t, err, stream.err)
+			i++
+			if i > 1 {
+				t.Fatal("should only receive one error")
+			}
+		}
+
+		wg.Wait()
+	}))
+
+	// Test that SubscribeExecutionData returns an error and closes the subscription if an error is encountered while converting the response
+	t.Run("Returns error from convert", executionDataClientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockExecutionDataRPCClient, c *BaseClient) {
+		startHeight := uint64(10)
+
+		req := executiondata.SubscribeExecutionDataRequest{
+			StartBlockHeight:     startHeight,
+			EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
+		}
+
+		stream := &mockExecutionDataStream{ctx: ctx}
+		stream.responses = append(stream.responses, &executiondata.SubscribeExecutionDataResponse{
+			BlockHeight:        startHeight,
+			BlockExecutionData: nil, // nil BlockExecutionData should cause an error
+		})
+
+		rpc.On("SubscribeExecutionData", ctx, mock.Anything).
+			Return(stream, nil).
+			Run(assertSubscribeExecutionDataArgs(t, &req))
+
+		eventCh, errCh, err := c.SubscribeExecutionDataByBlockHeight(ctx, startHeight)
+		require.NoError(t, err)
+
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go assertNoEvents(t, eventCh, wg.Done)
+
+		i := 0
+		for err := range errCh {
+			assert.Error(t, err, stream.err)
+			i++
+			if i > 1 {
+				t.Fatal("should only receive one error")
+			}
+		}
+
+		wg.Wait()
+	}))
+}
+
+func TestClient_SubscribeEvents(t *testing.T) {
+	ids := test.IdentifierGenerator()
+	events := test.EventGenerator().WithEncoding(entities.EventEncodingVersion_CCF_V0)
+	addresses := test.AddressGenerator()
+
+	getEvents := func(count int) []flow.Event {
+		res := make([]flow.Event, count)
+		for i := 0; i < count; i++ {
+			res[i] = events.New()
+		}
+		return res
+	}
+
+	t.Run("Happy Path - by height", executionDataClientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockExecutionDataRPCClient, c *BaseClient) {
+		responseCount := uint64(1000)
+		startHeight := uint64(10)
+		filter := flow.EventFilter{
+			EventTypes: []string{events.New().Type, events.New().Type},
+			Addresses:  []string{addresses.New().String(), addresses.New().String()},
+			Contracts:  []string{"A.0.B", "A.1.C"},
+		}
+
+		req := executiondata.SubscribeEventsRequest{
+			Filter: &executiondata.EventFilter{
+				EventType: filter.EventTypes,
+				Address:   filter.Addresses,
+				Contract:  filter.Contracts,
+			},
+			EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
+			HeartbeatInterval:    1234,
+			StartBlockHeight:     startHeight,
+		}
+
+		ctx, cancel := context.WithCancel(ctx)
+		stream := &mockEventStream{ctx: ctx}
+		for i := startHeight; i < startHeight+responseCount; i++ {
+			stream.responses = append(stream.responses, generateEventResponse(t, ids.New(), i, getEvents(2)))
+		}
+
+		rpc.On("SubscribeEvents", ctx, mock.Anything).
+			Return(stream, nil).
+			Run(assertSubscribeEventsArgs(t, &req))
+
+		eventCh, errCh, err := c.SubscribeEventsByBlockHeight(ctx, startHeight, filter, WithHeartbeatInterval(req.HeartbeatInterval))
+		require.NoError(t, err)
+
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go assertNoErrors(t, errCh, wg.Done)
+
+		i := 0
+		for response := range eventCh {
+			assert.Equal(t, stream.responses[i].BlockHeight, response.Height)
+			assert.Equal(t, stream.responses[i].BlockId, response.BlockID[:])
+			assert.Equal(t, len(stream.responses[i].Events), len(response.Events))
+			i++
+			if i == len(stream.responses) {
+				cancel()
+				break
+			}
+		}
+
+		wg.Wait()
+	}))
+
+	t.Run("Happy Path - by block ID", executionDataClientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockExecutionDataRPCClient, c *BaseClient) {
+		responseCount := uint64(1000)
+		startBlockID := ids.New()
+		startHeight := uint64(10)
+		filter := flow.EventFilter{
+			EventTypes: []string{events.New().Type, events.New().Type},
+			Addresses:  []string{addresses.New().String(), addresses.New().String()},
+			Contracts:  []string{"A.0.B", "A.1.C"},
+		}
+
+		req := executiondata.SubscribeEventsRequest{
+			Filter: &executiondata.EventFilter{
+				EventType: filter.EventTypes,
+				Address:   filter.Addresses,
+				Contract:  filter.Contracts,
+			},
+			EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
+			HeartbeatInterval:    1234,
+			StartBlockId:         startBlockID[:],
+		}
+
+		ctx, cancel := context.WithCancel(ctx)
+		stream := &mockEventStream{ctx: ctx}
+		for i := startHeight; i < startHeight+responseCount; i++ {
+			stream.responses = append(stream.responses, generateEventResponse(t, ids.New(), i, getEvents(2)))
+		}
+
+		rpc.On("SubscribeEvents", ctx, mock.Anything).
+			Return(stream, nil).
+			Run(assertSubscribeEventsArgs(t, &req))
+
+		eventCh, errCh, err := c.SubscribeEventsByBlockID(ctx, startBlockID, filter, WithHeartbeatInterval(req.HeartbeatInterval))
+		require.NoError(t, err)
+
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go assertNoErrors(t, errCh, wg.Done)
+
+		i := 0
+		for response := range eventCh {
+			assert.Equal(t, stream.responses[i].BlockHeight, response.Height)
+			assert.Equal(t, stream.responses[i].BlockId, response.BlockID[:])
+			assert.Equal(t, len(stream.responses[i].Events), len(response.Events))
+			i++
+			if i == len(stream.responses) {
+				cancel()
+				break
+			}
+		}
+
+		wg.Wait()
+	}))
+
+	// Test that SubscribeEvents returns an error and closes the subscription if the stream returns an error
+	t.Run("Returns error from stream", executionDataClientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockExecutionDataRPCClient, c *BaseClient) {
+		startHeight := uint64(10)
+		filter := flow.EventFilter{}
+
+		req := executiondata.SubscribeEventsRequest{
+			Filter: &executiondata.EventFilter{
+				EventType: filter.EventTypes,
+				Address:   filter.Addresses,
+				Contract:  filter.Contracts,
+			},
+			EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
+			HeartbeatInterval:    100,
+			StartBlockHeight:     startHeight,
+		}
+
+		stream := &mockEventStream{
+			err: status.Error(codes.Internal, "internal error"),
+		}
+
+		rpc.On("SubscribeEvents", ctx, mock.Anything).
+			Return(stream, nil).
+			Run(assertSubscribeEventsArgs(t, &req))
+
+		eventCh, errCh, err := c.SubscribeEventsByBlockHeight(ctx, startHeight, filter)
+		require.NoError(t, err)
+
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go assertNoEvents(t, eventCh, wg.Done)
+
+		i := 0
+		for err := range errCh {
+			assert.ErrorIs(t, err, stream.err)
+			i++
+			if i > 1 {
+				t.Fatal("should only receive one error")
+			}
+		}
+
+		wg.Wait()
+	}))
+
+	// Test that SubscribeEvents returns an error and closes the subscription if an error is encountered while converting the response
+	t.Run("Returns error from convert", executionDataClientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockExecutionDataRPCClient, c *BaseClient) {
+		startHeight := uint64(10)
+		filter := flow.EventFilter{}
+
+		req := executiondata.SubscribeEventsRequest{
+			Filter: &executiondata.EventFilter{
+				EventType: filter.EventTypes,
+				Address:   filter.Addresses,
+				Contract:  filter.Contracts,
+			},
+			EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
+			HeartbeatInterval:    100,
+			StartBlockHeight:     startHeight,
+		}
+
+		stream := &mockEventStream{ctx: ctx}
+		stream.responses = append(stream.responses, generateEventResponse(t, ids.New(), startHeight, getEvents(2)))
+
+		// corrupt the event payload
+		stream.responses[0].Events[0].Payload[0] = 'x'
+
+		rpc.On("SubscribeEvents", ctx, mock.Anything).
+			Return(stream, nil).
+			Run(assertSubscribeEventsArgs(t, &req))
+
+		eventCh, errCh, err := c.SubscribeEventsByBlockHeight(ctx, startHeight, filter, WithHeartbeatInterval(req.HeartbeatInterval))
+		require.NoError(t, err)
+
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go assertNoEvents(t, eventCh, wg.Done)
+
+		i := 0
+		for err := range errCh {
+			assert.Error(t, err, stream.err)
+			i++
+			if i > 1 {
+				t.Fatal("should only receive one error")
+			}
+		}
+
+		wg.Wait()
+	}))
+}
+
+func generateEventResponse(t *testing.T, blockID flow.Identifier, height uint64, events []flow.Event) *executiondata.SubscribeEventsResponse {
+	responseEvents := make([]*entities.Event, 0, len(events))
+	for _, e := range events {
+		eventMsg, err := eventToMessage(e)
+		require.NoError(t, err)
+		responseEvents = append(responseEvents, eventMsg)
+	}
+
+	return &executiondata.SubscribeEventsResponse{
+		BlockHeight: height,
+		BlockId:     blockID[:],
+		Events:      responseEvents,
+	}
+}
+
+func generateExecutionDataResponse(t *testing.T, blockID flow.Identifier, height uint64) *executiondata.SubscribeExecutionDataResponse {
+	return &executiondata.SubscribeExecutionDataResponse{
+		BlockHeight: height,
+		BlockExecutionData: &entities.BlockExecutionData{
+			BlockId:            blockID[:],
+			ChunkExecutionData: []*entities.ChunkExecutionData{},
+		},
+		BlockTimestamp: timestamppb.Now(),
+	}
+}
+
+func assertSubscribeEventsArgs(t *testing.T, expected *executiondata.SubscribeEventsRequest) func(args mock.Arguments) {
+	return func(args mock.Arguments) {
+		actual, ok := args.Get(1).(*executiondata.SubscribeEventsRequest)
+		require.True(t, ok)
+
+		assert.Equal(t, expected.Filter, actual.Filter)
+		assert.Equal(t, expected.EventEncodingVersion, actual.EventEncodingVersion)
+		assert.Equal(t, expected.HeartbeatInterval, actual.HeartbeatInterval)
+		assert.Equal(t, expected.StartBlockHeight, actual.StartBlockHeight)
+		assert.Equal(t, expected.StartBlockId, actual.StartBlockId)
+	}
+}
+
+func assertSubscribeExecutionDataArgs(t *testing.T, expected *executiondata.SubscribeExecutionDataRequest) func(args mock.Arguments) {
+	return func(args mock.Arguments) {
+		actual, ok := args.Get(1).(*executiondata.SubscribeExecutionDataRequest)
+		require.True(t, ok)
+
+		assert.Equal(t, expected.EventEncodingVersion, actual.EventEncodingVersion)
+		assert.Equal(t, expected.StartBlockHeight, actual.StartBlockHeight)
+		assert.Equal(t, expected.StartBlockId, actual.StartBlockId)
+	}
+}
+
+func assertNoErrors(t *testing.T, errCh <-chan error, done func()) {
+	defer done()
+	for err := range errCh {
+		require.NoError(t, err)
+	}
+}
+
+func assertNoEvents[T any](t *testing.T, eventCh <-chan T, done func()) {
+	defer done()
+	for _ = range eventCh {
+		t.Fatal("should not receive events")
+	}
+}
+
+type mockEventStream struct {
+	grpc.ClientStream
+
+	ctx       context.Context
+	err       error
+	offset    int
+	responses []*executiondata.SubscribeEventsResponse
+}
+
+func (m *mockEventStream) Recv() (*executiondata.SubscribeEventsResponse, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+
+	if m.offset >= len(m.responses) {
+		<-m.ctx.Done()
+		return nil, io.EOF
+	}
+	defer func() { m.offset++ }()
+
+	return m.responses[m.offset], nil
+}
+
+type mockExecutionDataStream struct {
+	grpc.ClientStream
+
+	ctx       context.Context
+	err       error
+	offset    int
+	responses []*executiondata.SubscribeExecutionDataResponse
+}
+
+func (m *mockExecutionDataStream) Recv() (*executiondata.SubscribeExecutionDataResponse, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+
+	if m.offset >= len(m.responses) {
+		<-m.ctx.Done()
+		return nil, io.EOF
+	}
+	defer func() { m.offset++ }()
+
+	return m.responses[m.offset], nil
 }
