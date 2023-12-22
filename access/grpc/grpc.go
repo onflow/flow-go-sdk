@@ -19,9 +19,12 @@
 package grpc
 
 //go:generate go run github.com/vektra/mockery/cmd/mockery --name RPCClient --structname MockRPCClient --output mocks
+//go:generate go run github.com/vektra/mockery/cmd/mockery --name ExecutionDataRPCClient --structname MockExecutionDataRPCClient --output mocks
 
 import (
 	"context"
+	"fmt"
+	"io"
 
 	"google.golang.org/grpc"
 
@@ -29,6 +32,7 @@ import (
 	"github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/flow/protobuf/go/flow/access"
 	"github.com/onflow/flow/protobuf/go/flow/entities"
+	"github.com/onflow/flow/protobuf/go/flow/executiondata"
 
 	"github.com/onflow/flow-go-sdk"
 )
@@ -38,14 +42,45 @@ type RPCClient interface {
 	access.AccessAPIClient
 }
 
+// ExecutionDataRPCClient is an RPC client for the Flow ExecutionData API.
+type ExecutionDataRPCClient interface {
+	executiondata.ExecutionDataAPIClient
+}
+
+type SubscribeOption func(*SubscribeConfig)
+
+type SubscribeConfig struct {
+	heartbeatInterval uint64
+	grpcOpts          []grpc.CallOption
+}
+
+func DefaultSubscribeConfig() *SubscribeConfig {
+	return &SubscribeConfig{
+		heartbeatInterval: 100,
+	}
+}
+
+func WithHeartbeatInterval(interval uint64) SubscribeOption {
+	return func(config *SubscribeConfig) {
+		config.heartbeatInterval = interval
+	}
+}
+
+func WithGRPCOptions(grpcOpts ...grpc.CallOption) SubscribeOption {
+	return func(config *SubscribeConfig) {
+		config.grpcOpts = grpcOpts
+	}
+}
+
 // BaseClient is a gRPC client for the Flow Access API exposing all grpc specific methods.
 //
 // Use this client if you need advance access to the HTTP API. If you
 // don't require special methods use the Client instead.
 type BaseClient struct {
-	rpcClient   RPCClient
-	close       func() error
-	jsonOptions []json.Option
+	rpcClient           RPCClient
+	executionDataClient ExecutionDataRPCClient
+	close               func() error
+	jsonOptions         []json.Option
 }
 
 // NewBaseClient creates a new gRPC handler for network communication.
@@ -57,10 +92,13 @@ func NewBaseClient(url string, opts ...grpc.DialOption) (*BaseClient, error) {
 
 	grpcClient := access.NewAccessAPIClient(conn)
 
+	execDataClient := executiondata.NewExecutionDataAPIClient(conn)
+
 	return &BaseClient{
-		rpcClient:   grpcClient,
-		close:       func() error { return conn.Close() },
-		jsonOptions: []json.Option{json.WithAllowUnstructuredStaticTypes(true)},
+		rpcClient:           grpcClient,
+		executionDataClient: execDataClient,
+		close:               func() error { return conn.Close() },
+		jsonOptions:         []json.Option{json.WithAllowUnstructuredStaticTypes(true)},
 	}, nil
 }
 
@@ -69,6 +107,14 @@ func NewFromRPCClient(rpcClient RPCClient) *BaseClient {
 	return &BaseClient{
 		rpcClient: rpcClient,
 		close:     func() error { return nil },
+	}
+}
+
+// NewFromExecutionDataRPCClient initializes a Flow client using a pre-configured gRPC provider.
+func NewFromExecutionDataRPCClient(rpcClient ExecutionDataRPCClient) *BaseClient {
+	return &BaseClient{
+		executionDataClient: rpcClient,
+		close:               func() error { return nil },
 	}
 }
 
@@ -651,4 +697,202 @@ func (c *BaseClient) GetExecutionResultForBlockID(ctx context.Context, blockID f
 		Chunks:           chunks,
 		ServiceEvents:    serviceEvents,
 	}, nil
+}
+
+func (c *BaseClient) GetExecutionDataByBlockID(
+	ctx context.Context,
+	blockID flow.Identifier,
+	opts ...grpc.CallOption,
+) (*flow.ExecutionData, error) {
+
+	ed, err := c.executionDataClient.GetExecutionDataByBlockID(ctx, &executiondata.GetExecutionDataByBlockIDRequest{
+		BlockId:              identifierToMessage(blockID),
+		EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
+	}, opts...)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	return messageToBlockExecutionData(ed.GetBlockExecutionData())
+
+}
+
+func (c *BaseClient) SubscribeExecutionDataByBlockID(
+	ctx context.Context,
+	startBlockID flow.Identifier,
+	opts ...grpc.CallOption,
+) (<-chan flow.ExecutionDataStreamResponse, <-chan error, error) {
+	req := executiondata.SubscribeExecutionDataRequest{
+		StartBlockId:         startBlockID[:],
+		EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
+	}
+	return c.subscribeExecutionData(ctx, &req, opts...)
+}
+
+func (c *BaseClient) SubscribeExecutionDataByBlockHeight(
+	ctx context.Context,
+	startHeight uint64,
+	opts ...grpc.CallOption,
+) (<-chan flow.ExecutionDataStreamResponse, <-chan error, error) {
+	req := executiondata.SubscribeExecutionDataRequest{
+		StartBlockHeight:     startHeight,
+		EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
+	}
+	return c.subscribeExecutionData(ctx, &req, opts...)
+}
+
+func (c *BaseClient) subscribeExecutionData(
+	ctx context.Context,
+	req *executiondata.SubscribeExecutionDataRequest,
+	opts ...grpc.CallOption,
+) (<-chan flow.ExecutionDataStreamResponse, <-chan error, error) {
+	stream, err := c.executionDataClient.SubscribeExecutionData(ctx, req, opts...)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	sub := make(chan flow.ExecutionDataStreamResponse)
+	errChan := make(chan error)
+
+	sendErr := func(err error) {
+		select {
+		case <-ctx.Done():
+		case errChan <- err:
+		}
+	}
+
+	go func() {
+		defer close(sub)
+		defer close(errChan)
+
+		for {
+			resp, err := stream.Recv()
+			if err != nil {
+				if err == io.EOF {
+					return
+				}
+
+				sendErr(fmt.Errorf("error receiving execution data: %w", err))
+				return
+			}
+
+			execData, err := messageToBlockExecutionData(resp.GetBlockExecutionData())
+			if err != nil {
+				sendErr(fmt.Errorf("error converting execution data for block %d: %w", resp.GetBlockHeight(), err))
+				return
+			}
+
+			response := flow.ExecutionDataStreamResponse{
+				Height:         resp.BlockHeight,
+				ExecutionData:  execData,
+				BlockTimestamp: resp.BlockTimestamp.AsTime(),
+			}
+
+			select {
+			case <-ctx.Done():
+				return
+			case sub <- response:
+			}
+		}
+	}()
+
+	return sub, errChan, nil
+}
+
+func (c *BaseClient) SubscribeEventsByBlockID(
+	ctx context.Context,
+	startBlockID flow.Identifier,
+	filter flow.EventFilter,
+	opts ...SubscribeOption,
+) (<-chan flow.BlockEvents, <-chan error, error) {
+	req := executiondata.SubscribeEventsRequest{
+		StartBlockId:         startBlockID[:],
+		EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
+	}
+	return c.subscribeEvents(ctx, &req, filter, opts...)
+}
+
+func (c *BaseClient) SubscribeEventsByBlockHeight(
+	ctx context.Context,
+	startHeight uint64,
+	filter flow.EventFilter,
+	opts ...SubscribeOption,
+) (<-chan flow.BlockEvents, <-chan error, error) {
+	req := executiondata.SubscribeEventsRequest{
+		StartBlockHeight:     startHeight,
+		EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
+	}
+	return c.subscribeEvents(ctx, &req, filter, opts...)
+}
+
+func (c *BaseClient) subscribeEvents(
+	ctx context.Context,
+	req *executiondata.SubscribeEventsRequest,
+	filter flow.EventFilter,
+	opts ...SubscribeOption,
+) (<-chan flow.BlockEvents, <-chan error, error) {
+	conf := DefaultSubscribeConfig()
+	for _, apply := range opts {
+		apply(conf)
+	}
+
+	req.Filter = &executiondata.EventFilter{
+		EventType: filter.EventTypes,
+		Address:   filter.Addresses,
+		Contract:  filter.Contracts,
+	}
+	req.HeartbeatInterval = conf.heartbeatInterval
+
+	stream, err := c.executionDataClient.SubscribeEvents(ctx, req, conf.grpcOpts...)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	sub := make(chan flow.BlockEvents)
+	errChan := make(chan error)
+
+	sendErr := func(err error) {
+		select {
+		case <-ctx.Done():
+		case errChan <- err:
+		}
+	}
+
+	go func() {
+		defer close(sub)
+		defer close(errChan)
+
+		for {
+			resp, err := stream.Recv()
+			if err != nil {
+				if err == io.EOF {
+					return
+				}
+
+				sendErr(fmt.Errorf("error receiving event: %w", err))
+				return
+			}
+
+			events, err := messagesToEvents(resp.GetEvents(), c.jsonOptions)
+			if err != nil {
+				sendErr(fmt.Errorf("error converting event for block %d: %w", resp.GetBlockHeight(), err))
+				return
+			}
+
+			response := flow.BlockEvents{
+				Height:         resp.GetBlockHeight(),
+				BlockID:        messageToIdentifier(resp.GetBlockId()),
+				Events:         events,
+				BlockTimestamp: resp.GetBlockTimestamp().AsTime(),
+			}
+
+			select {
+			case <-ctx.Done():
+				return
+			case sub <- response:
+			}
+		}
+	}()
+
+	return sub, errChan, nil
 }

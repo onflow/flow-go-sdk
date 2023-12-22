@@ -455,3 +455,112 @@ func (g *TransactionResults) New() flow.TransactionResult {
 		CollectionID:  g.ids.New(),
 	}
 }
+
+type ExecutionDatas struct {
+	ids    *Identifiers
+	chunks *ChunkExecutionDatas
+}
+
+func ExecutionDataGenerator() *ExecutionDatas {
+	return &ExecutionDatas{
+		ids:    IdentifierGenerator(),
+		chunks: ChunkExecutionDataGenerator(),
+	}
+}
+
+func (g *ExecutionDatas) New() *flow.ExecutionData {
+	return &flow.ExecutionData{
+		BlockID: g.ids.New(),
+		ChunkExecutionData: []*flow.ChunkExecutionData{
+			g.chunks.New(),
+			g.chunks.New(),
+		},
+	}
+}
+
+type ChunkExecutionDatas struct {
+	ids         *Identifiers
+	txs         *Transactions
+	events      *Events
+	trieUpdates *TrieUpdates
+	results     *LightTransactionResults
+}
+
+func ChunkExecutionDataGenerator() *ChunkExecutionDatas {
+	return &ChunkExecutionDatas{
+		ids:         IdentifierGenerator(),
+		txs:         TransactionGenerator(),
+		events:      EventGenerator().WithEncoding(entities.EventEncodingVersion_CCF_V0),
+		trieUpdates: TrieUpdateGenerator(),
+		results:     LightTransactionResultGenerator(),
+	}
+}
+
+func (g *ChunkExecutionDatas) New() *flow.ChunkExecutionData {
+	events := make([]*flow.Event, 0, 2)
+	for i := 0; i < 2; i++ {
+		event := g.events.New()
+		events = append(events, &event)
+	}
+
+	return &flow.ChunkExecutionData{
+		Transactions: []*flow.Transaction{
+			g.txs.New(),
+			g.txs.New(),
+		},
+		Events:     events,
+		TrieUpdate: g.trieUpdates.New(),
+		TransactionResults: []*flow.LightTransactionResult{
+			g.results.New(),
+			g.results.New(),
+		},
+	}
+}
+
+type TrieUpdates struct {
+	ids *Identifiers
+}
+
+func TrieUpdateGenerator() *TrieUpdates {
+	return &TrieUpdates{
+		ids: IdentifierGenerator(),
+	}
+}
+
+func (g *TrieUpdates) New() *flow.TrieUpdate {
+	return &flow.TrieUpdate{
+		RootHash: g.ids.New().Bytes(),
+		Paths: [][]byte{
+			g.ids.New().Bytes(),
+		},
+		Payloads: []*flow.Payload{
+			{
+				KeyPart: []*flow.KeyPart{
+					{
+						Type:  0,
+						Value: g.ids.New().Bytes(),
+					},
+				},
+				Value: g.ids.New().Bytes(),
+			},
+		},
+	}
+}
+
+type LightTransactionResults struct {
+	ids *Identifiers
+}
+
+func LightTransactionResultGenerator() *LightTransactionResults {
+	return &LightTransactionResults{
+		ids: IdentifierGenerator(),
+	}
+}
+
+func (g *LightTransactionResults) New() *flow.LightTransactionResult {
+	return &flow.LightTransactionResult{
+		TransactionID:   g.ids.New(),
+		Failed:          false,
+		ComputationUsed: uint64(42),
+	}
+}
