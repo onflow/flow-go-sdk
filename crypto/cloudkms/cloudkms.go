@@ -28,8 +28,8 @@ import (
 	"strings"
 
 	kms "cloud.google.com/go/kms/apiv1"
+	"cloud.google.com/go/kms/apiv1/kmspb"
 	"google.golang.org/api/option"
-	kmspb "google.golang.org/genproto/googleapis/cloud/kms/v1"
 
 	"github.com/onflow/flow-go-sdk/crypto"
 )

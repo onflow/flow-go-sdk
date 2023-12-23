@@ -30,7 +30,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/onflow/flow-go-sdk/crypto"
-	fgcrypto "github.com/onflow/flow-go/crypto"
 )
 
 func TestGeneratePrivateKey(t *testing.T) {
@@ -38,11 +37,12 @@ func TestGeneratePrivateKey(t *testing.T) {
 	supportedAlgos := []crypto.SignatureAlgorithm{
 		crypto.ECDSA_P256,
 		crypto.ECDSA_secp256k1,
+		crypto.BLS_BLS12_381,
 	}
 
 	// key algorithms not currently supported by the SDK
 	unsupportedAlgos := []crypto.SignatureAlgorithm{
-		fgcrypto.BLSBLS12381,
+		crypto.UnknownSignatureAlgorithm,
 	}
 
 	// key algorithm that does not represent any valid algorithm
@@ -78,14 +78,14 @@ func TestGeneratePrivateKey(t *testing.T) {
 			t.Run("Seed length exactly equal", func(t *testing.T) {
 				sk, err := crypto.GeneratePrivateKey(sigAlgo, equalSeed)
 				require.NoError(t, err)
-				assert.NotEqual(t, nil, sk)
+				assert.NotNil(t, sk)
 				assert.Equal(t, sigAlgo, sk.Algorithm())
 			})
 
 			t.Run("Valid signature algorithm", func(t *testing.T) {
 				sk, err := crypto.GeneratePrivateKey(sigAlgo, longSeed)
 				require.NoError(t, err)
-				assert.NotEqual(t, nil, sk)
+				assert.NotNil(t, sk)
 				assert.Equal(t, sigAlgo, sk.Algorithm())
 			})
 
@@ -121,6 +121,17 @@ func TestGeneratePrivateKey(t *testing.T) {
 		assert.Error(t, err)
 		assert.Nil(t, sk)
 	})
+}
+
+// TestBLS_BLS_12_381 sanity-checks that it is possible to create a signer
+// with BLS
+func TestBLS_BLS_12_381(t *testing.T) {
+	sk, err := crypto.GeneratePrivateKey(crypto.BLS_BLS12_381, makeSeed(t, crypto.MinSeedLength))
+	require.NoError(t, err)
+	hasher := crypto.NewBLSHasher("random_tag")
+	signer := crypto.InMemorySigner{sk, hasher}
+	_, err = signer.Sign([]byte("random_message"))
+	require.Nil(t, err)
 }
 
 func makeSeed(t *testing.T, l int) []byte {

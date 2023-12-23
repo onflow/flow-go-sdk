@@ -51,6 +51,8 @@ To start using the SDK, install Go 1.13 or above and run go get:
 go get github.com/onflow/flow-go-sdk
 ```
 
+Building and running Go commands with the SDK require enabling cgo : `CGO_ENABLED=1`
+
 ## Generating Keys
 
 Flow uses [ECDSA](https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm)

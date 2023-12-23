@@ -23,8 +23,8 @@ import (
 	"time"
 
 	"github.com/onflow/cadence"
+	"github.com/onflow/crypto/hash"
 	"github.com/onflow/flow-go-sdk/crypto"
-	"github.com/onflow/flow-go/crypto/hash"
 )
 
 // List of built-in account event types.
