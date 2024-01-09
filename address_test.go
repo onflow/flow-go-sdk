@@ -64,7 +64,7 @@ func TestHexWithPrefix(t *testing.T) {
 	for _, test := range []testCase{
 		{"0x0000000000000123", []byte{0x1, 0x23}},
 		{"0x0000000000000001", []byte{0x1}},
-		{"0x0000000000000001", []byte{0x1}},
+		{"0xe03daebed8ca0615", []byte{0xe0, 0x3d, 0xae, 0xbe, 0xd8, 0xca, 0x06, 0x15}},
 	} {
 
 		addr := BytesToAddress(test.value)
