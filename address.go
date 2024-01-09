@@ -159,6 +159,11 @@ func (a Address) Hex() string {
 	return hex.EncodeToString(a.Bytes())
 }
 
+// Hex returns the address as hex string with "0x" prefix.
+func (a Address) HexWithPrefix() string {
+	return fmt.Sprintf("0x%s", a.Hex())
+}
+
 // String returns the string representation of the address.
 func (a Address) String() string {
 	return a.Hex()

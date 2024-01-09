@@ -54,6 +54,26 @@ func TestHexToAddress(t *testing.T) {
 	}
 }
 
+func TestHexWithPrefix(t *testing.T) {
+
+	type testCase struct {
+		literal string
+		value   []byte
+	}
+
+	for _, test := range []testCase{
+		{"0x0000000000000123", []byte{0x1, 0x23}},
+		{"0x0000000000000001", []byte{0x1}},
+		{"0x0000000000000001", []byte{0x1}},
+	} {
+
+		addr := BytesToAddress(test.value)
+		expected := addr.HexWithPrefix()
+
+		assert.Equal(t, expected, test.literal)
+		assert.Equal(t, expected, test.literal)
+	}
+}
 func TestAddressJSON(t *testing.T) {
 	addr := ServiceAddress(Mainnet)
 	data, err := json.Marshal(addressWrapper{Address: addr})
