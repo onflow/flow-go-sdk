@@ -104,6 +104,9 @@ const (
 	// Testnet is the chain ID for the testnet chain.
 	Testnet ChainID = "flow-testnet"
 
+	// Crescendo is the chain ID for the crescendo chain.
+	Crescendo ChainID = "flow-crescendo"
+
 	// Transient test networks
 
 	// Benchnet is the chain ID for the transient benchmarking chain.
