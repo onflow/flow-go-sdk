@@ -8,7 +8,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.18.19
 	github.com/aws/aws-sdk-go-v2/service/kms v1.20.1
 	github.com/ethereum/go-ethereum v1.9.13
-	github.com/onflow/cadence v1.0.0-preview.2
+	github.com/onflow/cadence v1.0.0-preview.2.0.20240120000236-f3397a0efdad
 	github.com/onflow/flow-go/crypto v0.24.7
 	github.com/onflow/flow/protobuf/go/flow v0.3.2-0.20221202093946-932d1c70e288
 	github.com/onflow/sdks v0.5.1-0.20230912225508-b35402f12bba
@@ -24,7 +24,7 @@ require (
 	cloud.google.com/go/compute v1.18.0 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	cloud.google.com/go/iam v0.12.0 // indirect
-	github.com/SaveTheRbtz/mph v0.1.2 // indirect
+	github.com/SaveTheRbtz/mph v0.1.1-0.20240117162131-4166ec7869bc // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.18 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.13.1 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.31 // indirect
@@ -62,11 +62,10 @@ require (
 	github.com/turbolent/prettier v0.0.0-20220320183459-661cc755135d // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/zeebo/blake3 v0.2.3 // indirect
-	github.com/zeebo/xxh3 v1.0.2 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/otel v1.14.0 // indirect
 	golang.org/x/crypto v0.7.0 // indirect
-	golang.org/x/exp v0.0.0-20230321023759-10a507213a29 // indirect
+	golang.org/x/exp v0.0.0-20240103183307-be819d1f06fc // indirect
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/net v0.8.0 // indirect
 	golang.org/x/oauth2 v0.6.0 // indirect
