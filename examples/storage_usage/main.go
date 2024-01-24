@@ -134,20 +134,20 @@ func sendSaveLargeResourceTransaction(
 		import StorageDemo from 0x%s
 
 		transaction {
-			prepare(acct: AuthAccount) {
+			prepare(acct: auth(SaveValue) &Account) {
 				let storageUsed = acct.storageUsed
 				
 				// create resource and save it on the account 
 				let bigResource <- StorageDemo.createStorageTestResource("%s")
-				acct.save(<-bigResource, to: /storage/StorageDemo)
+				acct.storage.save(<-bigResource, to: /storage/StorageDemo)
 
-				let storageUsedAfter = acct.storageUsed
+				let storageUsedAfter = acct.storage.used
 
 				if (storageUsed == storageUsedAfter) {
 					panic("storage used will change")
 				}
 				
-				if (storageUsedAfter > acct.storageCapacity) {
+				if (storageUsedAfter > acct.storage.capacity) {
 					// this is where we could deposit more flow to acct to increase its storaga capacity if we wanted to
 					log("Storage used is over capacity. This transaction will fail if storage limits are on on this chain.")
 				}

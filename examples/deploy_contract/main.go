@@ -199,9 +199,9 @@ func GenerateCreateMinterScript(nftAddr flow.Address, initialID, specialMod int)
 
 		transaction {
 
-			prepare(acct: AuthAccount) {
+			prepare(acct: auth(SaveValue) &Account) {
 				let minter <- GreatToken.createGreatNFTMinter(firstID: %d, specialMod: %d)
-				acct.save(<-minter, to: /storage/GreatNFTMinter)
+				acct.storage.save(<-minter, to: /storage/GreatNFTMinter)
 			}
 		}
 	`
@@ -216,13 +216,14 @@ func GenerateMintScript(nftCodeAddr flow.Address) []byte {
 		import GreatToken from 0x%s
 
 		transaction {
-			prepare(acct: AuthAccount) {
-			  let minter = acct.borrow<&GreatToken.GreatNFTMinter>(from: /storage/GreatNFTMinter)!
-			  if let nft <- acct.load<@GreatToken.GreatNFT>(from: /storage/GreatNFT) {
+			prepare(acct: auth(Storage) &Account) {
+			  let minter = acct.storage.borrow<&GreatToken.GreatNFTMinter>(from: /storage/GreatNFTMinter)!
+			  if let nft <- acct.storage.load<@GreatToken.GreatNFT>(from: /storage/GreatNFT) {
 				  destroy nft
 			  }
-			  acct.save(<-minter.mint(), to: /storage/GreatNFT)
-			  acct.link<&GreatToken.GreatNFT>(/public/GreatNFT, target: /storage/GreatNFT)
+			  acct.storage.save(<-minter.mint(), to: /storage/GreatNFT)
+			  let greatNFTCap = acct.capabilities.storage.issue<&GreatToken.GreatNFT>(/storage/GreatNFT)
+			  acct.capabilities.publish(greatNFTCap, at: /public/GreatNFT)
 			}
 		  }
 	`
@@ -237,7 +238,7 @@ func GenerateGetNFTIDScript(nftCodeAddr, userAddr flow.Address) []byte {
 
 		pub fun main(): Int {
 			let acct = getAccount(0x%s)
-			let nft = acct.getCapability(/public/GreatNFT)!.borrow<&GreatToken.GreatNFT>()!
+			let nft = acct.capabilities.borrow<&GreatToken.GreatNFT>(/public/GreatNFT)!
 			return nft.id()
 		}
 	`
