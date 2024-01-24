@@ -10,11 +10,9 @@ require (
 	github.com/ethereum/go-ethereum v1.13.5
 	github.com/onflow/cadence v1.0.0-M3
 	github.com/onflow/crypto v0.25.0
-	github.com/onflow/flow-cli/flowkit v1.8.0
 	github.com/onflow/flow/protobuf/go/flow v0.3.2-0.20231121210617-52ee94b830c2
 	github.com/onflow/sdks v0.5.1-0.20230912225508-b35402f12bba
 	github.com/pkg/errors v0.9.1
-	github.com/spf13/afero v1.10.0
 	github.com/stretchr/testify v1.8.4
 	google.golang.org/api v0.151.0
 	google.golang.org/grpc v1.59.0
@@ -52,6 +50,7 @@ require (
 	github.com/iancoleman/orderedmap v0.0.0-20190318233801-ac98e3ecb4b0 // indirect
 	github.com/invopop/jsonschema v0.7.0 // indirect
 	github.com/k0kubun/pp v3.0.1+incompatible // indirect
+	github.com/k0kubun/pp/v3 v3.2.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.5 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
@@ -87,4 +86,5 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231030173426-d783a09b4405 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+	lukechampine.com/blake3 v1.2.1 // indirect
 )
