@@ -64,8 +64,8 @@ type Client struct {
 	grpc *BaseClient
 }
 
-func (c *Client) Ping(ctx context.Context) error {
-	return c.grpc.Ping(ctx)
+func (c *Client) Ping(ctx context.Context, opts ...grpc.CallOption) error {
+	return c.grpc.Ping(ctx, opts...)
 }
 
 func (c *Client) GetNetworkParameters(ctx context.Context) (*flow.NetworkParameters, error) {
