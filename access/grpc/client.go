@@ -68,6 +68,10 @@ func (c *Client) Ping(ctx context.Context) error {
 	return c.grpc.Ping(ctx)
 }
 
+func (c *Client) WaitServer(ctx context.Context) error {
+	return c.grpc.Ping(ctx, grpc.WaitForReady(true))
+}
+
 func (c *Client) GetNetworkParameters(ctx context.Context) (*flow.NetworkParameters, error) {
 	return c.grpc.GetNetworkParameters(ctx)
 }
