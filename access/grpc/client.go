@@ -40,7 +40,7 @@ const EmulatorHost = "127.0.0.1:3569"
 const TestnetHost = "access.devnet.nodes.onflow.org:9000"
 const CanarynetHost = "access.canary.nodes.onflow.org:9000"
 const MainnetHost = "access.mainnet.nodes.onflow.org:9000"
-const CrescendoHost = "access.crescendo.nodes.onflow.org:9000"
+const PreviewnetHost = "access.previewnet.nodes.onflow.org:9000"
 
 // NewClient creates an gRPC client exposing all the common access APIs.
 // Client will use provided host for connection.

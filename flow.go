@@ -104,11 +104,10 @@ const (
 	// Testnet is the chain ID for the testnet chain.
 	Testnet ChainID = "flow-testnet"
 
-	// Crescendo is the chain ID for the crescendo chain.
-	Crescendo ChainID = "flow-crescendo"
-
 	// Transient test networks
 
+	// Previewnet is the chain ID for the previewnet chain.
+	Previewnet ChainID = "flow-crescendo"
 	// Benchnet is the chain ID for the transient benchmarking chain.
 	Benchnet ChainID = "flow-benchnet"
 	// Localnet is the chain ID for the local development chain.
@@ -127,7 +126,7 @@ func (id ChainID) String() string {
 }
 
 type NetworkParameters struct {
-	ChainID          ChainID
+	ChainID ChainID
 }
 
 // entityHasher is a thread-safe hasher used to hash Flow entities.
