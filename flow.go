@@ -107,7 +107,7 @@ const (
 	// Transient test networks
 
 	// Previewnet is the chain ID for the previewnet chain.
-	Previewnet ChainID = "flow-crescendo"
+	Previewnet ChainID = "flow-previewnet"
 	// Benchnet is the chain ID for the transient benchmarking chain.
 	Benchnet ChainID = "flow-benchnet"
 	// Localnet is the chain ID for the local development chain.
