@@ -677,6 +677,66 @@ func (_m *MockRPCClient) GetProtocolStateSnapshotByHeight(ctx context.Context, i
 	return r0, r1
 }
 
+// GetSystemTransaction provides a mock function with given fields: ctx, in, opts
+func (_m *MockRPCClient) GetSystemTransaction(ctx context.Context, in *access.GetSystemTransactionRequest, opts ...grpc.CallOption) (*access.TransactionResponse, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, in)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *access.TransactionResponse
+	if rf, ok := ret.Get(0).(func(context.Context, *access.GetSystemTransactionRequest, ...grpc.CallOption) *access.TransactionResponse); ok {
+		r0 = rf(ctx, in, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*access.TransactionResponse)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *access.GetSystemTransactionRequest, ...grpc.CallOption) error); ok {
+		r1 = rf(ctx, in, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetSystemTransactionResult provides a mock function with given fields: ctx, in, opts
+func (_m *MockRPCClient) GetSystemTransactionResult(ctx context.Context, in *access.GetSystemTransactionResultRequest, opts ...grpc.CallOption) (*access.TransactionResultResponse, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, in)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *access.TransactionResultResponse
+	if rf, ok := ret.Get(0).(func(context.Context, *access.GetSystemTransactionResultRequest, ...grpc.CallOption) *access.TransactionResultResponse); ok {
+		r0 = rf(ctx, in, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*access.TransactionResultResponse)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *access.GetSystemTransactionResultRequest, ...grpc.CallOption) error); ok {
+		r1 = rf(ctx, in, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetTransaction provides a mock function with given fields: ctx, in, opts
 func (_m *MockRPCClient) GetTransaction(ctx context.Context, in *access.GetTransactionRequest, opts ...grpc.CallOption) (*access.TransactionResponse, error) {
 	_va := make([]interface{}, len(opts))
