@@ -32,6 +32,7 @@ const (
 	TestnetHost   = "https://rest-testnet.onflow.org/v1"
 	MainnetHost   = "https://rest-mainnet.onflow.org/v1"
 	CanarynetHost = "https://rest-canary.onflow.org/v1"
+	CrescendoHost = "https://rest-crescendo.onflow.org/v1"
 )
 
 // NewClient creates an HTTP client exposing all the common access APIs.
@@ -51,6 +52,10 @@ type Client struct {
 
 func (c *Client) Ping(ctx context.Context) error {
 	return c.httpClient.Ping(ctx)
+}
+
+func (c *Client) GetNetworkParameters(ctx context.Context) (*flow.NetworkParameters, error) {
+	return c.httpClient.GetNetworkParameters(ctx)
 }
 
 func (c *Client) GetBlockByID(ctx context.Context, blockID flow.Identifier) (*flow.Block, error) {
@@ -223,6 +228,26 @@ func (c *Client) GetLatestProtocolStateSnapshot(ctx context.Context) ([]byte, er
 
 func (c *Client) GetExecutionResultForBlockID(ctx context.Context, blockID flow.Identifier) (*flow.ExecutionResult, error) {
 	return c.httpClient.GetExecutionResultForBlockID(ctx, blockID)
+}
+
+func (c *Client) GetExecutionDataByBlockID(ctx context.Context, blockID flow.Identifier) (*flow.ExecutionData, error) {
+	return nil, fmt.Errorf("not implemented")
+}
+
+func (c *Client) SubscribeExecutionDataByBlockID(ctx context.Context, startBlockID flow.Identifier) (<-chan flow.ExecutionDataStreamResponse, <-chan error, error) {
+	return nil, nil, fmt.Errorf("not implemented")
+}
+
+func (c *Client) SubscribeExecutionDataByBlockHeight(ctx context.Context, startHeight uint64) (<-chan flow.ExecutionDataStreamResponse, <-chan error, error) {
+	return nil, nil, fmt.Errorf("not implemented")
+}
+
+func (c *Client) SubscribeEventsByBlockID(ctx context.Context, startBlockID flow.Identifier, filter flow.EventFilter) (<-chan flow.BlockEvents, <-chan error, error) {
+	return nil, nil, fmt.Errorf("not implemented")
+}
+
+func (c *Client) SubscribeEventsByBlockHeight(ctx context.Context, startHeight uint64, filter flow.EventFilter) (<-chan flow.BlockEvents, <-chan error, error) {
+	return nil, nil, fmt.Errorf("not implemented")
 }
 
 func (c *Client) Close() error {

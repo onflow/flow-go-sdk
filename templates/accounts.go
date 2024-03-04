@@ -28,8 +28,9 @@ import (
 	"github.com/onflow/cadence/runtime"
 	"github.com/onflow/cadence/runtime/common"
 	"github.com/onflow/cadence/runtime/sema"
-	"github.com/onflow/flow-go-sdk/crypto"
 	templates "github.com/onflow/sdks"
+
+	"github.com/onflow/flow-go-sdk/crypto"
 
 	"github.com/onflow/flow-go-sdk"
 )

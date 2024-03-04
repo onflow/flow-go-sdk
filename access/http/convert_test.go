@@ -113,6 +113,8 @@ func Test_ConvertTransactionResult(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, txr.Events[0].Payload, payload)
 	assert.Equal(t, txr.Events[0].TransactionID.String(), httpTxr.Events[0].TransactionId)
+	assert.Equal(t, txr.BlockID.String(), httpTxr.BlockId)
+	assert.Equal(t, txr.CollectionID.String(), httpTxr.CollectionId)
 	assert.Equal(t, fmt.Sprintf("%d", txr.Events[0].TransactionIndex), httpTxr.Events[0].TransactionIndex)
 }
 

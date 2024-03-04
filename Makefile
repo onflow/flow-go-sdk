@@ -1,9 +1,14 @@
 # Ensure go bin path is in path (especially for CI)
 PATH := $(PATH):$(GOPATH)/bin
 
+# include script to possibly set a crypto flag for older machines
+include crypto_adx_flag.mk
+
+CGO_FLAG := CGO_CFLAGS=$(CRYPTO_FLAG)
+
 .PHONY: test
 test:
-	GO111MODULE=on go test -coverprofile=coverage.txt ./...
+	GO111MODULE=on $(CGO_FLAG) go test -coverprofile=coverage.txt ./...
 
 .PHONY: coverage
 coverage: test

@@ -20,19 +20,26 @@ package grpc
 
 import (
 	"context"
+	"io"
 	"math/rand"
+	"sync"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/flow/protobuf/go/flow/access"
 	"github.com/onflow/flow/protobuf/go/flow/entities"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/require"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/timestamppb"
+	"github.com/onflow/flow/protobuf/go/flow/executiondata"
+
+	"github.com/onflow/flow-go-sdk/access/grpc/mocks"
 
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/test"
@@ -44,19 +51,31 @@ var (
 )
 
 func clientTest(
-	f func(t *testing.T, ctx context.Context, rpc *MockRPCClient, client *BaseClient),
+	f func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, client *BaseClient),
 ) func(t *testing.T) {
 	return func(t *testing.T) {
 		ctx := context.Background()
-		rpc := &MockRPCClient{}
+		rpc := new(mocks.MockRPCClient)
 		c := NewFromRPCClient(rpc)
 		f(t, ctx, rpc, c)
 		rpc.AssertExpectations(t)
 	}
 }
 
+func executionDataClientTest(
+	f func(t *testing.T, ctx context.Context, rpc *mocks.MockExecutionDataRPCClient, client *BaseClient),
+) func(t *testing.T) {
+	return func(t *testing.T) {
+		ctx := context.Background()
+		rpc := new(mocks.MockExecutionDataRPCClient)
+		c := NewFromExecutionDataRPCClient(rpc)
+		f(t, ctx, rpc, c)
+		rpc.AssertExpectations(t)
+	}
+}
+
 func TestClient_Ping(t *testing.T) {
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		response := &access.PingResponse{}
 
 		rpc.On("Ping", ctx, mock.Anything).Return(response, nil)
@@ -65,7 +84,7 @@ func TestClient_Ping(t *testing.T) {
 		assert.NoError(t, err)
 	}))
 
-	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		rpc.On("Ping", ctx, mock.Anything).
 			Return(nil, errInternal)
 
@@ -75,10 +94,38 @@ func TestClient_Ping(t *testing.T) {
 	}))
 }
 
+func TestClient_GetNetworkParameters(t *testing.T) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		response := &access.GetNetworkParametersResponse{
+			ChainId: "flow-testnet",
+		}
+		expectedParams := &flow.NetworkParameters{
+			ChainID: flow.ChainID("flow-testnet"),
+		}
+
+		rpc.On("GetNetworkParameters", ctx, mock.Anything).Return(response, nil)
+
+		params, err := c.GetNetworkParameters(ctx)
+		require.NoError(t, err)
+
+		assert.Equal(t, params, expectedParams)
+	}))
+
+	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		rpc.On("GetNetworkParameters", ctx, mock.Anything).
+			Return(nil, errInternal)
+
+		params, err := c.GetNetworkParameters(ctx)
+		assert.Error(t, err)
+		assert.Equal(t, codes.Internal, status.Code(err))
+		assert.Nil(t, params)
+	}))
+}
+
 func TestClient_GetLatestBlockHeader(t *testing.T) {
 	blocks := test.BlockGenerator()
 
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		expectedHeader := blocks.New().BlockHeader
 
 		b, err := blockHeaderToMessage(expectedHeader)
@@ -96,7 +143,7 @@ func TestClient_GetLatestBlockHeader(t *testing.T) {
 		assert.Equal(t, expectedHeader, *header)
 	}))
 
-	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		rpc.On("GetLatestBlockHeader", ctx, mock.Anything).
 			Return(nil, errInternal)
 
@@ -111,7 +158,7 @@ func TestClient_GetBlockHeaderByID(t *testing.T) {
 	blocks := test.BlockGenerator()
 	ids := test.IdentifierGenerator()
 
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		blockID := ids.New()
 		expectedHeader := blocks.New().BlockHeader
 
@@ -130,7 +177,7 @@ func TestClient_GetBlockHeaderByID(t *testing.T) {
 		assert.Equal(t, expectedHeader, *header)
 	}))
 
-	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		blockID := ids.New()
 
 		rpc.On("GetBlockHeaderByID", ctx, mock.Anything).
@@ -146,7 +193,7 @@ func TestClient_GetBlockHeaderByID(t *testing.T) {
 func TestClient_GetBlockHeaderByHeight(t *testing.T) {
 	blocks := test.BlockGenerator()
 
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		expectedHeader := blocks.New().BlockHeader
 
 		b, err := blockHeaderToMessage(expectedHeader)
@@ -164,7 +211,7 @@ func TestClient_GetBlockHeaderByHeight(t *testing.T) {
 		assert.Equal(t, expectedHeader, *header)
 	}))
 
-	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		rpc.On("GetBlockHeaderByHeight", ctx, mock.Anything).
 			Return(nil, errNotFound)
 
@@ -178,7 +225,7 @@ func TestClient_GetBlockHeaderByHeight(t *testing.T) {
 func TestClient_GetLatestBlock(t *testing.T) {
 	blocks := test.BlockGenerator()
 
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		expectedBlock := blocks.New()
 
 		b, err := blockToMessage(*expectedBlock)
@@ -196,7 +243,7 @@ func TestClient_GetLatestBlock(t *testing.T) {
 		assert.Equal(t, expectedBlock, block)
 	}))
 
-	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		rpc.On("GetLatestBlock", ctx, mock.Anything).
 			Return(nil, errInternal)
 
@@ -211,7 +258,7 @@ func TestClient_GetBlockByID(t *testing.T) {
 	blocks := test.BlockGenerator()
 	ids := test.IdentifierGenerator()
 
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		blockID := ids.New()
 		expectedBlock := blocks.New()
 
@@ -230,7 +277,7 @@ func TestClient_GetBlockByID(t *testing.T) {
 		assert.Equal(t, expectedBlock, block)
 	}))
 
-	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		blockID := ids.New()
 
 		rpc.On("GetBlockByID", ctx, mock.Anything).
@@ -246,7 +293,7 @@ func TestClient_GetBlockByID(t *testing.T) {
 func TestClient_GetBlockByHeight(t *testing.T) {
 	blocks := test.BlockGenerator()
 
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		expectedBlock := blocks.New()
 
 		b, err := blockToMessage(*expectedBlock)
@@ -264,7 +311,7 @@ func TestClient_GetBlockByHeight(t *testing.T) {
 		assert.Equal(t, expectedBlock, block)
 	}))
 
-	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		rpc.On("GetBlockByHeight", ctx, mock.Anything).
 			Return(nil, errNotFound)
 
@@ -279,7 +326,7 @@ func TestClient_GetCollection(t *testing.T) {
 	cols := test.CollectionGenerator()
 	ids := test.IdentifierGenerator()
 
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		colID := ids.New()
 		expectedCol := cols.New()
 		response := &access.CollectionResponse{
@@ -294,7 +341,7 @@ func TestClient_GetCollection(t *testing.T) {
 		assert.Equal(t, expectedCol, col)
 	}))
 
-	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		colID := ids.New()
 
 		rpc.On("GetCollectionByID", ctx, mock.Anything).
@@ -310,7 +357,7 @@ func TestClient_GetCollection(t *testing.T) {
 func TestClient_SendTransaction(t *testing.T) {
 	transactions := test.TransactionGenerator()
 
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		tx := transactions.New()
 
 		response := &access.SendTransactionResponse{
@@ -323,7 +370,7 @@ func TestClient_SendTransaction(t *testing.T) {
 		require.NoError(t, err)
 	}))
 
-	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		tx := transactions.New()
 
 		rpc.On("SendTransaction", ctx, mock.Anything).
@@ -339,7 +386,7 @@ func TestClient_GetTransaction(t *testing.T) {
 	txs := test.TransactionGenerator()
 	ids := test.IdentifierGenerator()
 
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		txID := ids.New()
 		expectedTx := txs.New()
 
@@ -358,7 +405,7 @@ func TestClient_GetTransaction(t *testing.T) {
 		assert.Equal(t, expectedTx, tx)
 	}))
 
-	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		txID := ids.New()
 
 		rpc.On("GetTransaction", ctx, mock.Anything).
@@ -376,7 +423,7 @@ func TestClient_GetTransactionsByBlockID(t *testing.T) {
 	ids := test.IdentifierGenerator()
 	blockID := ids.New()
 
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		expectedTx := txs.New()
 
 		txMsg, err := transactionToMessage(*expectedTx)
@@ -395,7 +442,7 @@ func TestClient_GetTransactionsByBlockID(t *testing.T) {
 		assert.Equal(t, expectedTx, txs[0])
 	}))
 
-	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		rpc.On("GetTransactionsByBlockID", ctx, mock.Anything).
 			Return(nil, errNotFound)
 
@@ -410,7 +457,7 @@ func TestClient_GetTransactionResult(t *testing.T) {
 	results := test.TransactionResultGenerator()
 	ids := test.IdentifierGenerator()
 
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		txID := ids.New()
 		expectedResult := results.New()
 		response, _ := transactionResultToMessage(expectedResult)
@@ -430,7 +477,7 @@ func TestClient_GetTransactionResult(t *testing.T) {
 
 	}))
 
-	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		txID := ids.New()
 
 		rpc.On("GetTransactionResult", ctx, mock.Anything).
@@ -447,7 +494,7 @@ func TestClient_GetTransactionResultsByBlockID(t *testing.T) {
 	resultGenerator := test.TransactionResultGenerator()
 	ids := test.IdentifierGenerator()
 
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		blockID := ids.New()
 		expectedResult := resultGenerator.New()
 		response, err := transactionResultToMessage(expectedResult)
@@ -474,7 +521,7 @@ func TestClient_GetTransactionResultsByBlockID(t *testing.T) {
 		assert.Equal(t, expectedResult, *results[0])
 	}))
 
-	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		blockID := ids.New()
 
 		rpc.On("GetTransactionResultsByBlockID", ctx, mock.Anything).
@@ -491,7 +538,7 @@ func TestClient_GetAccountAtLatestBlock(t *testing.T) {
 	accounts := test.AccountGenerator()
 	addresses := test.AddressGenerator()
 
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		expectedAccount := accounts.New()
 		response := &access.AccountResponse{
 			Account: accountToMessage(*expectedAccount),
@@ -505,7 +552,7 @@ func TestClient_GetAccountAtLatestBlock(t *testing.T) {
 		assert.Equal(t, expectedAccount, account)
 	}))
 
-	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		address := addresses.New()
 
 		rpc.On("GetAccountAtLatestBlock", ctx, mock.Anything).
@@ -523,7 +570,7 @@ func TestClient_GetAccountAtBlockHeight(t *testing.T) {
 	addresses := test.AddressGenerator()
 	height := uint64(42)
 
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		expectedAccount := accounts.New()
 		response := &access.AccountResponse{
 			Account: accountToMessage(*expectedAccount),
@@ -537,7 +584,7 @@ func TestClient_GetAccountAtBlockHeight(t *testing.T) {
 		assert.Equal(t, expectedAccount, account)
 	}))
 
-	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		address := addresses.New()
 
 		rpc.On("GetAccountAtBlockHeight", ctx, mock.Anything).
@@ -551,7 +598,7 @@ func TestClient_GetAccountAtBlockHeight(t *testing.T) {
 }
 
 func TestClient_ExecuteScriptAtLatestBlock(t *testing.T) {
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		expectedValue := cadence.NewInt(42)
 		encodedValue, err := jsoncdc.Encode(expectedValue)
 		require.NoError(t, err)
@@ -569,7 +616,7 @@ func TestClient_ExecuteScriptAtLatestBlock(t *testing.T) {
 		assert.Equal(t, expectedValue, value)
 	}))
 
-	t.Run("Arguments", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Arguments", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		expectedValue := cadence.NewInt(42)
 		encodedValue, err := jsoncdc.Encode(expectedValue)
 		require.NoError(t, err)
@@ -597,7 +644,7 @@ func TestClient_ExecuteScriptAtLatestBlock(t *testing.T) {
 
 	t.Run(
 		"Invalid JSON-CDC",
-		clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+		clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 			response := &access.ExecuteScriptResponse{
 				Value: []byte("invalid JSON-CDC bytes"),
 			}
@@ -610,7 +657,7 @@ func TestClient_ExecuteScriptAtLatestBlock(t *testing.T) {
 		}),
 	)
 
-	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		rpc.On("ExecuteScriptAtLatestBlock", ctx, mock.Anything).
 			Return(nil, errInternal)
 
@@ -624,7 +671,7 @@ func TestClient_ExecuteScriptAtLatestBlock(t *testing.T) {
 func TestClient_ExecuteScriptAtBlockID(t *testing.T) {
 	ids := test.IdentifierGenerator()
 
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		expectedValue := cadence.NewInt(42)
 		encodedValue, err := jsoncdc.Encode(expectedValue)
 		require.NoError(t, err)
@@ -643,7 +690,7 @@ func TestClient_ExecuteScriptAtBlockID(t *testing.T) {
 
 	t.Run(
 		"Invalid JSON-CDC",
-		clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+		clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 			response := &access.ExecuteScriptResponse{
 				Value: []byte("invalid JSON-CDC bytes"),
 			}
@@ -656,7 +703,7 @@ func TestClient_ExecuteScriptAtBlockID(t *testing.T) {
 		}),
 	)
 
-	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		rpc.On("ExecuteScriptAtBlockID", ctx, mock.Anything).
 			Return(nil, errNotFound)
 
@@ -668,7 +715,7 @@ func TestClient_ExecuteScriptAtBlockID(t *testing.T) {
 }
 
 func TestClient_ExecuteScriptAtBlockHeight(t *testing.T) {
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		expectedValue := cadence.NewInt(42)
 		encodedValue, err := jsoncdc.Encode(expectedValue)
 		require.NoError(t, err)
@@ -687,7 +734,7 @@ func TestClient_ExecuteScriptAtBlockHeight(t *testing.T) {
 
 	t.Run(
 		"Invalid JSON-CDC",
-		clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+		clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 			response := &access.ExecuteScriptResponse{
 				Value: []byte("invalid JSON-CDC bytes"),
 			}
@@ -700,7 +747,7 @@ func TestClient_ExecuteScriptAtBlockHeight(t *testing.T) {
 		}),
 	)
 
-	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		rpc.On("ExecuteScriptAtBlockHeight", ctx, mock.Anything).
 			Return(nil, errNotFound)
 
@@ -717,7 +764,7 @@ func TestClient_GetEventsForHeightRange(t *testing.T) {
 
 	t.Run(
 		"Empty result",
-		clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+		clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 			response := &access.EventsResponse{
 				Results: []*access.EventsResponse_Result{},
 			}
@@ -737,7 +784,7 @@ func TestClient_GetEventsForHeightRange(t *testing.T) {
 
 	t.Run(
 		"Non-empty result",
-		clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+		clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 			eventA, eventB, eventC, eventD := events.New(), events.New(), events.New(), events.New()
 
 			eventAMsg, _ := eventToMessage(eventA)
@@ -800,7 +847,7 @@ func TestClient_GetEventsForHeightRange(t *testing.T) {
 		}),
 	)
 
-	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		rpc.On("GetEventsForHeightRange", ctx, mock.Anything).
 			Return(nil, errInternal)
 
@@ -822,7 +869,7 @@ func TestClient_GetEventsForBlockIDs(t *testing.T) {
 
 	t.Run(
 		"Empty result",
-		clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+		clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 			blockIDs := []flow.Identifier{ids.New(), ids.New()}
 
 			response := &access.EventsResponse{
@@ -840,7 +887,7 @@ func TestClient_GetEventsForBlockIDs(t *testing.T) {
 
 	t.Run(
 		"Non-empty result",
-		clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+		clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 			blockIDA, blockIDB := ids.New(), ids.New()
 			eventA, eventB, eventC, eventD := events.New(), events.New(), events.New(), events.New()
 
@@ -900,7 +947,7 @@ func TestClient_GetEventsForBlockIDs(t *testing.T) {
 		}),
 	)
 
-	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		blockIDA, blockIDB := ids.New(), ids.New()
 
 		rpc.On("GetEventsForBlockIDs", ctx, mock.Anything).
@@ -914,7 +961,7 @@ func TestClient_GetEventsForBlockIDs(t *testing.T) {
 }
 
 func TestClient_GetLatestProtocolStateSnapshot(t *testing.T) {
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		expected := &access.ProtocolStateSnapshotResponse{
 			SerializedSnapshot: make([]byte, 128),
 		}
@@ -928,7 +975,7 @@ func TestClient_GetLatestProtocolStateSnapshot(t *testing.T) {
 		assert.Equal(t, expected.SerializedSnapshot, res)
 	}))
 
-	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		rpc.On("GetLatestProtocolStateSnapshot", ctx, mock.Anything).
 			Return(nil, errInternal)
 
@@ -940,7 +987,7 @@ func TestClient_GetLatestProtocolStateSnapshot(t *testing.T) {
 
 func TestClient_GetExecutionResultForBlockID(t *testing.T) {
 	ids := test.IdentifierGenerator()
-	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		blockID := ids.New()
 		executionResult := &entities.ExecutionResult{
 			PreviousResultId: ids.New().Bytes(),
@@ -1010,7 +1057,7 @@ func TestClient_GetExecutionResultForBlockID(t *testing.T) {
 
 	}))
 
-	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *MockRPCClient, c *BaseClient) {
+	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		rpc.On("GetLatestProtocolStateSnapshot", ctx, mock.Anything).
 			Return(nil, errInternal)
 
@@ -1018,4 +1065,482 @@ func TestClient_GetExecutionResultForBlockID(t *testing.T) {
 		assert.Error(t, err)
 		assert.Equal(t, codes.Internal, status.Code(err))
 	}))
+}
+
+func TestClient_SubscribeExecutionData(t *testing.T) {
+	ids := test.IdentifierGenerator()
+
+	t.Run("Happy Path - by height", executionDataClientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockExecutionDataRPCClient, c *BaseClient) {
+		responseCount := uint64(1000)
+		startHeight := uint64(10)
+
+		req := executiondata.SubscribeExecutionDataRequest{
+			StartBlockHeight:     startHeight,
+			EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
+		}
+
+		ctx, cancel := context.WithCancel(ctx)
+		stream := &mockExecutionDataStream{ctx: ctx}
+		for i := startHeight; i < startHeight+responseCount; i++ {
+			stream.responses = append(stream.responses, generateExecutionDataResponse(t, ids.New(), i))
+		}
+
+		rpc.On("SubscribeExecutionData", ctx, mock.Anything).
+			Return(stream, nil).
+			Run(assertSubscribeExecutionDataArgs(t, &req))
+
+		eventCh, errCh, err := c.SubscribeExecutionDataByBlockHeight(ctx, startHeight)
+		require.NoError(t, err)
+
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go assertNoErrors(t, errCh, wg.Done)
+
+		i := 0
+		for response := range eventCh {
+			assert.Equal(t, stream.responses[i].BlockHeight, response.Height)
+			assert.Equal(t, stream.responses[i].BlockExecutionData.BlockId[:], response.ExecutionData.BlockID[:])
+			assert.Equal(t, stream.responses[i].BlockTimestamp.AsTime(), response.BlockTimestamp)
+			i++
+			if i == len(stream.responses) {
+				cancel()
+				break
+			}
+		}
+
+		wg.Wait()
+	}))
+
+	t.Run("Happy Path - by block ID", executionDataClientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockExecutionDataRPCClient, c *BaseClient) {
+		responseCount := uint64(1000)
+		startBlockID := ids.New()
+		startHeight := uint64(10)
+
+		req := executiondata.SubscribeExecutionDataRequest{
+			StartBlockId:         startBlockID[:],
+			EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
+		}
+
+		ctx, cancel := context.WithCancel(ctx)
+		stream := &mockExecutionDataStream{ctx: ctx}
+		for i := startHeight; i < startHeight+responseCount; i++ {
+			stream.responses = append(stream.responses, generateExecutionDataResponse(t, ids.New(), i))
+		}
+
+		rpc.On("SubscribeExecutionData", ctx, mock.Anything).
+			Return(stream, nil).
+			Run(assertSubscribeExecutionDataArgs(t, &req))
+
+		eventCh, errCh, err := c.SubscribeExecutionDataByBlockID(ctx, startBlockID)
+		require.NoError(t, err)
+
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go assertNoErrors(t, errCh, wg.Done)
+
+		i := 0
+		for response := range eventCh {
+			assert.Equal(t, stream.responses[i].BlockHeight, response.Height)
+			assert.Equal(t, stream.responses[i].BlockExecutionData.BlockId[:], response.ExecutionData.BlockID[:])
+			assert.Equal(t, stream.responses[i].BlockTimestamp.AsTime(), response.BlockTimestamp)
+			i++
+			if i == len(stream.responses) {
+				cancel()
+				break
+			}
+		}
+
+		wg.Wait()
+	}))
+
+	// Test that SubscribeExecutionData returns an error and closes the subscription if the stream returns an error
+	t.Run("Returns error from stream", executionDataClientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockExecutionDataRPCClient, c *BaseClient) {
+		startHeight := uint64(10)
+
+		req := executiondata.SubscribeExecutionDataRequest{
+			StartBlockHeight:     startHeight,
+			EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
+		}
+
+		stream := &mockExecutionDataStream{
+			err: status.Error(codes.Internal, "internal error"),
+		}
+
+		rpc.On("SubscribeExecutionData", ctx, mock.Anything).
+			Return(stream, nil).
+			Run(assertSubscribeExecutionDataArgs(t, &req))
+
+		eventCh, errCh, err := c.SubscribeExecutionDataByBlockHeight(ctx, startHeight)
+		require.NoError(t, err)
+
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go assertNoEvents(t, eventCh, wg.Done)
+
+		i := 0
+		for err := range errCh {
+			assert.ErrorIs(t, err, stream.err)
+			i++
+			if i > 1 {
+				t.Fatal("should only receive one error")
+			}
+		}
+
+		wg.Wait()
+	}))
+
+	// Test that SubscribeExecutionData returns an error and closes the subscription if an error is encountered while converting the response
+	t.Run("Returns error from convert", executionDataClientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockExecutionDataRPCClient, c *BaseClient) {
+		startHeight := uint64(10)
+
+		req := executiondata.SubscribeExecutionDataRequest{
+			StartBlockHeight:     startHeight,
+			EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
+		}
+
+		stream := &mockExecutionDataStream{ctx: ctx}
+		stream.responses = append(stream.responses, &executiondata.SubscribeExecutionDataResponse{
+			BlockHeight:        startHeight,
+			BlockExecutionData: nil, // nil BlockExecutionData should cause an error
+		})
+
+		rpc.On("SubscribeExecutionData", ctx, mock.Anything).
+			Return(stream, nil).
+			Run(assertSubscribeExecutionDataArgs(t, &req))
+
+		eventCh, errCh, err := c.SubscribeExecutionDataByBlockHeight(ctx, startHeight)
+		require.NoError(t, err)
+
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go assertNoEvents(t, eventCh, wg.Done)
+
+		i := 0
+		for err := range errCh {
+			assert.Error(t, err, stream.err)
+			i++
+			if i > 1 {
+				t.Fatal("should only receive one error")
+			}
+		}
+
+		wg.Wait()
+	}))
+}
+
+func TestClient_SubscribeEvents(t *testing.T) {
+	ids := test.IdentifierGenerator()
+	events := test.EventGenerator().WithEncoding(entities.EventEncodingVersion_CCF_V0)
+	addresses := test.AddressGenerator()
+
+	getEvents := func(count int) []flow.Event {
+		res := make([]flow.Event, count)
+		for i := 0; i < count; i++ {
+			res[i] = events.New()
+		}
+		return res
+	}
+
+	t.Run("Happy Path - by height", executionDataClientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockExecutionDataRPCClient, c *BaseClient) {
+		responseCount := uint64(1000)
+		startHeight := uint64(10)
+		filter := flow.EventFilter{
+			EventTypes: []string{events.New().Type, events.New().Type},
+			Addresses:  []string{addresses.New().String(), addresses.New().String()},
+			Contracts:  []string{"A.0.B", "A.1.C"},
+		}
+
+		req := executiondata.SubscribeEventsRequest{
+			Filter: &executiondata.EventFilter{
+				EventType: filter.EventTypes,
+				Address:   filter.Addresses,
+				Contract:  filter.Contracts,
+			},
+			EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
+			HeartbeatInterval:    1234,
+			StartBlockHeight:     startHeight,
+		}
+
+		ctx, cancel := context.WithCancel(ctx)
+		stream := &mockEventStream{ctx: ctx}
+		for i := startHeight; i < startHeight+responseCount; i++ {
+			stream.responses = append(stream.responses, generateEventResponse(t, ids.New(), i, getEvents(2)))
+		}
+
+		rpc.On("SubscribeEvents", ctx, mock.Anything).
+			Return(stream, nil).
+			Run(assertSubscribeEventsArgs(t, &req))
+
+		eventCh, errCh, err := c.SubscribeEventsByBlockHeight(ctx, startHeight, filter, WithHeartbeatInterval(req.HeartbeatInterval))
+		require.NoError(t, err)
+
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go assertNoErrors(t, errCh, wg.Done)
+
+		i := 0
+		for response := range eventCh {
+			assert.Equal(t, stream.responses[i].BlockHeight, response.Height)
+			assert.Equal(t, stream.responses[i].BlockId, response.BlockID[:])
+			assert.Equal(t, len(stream.responses[i].Events), len(response.Events))
+			i++
+			if i == len(stream.responses) {
+				cancel()
+				break
+			}
+		}
+
+		wg.Wait()
+	}))
+
+	t.Run("Happy Path - by block ID", executionDataClientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockExecutionDataRPCClient, c *BaseClient) {
+		responseCount := uint64(1000)
+		startBlockID := ids.New()
+		startHeight := uint64(10)
+		filter := flow.EventFilter{
+			EventTypes: []string{events.New().Type, events.New().Type},
+			Addresses:  []string{addresses.New().String(), addresses.New().String()},
+			Contracts:  []string{"A.0.B", "A.1.C"},
+		}
+
+		req := executiondata.SubscribeEventsRequest{
+			Filter: &executiondata.EventFilter{
+				EventType: filter.EventTypes,
+				Address:   filter.Addresses,
+				Contract:  filter.Contracts,
+			},
+			EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
+			HeartbeatInterval:    1234,
+			StartBlockId:         startBlockID[:],
+		}
+
+		ctx, cancel := context.WithCancel(ctx)
+		stream := &mockEventStream{ctx: ctx}
+		for i := startHeight; i < startHeight+responseCount; i++ {
+			stream.responses = append(stream.responses, generateEventResponse(t, ids.New(), i, getEvents(2)))
+		}
+
+		rpc.On("SubscribeEvents", ctx, mock.Anything).
+			Return(stream, nil).
+			Run(assertSubscribeEventsArgs(t, &req))
+
+		eventCh, errCh, err := c.SubscribeEventsByBlockID(ctx, startBlockID, filter, WithHeartbeatInterval(req.HeartbeatInterval))
+		require.NoError(t, err)
+
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go assertNoErrors(t, errCh, wg.Done)
+
+		i := 0
+		for response := range eventCh {
+			assert.Equal(t, stream.responses[i].BlockHeight, response.Height)
+			assert.Equal(t, stream.responses[i].BlockId, response.BlockID[:])
+			assert.Equal(t, len(stream.responses[i].Events), len(response.Events))
+			i++
+			if i == len(stream.responses) {
+				cancel()
+				break
+			}
+		}
+
+		wg.Wait()
+	}))
+
+	// Test that SubscribeEvents returns an error and closes the subscription if the stream returns an error
+	t.Run("Returns error from stream", executionDataClientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockExecutionDataRPCClient, c *BaseClient) {
+		startHeight := uint64(10)
+		filter := flow.EventFilter{}
+
+		req := executiondata.SubscribeEventsRequest{
+			Filter: &executiondata.EventFilter{
+				EventType: filter.EventTypes,
+				Address:   filter.Addresses,
+				Contract:  filter.Contracts,
+			},
+			EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
+			HeartbeatInterval:    100,
+			StartBlockHeight:     startHeight,
+		}
+
+		stream := &mockEventStream{
+			err: status.Error(codes.Internal, "internal error"),
+		}
+
+		rpc.On("SubscribeEvents", ctx, mock.Anything).
+			Return(stream, nil).
+			Run(assertSubscribeEventsArgs(t, &req))
+
+		eventCh, errCh, err := c.SubscribeEventsByBlockHeight(ctx, startHeight, filter)
+		require.NoError(t, err)
+
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go assertNoEvents(t, eventCh, wg.Done)
+
+		i := 0
+		for err := range errCh {
+			assert.ErrorIs(t, err, stream.err)
+			i++
+			if i > 1 {
+				t.Fatal("should only receive one error")
+			}
+		}
+
+		wg.Wait()
+	}))
+
+	// Test that SubscribeEvents returns an error and closes the subscription if an error is encountered while converting the response
+	t.Run("Returns error from convert", executionDataClientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockExecutionDataRPCClient, c *BaseClient) {
+		startHeight := uint64(10)
+		filter := flow.EventFilter{}
+
+		req := executiondata.SubscribeEventsRequest{
+			Filter: &executiondata.EventFilter{
+				EventType: filter.EventTypes,
+				Address:   filter.Addresses,
+				Contract:  filter.Contracts,
+			},
+			EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
+			HeartbeatInterval:    100,
+			StartBlockHeight:     startHeight,
+		}
+
+		stream := &mockEventStream{ctx: ctx}
+		stream.responses = append(stream.responses, generateEventResponse(t, ids.New(), startHeight, getEvents(2)))
+
+		// corrupt the event payload
+		stream.responses[0].Events[0].Payload[0] = 'x'
+
+		rpc.On("SubscribeEvents", ctx, mock.Anything).
+			Return(stream, nil).
+			Run(assertSubscribeEventsArgs(t, &req))
+
+		eventCh, errCh, err := c.SubscribeEventsByBlockHeight(ctx, startHeight, filter, WithHeartbeatInterval(req.HeartbeatInterval))
+		require.NoError(t, err)
+
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go assertNoEvents(t, eventCh, wg.Done)
+
+		i := 0
+		for err := range errCh {
+			assert.Error(t, err, stream.err)
+			i++
+			if i > 1 {
+				t.Fatal("should only receive one error")
+			}
+		}
+
+		wg.Wait()
+	}))
+}
+
+func generateEventResponse(t *testing.T, blockID flow.Identifier, height uint64, events []flow.Event) *executiondata.SubscribeEventsResponse {
+	responseEvents := make([]*entities.Event, 0, len(events))
+	for _, e := range events {
+		eventMsg, err := eventToMessage(e)
+		require.NoError(t, err)
+		responseEvents = append(responseEvents, eventMsg)
+	}
+
+	return &executiondata.SubscribeEventsResponse{
+		BlockHeight: height,
+		BlockId:     blockID[:],
+		Events:      responseEvents,
+	}
+}
+
+func generateExecutionDataResponse(t *testing.T, blockID flow.Identifier, height uint64) *executiondata.SubscribeExecutionDataResponse {
+	return &executiondata.SubscribeExecutionDataResponse{
+		BlockHeight: height,
+		BlockExecutionData: &entities.BlockExecutionData{
+			BlockId:            blockID[:],
+			ChunkExecutionData: []*entities.ChunkExecutionData{},
+		},
+		BlockTimestamp: timestamppb.Now(),
+	}
+}
+
+func assertSubscribeEventsArgs(t *testing.T, expected *executiondata.SubscribeEventsRequest) func(args mock.Arguments) {
+	return func(args mock.Arguments) {
+		actual, ok := args.Get(1).(*executiondata.SubscribeEventsRequest)
+		require.True(t, ok)
+
+		assert.Equal(t, expected.Filter, actual.Filter)
+		assert.Equal(t, expected.EventEncodingVersion, actual.EventEncodingVersion)
+		assert.Equal(t, expected.HeartbeatInterval, actual.HeartbeatInterval)
+		assert.Equal(t, expected.StartBlockHeight, actual.StartBlockHeight)
+		assert.Equal(t, expected.StartBlockId, actual.StartBlockId)
+	}
+}
+
+func assertSubscribeExecutionDataArgs(t *testing.T, expected *executiondata.SubscribeExecutionDataRequest) func(args mock.Arguments) {
+	return func(args mock.Arguments) {
+		actual, ok := args.Get(1).(*executiondata.SubscribeExecutionDataRequest)
+		require.True(t, ok)
+
+		assert.Equal(t, expected.EventEncodingVersion, actual.EventEncodingVersion)
+		assert.Equal(t, expected.StartBlockHeight, actual.StartBlockHeight)
+		assert.Equal(t, expected.StartBlockId, actual.StartBlockId)
+	}
+}
+
+func assertNoErrors(t *testing.T, errCh <-chan error, done func()) {
+	defer done()
+	for err := range errCh {
+		require.NoError(t, err)
+	}
+}
+
+func assertNoEvents[T any](t *testing.T, eventCh <-chan T, done func()) {
+	defer done()
+	for _ = range eventCh {
+		t.Fatal("should not receive events")
+	}
+}
+
+type mockEventStream struct {
+	grpc.ClientStream
+
+	ctx       context.Context
+	err       error
+	offset    int
+	responses []*executiondata.SubscribeEventsResponse
+}
+
+func (m *mockEventStream) Recv() (*executiondata.SubscribeEventsResponse, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+
+	if m.offset >= len(m.responses) {
+		<-m.ctx.Done()
+		return nil, io.EOF
+	}
+	defer func() { m.offset++ }()
+
+	return m.responses[m.offset], nil
+}
+
+type mockExecutionDataStream struct {
+	grpc.ClientStream
+
+	ctx       context.Context
+	err       error
+	offset    int
+	responses []*executiondata.SubscribeExecutionDataResponse
+}
+
+func (m *mockExecutionDataStream) Recv() (*executiondata.SubscribeExecutionDataResponse, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+
+	if m.offset >= len(m.responses) {
+		<-m.ctx.Done()
+		return nil, io.EOF
+	}
+	defer func() { m.offset++ }()
+
+	return m.responses[m.offset], nil
 }

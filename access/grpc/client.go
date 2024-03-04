@@ -31,14 +31,16 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/onflow/cadence"
-	"github.com/onflow/flow-go-sdk"
 	"google.golang.org/grpc/credentials/insecure"
+
+	"github.com/onflow/flow-go-sdk"
 )
 
 const EmulatorHost = "127.0.0.1:3569"
 const TestnetHost = "access.devnet.nodes.onflow.org:9000"
 const CanarynetHost = "access.canary.nodes.onflow.org:9000"
 const MainnetHost = "access.mainnet.nodes.onflow.org:9000"
+const CrescendoHost = "access.crescendo.nodes.onflow.org:9000"
 
 // NewClient creates an gRPC client exposing all the common access APIs.
 // Client will use provided host for connection.
@@ -68,6 +70,10 @@ func (c *Client) Ping(ctx context.Context) error {
 
 func (c *Client) WaitServer(ctx context.Context) error {
 	return c.grpc.Ping(ctx, grpc.WaitForReady(true))
+}
+
+func (c *Client) GetNetworkParameters(ctx context.Context) (*flow.NetworkParameters, error) {
+	return c.grpc.GetNetworkParameters(ctx)
 }
 
 func (c *Client) GetLatestBlockHeader(ctx context.Context, isSealed bool) (*flow.BlockHeader, error) {
@@ -114,6 +120,9 @@ func (c *Client) GetTransactionResult(ctx context.Context, txID flow.Identifier)
 	return c.grpc.GetTransactionResult(ctx, txID)
 }
 
+func (c *Client) GetTransactionResultByIndex(ctx context.Context, blockID flow.Identifier, index uint32) (*flow.TransactionResult, error) {
+	return c.grpc.GetTransactionResultByIndex(ctx, blockID, index)
+}
 func (c *Client) GetTransactionResultsByBlockID(ctx context.Context, blockID flow.Identifier) ([]*flow.TransactionResult, error) {
 	return c.grpc.GetTransactionResultsByBlockID(ctx, blockID)
 }
@@ -160,6 +169,26 @@ func (c *Client) GetLatestProtocolStateSnapshot(ctx context.Context) ([]byte, er
 
 func (c *Client) GetExecutionResultForBlockID(ctx context.Context, blockID flow.Identifier) (*flow.ExecutionResult, error) {
 	return c.grpc.GetExecutionResultForBlockID(ctx, blockID)
+}
+
+func (c *Client) GetExecutionDataByBlockID(ctx context.Context, blockID flow.Identifier) (*flow.ExecutionData, error) {
+	return c.grpc.GetExecutionDataByBlockID(ctx, blockID)
+}
+
+func (c *Client) SubscribeExecutionDataByBlockID(ctx context.Context, startBlockID flow.Identifier) (<-chan flow.ExecutionDataStreamResponse, <-chan error, error) {
+	return c.grpc.SubscribeExecutionDataByBlockID(ctx, startBlockID)
+}
+
+func (c *Client) SubscribeExecutionDataByBlockHeight(ctx context.Context, startHeight uint64) (<-chan flow.ExecutionDataStreamResponse, <-chan error, error) {
+	return c.grpc.SubscribeExecutionDataByBlockHeight(ctx, startHeight)
+}
+
+func (c *Client) SubscribeEventsByBlockID(ctx context.Context, startBlockID flow.Identifier, filter flow.EventFilter) (<-chan flow.BlockEvents, <-chan error, error) {
+	return c.grpc.SubscribeEventsByBlockID(ctx, startBlockID, filter)
+}
+
+func (c *Client) SubscribeEventsByBlockHeight(ctx context.Context, startHeight uint64, filter flow.EventFilter) (<-chan flow.BlockEvents, <-chan error, error) {
+	return c.grpc.SubscribeEventsByBlockHeight(ctx, startHeight, filter)
 }
 
 func (c *Client) Close() error {

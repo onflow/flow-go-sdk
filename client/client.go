@@ -22,9 +22,10 @@
 package client
 
 import (
+	"github.com/onflow/flow/protobuf/go/flow/access"
+
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/access/grpc"
-	"github.com/onflow/flow/protobuf/go/flow/access"
 )
 
 // New creates an gRPC client exposing all the common access APIs.

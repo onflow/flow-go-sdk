@@ -108,8 +108,6 @@ func chainCustomizer(chain ChainID) uint64 {
 		return 0
 	case Testnet:
 		return invalidCodeTestNetwork
-	case Sandboxnet:
-		return invalidCodeSandboxNetwork
 	case Emulator, Localnet, Benchnet, BftTestnet:
 		return invalidCodeTransientNetwork
 	default:
@@ -159,6 +157,11 @@ func (a Address) Bytes() []byte { return a[:] }
 // Hex returns the hex string representation of the address.
 func (a Address) Hex() string {
 	return hex.EncodeToString(a.Bytes())
+}
+
+// Hex returns the address as hex string with "0x" prefix.
+func (a Address) HexWithPrefix() string {
+	return fmt.Sprintf("0x%s", a.Hex())
 }
 
 // String returns the string representation of the address.
@@ -268,9 +271,6 @@ const (
 
 	// invalidCodeTransientNetwork  is the invalid codeword used for transient test networks.
 	invalidCodeTransientNetwork = uint64(0x1cb159857af02018)
-
-	// invalidCodeSandboxNetwork is the invalid codeword used for Sandbox network.
-	invalidCodeSandboxNetwork = uint64(0x1035ce4eff92ae01)
 )
 
 // Rows of the generator matrix G of the [64,45]-code used for Flow addresses.

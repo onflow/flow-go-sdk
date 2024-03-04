@@ -31,6 +31,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	kms "github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/aws/aws-sdk-go-v2/service/kms/types"
+
 	"github.com/onflow/flow-go-sdk/crypto"
 )
 

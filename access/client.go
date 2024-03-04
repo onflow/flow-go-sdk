@@ -27,12 +27,16 @@ import (
 	"context"
 
 	"github.com/onflow/cadence"
+
 	"github.com/onflow/flow-go-sdk"
 )
 
 type Client interface {
 	// Ping is used to check if the access node is alive and healthy.
 	Ping(ctx context.Context) error
+
+	// GetNetworkParameters gets the network parameters.
+	GetNetworkParameters(ctx context.Context) (*flow.NetworkParameters, error)
 
 	// GetLatestBlockHeader gets the latest sealed or unsealed block header.
 	GetLatestBlockHeader(ctx context.Context, isSealed bool) (*flow.BlockHeader, error)
@@ -101,6 +105,21 @@ type Client interface {
 
 	// GetExecutionResultForBlockID gets the execution results at the block ID.
 	GetExecutionResultForBlockID(ctx context.Context, blockID flow.Identifier) (*flow.ExecutionResult, error)
+
+	// GetExecutionDataByBlockID returns execution data for a specific block ID.
+	GetExecutionDataByBlockID(ctx context.Context, blockID flow.Identifier) (*flow.ExecutionData, error)
+
+	// SubscribeExecutionDataByBlockID subscribes to execution data updates starting at the given block ID.
+	SubscribeExecutionDataByBlockID(ctx context.Context, startBlockID flow.Identifier) (<-chan flow.ExecutionDataStreamResponse, <-chan error, error)
+
+	// SubscribeExecutionDataByBlockHeight subscribes to execution data updates starting at the given block height.
+	SubscribeExecutionDataByBlockHeight(ctx context.Context, startHeight uint64) (<-chan flow.ExecutionDataStreamResponse, <-chan error, error)
+
+	// SubscribeEventsByBlockID subscribes to events starting at the given block ID.
+	SubscribeEventsByBlockID(ctx context.Context, startBlockID flow.Identifier, filter flow.EventFilter) (<-chan flow.BlockEvents, <-chan error, error)
+
+	// SubscribeEventsByBlockHeight subscribes to events starting at the given block height.
+	SubscribeEventsByBlockHeight(ctx context.Context, startHeight uint64, filter flow.EventFilter) (<-chan flow.BlockEvents, <-chan error, error)
 
 	// Close stops the client connection to the access node.
 	Close() error

@@ -25,8 +25,10 @@ import (
 	"time"
 
 	"github.com/onflow/cadence"
+	"github.com/onflow/cadence/encoding/ccf"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/cadence/runtime/common"
+	"github.com/onflow/flow/protobuf/go/flow/entities"
 
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
@@ -239,8 +241,9 @@ func (g *BlockSeals) New() *flow.BlockSeal {
 }
 
 type Events struct {
-	count int
-	ids   *Identifiers
+	count    int
+	ids      *Identifiers
+	encoding entities.EventEncodingVersion
 }
 
 func EventGenerator() *Events {
@@ -248,6 +251,18 @@ func EventGenerator() *Events {
 		count: 1,
 		ids:   IdentifierGenerator(),
 	}
+}
+
+func (g *Events) WithEncoding(encoding entities.EventEncodingVersion) *Events {
+	switch encoding {
+	case entities.EventEncodingVersion_CCF_V0:
+		g.encoding = encoding
+	case entities.EventEncodingVersion_JSON_CDC_V0:
+		g.encoding = encoding
+	default:
+		panic(fmt.Errorf("unsupported event encoding: %v", encoding))
+	}
+	return g
 }
 
 func (g *Events) New() flow.Event {
@@ -280,7 +295,14 @@ func (g *Events) New() flow.Event {
 
 	typeID := location.TypeID(nil, identifier)
 
-	payload, err := jsoncdc.Encode(testEvent)
+	var payload []byte
+	var err error
+	if g.encoding == entities.EventEncodingVersion_CCF_V0 {
+		payload, err = ccf.Encode(testEvent)
+	} else {
+		payload, err = jsoncdc.Encode(testEvent)
+	}
+
 	if err != nil {
 		panic(fmt.Errorf("cannot encode test event: %w", err))
 	}
@@ -394,7 +416,7 @@ func (g *Transactions) NewUnsigned() *flow.Transaction {
 	tx := flow.NewTransaction().
 		SetScript(GreetingScript).
 		SetReferenceBlockID(blockID).
-		SetGasLimit(42).
+		SetComputeLimit(42).
 		SetProposalKey(accountA.Address, proposalKey.Index, proposalKey.SequenceNumber).
 		AddAuthorizer(accountA.Address).
 		SetPayer(accountB.Address)
@@ -409,28 +431,136 @@ func (g *Transactions) NewUnsigned() *flow.Transaction {
 
 type TransactionResults struct {
 	events *Events
+	ids    *Identifiers
 }
 
 func TransactionResultGenerator() *TransactionResults {
 	return &TransactionResults{
 		events: EventGenerator(),
+		ids:    IdentifierGenerator(),
 	}
 }
 
 func (g *TransactionResults) New() flow.TransactionResult {
-	eventA := g.events.New()
-	eventB := g.events.New()
-	blockID := newIdentifier(1)
-	blockHeight := uint64(42)
-
 	return flow.TransactionResult{
 		Status: flow.TransactionStatusSealed,
 		Error:  errors.New("transaction execution error"),
 		Events: []flow.Event{
-			eventA,
-			eventB,
+			g.events.New(),
+			g.events.New(),
 		},
-		BlockID:     blockID,
-		BlockHeight: blockHeight,
+		BlockID:       g.ids.New(),
+		BlockHeight:   uint64(42),
+		TransactionID: g.ids.New(),
+		CollectionID:  g.ids.New(),
+	}
+}
+
+type ExecutionDatas struct {
+	ids    *Identifiers
+	chunks *ChunkExecutionDatas
+}
+
+func ExecutionDataGenerator() *ExecutionDatas {
+	return &ExecutionDatas{
+		ids:    IdentifierGenerator(),
+		chunks: ChunkExecutionDataGenerator(),
+	}
+}
+
+func (g *ExecutionDatas) New() *flow.ExecutionData {
+	return &flow.ExecutionData{
+		BlockID: g.ids.New(),
+		ChunkExecutionData: []*flow.ChunkExecutionData{
+			g.chunks.New(),
+			g.chunks.New(),
+		},
+	}
+}
+
+type ChunkExecutionDatas struct {
+	ids         *Identifiers
+	txs         *Transactions
+	events      *Events
+	trieUpdates *TrieUpdates
+	results     *LightTransactionResults
+}
+
+func ChunkExecutionDataGenerator() *ChunkExecutionDatas {
+	return &ChunkExecutionDatas{
+		ids:         IdentifierGenerator(),
+		txs:         TransactionGenerator(),
+		events:      EventGenerator().WithEncoding(entities.EventEncodingVersion_CCF_V0),
+		trieUpdates: TrieUpdateGenerator(),
+		results:     LightTransactionResultGenerator(),
+	}
+}
+
+func (g *ChunkExecutionDatas) New() *flow.ChunkExecutionData {
+	events := make([]*flow.Event, 0, 2)
+	for i := 0; i < 2; i++ {
+		event := g.events.New()
+		events = append(events, &event)
+	}
+
+	return &flow.ChunkExecutionData{
+		Transactions: []*flow.Transaction{
+			g.txs.New(),
+			g.txs.New(),
+		},
+		Events:     events,
+		TrieUpdate: g.trieUpdates.New(),
+		TransactionResults: []*flow.LightTransactionResult{
+			g.results.New(),
+			g.results.New(),
+		},
+	}
+}
+
+type TrieUpdates struct {
+	ids *Identifiers
+}
+
+func TrieUpdateGenerator() *TrieUpdates {
+	return &TrieUpdates{
+		ids: IdentifierGenerator(),
+	}
+}
+
+func (g *TrieUpdates) New() *flow.TrieUpdate {
+	return &flow.TrieUpdate{
+		RootHash: g.ids.New().Bytes(),
+		Paths: [][]byte{
+			g.ids.New().Bytes(),
+		},
+		Payloads: []*flow.Payload{
+			{
+				KeyPart: []*flow.KeyPart{
+					{
+						Type:  0,
+						Value: g.ids.New().Bytes(),
+					},
+				},
+				Value: g.ids.New().Bytes(),
+			},
+		},
+	}
+}
+
+type LightTransactionResults struct {
+	ids *Identifiers
+}
+
+func LightTransactionResultGenerator() *LightTransactionResults {
+	return &LightTransactionResults{
+		ids: IdentifierGenerator(),
+	}
+}
+
+func (g *LightTransactionResults) New() *flow.LightTransactionResult {
+	return &flow.LightTransactionResult{
+		TransactionID:   g.ids.New(),
+		Failed:          false,
+		ComputationUsed: uint64(42),
 	}
 }

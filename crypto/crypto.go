@@ -38,6 +38,8 @@ const (
 	ECDSA_P256 = crypto.ECDSAP256
 	// ECDSA_secp256k1 is ECDSA on secp256k1 curve
 	ECDSA_secp256k1 = crypto.ECDSASecp256k1
+	// BLS_BLS12_381 is BLS on BLS12-381 curve
+	BLS_BLS12_381 = crypto.BLSBLS12381
 )
 
 // StringToSignatureAlgorithm converts a string to a SignatureAlgorithm.
@@ -47,19 +49,30 @@ func StringToSignatureAlgorithm(s string) SignatureAlgorithm {
 		return ECDSA_P256
 	case ECDSA_secp256k1.String():
 		return ECDSA_secp256k1
+	case BLS_BLS12_381.String():
+		return BLS_BLS12_381
 	default:
 		return UnknownSignatureAlgorithm
 	}
 }
 
-// CompatibleAlgorithms returns true if the signature and hash algorithms is a valid pair for a signing key
-// supported by the package.
+// CompatibleAlgorithms returns true if the signature and hash algorithms can be a valid pair for generating
+// or verifying a signature, supported by the package.
 //
-// The package currently supports ECDSA with the 2 curves P-256 and secp256k1. Both curves can be paired with
-// a supported hash function of 256-bits output (SHA2-256, SHA3-256, Keccak256)
+// If the function returns `false`, the inputs cannot be paired. If the function
+// returns `true`, the inputs can be paired, under the condition that variable output size
+// hashers (currently KMAC128) are set with a compatible output size.
+//
+// Signature generation and verification functions would check the hash output constraints.
 func CompatibleAlgorithms(sigAlgo SignatureAlgorithm, hashAlgo HashAlgorithm) bool {
 	if sigAlgo == ECDSA_P256 || sigAlgo == ECDSA_secp256k1 {
-		if hashAlgo == SHA2_256 || hashAlgo == SHA3_256 || hashAlgo == Keccak256 {
+		if hashAlgo == SHA2_256 || hashAlgo == SHA3_256 ||
+			hashAlgo == Keccak256 || hashAlgo == KMAC128 {
+			return true
+		}
+	}
+	if sigAlgo == BLS_BLS12_381 {
+		if hashAlgo == KMAC128 {
 			return true
 		}
 	}
@@ -105,8 +118,10 @@ func NewInMemorySigner(privateKey PrivateKey, hashAlgo HashAlgorithm) (InMemoryS
 			privateKey.Algorithm(), hashAlgo)
 	}
 
-	// The error is ignored because the hash algorithm is valid at this point
-	hasher, _ := NewHasher(hashAlgo)
+	hasher, err := NewHasher(hashAlgo)
+	if err != nil {
+		return InMemorySigner{}, fmt.Errorf("signer with hasher %s can't be instantiated with this function", hashAlgo)
+	}
 
 	return InMemorySigner{
 		PrivateKey: privateKey,
@@ -135,13 +150,9 @@ func NewNaiveSigner(privateKey PrivateKey, hashAlgo HashAlgorithm) (NaiveSigner,
 // The key generation process extracts and expands the entropy of the seed.
 const MinSeedLength = crypto.KeyGenSeedMinLen
 
-func keyGenerationKMACTag(sigAlgo SignatureAlgorithm) []byte {
-	return []byte(fmt.Sprintf("%s Key Generation", sigAlgo))
-}
-
 // GeneratePrivateKey generates a private key with the specified signature algorithm from the given seed.
 // Note that the output key is directly mapped from the seed. The seed is therefore equivalent to the private key.
-// This implementation is pure software and does not include any isolation or secure-hardware protecion.
+// This implementation is pure software and does not include any isolation or secure-hardware protection.
 // The function should not be used for sensitive keys (for instance production keys) unless extra protection measures
 // are taken.
 func GeneratePrivateKey(sigAlgo SignatureAlgorithm, seed []byte) (PrivateKey, error) {
