@@ -70,6 +70,10 @@ func (c *Client) GetNetworkParameters(ctx context.Context) (*flow.NetworkParamet
 	return c.grpc.GetNetworkParameters(ctx)
 }
 
+func (c *Client) WaitServer(ctx context.Context) error {
+	return c.grpc.Ping(ctx, grpc.WaitForReady(true))
+}
+
 func (c *Client) GetLatestBlockHeader(ctx context.Context, isSealed bool) (*flow.BlockHeader, error) {
 	return c.grpc.GetLatestBlockHeader(ctx, isSealed)
 }
