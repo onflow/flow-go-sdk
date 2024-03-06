@@ -19,15 +19,14 @@
 package cloudkms
 
 import (
+	kms "cloud.google.com/go/kms/apiv1"
+	"cloud.google.com/go/kms/apiv1/kmspb"
 	"context"
 	"fmt"
-	"hash/crc32"
-
-	kms "cloud.google.com/go/kms/apiv1"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/crypto/internal"
-	kmspb "google.golang.org/genproto/googleapis/cloud/kms/v1"
 	"google.golang.org/protobuf/types/known/wrapperspb"
+	"hash/crc32"
 )
 
 var _ crypto.Signer = (*Signer)(nil)
@@ -87,7 +86,8 @@ func (s *Signer) Sign(message []byte) ([]byte, error) {
 			DataCrc32C: checksum(message),
 		}
 	} else {
-		// this is guaranteed to only return supported hash algos by KMS
+		// this is guaranteed to only return supported hash algos by KMS,
+		// since `s.hashAlgo` has been checked when the signer object was created.
 		hasher, err := crypto.NewHasher(s.hashAlgo)
 		if err != nil {
 			return nil, fmt.Errorf("cloudkms: failed to sign: %w", err)
@@ -104,7 +104,7 @@ func (s *Signer) Sign(message []byte) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("cloudkms: failed to sign: %w", err)
 	}
-	sig, err := internal.ParseSignature(result.Signature, s.curve)
+	sig, err := internal.ParseECDSASignature(result.Signature, s.curve)
 	if err != nil {
 		return nil, fmt.Errorf("cloudkms: failed to parse signature: %w", err)
 	}
