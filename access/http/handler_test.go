@@ -539,7 +539,7 @@ func TestHandler_GetExecResult(t *testing.T) {
 
 		u, _ := url.Parse("/execution_results")
 		q := u.Query()
-		q.Add("block_ids", strings.Join(ids, ","))
+		q.Add("block_id", strings.Join(ids, ","))
 		u.RawQuery = q.Encode()
 
 		req.SetData(*u, fixture)
