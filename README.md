@@ -51,7 +51,8 @@ To start using the SDK, install Go 1.13 or above and run go get:
 go get github.com/onflow/flow-go-sdk
 ```
 
-Building and running Go commands with the SDK require enabling cgo : `CGO_ENABLED=1`
+Building and testing Go commands with the SDK require enabling cgo `CGO_ENABLED=1` because of the underlying
+cryptography library. Refer to the [crypto repository build](https://github.com/onflow/crypto?tab=readme-ov-file#build) for more details.
 
 ## Generating Keys
 
