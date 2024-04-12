@@ -22,7 +22,7 @@ import (
 	"encoding/hex"
 	"sync"
 
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/onflow/go-ethereum/rlp"
 
 	"github.com/onflow/flow-go-sdk/crypto"
 )
@@ -124,7 +124,7 @@ func (id ChainID) String() string {
 }
 
 type NetworkParameters struct {
-	ChainID          ChainID
+	ChainID ChainID
 }
 
 // entityHasher is a thread-safe hasher used to hash Flow entities.
