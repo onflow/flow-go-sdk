@@ -155,7 +155,7 @@ func AccountKeyToCadenceCryptoKey(key *flow.AccountKey) (cadence.Value, error) {
 		QualifiedIdentifier: "Crypto.KeyListEntry",
 		Fields: []cadence.Field{{
 			Identifier: "keyIndex",
-			Type:       cadence.IntType{},
+			Type:       cadence.IntType,
 		}, {
 			Identifier: "publicKey",
 			Type:       exportType(sema.PublicKeyType).(*cadence.StructType),
@@ -164,10 +164,10 @@ func AccountKeyToCadenceCryptoKey(key *flow.AccountKey) (cadence.Value, error) {
 			Type:       exportType(sema.HashAlgorithmType).(*cadence.EnumType),
 		}, {
 			Identifier: "weight",
-			Type:       cadence.UFix64Type{},
+			Type:       cadence.UFix64Type,
 		}, {
 			Identifier: "isRevoked",
-			Type:       cadence.BoolType{},
+			Type:       cadence.BoolType,
 		}},
 	}), nil
 }
