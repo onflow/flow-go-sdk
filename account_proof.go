@@ -24,7 +24,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/onflow/go-ethereum/rlp"
 )
 
 // AccountProofNonceMinLenBytes is the minimum length of account proof nonces in bytes.
