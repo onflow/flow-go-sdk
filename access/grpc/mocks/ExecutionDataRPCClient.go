@@ -76,6 +76,96 @@ func (_m *MockExecutionDataRPCClient) GetRegisterValues(ctx context.Context, in 
 	return r0, r1
 }
 
+// SubscribeAccountStatusesFromLatestBlock provides a mock function with given fields: ctx, in, opts
+func (_m *MockExecutionDataRPCClient) SubscribeAccountStatusesFromLatestBlock(ctx context.Context, in *executiondata.SubscribeAccountStatusesFromLatestBlockRequest, opts ...grpc.CallOption) (executiondata.ExecutionDataAPI_SubscribeAccountStatusesFromLatestBlockClient, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, in)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 executiondata.ExecutionDataAPI_SubscribeAccountStatusesFromLatestBlockClient
+	if rf, ok := ret.Get(0).(func(context.Context, *executiondata.SubscribeAccountStatusesFromLatestBlockRequest, ...grpc.CallOption) executiondata.ExecutionDataAPI_SubscribeAccountStatusesFromLatestBlockClient); ok {
+		r0 = rf(ctx, in, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(executiondata.ExecutionDataAPI_SubscribeAccountStatusesFromLatestBlockClient)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *executiondata.SubscribeAccountStatusesFromLatestBlockRequest, ...grpc.CallOption) error); ok {
+		r1 = rf(ctx, in, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SubscribeAccountStatusesFromStartBlockID provides a mock function with given fields: ctx, in, opts
+func (_m *MockExecutionDataRPCClient) SubscribeAccountStatusesFromStartBlockID(ctx context.Context, in *executiondata.SubscribeAccountStatusesFromStartBlockIDRequest, opts ...grpc.CallOption) (executiondata.ExecutionDataAPI_SubscribeAccountStatusesFromStartBlockIDClient, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, in)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 executiondata.ExecutionDataAPI_SubscribeAccountStatusesFromStartBlockIDClient
+	if rf, ok := ret.Get(0).(func(context.Context, *executiondata.SubscribeAccountStatusesFromStartBlockIDRequest, ...grpc.CallOption) executiondata.ExecutionDataAPI_SubscribeAccountStatusesFromStartBlockIDClient); ok {
+		r0 = rf(ctx, in, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(executiondata.ExecutionDataAPI_SubscribeAccountStatusesFromStartBlockIDClient)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *executiondata.SubscribeAccountStatusesFromStartBlockIDRequest, ...grpc.CallOption) error); ok {
+		r1 = rf(ctx, in, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SubscribeAccountStatusesFromStartHeight provides a mock function with given fields: ctx, in, opts
+func (_m *MockExecutionDataRPCClient) SubscribeAccountStatusesFromStartHeight(ctx context.Context, in *executiondata.SubscribeAccountStatusesFromStartHeightRequest, opts ...grpc.CallOption) (executiondata.ExecutionDataAPI_SubscribeAccountStatusesFromStartHeightClient, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, in)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 executiondata.ExecutionDataAPI_SubscribeAccountStatusesFromStartHeightClient
+	if rf, ok := ret.Get(0).(func(context.Context, *executiondata.SubscribeAccountStatusesFromStartHeightRequest, ...grpc.CallOption) executiondata.ExecutionDataAPI_SubscribeAccountStatusesFromStartHeightClient); ok {
+		r0 = rf(ctx, in, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(executiondata.ExecutionDataAPI_SubscribeAccountStatusesFromStartHeightClient)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *executiondata.SubscribeAccountStatusesFromStartHeightRequest, ...grpc.CallOption) error); ok {
+		r1 = rf(ctx, in, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // SubscribeEvents provides a mock function with given fields: ctx, in, opts
 func (_m *MockExecutionDataRPCClient) SubscribeEvents(ctx context.Context, in *executiondata.SubscribeEventsRequest, opts ...grpc.CallOption) (executiondata.ExecutionDataAPI_SubscribeEventsClient, error) {
 	_va := make([]interface{}, len(opts))
@@ -98,6 +188,96 @@ func (_m *MockExecutionDataRPCClient) SubscribeEvents(ctx context.Context, in *e
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *executiondata.SubscribeEventsRequest, ...grpc.CallOption) error); ok {
+		r1 = rf(ctx, in, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SubscribeEventsFromLatest provides a mock function with given fields: ctx, in, opts
+func (_m *MockExecutionDataRPCClient) SubscribeEventsFromLatest(ctx context.Context, in *executiondata.SubscribeEventsFromLatestRequest, opts ...grpc.CallOption) (executiondata.ExecutionDataAPI_SubscribeEventsFromLatestClient, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, in)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 executiondata.ExecutionDataAPI_SubscribeEventsFromLatestClient
+	if rf, ok := ret.Get(0).(func(context.Context, *executiondata.SubscribeEventsFromLatestRequest, ...grpc.CallOption) executiondata.ExecutionDataAPI_SubscribeEventsFromLatestClient); ok {
+		r0 = rf(ctx, in, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(executiondata.ExecutionDataAPI_SubscribeEventsFromLatestClient)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *executiondata.SubscribeEventsFromLatestRequest, ...grpc.CallOption) error); ok {
+		r1 = rf(ctx, in, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SubscribeEventsFromStartBlockID provides a mock function with given fields: ctx, in, opts
+func (_m *MockExecutionDataRPCClient) SubscribeEventsFromStartBlockID(ctx context.Context, in *executiondata.SubscribeEventsFromStartBlockIDRequest, opts ...grpc.CallOption) (executiondata.ExecutionDataAPI_SubscribeEventsFromStartBlockIDClient, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, in)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 executiondata.ExecutionDataAPI_SubscribeEventsFromStartBlockIDClient
+	if rf, ok := ret.Get(0).(func(context.Context, *executiondata.SubscribeEventsFromStartBlockIDRequest, ...grpc.CallOption) executiondata.ExecutionDataAPI_SubscribeEventsFromStartBlockIDClient); ok {
+		r0 = rf(ctx, in, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(executiondata.ExecutionDataAPI_SubscribeEventsFromStartBlockIDClient)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *executiondata.SubscribeEventsFromStartBlockIDRequest, ...grpc.CallOption) error); ok {
+		r1 = rf(ctx, in, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SubscribeEventsFromStartHeight provides a mock function with given fields: ctx, in, opts
+func (_m *MockExecutionDataRPCClient) SubscribeEventsFromStartHeight(ctx context.Context, in *executiondata.SubscribeEventsFromStartHeightRequest, opts ...grpc.CallOption) (executiondata.ExecutionDataAPI_SubscribeEventsFromStartHeightClient, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, in)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 executiondata.ExecutionDataAPI_SubscribeEventsFromStartHeightClient
+	if rf, ok := ret.Get(0).(func(context.Context, *executiondata.SubscribeEventsFromStartHeightRequest, ...grpc.CallOption) executiondata.ExecutionDataAPI_SubscribeEventsFromStartHeightClient); ok {
+		r0 = rf(ctx, in, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(executiondata.ExecutionDataAPI_SubscribeEventsFromStartHeightClient)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *executiondata.SubscribeEventsFromStartHeightRequest, ...grpc.CallOption) error); ok {
 		r1 = rf(ctx, in, opts...)
 	} else {
 		r1 = ret.Error(1)
