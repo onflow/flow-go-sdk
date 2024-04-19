@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	cloud.google.com/go/kms v1.15.5
-	github.com/aws/aws-sdk-go-v2 v1.23.1
+	github.com/aws/aws-sdk-go-v2 v1.26.1
 	github.com/aws/aws-sdk-go-v2/config v1.25.5
 	github.com/aws/aws-sdk-go-v2/service/kms v1.26.3
 	github.com/onflow/cadence v1.0.0-preview.21
@@ -34,7 +34,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sso v1.17.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.20.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.25.4 // indirect
-	github.com/aws/smithy-go v1.17.0 // indirect
+	github.com/aws/smithy-go v1.20.2 // indirect
 	github.com/bits-and-blooms/bitset v1.7.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.2.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect

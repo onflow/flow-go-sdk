@@ -11,8 +11,8 @@ cloud.google.com/go/kms v1.15.5/go.mod h1:cU2H5jnp6G2TDpUGZyqTCoy1n16fbubHZjmVXS
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/SaveTheRbtz/mph v0.1.1-0.20240117162131-4166ec7869bc h1:DCHzPQOcU/7gwDTWbFQZc5qHMPS1g0xTO56k8NXsv9M=
 github.com/SaveTheRbtz/mph v0.1.1-0.20240117162131-4166ec7869bc/go.mod h1:LJM5a3zcIJ/8TmZwlUczvROEJT8ntOdhdG9jjcR1B0I=
-github.com/aws/aws-sdk-go-v2 v1.23.1 h1:qXaFsOOMA+HsZtX8WoCa+gJnbyW7qyFFBlPqvTSzbaI=
-github.com/aws/aws-sdk-go-v2 v1.23.1/go.mod h1:i1XDttT4rnf6vxc9AuskLc6s7XBee8rlLilKlc03uAA=
+github.com/aws/aws-sdk-go-v2 v1.26.1 h1:5554eUqIYVWpU0YmeeYZ0wU64H2VLBs8TlhRB2L+EkA=
+github.com/aws/aws-sdk-go-v2 v1.26.1/go.mod h1:ffIFB97e2yNsv4aTSGkqtHnppsIJzw7G7BReUZ3jCXM=
 github.com/aws/aws-sdk-go-v2/config v1.25.5 h1:UGKm9hpQS2hoK8CEJ1BzAW8NbUpvwDJJ4lyqXSzu8bk=
 github.com/aws/aws-sdk-go-v2/config v1.25.5/go.mod h1:Bf4gDvy4ZcFIK0rqDu1wp9wrubNba2DojiPB2rt6nvI=
 github.com/aws/aws-sdk-go-v2/credentials v1.16.4 h1:i7UQYYDSJrtc30RSwJwfBKwLFNnBTiICqAJ0pPdum8E=
@@ -37,8 +37,8 @@ github.com/aws/aws-sdk-go-v2/service/ssooidc v1.20.1 h1:cbRqFTVnJV+KRpwFl76GJdIZ
 github.com/aws/aws-sdk-go-v2/service/ssooidc v1.20.1/go.mod h1:hHL974p5auvXlZPIjJTblXJpbkfK4klBczlsEaMCGVY=
 github.com/aws/aws-sdk-go-v2/service/sts v1.25.4 h1:yEvZ4neOQ/KpUqyR+X0ycUTW/kVRNR4nDZ38wStHGAA=
 github.com/aws/aws-sdk-go-v2/service/sts v1.25.4/go.mod h1:feTnm2Tk/pJxdX+eooEsxvlvTWBvDm6CasRZ+JOs2IY=
-github.com/aws/smithy-go v1.17.0 h1:wWJD7LX6PBV6etBUwO0zElG0nWN9rUhp0WdYeHSHAaI=
-github.com/aws/smithy-go v1.17.0/go.mod h1:NukqUGpCZIILqqiV0NIjeFh24kd/FAa4beRb6nbIUPE=
+github.com/aws/smithy-go v1.20.2 h1:tbp628ireGtzcHDDmLT/6ADHidqnwgF57XOXZe6tp4Q=
+github.com/aws/smithy-go v1.20.2/go.mod h1:krry+ya/rV9RDcV/Q16kpu6ypI4K2czasz0NC3qS14E=
 github.com/bits-and-blooms/bitset v1.7.0 h1:YjAGVd3XmtK9ktAbX8Zg2g2PwLIMjGREZJHlV4j7NEo=
 github.com/bits-and-blooms/bitset v1.7.0/go.mod h1:gIdJ4wp64HaoK2YrL1Q5/N7Y16edYb8uY+O0FJTyyDA=
 github.com/btcsuite/btcd/btcec/v2 v2.2.1 h1:xP60mv8fvp+0khmrN0zTdPC3cNm24rfeE6lh2R/Yv3E=
