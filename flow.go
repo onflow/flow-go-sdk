@@ -160,7 +160,7 @@ func mustRLPEncode(v interface{}) []byte {
 	// Note(sideninja): This is a temporary workaround until cadence defines canonical format addressing the issue https://github.com/onflow/flow-go-sdk/issues/286
 	if tx, ok := v.(payloadCanonicalForm); ok {
 		for _, arg := range tx.Arguments {
-			if arg[len(arg)-1] == byte(10) {
+			if len(arg) > 0 && arg[len(arg)-1] == byte(10) {
 				arg = arg[:len(tx.Arguments)-1]
 			}
 		}
