@@ -45,7 +45,7 @@ type options struct {
 
 func DefaultClientOptions() *options {
 	return &options{
-		jsonOptions: []cdcjson.Option{
+		jsonOptions: []jsoncdc.Option{
 			jsoncdc.WithAllowUnstructuredStaticTypes(true),
 		},
 	}
