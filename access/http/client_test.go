@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"testing"
 
+	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/access/http/models"
 	"github.com/onflow/flow-go-sdk/test"
@@ -62,6 +63,20 @@ func TestClient_Factories(t *testing.T) {
 	client, err = NewClient(EmulatorHost)
 	assert.NoError(t, err)
 	assert.NotNil(t, client)
+}
+func TestClient_ClientOptions(t *testing.T) {
+	t.Run("WithJSONOptions", func(t *testing.T) {
+		
+		expectedJsonOption := []jsoncdc.Option{jsoncdc.WithBackwardsCompatibility()}
+
+		// Confirm that the options are set
+		client, err := NewClient(EmulatorHost, WithJSONOptions(expectedJsonOption...))
+		assert.NoError(t, err)
+		assert.NotNil(t, client)
+
+		// hard to run a contains check on the options due to it comparing functions, so just check the length
+		assert.Equal(t, len(client.httpClient.jsonOptions), len(expectedJsonOption) + len(DefaultClientOptions().jsonOptions))
+	})
 }
 
 func TestBaseClient_GetNetworkParameters(t *testing.T) {

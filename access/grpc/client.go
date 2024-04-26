@@ -90,12 +90,13 @@ func NewClient(host string, opts ...ClientOption) (*Client, error) {
 
 	client.SetJSONOptions(cfg.jsonOptions)
 
-	return &Client{client}, nil
+	return &Client{grpc: client, dialOptions: cfg.dialOptions}, nil
 }
 
 // Client implements all common gRPC methods providing a network agnostic API.
 type Client struct {
 	grpc *BaseClient
+	dialOptions []grpc.DialOption
 }
 
 func (c *Client) Ping(ctx context.Context) error {
