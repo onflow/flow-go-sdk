@@ -23,7 +23,7 @@ import (
 	"fmt"
 
 	"github.com/onflow/cadence"
-	cdcjson "github.com/onflow/cadence/encoding/json"
+	jsoncdc "github.com/onflow/cadence/encoding/json"
 
 	"github.com/onflow/flow-go-sdk"
 )
@@ -40,17 +40,19 @@ const (
 type ClientOption func(*options)
 
 type options struct {
-	jsonOptions []cdcjson.Option
+	jsonOptions []jsoncdc.Option
 }
 
 func DefaultClientOptions() *options {
 	return &options{
-		jsonOptions: []cdcjson.Option{cdcjson.WithAllowUnstructuredStaticTypes(true)},
+		jsonOptions: []cdcjson.Option{
+			jsoncdc.WithAllowUnstructuredStaticTypes(true),
+		},
 	}
 }
 
 // WithJSONOptions wraps a json.Option into a ClientOption.
-func WithJSONOptions(jsonOpts ...cdcjson.Option) ClientOption {
+func WithJSONOptions(jsonOpts ...jsoncdc.Option) ClientOption {
 	return func(opts *options) {
 		opts.jsonOptions = append(opts.jsonOptions, jsonOpts...)
 	}

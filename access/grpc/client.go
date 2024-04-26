@@ -28,7 +28,7 @@ package grpc
 import (
 	"context"
 
-	cdcjson "github.com/onflow/cadence/encoding/json"
+	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"google.golang.org/grpc"
 
 	"github.com/onflow/cadence"
@@ -44,17 +44,20 @@ const MainnetHost = "access.mainnet.nodes.onflow.org:9000"
 const PreviewnetHost = "access.previewnet.nodes.onflow.org:9000"
 
 // ClientOption is a configuration option for the client.
-type ClientOption func (*options) 
+type ClientOption func(*options)
 
 type options struct {
 	dialOptions []grpc.DialOption
-	jsonOptions []cdcjson.Option
+	jsonOptions []jsoncdc.Option
 }
 
 func DefaultClientOptions() *options {
 	return &options{
-		dialOptions: []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())},
-		jsonOptions: []cdcjson.Option{cdcjson.WithAllowUnstructuredStaticTypes(true)},
+		dialOptions: []grpc.DialOption{
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+		},
+		jsonOptions: []jsoncdc.Option{
+			jsoncdc.WithAllowUnstructuredStaticTypes(true)},
 	}
 }
 
@@ -66,8 +69,8 @@ func WithGRPCDialOptions(dialOpts ...grpc.DialOption) ClientOption {
 }
 
 // WithJSONOptions wraps a json.Option into a ClientOption.
-func WithJSONOptions(jsonOpts ...cdcjson.Option)  ClientOption {
-	return func (opts *options) {
+func WithJSONOptions(jsonOpts ...jsoncdc.Option) ClientOption {
+	return func(opts *options) {
 		opts.jsonOptions = append(opts.jsonOptions, jsonOpts...)
 	}
 }
@@ -75,7 +78,7 @@ func WithJSONOptions(jsonOpts ...cdcjson.Option)  ClientOption {
 // NewClient creates an gRPC client exposing all the common access APIs.
 // Client will use provided host for connection.
 func NewClient(host string, opts ...ClientOption) (*Client, error) {
-	cfg := DefaultClientOptions() 
+	cfg := DefaultClientOptions()
 	for _, apply := range opts {
 		apply(cfg)
 	}
