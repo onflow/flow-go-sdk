@@ -24,8 +24,6 @@ import (
 
 	"github.com/onflow/cadence"
 	cdcjson "github.com/onflow/cadence/encoding/json"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/onflow/flow-go-sdk"
 )
@@ -42,21 +40,12 @@ const (
 type ClientOption func (*options) 
 
 type options struct {
-	dialOptions []grpc.DialOption
 	jsonOptions []cdcjson.Option
 }
 
 func DefaultClientOptions() *options {
 	return &options{
-		dialOptions: []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())},
 		jsonOptions: []cdcjson.Option{cdcjson.WithAllowUnstructuredStaticTypes(true)},
-	}
-}
-
-// WithGRPCDialOptions wraps a grpc.DialOption into a ClientOption.
-func WithGRPCDialOptions(dialOpts ...grpc.DialOption) ClientOption {
-	return func(opts *options) {
-		opts.dialOptions = append(opts.dialOptions, dialOpts...)
 	}
 }
 
