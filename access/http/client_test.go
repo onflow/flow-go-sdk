@@ -66,7 +66,7 @@ func TestClient_Factories(t *testing.T) {
 }
 func TestClient_ClientOptions(t *testing.T) {
 	t.Run("WithJSONOptions", func(t *testing.T) {
-		
+
 		expectedJsonOption := []jsoncdc.Option{jsoncdc.WithBackwardsCompatibility()}
 
 		// Confirm that the options are set
@@ -75,7 +75,7 @@ func TestClient_ClientOptions(t *testing.T) {
 		assert.NotNil(t, client)
 
 		// hard to run a contains check on the options due to it comparing functions, so just check the length
-		assert.Equal(t, len(client.httpClient.jsonOptions), len(expectedJsonOption) + len(DefaultClientOptions().jsonOptions))
+		assert.Equal(t, len(client.httpClient.jsonOptions), len(expectedJsonOption)+len(DefaultClientOptions().jsonOptions))
 	})
 }
 

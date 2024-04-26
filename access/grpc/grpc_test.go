@@ -76,7 +76,7 @@ func executionDataClientTest(
 
 func Test_ClientOptions(t *testing.T) {
 	t.Run("WithJSONOptions", func(t *testing.T) {
-		
+
 		expectedJsonOption := []jsoncdc.Option{jsoncdc.WithBackwardsCompatibility()}
 
 		// Confirm that the options are set
@@ -85,7 +85,7 @@ func Test_ClientOptions(t *testing.T) {
 		options(cfg)
 
 		// hard to run a contains check on the options due to it comparing functions, so just check the length
-		assert.Equal(t, len(cfg.jsonOptions), len(expectedJsonOption) + len(DefaultClientOptions().jsonOptions))
+		assert.Equal(t, len(cfg.jsonOptions), len(expectedJsonOption)+len(DefaultClientOptions().jsonOptions))
 	})
 
 	t.Run("WithGRPCDialOptions", func(t *testing.T) {
@@ -97,8 +97,8 @@ func Test_ClientOptions(t *testing.T) {
 		options(cfg)
 
 		// hard to run a contains check on the options due to it comparing functions, so just check the length
-		assert.Equal(t, len(cfg.dialOptions), len(expectedDialOption) + len(DefaultClientOptions().dialOptions))
-		})
+		assert.Equal(t, len(cfg.dialOptions), len(expectedDialOption)+len(DefaultClientOptions().dialOptions))
+	})
 }
 
 func TestClient_Ping(t *testing.T) {
@@ -1521,7 +1521,7 @@ func assertNoErrors(t *testing.T, errCh <-chan error, done func()) {
 
 func assertNoEvents[T any](t *testing.T, eventCh <-chan T, done func()) {
 	defer done()
-	for _ = range eventCh {
+	for range eventCh {
 		t.Fatal("should not receive events")
 	}
 }

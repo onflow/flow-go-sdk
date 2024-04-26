@@ -95,7 +95,7 @@ func NewClient(host string, opts ...ClientOption) (*Client, error) {
 
 // Client implements all common gRPC methods providing a network agnostic API.
 type Client struct {
-	grpc *BaseClient
+	grpc        *BaseClient
 	dialOptions []grpc.DialOption
 }
 
