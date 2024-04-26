@@ -35,13 +35,46 @@ const (
 	PreviewnetHost = "https://rest-previewnet.onflow.org/v1"
 )
 
+// ClientOption is a configuration option for the client.
+type ClientOption interface {
+    apply(*options)
+}
+
+type options struct {
+	jsonOptions []cdcjson.Option
+}
+
+
+type jsonOption struct {
+	opt cdcjson.Option
+}
+
+func (j *jsonOption) apply(opts *options) {
+    opts.jsonOptions = append(opts.jsonOptions, j.opt)
+}
+
+// WithJSONOption wraps a json.Option into a ClientOption.
+func WithJSONOption(opt cdcjson.Option) ClientOption {
+    return &jsonOption{opt: opt}
+}
+
 // NewClient creates an HTTP client exposing all the common access APIs.
 // Client will use provided host for connection.
-func NewClient(host string) (*Client, error) {
+func NewClient(host string, opts ...ClientOption) (*Client, error) {
+    cfg := options{}
+    for _, opt := range opts {
+        opt.apply(&cfg)
+    }
+
 	client, err := NewBaseClient(host)
 	if err != nil {
 		return nil, err
 	}
+
+	if len(cfg.jsonOptions) > 0 {
+		client.jsonOptions = append(client.jsonOptions, cfg.jsonOptions...)
+	}
+
 	return &Client{client}, nil
 }
 

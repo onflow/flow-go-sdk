@@ -66,32 +66,34 @@ func WithGRPCDialOption(opt grpc.DialOption) ClientOption {
     return &dialOption{opt: opt}
 }
 
-type jsonDecoderOption struct {
+type jsonOption struct {
 	opt cdcjson.Option
 }
 
-func (j *jsonDecoderOption) apply(opts *options) {
+func (j *jsonOption) apply(opts *options) {
     opts.jsonOptions = append(opts.jsonOptions, j.opt)
 }
 
 // WithJSONOption wraps a json.Option into a ClientOption.
 func WithJSONOption(opt cdcjson.Option) ClientOption {
-    return &jsonDecoderOption{opt: opt}
+    return &jsonOption{opt: opt}
 }
 
 // NewClient creates an gRPC client exposing all the common access APIs.
 // Client will use provided host for connection.
 func NewClient(host string, opts ...ClientOption) (*Client, error) {
+    cfg := options{}
+    for _, opt := range opts {
+        opt.apply(&cfg)
+    }
+
 	var client *BaseClient
 	var err error
 	if len(opts) > 0 {
-		client, err = NewBaseClient(host, opts...)
+		client, err = NewBaseClient(host, cfg.dialOptions...)
+		client.jsonOptions = append(client.jsonOptions, cfg.jsonOptions...) 
 	} else {
-		client, err = NewBaseClient(
-			host, 
-			WithGRPCDialOption(grpc.WithTransportCredentials(insecure.NewCredentials())),
-			WithJSONOption(cdcjson.WithAllowUnstructuredStaticTypes(true)),
-		)
+		client, err = NewBaseClient(host, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	}
 	if err != nil {
 		return nil, err
