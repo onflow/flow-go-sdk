@@ -37,7 +37,7 @@ const (
 )
 
 // ClientOption is a configuration option for the client.
-type ClientOption func (*options) 
+type ClientOption func(*options)
 
 type options struct {
 	jsonOptions []cdcjson.Option
@@ -50,8 +50,8 @@ func DefaultClientOptions() *options {
 }
 
 // WithJSONOptions wraps a json.Option into a ClientOption.
-func WithJSONOptions(jsonOpts ...cdcjson.Option)  ClientOption {
-	return func (opts *options) {
+func WithJSONOptions(jsonOpts ...cdcjson.Option) ClientOption {
+	return func(opts *options) {
 		opts.jsonOptions = append(opts.jsonOptions, jsonOpts...)
 	}
 }
@@ -59,10 +59,10 @@ func WithJSONOptions(jsonOpts ...cdcjson.Option)  ClientOption {
 // NewClient creates an HTTP client exposing all the common access APIs.
 // Client will use provided host for connection.
 func NewClient(host string, opts ...ClientOption) (*Client, error) {
-    cfg := DefaultClientOptions() 
-    for _, apply := range opts {
-        apply(cfg)
-    }
+	cfg := DefaultClientOptions()
+	for _, apply := range opts {
+		apply(cfg)
+	}
 
 	client, err := NewBaseClient(host)
 	if err != nil {
