@@ -90,7 +90,7 @@ func NewClient(host string, opts ...ClientOption) (*Client, error) {
 		client, err = NewBaseClient(
 			host, 
 			WithGRPCDialOption(grpc.WithTransportCredentials(insecure.NewCredentials())),
-			WithJSONOption(cdcjson.WithAllowUnstructuredStaticTypes(false)),
+			WithJSONOption(cdcjson.WithAllowUnstructuredStaticTypes(true)),
 		)
 	}
 	if err != nil {
