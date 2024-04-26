@@ -162,6 +162,7 @@ func NewBaseClient(host string) (*BaseClient, error) {
 		handler: handler,
 		jsonOptions: []json.Option{
 			json.WithAllowUnstructuredStaticTypes(true),
+			json.WithBackwardsCompatibility(),
 		},
 	}, nil
 }

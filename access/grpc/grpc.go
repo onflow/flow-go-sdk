@@ -98,7 +98,10 @@ func NewBaseClient(url string, opts ...grpc.DialOption) (*BaseClient, error) {
 		rpcClient:           grpcClient,
 		executionDataClient: execDataClient,
 		close:               func() error { return conn.Close() },
-		jsonOptions:         []json.Option{json.WithAllowUnstructuredStaticTypes(true)},
+		jsonOptions:         []json.Option{
+			json.WithAllowUnstructuredStaticTypes(true),
+			json.WithBackwardsCompatibility(),
+		},
 	}, nil
 }
 
