@@ -28,6 +28,7 @@ package grpc
 import (
 	"context"
 
+	cdcjson "github.com/onflow/cadence/encoding/json"
 	"google.golang.org/grpc"
 
 	"github.com/onflow/cadence"
@@ -42,15 +43,55 @@ const CanarynetHost = "access.canary.nodes.onflow.org:9000"
 const MainnetHost = "access.mainnet.nodes.onflow.org:9000"
 const PreviewnetHost = "access.previewnet.nodes.onflow.org:9000"
 
+// ClientOption is a configuration option for the client.
+type ClientOption interface {
+    apply(*options)
+}
+
+type options struct {
+	dialOptions []grpc.DialOption
+	jsonOptions []cdcjson.Option
+}
+
+type dialOption struct {
+    opt grpc.DialOption
+}
+
+func (d *dialOption) apply(opts *options) {
+    opts.dialOptions = append(opts.dialOptions, d.opt)
+}
+
+// WithGRPCDialOption wraps a grpc.DialOption into a ClientOption.
+func WithGRPCDialOption(opt grpc.DialOption) ClientOption {
+    return &dialOption{opt: opt}
+}
+
+type jsonDecoderOption struct {
+	opt cdcjson.Option
+}
+
+func (j *jsonDecoderOption) apply(opts *options) {
+    opts.jsonOptions = append(opts.jsonOptions, j.opt)
+}
+
+// WithJSONOption wraps a json.Option into a ClientOption.
+func WithJSONOption(opt cdcjson.Option) ClientOption {
+    return &jsonDecoderOption{opt: opt}
+}
+
 // NewClient creates an gRPC client exposing all the common access APIs.
 // Client will use provided host for connection.
-func NewClient(host string, opts ...grpc.DialOption) (*Client, error) {
+func NewClient(host string, opts ...ClientOption) (*Client, error) {
 	var client *BaseClient
 	var err error
 	if len(opts) > 0 {
 		client, err = NewBaseClient(host, opts...)
 	} else {
-		client, err = NewBaseClient(host, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		client, err = NewBaseClient(
+			host, 
+			WithGRPCDialOption(grpc.WithTransportCredentials(insecure.NewCredentials())),
+			WithJSONOption(cdcjson.WithAllowUnstructuredStaticTypes(false)),
+		)
 	}
 	if err != nil {
 		return nil, err

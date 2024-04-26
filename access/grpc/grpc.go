@@ -84,8 +84,13 @@ type BaseClient struct {
 }
 
 // NewBaseClient creates a new gRPC handler for network communication.
-func NewBaseClient(url string, opts ...grpc.DialOption) (*BaseClient, error) {
-	conn, err := grpc.Dial(url, opts...)
+func NewBaseClient(url string, opts ...ClientOption) (*BaseClient, error) {
+    cfg := options{}
+    for _, opt := range opts {
+        opt.apply(&cfg)
+    }
+
+	conn, err := grpc.Dial(url, cfg.dialOptions...)
 	if err != nil {
 		return nil, err
 	}
@@ -98,10 +103,7 @@ func NewBaseClient(url string, opts ...grpc.DialOption) (*BaseClient, error) {
 		rpcClient:           grpcClient,
 		executionDataClient: execDataClient,
 		close:               func() error { return conn.Close() },
-		jsonOptions:         []json.Option{
-			json.WithAllowUnstructuredStaticTypes(true),
-			json.WithBackwardsCompatibility(),
-		},
+		jsonOptions:         cfg.jsonOptions,
 	}, nil
 }
 
