@@ -23,6 +23,9 @@ import (
 	"fmt"
 
 	"github.com/onflow/cadence"
+	cdcjson "github.com/onflow/cadence/encoding/json"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/onflow/flow-go-sdk"
 )
@@ -36,34 +39,40 @@ const (
 )
 
 // ClientOption is a configuration option for the client.
-type ClientOption interface {
-    apply(*options)
-}
+type ClientOption func (*options) 
 
 type options struct {
+	dialOptions []grpc.DialOption
 	jsonOptions []cdcjson.Option
 }
 
-
-type jsonOption struct {
-	opt cdcjson.Option
+func DefaultClientOptions() *options {
+	return &options{
+		dialOptions: []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())},
+		jsonOptions: []cdcjson.Option{cdcjson.WithAllowUnstructuredStaticTypes(true)},
+	}
 }
 
-func (j *jsonOption) apply(opts *options) {
-    opts.jsonOptions = append(opts.jsonOptions, j.opt)
+// WithGRPCDialOptions wraps a grpc.DialOption into a ClientOption.
+func WithGRPCDialOptions(dialOpts ...grpc.DialOption) ClientOption {
+	return func(opts *options) {
+		opts.dialOptions = append(opts.dialOptions, dialOpts...)
+	}
 }
 
-// WithJSONOption wraps a json.Option into a ClientOption.
-func WithJSONOption(opt cdcjson.Option) ClientOption {
-    return &jsonOption{opt: opt}
+// WithJSONOptions wraps a json.Option into a ClientOption.
+func WithJSONOptions(jsonOpts ...cdcjson.Option)  ClientOption {
+	return func (opts *options) {
+		opts.jsonOptions = append(opts.jsonOptions, jsonOpts...)
+	}
 }
 
 // NewClient creates an HTTP client exposing all the common access APIs.
 // Client will use provided host for connection.
 func NewClient(host string, opts ...ClientOption) (*Client, error) {
-    cfg := options{}
-    for _, opt := range opts {
-        opt.apply(&cfg)
+    cfg := DefaultClientOptions() 
+    for _, apply := range opts {
+        apply(cfg)
     }
 
 	client, err := NewBaseClient(host)
@@ -71,9 +80,7 @@ func NewClient(host string, opts ...ClientOption) (*Client, error) {
 		return nil, err
 	}
 
-	if len(cfg.jsonOptions) > 0 {
-		client.jsonOptions = append(client.jsonOptions, cfg.jsonOptions...)
-	}
+	client.SetJSONOptions(cfg.jsonOptions)
 
 	return &Client{client}, nil
 }

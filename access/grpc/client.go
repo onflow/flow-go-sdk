@@ -44,60 +44,48 @@ const MainnetHost = "access.mainnet.nodes.onflow.org:9000"
 const PreviewnetHost = "access.previewnet.nodes.onflow.org:9000"
 
 // ClientOption is a configuration option for the client.
-type ClientOption interface {
-    apply(*options)
-}
+type ClientOption func (*options) 
 
 type options struct {
 	dialOptions []grpc.DialOption
 	jsonOptions []cdcjson.Option
 }
 
-type dialOption struct {
-    opt grpc.DialOption
+func DefaultClientOptions() *options {
+	return &options{
+		dialOptions: []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())},
+		jsonOptions: []cdcjson.Option{cdcjson.WithAllowUnstructuredStaticTypes(true)},
+	}
 }
 
-func (d *dialOption) apply(opts *options) {
-    opts.dialOptions = append(opts.dialOptions, d.opt)
+// WithGRPCDialOptions wraps a grpc.DialOption into a ClientOption.
+func WithGRPCDialOptions(dialOpts ...grpc.DialOption) ClientOption {
+	return func(opts *options) {
+		opts.dialOptions = append(opts.dialOptions, dialOpts...)
+	}
 }
 
-// WithGRPCDialOption wraps a grpc.DialOption into a ClientOption.
-func WithGRPCDialOption(opt grpc.DialOption) ClientOption {
-    return &dialOption{opt: opt}
-}
-
-type jsonOption struct {
-	opt cdcjson.Option
-}
-
-func (j *jsonOption) apply(opts *options) {
-    opts.jsonOptions = append(opts.jsonOptions, j.opt)
-}
-
-// WithJSONOption wraps a json.Option into a ClientOption.
-func WithJSONOption(opt cdcjson.Option) ClientOption {
-    return &jsonOption{opt: opt}
+// WithJSONOptions wraps a json.Option into a ClientOption.
+func WithJSONOptions(jsonOpts ...cdcjson.Option)  ClientOption {
+	return func (opts *options) {
+		opts.jsonOptions = append(opts.jsonOptions, jsonOpts...)
+	}
 }
 
 // NewClient creates an gRPC client exposing all the common access APIs.
 // Client will use provided host for connection.
 func NewClient(host string, opts ...ClientOption) (*Client, error) {
-    cfg := options{}
-    for _, opt := range opts {
-        opt.apply(&cfg)
-    }
-
-	var client *BaseClient
-	var err error
-	if len(opts) > 0 {
-		client, err = NewBaseClient(host, cfg.dialOptions...)
-		client.jsonOptions = append(client.jsonOptions, cfg.jsonOptions...) 
-	} else {
-		client, err = NewBaseClient(host, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	cfg := DefaultClientOptions() 
+	for _, apply := range opts {
+		apply(cfg)
 	}
+
+	client, err := NewBaseClient(host, cfg.dialOptions...)
 	if err != nil {
 		return nil, err
 	}
+
+	client.SetJSONOptions(cfg.jsonOptions)
 
 	return &Client{client}, nil
 }
