@@ -57,7 +57,8 @@ func DefaultClientOptions() *options {
 			grpc.WithTransportCredentials(insecure.NewCredentials()),
 		},
 		jsonOptions: []jsoncdc.Option{
-			jsoncdc.WithAllowUnstructuredStaticTypes(true)},
+			jsoncdc.WithAllowUnstructuredStaticTypes(true),
+		},
 	}
 }
 
@@ -90,13 +91,12 @@ func NewClient(host string, opts ...ClientOption) (*Client, error) {
 
 	client.SetJSONOptions(cfg.jsonOptions)
 
-	return &Client{grpc: client, dialOptions: cfg.dialOptions}, nil
+	return &Client{grpc: client}, nil
 }
 
 // Client implements all common gRPC methods providing a network agnostic API.
 type Client struct {
 	grpc        *BaseClient
-	dialOptions []grpc.DialOption
 }
 
 func (c *Client) Ping(ctx context.Context) error {
