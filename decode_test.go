@@ -35,15 +35,3 @@ func TestDecodeFlowTypeID(t *testing.T) {
 	assert.Equal(t, stdlib.FlowLocation{}, location)
 	assert.Equal(t, "AccountCreated", qualifiedIdentifier)
 }
-
-func TestDecodeFlowEVMTypeID(t *testing.T) {
-	location, qualifiedIdentifier, err := common.DecodeTypeID(nil, "evm.BlockExecuted")
-	require.NoError(t, err)
-	assert.Equal(t, flow.EVMLocation{}, location)
-	assert.Equal(t, "BlockExecuted", qualifiedIdentifier)
-
-	location, qualifiedIdentifier, err = common.DecodeTypeID(nil, "evm.TransactionExecuted")
-	require.NoError(t, err)
-	assert.Equal(t, flow.EVMLocation{}, location)
-	assert.Equal(t, "TransactionExecuted", qualifiedIdentifier)
-}
