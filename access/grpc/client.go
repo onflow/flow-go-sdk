@@ -28,6 +28,7 @@ package grpc
 import (
 	"context"
 
+	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"google.golang.org/grpc"
 
 	"github.com/onflow/cadence"
@@ -42,26 +43,60 @@ const CanarynetHost = "access.canary.nodes.onflow.org:9000"
 const MainnetHost = "access.mainnet.nodes.onflow.org:9000"
 const PreviewnetHost = "access.previewnet.nodes.onflow.org:9000"
 
+// ClientOption is a configuration option for the client.
+type ClientOption func(*options)
+
+type options struct {
+	dialOptions []grpc.DialOption
+	jsonOptions []jsoncdc.Option
+}
+
+func DefaultClientOptions() *options {
+	return &options{
+		dialOptions: []grpc.DialOption{
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+		},
+		jsonOptions: []jsoncdc.Option{
+			jsoncdc.WithAllowUnstructuredStaticTypes(true),
+		},
+	}
+}
+
+// WithGRPCDialOptions wraps a grpc.DialOption into a ClientOption.
+func WithGRPCDialOptions(dialOpts ...grpc.DialOption) ClientOption {
+	return func(opts *options) {
+		opts.dialOptions = append(opts.dialOptions, dialOpts...)
+	}
+}
+
+// WithJSONOptions wraps a json.Option into a ClientOption.
+func WithJSONOptions(jsonOpts ...jsoncdc.Option) ClientOption {
+	return func(opts *options) {
+		opts.jsonOptions = append(opts.jsonOptions, jsonOpts...)
+	}
+}
+
 // NewClient creates an gRPC client exposing all the common access APIs.
 // Client will use provided host for connection.
-func NewClient(host string, opts ...grpc.DialOption) (*Client, error) {
-	var client *BaseClient
-	var err error
-	if len(opts) > 0 {
-		client, err = NewBaseClient(host, opts...)
-	} else {
-		client, err = NewBaseClient(host, grpc.WithTransportCredentials(insecure.NewCredentials()))
+func NewClient(host string, opts ...ClientOption) (*Client, error) {
+	cfg := DefaultClientOptions()
+	for _, apply := range opts {
+		apply(cfg)
 	}
+
+	client, err := NewBaseClient(host, cfg.dialOptions...)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Client{client}, nil
+	client.SetJSONOptions(cfg.jsonOptions)
+
+	return &Client{grpc: client}, nil
 }
 
 // Client implements all common gRPC methods providing a network agnostic API.
 type Client struct {
-	grpc *BaseClient
+	grpc        *BaseClient
 }
 
 func (c *Client) Ping(ctx context.Context) error {

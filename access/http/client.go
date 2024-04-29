@@ -23,6 +23,7 @@ import (
 	"fmt"
 
 	"github.com/onflow/cadence"
+	jsoncdc "github.com/onflow/cadence/encoding/json"
 
 	"github.com/onflow/flow-go-sdk"
 )
@@ -35,13 +36,43 @@ const (
 	PreviewnetHost = "https://rest-previewnet.onflow.org/v1"
 )
 
+// ClientOption is a configuration option for the client.
+type ClientOption func(*options)
+
+type options struct {
+	jsonOptions []jsoncdc.Option
+}
+
+func DefaultClientOptions() *options {
+	return &options{
+		jsonOptions: []jsoncdc.Option{
+			jsoncdc.WithAllowUnstructuredStaticTypes(true),
+		},
+	}
+}
+
+// WithJSONOptions wraps a json.Option into a ClientOption.
+func WithJSONOptions(jsonOpts ...jsoncdc.Option) ClientOption {
+	return func(opts *options) {
+		opts.jsonOptions = append(opts.jsonOptions, jsonOpts...)
+	}
+}
+
 // NewClient creates an HTTP client exposing all the common access APIs.
 // Client will use provided host for connection.
-func NewClient(host string) (*Client, error) {
+func NewClient(host string, opts ...ClientOption) (*Client, error) {
+	cfg := DefaultClientOptions()
+	for _, apply := range opts {
+		apply(cfg)
+	}
+
 	client, err := NewBaseClient(host)
 	if err != nil {
 		return nil, err
 	}
+
+	client.SetJSONOptions(cfg.jsonOptions)
+
 	return &Client{client}, nil
 }
 
