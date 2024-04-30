@@ -24,6 +24,7 @@ import (
 	"testing"
 
 	"github.com/onflow/cadence"
+	"github.com/stretchr/testify/require"
 
 	"github.com/onflow/flow-go-sdk"
 
@@ -119,12 +120,24 @@ func Test_ConvertTransactionResult(t *testing.T) {
 }
 
 func Test_EncodeCadenceArgs(t *testing.T) {
-	v1, _ := cadence.NewValue("Hello")
-	v2, _ := cadence.NewValue("World")
+	t.Parallel()
+
+	v1, err := cadence.NewString("Hello")
+	require.NoError(t, err)
+
+	v2, err := cadence.NewString("World")
+	require.NoError(t, err)
 
 	res, err := encodeCadenceArgs([]cadence.Value{v1, v2})
 	assert.NoError(t, err)
-	assert.Equal(t, []string{"eyJ2YWx1ZSI6IkhlbGxvIiwidHlwZSI6IlN0cmluZyJ9Cg==", "eyJ2YWx1ZSI6IldvcmxkIiwidHlwZSI6IlN0cmluZyJ9Cg=="}, res)
+
+	assert.Equal(t,
+		[]string{
+			"eyJ2YWx1ZSI6IkhlbGxvIiwidHlwZSI6IlN0cmluZyJ9Cg==",
+			"eyJ2YWx1ZSI6IldvcmxkIiwidHlwZSI6IlN0cmluZyJ9Cg==",
+		},
+		res,
+	)
 }
 
 func Test_ConvertExecutionResults(t *testing.T) {

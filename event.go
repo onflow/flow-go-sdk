@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/onflow/cadence"
+	"github.com/onflow/cadence/runtime/stdlib"
 	"github.com/onflow/crypto/hash"
 
 	"github.com/onflow/flow-go-sdk/crypto"
@@ -126,7 +127,11 @@ type AccountCreatedEvent Event
 
 // Address returns the address of the newly-created account.
 func (evt AccountCreatedEvent) Address() Address {
-	return BytesToAddress(evt.Value.Fields[0].(cadence.Address).Bytes())
+	address := cadence.SearchFieldByName(
+		evt.Value,
+		stdlib.AccountEventAddressParameter.Identifier,
+	).(cadence.Address)
+	return BytesToAddress(address.Bytes())
 }
 
 // EventFilter is used to filter events based on given parameters.
