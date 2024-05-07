@@ -131,8 +131,8 @@ github.com/onflow/cadence v1.0.0-preview.26 h1:FcinbrV7s7SIPzgxEAtA0wWqqf7QrvcSF
 github.com/onflow/cadence v1.0.0-preview.26/go.mod h1:fGhLBbuEmv5rh48qv0ZS0tUz53gxWsHpB4dPsF09h6E=
 github.com/onflow/crypto v0.25.1 h1:0txy2PKPMM873JbpxQNbJmuOJtD56bfs48RQfm0ts5A=
 github.com/onflow/crypto v0.25.1/go.mod h1:C8FbaX0x8y+FxWjbkHy0Q4EASCDR9bSPWZqlpCLYyVI=
-github.com/onflow/flow/protobuf/go/flow v0.4.0 h1:5TGmPwRmnSt7aawgtPGF9ehoGHHir9Cy9LVoAiU9t/E=
-github.com/onflow/flow/protobuf/go/flow v0.4.0/go.mod h1:NA2pX2nw8zuaxfKphhKsk00kWLwfd+tv8mS23YXO4Sk=
+github.com/onflow/flow/protobuf/go/flow v0.4.2 h1:AGNIhiGcAGPMcuAjMalw7M7MDGbcrUijsU7lp5Ny0iQ=
+github.com/onflow/flow/protobuf/go/flow v0.4.2/go.mod h1:NA2pX2nw8zuaxfKphhKsk00kWLwfd+tv8mS23YXO4Sk=
 github.com/onflow/go-ethereum v1.13.4 h1:iNO86fm8RbBbhZ87ZulblInqCdHnAQVY8okBrNsTevc=
 github.com/onflow/go-ethereum v1.13.4/go.mod h1:cE/gEUkAffhwbVmMJYz+t1dAfVNHNwZCgc3BWtZxBGY=
 github.com/onflow/sdks v0.5.1-0.20230912225508-b35402f12bba h1:rIehuhO6bj4FkwE4VzwEjX7MoAlOhUJENBJLqDqVxAo=

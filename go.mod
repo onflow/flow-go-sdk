@@ -9,7 +9,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/kms v1.31.0
 	github.com/onflow/cadence v1.0.0-preview.26
 	github.com/onflow/crypto v0.25.1
-	github.com/onflow/flow/protobuf/go/flow v0.4.0
+	github.com/onflow/flow/protobuf/go/flow v0.4.2
 	github.com/onflow/go-ethereum v1.13.4
 	github.com/onflow/sdks v0.5.1-0.20230912225508-b35402f12bba
 	github.com/pkg/errors v0.9.1
