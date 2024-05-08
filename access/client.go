@@ -116,11 +116,23 @@ type Client interface {
 	SubscribeExecutionDataByBlockHeight(ctx context.Context, startHeight uint64) (<-chan flow.ExecutionDataStreamResponse, <-chan error, error)
 
 	// SubscribeEventsByBlockID subscribes to events starting at the given block ID.
-	SubscribeEventsByBlockID(ctx context.Context, startBlockID flow.Identifier, filter flow.EventFilter) (<-chan flow.BlockEvents, <-chan error, error)
+	SubscribeEventsByBlockID(ctx context.Context, startBlockID flow.Identifier, filter flow.EventFilter, opts ...SubscribeOption) (<-chan flow.BlockEvents, <-chan error, error)
 
 	// SubscribeEventsByBlockHeight subscribes to events starting at the given block height.
-	SubscribeEventsByBlockHeight(ctx context.Context, startHeight uint64, filter flow.EventFilter) (<-chan flow.BlockEvents, <-chan error, error)
+	SubscribeEventsByBlockHeight(ctx context.Context, startHeight uint64, filter flow.EventFilter, opts ...SubscribeOption) (<-chan flow.BlockEvents, <-chan error, error)
 
 	// Close stops the client connection to the access node.
 	Close() error
+}
+
+type SubscribeOption func(*SubscribeConfig)
+
+type SubscribeConfig struct {
+	HeartbeatInterval uint64
+}
+
+func WithHeartbeatInterval(interval uint64) SubscribeOption {
+	return func(config *SubscribeConfig) {
+		config.HeartbeatInterval = interval
+	}
 }
