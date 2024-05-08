@@ -22,6 +22,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/onflow/flow-go-sdk/access"
+
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 
@@ -75,6 +77,8 @@ func NewClient(host string, opts ...ClientOption) (*Client, error) {
 
 	return &Client{client}, nil
 }
+
+var _ access.Client = &Client{}
 
 // Client implements all common HTTP methods providing a network agnostic API.
 type Client struct {
@@ -273,11 +277,11 @@ func (c *Client) SubscribeExecutionDataByBlockHeight(ctx context.Context, startH
 	return nil, nil, fmt.Errorf("not implemented")
 }
 
-func (c *Client) SubscribeEventsByBlockID(ctx context.Context, startBlockID flow.Identifier, filter flow.EventFilter) (<-chan flow.BlockEvents, <-chan error, error) {
+func (c *Client) SubscribeEventsByBlockID(ctx context.Context, startBlockID flow.Identifier, filter flow.EventFilter, opts ...access.SubscribeOption) (<-chan flow.BlockEvents, <-chan error, error) {
 	return nil, nil, fmt.Errorf("not implemented")
 }
 
-func (c *Client) SubscribeEventsByBlockHeight(ctx context.Context, startHeight uint64, filter flow.EventFilter) (<-chan flow.BlockEvents, <-chan error, error) {
+func (c *Client) SubscribeEventsByBlockHeight(ctx context.Context, startHeight uint64, filter flow.EventFilter, opts ...access.SubscribeOption) (<-chan flow.BlockEvents, <-chan error, error) {
 	return nil, nil, fmt.Errorf("not implemented")
 }
 
