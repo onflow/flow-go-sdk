@@ -28,6 +28,8 @@ package grpc
 import (
 	"context"
 
+	"github.com/onflow/flow-go-sdk/access"
+
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"google.golang.org/grpc"
 
@@ -94,9 +96,11 @@ func NewClient(host string, opts ...ClientOption) (*Client, error) {
 	return &Client{grpc: client}, nil
 }
 
+var _ access.Client = &Client{}
+
 // Client implements all common gRPC methods providing a network agnostic API.
 type Client struct {
-	grpc        *BaseClient
+	grpc *BaseClient
 }
 
 func (c *Client) Ping(ctx context.Context) error {
@@ -210,22 +214,52 @@ func (c *Client) GetExecutionDataByBlockID(ctx context.Context, blockID flow.Ide
 	return c.grpc.GetExecutionDataByBlockID(ctx, blockID)
 }
 
-func (c *Client) SubscribeExecutionDataByBlockID(ctx context.Context, startBlockID flow.Identifier) (<-chan flow.ExecutionDataStreamResponse, <-chan error, error) {
+func (c *Client) SubscribeExecutionDataByBlockID(
+	ctx context.Context,
+	startBlockID flow.Identifier,
+) (<-chan flow.ExecutionDataStreamResponse, <-chan error, error) {
 	return c.grpc.SubscribeExecutionDataByBlockID(ctx, startBlockID)
 }
 
-func (c *Client) SubscribeExecutionDataByBlockHeight(ctx context.Context, startHeight uint64) (<-chan flow.ExecutionDataStreamResponse, <-chan error, error) {
+func (c *Client) SubscribeExecutionDataByBlockHeight(
+	ctx context.Context,
+	startHeight uint64,
+) (<-chan flow.ExecutionDataStreamResponse, <-chan error, error) {
 	return c.grpc.SubscribeExecutionDataByBlockHeight(ctx, startHeight)
 }
 
-func (c *Client) SubscribeEventsByBlockID(ctx context.Context, startBlockID flow.Identifier, filter flow.EventFilter) (<-chan flow.BlockEvents, <-chan error, error) {
-	return c.grpc.SubscribeEventsByBlockID(ctx, startBlockID, filter)
+func (c *Client) SubscribeEventsByBlockID(
+	ctx context.Context,
+	startBlockID flow.Identifier,
+	filter flow.EventFilter,
+	opts ...access.SubscribeOption,
+) (<-chan flow.BlockEvents, <-chan error, error) {
+	conf := convertSubscribeOptions(opts...)
+	return c.grpc.SubscribeEventsByBlockID(ctx, startBlockID, filter, WithHeartbeatInterval(conf.heartbeatInterval))
 }
 
-func (c *Client) SubscribeEventsByBlockHeight(ctx context.Context, startHeight uint64, filter flow.EventFilter) (<-chan flow.BlockEvents, <-chan error, error) {
-	return c.grpc.SubscribeEventsByBlockHeight(ctx, startHeight, filter)
+func (c *Client) SubscribeEventsByBlockHeight(
+	ctx context.Context,
+	startHeight uint64,
+	filter flow.EventFilter,
+	opts ...access.SubscribeOption,
+) (<-chan flow.BlockEvents, <-chan error, error) {
+	conf := convertSubscribeOptions(opts...)
+	return c.grpc.SubscribeEventsByBlockHeight(ctx, startHeight, filter, WithHeartbeatInterval(conf.heartbeatInterval))
 }
 
 func (c *Client) Close() error {
 	return c.grpc.Close()
+}
+
+// convertSubscribeOptions creates the default subscribe config and applies all the provided options
+func convertSubscribeOptions(opts ...access.SubscribeOption) *SubscribeConfig {
+	subsConf := DefaultSubscribeConfig()
+	conf := &access.SubscribeConfig{
+		HeartbeatInterval: subsConf.heartbeatInterval,
+	}
+	for _, opt := range opts {
+		opt(conf)
+	}
+	return subsConf
 }
