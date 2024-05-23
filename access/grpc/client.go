@@ -115,6 +115,10 @@ func (c *Client) GetNetworkParameters(ctx context.Context) (*flow.NetworkParamet
 	return c.grpc.GetNetworkParameters(ctx)
 }
 
+func (c *Client) GetNodeVersionInfo(ctx context.Context) (*flow.NodeVersionInfo, error) {
+	return c.grpc.GetNodeVersionInfo(ctx)
+}
+
 func (c *Client) GetLatestBlockHeader(ctx context.Context, isSealed bool) (*flow.BlockHeader, error) {
 	return c.grpc.GetLatestBlockHeader(ctx, isSealed)
 }
