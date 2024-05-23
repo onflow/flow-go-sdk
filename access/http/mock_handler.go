@@ -310,6 +310,36 @@ func (_m *mockHandler) getNetworkParameters(ctx context.Context, opts ...queryOp
 	return r0, r1
 }
 
+// getNodeVersionInfo provides a mock function with given fields: ctx, opts
+func (_m *mockHandler) getNodeVersionInfo(ctx context.Context, opts ...queryOpts) (*models.NodeVersionInfo, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *models.NodeVersionInfo
+	if rf, ok := ret.Get(0).(func(context.Context, ...queryOpts) *models.NodeVersionInfo); ok {
+		r0 = rf(ctx, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.NodeVersionInfo)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, ...queryOpts) error); ok {
+		r1 = rf(ctx, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // getTransaction provides a mock function with given fields: ctx, ID, includeResult, opts
 func (_m *mockHandler) getTransaction(ctx context.Context, ID string, includeResult bool, opts ...queryOpts) (*models.Transaction, error) {
 	_va := make([]interface{}, len(opts))
