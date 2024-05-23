@@ -366,10 +366,10 @@ func toTransactionResult(txr *models.TransactionResult, options []cadenceJSON.Op
 	}
 
 	return &flow.TransactionResult{
-		Status:  toTransactionStatus(txr.Status),
-		Error:   txErr,
-		Events:  events,
-		BlockID: flow.HexToID(txr.BlockId),
+		Status:       toTransactionStatus(txr.Status),
+		Error:        txErr,
+		Events:       events,
+		BlockID:      flow.HexToID(txr.BlockId),
 		CollectionID: flow.HexToID(txr.CollectionId),
 	}, nil
 }
@@ -446,4 +446,28 @@ func toNetworkParameters(params *models.NetworkParameters) *flow.NetworkParamete
 	return &flow.NetworkParameters{
 		ChainID: flow.ChainID(params.ChainId),
 	}
+}
+
+func toNodeVersionInfo(info *models.NodeVersionInfo) (*flow.NodeVersionInfo, error) {
+	version, err := strconv.ParseUint(info.ProtocolVersion, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	sporkHeight, err := strconv.ParseUint(info.SporkRootBlockHeight, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	nodeHeight, err := strconv.ParseUint(info.NodeRootBlockHeight, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+
+	return &flow.NodeVersionInfo{
+		Semver:               info.Semver,
+		Commit:               info.Commit,
+		SporkId:              flow.HexToID(info.SporkId),
+		ProtocolVersion:      version,
+		SporkRootBlockHeight: sporkHeight,
+		NodeRootBlockHeight:  nodeHeight,
+	}, nil
 }

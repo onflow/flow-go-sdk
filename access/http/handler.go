@@ -180,6 +180,16 @@ func (h *httpHandler) getNetworkParameters(ctx context.Context, opts ...queryOpt
 	return &networkParameters, nil
 }
 
+func (h *httpHandler) getNodeVersionInfo(ctx context.Context, opts ...queryOpts) (*models.NodeVersionInfo, error) {
+	var nodeVersionInfo models.NodeVersionInfo
+	err := h.get(ctx, h.mustBuildURL("/node_version_info", opts...), &nodeVersionInfo)
+	if err != nil {
+		return nil, errors.Wrap(err, "get node version info failed")
+	}
+
+	return &nodeVersionInfo, nil
+}
+
 func (h *httpHandler) getBlockByID(ctx context.Context, ID string, opts ...queryOpts) (*models.Block, error) {
 	u := h.mustBuildURL(fmt.Sprintf("/blocks/%s", ID), opts...)
 

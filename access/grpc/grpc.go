@@ -142,6 +142,23 @@ func (c *BaseClient) GetNetworkParameters(ctx context.Context, opts ...grpc.Call
 	}, nil
 }
 
+func (c *BaseClient) GetNodeVersionInfo(ctx context.Context, opts ...grpc.CallOption) (*flow.NodeVersionInfo, error) {
+	res, err := c.rpcClient.GetNodeVersionInfo(ctx, &access.GetNodeVersionInfoRequest{}, opts...)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	info := res.GetInfo()
+	return &flow.NodeVersionInfo{
+		Semver:               info.Semver,
+		Commit:               info.Commit,
+		SporkId:              flow.BytesToID(info.SporkId),
+		ProtocolVersion:      info.ProtocolVersion,
+		SporkRootBlockHeight: info.SporkRootBlockHeight,
+		NodeRootBlockHeight:  info.NodeRootBlockHeight,
+	}, nil
+}
+
 func (c *BaseClient) GetLatestBlockHeader(
 	ctx context.Context,
 	isSealed bool,

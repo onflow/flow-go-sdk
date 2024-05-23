@@ -40,6 +40,9 @@ type Client interface {
 	// GetNetworkParameters gets the network parameters.
 	GetNetworkParameters(ctx context.Context) (*flow.NetworkParameters, error)
 
+	// GetNodeVersionInfo gets the node information about the network.
+	GetNodeVersionInfo(ctx context.Context) (*flow.NodeVersionInfo, error)
+
 	// GetLatestBlockHeader gets the latest sealed or unsealed block header.
 	GetLatestBlockHeader(ctx context.Context, isSealed bool) (*flow.BlockHeader, error)
 

@@ -93,6 +93,10 @@ func (c *Client) GetNetworkParameters(ctx context.Context) (*flow.NetworkParamet
 	return c.httpClient.GetNetworkParameters(ctx)
 }
 
+func (c *Client) GetNodeVersionInfo(ctx context.Context) (*flow.NodeVersionInfo, error) {
+	return c.httpClient.GetNodeVersionInfo(ctx)
+}
+
 func (c *Client) GetBlockByID(ctx context.Context, blockID flow.Identifier) (*flow.Block, error) {
 	return c.httpClient.GetBlockByID(ctx, blockID)
 }

@@ -129,6 +129,15 @@ type NetworkParameters struct {
 	ChainID ChainID
 }
 
+type NodeVersionInfo struct {
+	Semver               string
+	Commit               string
+	SporkId              Identifier
+	ProtocolVersion      uint64
+	SporkRootBlockHeight uint64
+	NodeRootBlockHeight  uint64
+}
+
 // entityHasher is a thread-safe hasher used to hash Flow entities.
 type entityHasher struct {
 	mut    sync.Mutex
