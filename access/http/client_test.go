@@ -87,7 +87,7 @@ func TestBaseClient_GetNodeInfo(t *testing.T) {
 			Semver:               "1.0",
 			Commit:               "123",
 			SporkId:              flow.HexToID("0x01").String(),
-			ProtocolVersion:      "2.0",
+			ProtocolVersion:      "2",
 			SporkRootBlockHeight: "123",
 			NodeRootBlockHeight:  "321",
 		}
