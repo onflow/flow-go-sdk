@@ -149,6 +149,41 @@ func TestClient_GetNetworkParameters(t *testing.T) {
 	}))
 }
 
+func TestClient_GetNodeInfo(t *testing.T) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		id := flow.HexToID("0x01")
+		ver := uint64(1)
+		spork := uint64(2)
+		root := uint64(3)
+
+		response := &access.GetNodeVersionInfoResponse{
+			Info: &entities.NodeVersionInfo{
+				Semver:               "1.0",
+				Commit:               "123",
+				SporkId:              id.Bytes(),
+				ProtocolVersion:      ver,
+				SporkRootBlockHeight: spork,
+				NodeRootBlockHeight:  root,
+			},
+		}
+
+		expected := &flow.NodeVersionInfo{
+			Semver:               "1.0",
+			Commit:               "123",
+			SporkId:              id,
+			ProtocolVersion:      ver,
+			SporkRootBlockHeight: spork,
+			NodeRootBlockHeight:  root,
+		}
+
+		rpc.On("GetNodeVersionInfo", ctx, mock.Anything).Return(response, nil)
+
+		info, err := c.GetNodeVersionInfo(ctx)
+		require.NoError(t, err)
+		require.Equal(t, expected, info)
+	}))
+}
+
 func TestClient_GetLatestBlockHeader(t *testing.T) {
 	blocks := test.BlockGenerator()
 
