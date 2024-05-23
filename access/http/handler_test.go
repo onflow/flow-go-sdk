@@ -28,6 +28,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
+	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/access/http/models"
 
 	"github.com/stretchr/testify/assert"
@@ -115,6 +118,33 @@ func TestHandler_ResponseFailures(t *testing.T) {
 		)
 		_, err := handler.getBlocksByHeights(ctx, "1", "", "")
 		assert.EqualError(t, err, "get block by height 1 failed: JSON decoding failed: json: cannot unmarshal string into Go value of type []*models.Block")
+	}))
+}
+
+func TestHandler_GetNodeVersionInfo(t *testing.T) {
+	t.Run("success", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
+		id := flow.HexToID("0x01")
+		sporkHeight := uint64(1337)
+		rootHeight := uint64(222)
+
+		httpInfo := &models.NodeVersionInfo{
+			Semver:               "1.0",
+			Commit:               "123",
+			SporkId:              id.String(),
+			ProtocolVersion:      "2.0",
+			SporkRootBlockHeight: fmt.Sprintf("%d", sporkHeight),
+			NodeRootBlockHeight:  fmt.Sprintf("%d", rootHeight),
+		}
+
+		u, err := url.Parse("/node_version_info")
+		require.NoError(t, err)
+
+		req.SetData(*u, httpInfo)
+
+		info, err := handler.getNodeVersionInfo(ctx)
+		require.NoError(t, err)
+		assert.Equal(t, httpInfo.SporkRootBlockHeight, info.SporkRootBlockHeight)
+		assert.Equal(t, httpInfo.SporkRootBlockHeight, info.SporkRootBlockHeight)
 	}))
 }
 

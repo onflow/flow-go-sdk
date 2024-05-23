@@ -25,6 +25,8 @@ import (
 	"testing"
 
 	jsoncdc "github.com/onflow/cadence/encoding/json"
+	"github.com/stretchr/testify/require"
+
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/access/http/models"
 	"github.com/onflow/flow-go-sdk/test"
@@ -77,6 +79,29 @@ func TestClient_ClientOptions(t *testing.T) {
 		// hard to run a contains check on the options due to it comparing functions, so just check the length
 		assert.Equal(t, len(client.httpClient.jsonOptions), len(expectedJsonOption)+len(DefaultClientOptions().jsonOptions))
 	})
+}
+
+func TestBaseClient_GetNodeInfo(t *testing.T) {
+	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
+		httpInfo := &models.NodeVersionInfo{
+			Semver:               "1.0",
+			Commit:               "123",
+			SporkId:              flow.HexToID("0x01").String(),
+			ProtocolVersion:      "2.0",
+			SporkRootBlockHeight: "123",
+			NodeRootBlockHeight:  "321",
+		}
+		expectedInfo, err := toNodeVersionInfo(httpInfo)
+		require.NoError(t, err)
+
+		handler.
+			On("getNodeVersionInfo", mock.Anything).
+			Return(httpInfo, nil)
+
+		info, err := client.GetNodeVersionInfo(ctx)
+		require.NoError(t, err)
+		assert.Equal(t, expectedInfo, info)
+	}))
 }
 
 func TestBaseClient_GetNetworkParameters(t *testing.T) {
