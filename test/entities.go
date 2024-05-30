@@ -255,9 +255,9 @@ func EventGenerator() *Events {
 
 func (g *Events) WithEncoding(encoding entities.EventEncodingVersion) *Events {
 	switch encoding {
-	case entities.EventEncodingVersion_CCF_V0:
+	case flow.EventEncodingVersionCCF:
 		g.encoding = encoding
-	case entities.EventEncodingVersion_JSON_CDC_V0:
+	case flow.EventEncodingVersionJSONCDC:
 		g.encoding = encoding
 	default:
 		panic(fmt.Errorf("unsupported event encoding: %v", encoding))
@@ -297,7 +297,7 @@ func (g *Events) New() flow.Event {
 
 	var payload []byte
 	var err error
-	if g.encoding == entities.EventEncodingVersion_CCF_V0 {
+	if g.encoding == flow.EventEncodingVersionCCF {
 		payload, err = ccf.Encode(testEvent)
 	} else {
 		payload, err = jsoncdc.Encode(testEvent)
@@ -490,7 +490,7 @@ func ChunkExecutionDataGenerator() *ChunkExecutionDatas {
 	return &ChunkExecutionDatas{
 		ids:         IdentifierGenerator(),
 		txs:         TransactionGenerator(),
-		events:      EventGenerator().WithEncoding(entities.EventEncodingVersion_CCF_V0),
+		events:      EventGenerator().WithEncoding(flow.EventEncodingVersionCCF),
 		trieUpdates: TrieUpdateGenerator(),
 		results:     LightTransactionResultGenerator(),
 	}

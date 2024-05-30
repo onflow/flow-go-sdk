@@ -49,8 +49,9 @@ const PreviewnetHost = "access.previewnet.nodes.onflow.org:9000"
 type ClientOption func(*options)
 
 type options struct {
-	dialOptions []grpc.DialOption
-	jsonOptions []jsoncdc.Option
+	dialOptions   []grpc.DialOption
+	jsonOptions   []jsoncdc.Option
+	eventEncoding flow.EventEncodingVersion
 }
 
 func DefaultClientOptions() *options {
@@ -61,6 +62,7 @@ func DefaultClientOptions() *options {
 		jsonOptions: []jsoncdc.Option{
 			jsoncdc.WithAllowUnstructuredStaticTypes(true),
 		},
+		eventEncoding: flow.EventEncodingVersionCCF,
 	}
 }
 
@@ -78,6 +80,13 @@ func WithJSONOptions(jsonOpts ...jsoncdc.Option) ClientOption {
 	}
 }
 
+// WithEventEncoding sets the default event encoding to use when requesting events from the API
+func WithEventEncoding(version flow.EventEncodingVersion) ClientOption {
+	return func(opts *options) {
+		opts.eventEncoding = version
+	}
+}
+
 // NewClient creates an gRPC client exposing all the common access APIs.
 // Client will use provided host for connection.
 func NewClient(host string, opts ...ClientOption) (*Client, error) {
@@ -92,6 +101,7 @@ func NewClient(host string, opts ...ClientOption) (*Client, error) {
 	}
 
 	client.SetJSONOptions(cfg.jsonOptions)
+	client.SetEventEncoding(cfg.eventEncoding)
 
 	return &Client{grpc: client}, nil
 }
@@ -101,6 +111,11 @@ var _ access.Client = &Client{}
 // Client implements all common gRPC methods providing a network agnostic API.
 type Client struct {
 	grpc *BaseClient
+}
+
+// RPCClient returns the underlying gRPC client.
+func (c *Client) RPCClient() RPCClient {
+	return c.grpc.RPCClient()
 }
 
 func (c *Client) Ping(ctx context.Context) error {
