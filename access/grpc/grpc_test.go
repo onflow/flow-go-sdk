@@ -25,6 +25,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/onflow/cadence/encoding/ccf"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -927,7 +928,8 @@ func TestClient_GetEventsForHeightRange(t *testing.T) {
 
 func TestClient_GetEventsForBlockIDs(t *testing.T) {
 	ids := test.IdentifierGenerator()
-	events := test.EventGenerator()
+	ccfEvents := test.EventGenerator().WithEncoding(flow.EventEncodingVersionCCF)
+	jsonEvents := test.EventGenerator().WithEncoding(flow.EventEncodingVersionJSONCDC)
 
 	t.Run(
 		"Empty result",
@@ -948,10 +950,85 @@ func TestClient_GetEventsForBlockIDs(t *testing.T) {
 	)
 
 	t.Run(
-		"Non-empty result",
+		"Non-empty result with ccf encoding",
 		clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 			blockIDA, blockIDB := ids.New(), ids.New()
-			eventA, eventB, eventC, eventD := events.New(), events.New(), events.New(), events.New()
+			eventA, eventB, eventC, eventD := ccfEvents.New(), ccfEvents.New(), ccfEvents.New(), ccfEvents.New()
+
+			eventAMsg, _ := eventToMessage(eventA)
+			eventBMsg, _ := eventToMessage(eventB)
+			eventCMsg, _ := eventToMessage(eventC)
+			eventDMsg, _ := eventToMessage(eventD)
+
+			var err error
+			eventAMsg.Payload, err = ccf.Encode(eventA.Value)
+			require.NoError(t, err)
+
+			eventBMsg.Payload, err = ccf.Encode(eventB.Value)
+			require.NoError(t, err)
+
+			eventCMsg.Payload, err = ccf.Encode(eventC.Value)
+			require.NoError(t, err)
+
+			eventDMsg.Payload, err = ccf.Encode(eventD.Value)
+			require.NoError(t, err)
+
+			response := &access.EventsResponse{
+				Results: []*access.EventsResponse_Result{
+					{
+						BlockId:        blockIDA.Bytes(),
+						BlockHeight:    1,
+						BlockTimestamp: timestamppb.Now(),
+						Events: []*entities.Event{
+							eventAMsg,
+							eventBMsg,
+						},
+					},
+					{
+						BlockId:        blockIDB.Bytes(),
+						BlockHeight:    2,
+						BlockTimestamp: timestamppb.Now(),
+						Events: []*entities.Event{
+							eventCMsg,
+							eventDMsg,
+						},
+					},
+				},
+			}
+
+			rpc.On("GetEventsForBlockIDs", ctx, mock.Anything).Return(response, nil)
+
+			blocks, err := c.GetEventsForBlockIDs(ctx, "foo", []flow.Identifier{blockIDA, blockIDB})
+			require.NoError(t, err)
+
+			// Force evaluation of type ID, which is cached in type.
+			// Necessary for equality checks below
+			for _, block := range blocks {
+				for _, event := range block.Events {
+					_ = event.Value.Type().ID()
+				}
+			}
+
+			assert.Len(t, blocks, len(response.Results))
+
+			assert.Equal(t, response.Results[0].BlockId, blocks[0].BlockID.Bytes())
+			assert.Equal(t, response.Results[0].BlockHeight, blocks[0].Height)
+
+			assert.Equal(t, response.Results[1].BlockId, blocks[1].BlockID.Bytes())
+			assert.Equal(t, response.Results[1].BlockHeight, blocks[1].Height)
+
+			assert.Equal(t, eventA, blocks[0].Events[0])
+			assert.Equal(t, eventB, blocks[0].Events[1])
+			assert.Equal(t, eventC, blocks[1].Events[0])
+			assert.Equal(t, eventD, blocks[1].Events[1])
+		}),
+	)
+
+	t.Run(
+		"Non-empty result with json encoding",
+		clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+			blockIDA, blockIDB := ids.New(), ids.New()
+			eventA, eventB, eventC, eventD := jsonEvents.New(), jsonEvents.New(), jsonEvents.New(), jsonEvents.New()
 
 			eventAMsg, _ := eventToMessage(eventA)
 			eventBMsg, _ := eventToMessage(eventB)
@@ -983,6 +1060,7 @@ func TestClient_GetEventsForBlockIDs(t *testing.T) {
 
 			rpc.On("GetEventsForBlockIDs", ctx, mock.Anything).Return(response, nil)
 
+			c.SetEventEncoding(flow.EventEncodingVersionJSONCDC)
 			blocks, err := c.GetEventsForBlockIDs(ctx, "foo", []flow.Identifier{blockIDA, blockIDB})
 			require.NoError(t, err)
 

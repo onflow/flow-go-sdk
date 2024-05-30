@@ -31,7 +31,6 @@ import (
 	"github.com/onflow/cadence"
 	"github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/flow/protobuf/go/flow/access"
-	"github.com/onflow/flow/protobuf/go/flow/entities"
 	"github.com/onflow/flow/protobuf/go/flow/executiondata"
 
 	"github.com/onflow/flow-go-sdk"
@@ -81,6 +80,7 @@ type BaseClient struct {
 	executionDataClient ExecutionDataRPCClient
 	close               func() error
 	jsonOptions         []json.Option
+	eventEncoding       flow.EventEncodingVersion
 }
 
 // NewBaseClient creates a new gRPC handler for network communication.
@@ -99,14 +99,16 @@ func NewBaseClient(url string, opts ...grpc.DialOption) (*BaseClient, error) {
 		executionDataClient: execDataClient,
 		close:               func() error { return conn.Close() },
 		jsonOptions:         []json.Option{json.WithAllowUnstructuredStaticTypes(true)},
+		eventEncoding:       flow.EventEncodingVersionCCF,
 	}, nil
 }
 
 // NewFromRPCClient initializes a Flow client using a pre-configured gRPC provider.
 func NewFromRPCClient(rpcClient RPCClient) *BaseClient {
 	return &BaseClient{
-		rpcClient: rpcClient,
-		close:     func() error { return nil },
+		rpcClient:     rpcClient,
+		close:         func() error { return nil },
+		eventEncoding: flow.EventEncodingVersionCCF,
 	}
 }
 
@@ -115,11 +117,20 @@ func NewFromExecutionDataRPCClient(rpcClient ExecutionDataRPCClient) *BaseClient
 	return &BaseClient{
 		executionDataClient: rpcClient,
 		close:               func() error { return nil },
+		eventEncoding:       flow.EventEncodingVersionCCF,
 	}
 }
 
 func (c *BaseClient) SetJSONOptions(options []json.Option) {
 	c.jsonOptions = options
+}
+
+func (c *BaseClient) SetEventEncoding(version flow.EventEncodingVersion) {
+	c.eventEncoding = version
+}
+
+func (c *BaseClient) RPCClient() RPCClient {
+	return c.rpcClient
 }
 
 // Close closes the client connection.
@@ -380,7 +391,7 @@ func (c *BaseClient) GetTransactionResult(
 ) (*flow.TransactionResult, error) {
 	req := &access.GetTransactionRequest{
 		Id:                   txID.Bytes(),
-		EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
+		EventEncodingVersion: c.eventEncoding,
 	}
 
 	res, err := c.rpcClient.GetTransactionResult(ctx, req, opts...)
@@ -406,7 +417,7 @@ func (c *BaseClient) GetTransactionResultByIndex(
 	req := &access.GetTransactionByIndexRequest{
 		BlockId:              blockID.Bytes(),
 		Index:                index,
-		EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
+		EventEncodingVersion: c.eventEncoding,
 	}
 
 	res, err := c.rpcClient.GetTransactionResultByIndex(ctx, req, opts...)
@@ -429,7 +440,7 @@ func (c *BaseClient) GetTransactionResultsByBlockID(
 
 	req := &access.GetTransactionsByBlockIDRequest{
 		BlockId:              blockID.Bytes(),
-		EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
+		EventEncodingVersion: c.eventEncoding,
 	}
 
 	res, err := c.rpcClient.GetTransactionResultsByBlockID(ctx, req, opts...)
@@ -607,7 +618,7 @@ func (c *BaseClient) GetEventsForHeightRange(
 		Type:                 query.Type,
 		StartHeight:          query.StartHeight,
 		EndHeight:            query.EndHeight,
-		EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
+		EventEncodingVersion: c.eventEncoding,
 	}
 
 	res, err := c.rpcClient.GetEventsForHeightRange(ctx, req, opts...)
@@ -627,7 +638,7 @@ func (c *BaseClient) GetEventsForBlockIDs(
 	req := &access.GetEventsForBlockIDsRequest{
 		Type:                 eventType,
 		BlockIds:             identifiersToMessages(blockIDs),
-		EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
+		EventEncodingVersion: c.eventEncoding,
 	}
 
 	res, err := c.rpcClient.GetEventsForBlockIDs(ctx, req, opts...)
@@ -724,7 +735,7 @@ func (c *BaseClient) GetExecutionDataByBlockID(
 
 	ed, err := c.executionDataClient.GetExecutionDataByBlockID(ctx, &executiondata.GetExecutionDataByBlockIDRequest{
 		BlockId:              identifierToMessage(blockID),
-		EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
+		EventEncodingVersion: c.eventEncoding,
 	}, opts...)
 	if err != nil {
 		return nil, newRPCError(err)
@@ -741,7 +752,7 @@ func (c *BaseClient) SubscribeExecutionDataByBlockID(
 ) (<-chan flow.ExecutionDataStreamResponse, <-chan error, error) {
 	req := executiondata.SubscribeExecutionDataRequest{
 		StartBlockId:         startBlockID[:],
-		EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
+		EventEncodingVersion: c.eventEncoding,
 	}
 	return c.subscribeExecutionData(ctx, &req, opts...)
 }
@@ -753,7 +764,7 @@ func (c *BaseClient) SubscribeExecutionDataByBlockHeight(
 ) (<-chan flow.ExecutionDataStreamResponse, <-chan error, error) {
 	req := executiondata.SubscribeExecutionDataRequest{
 		StartBlockHeight:     startHeight,
-		EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
+		EventEncodingVersion: c.eventEncoding,
 	}
 	return c.subscribeExecutionData(ctx, &req, opts...)
 }
@@ -824,7 +835,7 @@ func (c *BaseClient) SubscribeEventsByBlockID(
 ) (<-chan flow.BlockEvents, <-chan error, error) {
 	req := executiondata.SubscribeEventsRequest{
 		StartBlockId:         startBlockID[:],
-		EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
+		EventEncodingVersion: c.eventEncoding,
 	}
 	return c.subscribeEvents(ctx, &req, filter, opts...)
 }
@@ -837,7 +848,7 @@ func (c *BaseClient) SubscribeEventsByBlockHeight(
 ) (<-chan flow.BlockEvents, <-chan error, error) {
 	req := executiondata.SubscribeEventsRequest{
 		StartBlockHeight:     startHeight,
-		EventEncodingVersion: entities.EventEncodingVersion_CCF_V0,
+		EventEncodingVersion: c.eventEncoding,
 	}
 	return c.subscribeEvents(ctx, &req, filter, opts...)
 }

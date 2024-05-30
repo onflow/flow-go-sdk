@@ -23,4 +23,12 @@ import (
 	// as it registers the type ID decoder for the Flow types,
 	// e.g. `flow.AccountCreated`
 	_ "github.com/onflow/cadence/runtime/stdlib"
+	"github.com/onflow/flow/protobuf/go/flow/entities"
+)
+
+type EventEncodingVersion = entities.EventEncodingVersion
+
+const (
+	EventEncodingVersionCCF     = entities.EventEncodingVersion_CCF_V0
+	EventEncodingVersionJSONCDC = entities.EventEncodingVersion_JSON_CDC_V0
 )
