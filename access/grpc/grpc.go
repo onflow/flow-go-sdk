@@ -519,7 +519,7 @@ func (c *BaseClient) ExecuteScriptAtLatestBlock(
 	opts ...grpc.CallOption,
 ) (cadence.Value, error) {
 
-	args, err := convert.CadenceValuesToMessages(arguments)
+	args, err := convert.CadenceValuesToMessages(arguments, flow.EventEncodingVersionJSONCDC)
 	if err != nil {
 		return nil, newEntityToMessageError(entityCadenceValue, err)
 	}
@@ -545,7 +545,7 @@ func (c *BaseClient) ExecuteScriptAtBlockID(
 	opts ...grpc.CallOption,
 ) (cadence.Value, error) {
 
-	args, err := convert.CadenceValuesToMessages(arguments)
+	args, err := convert.CadenceValuesToMessages(arguments, flow.EventEncodingVersionJSONCDC)
 	if err != nil {
 		return nil, newEntityToMessageError(entityCadenceValue, err)
 	}
@@ -572,7 +572,7 @@ func (c *BaseClient) ExecuteScriptAtBlockHeight(
 	opts ...grpc.CallOption,
 ) (cadence.Value, error) {
 
-	args, err := convert.CadenceValuesToMessages(arguments)
+	args, err := convert.CadenceValuesToMessages(arguments, flow.EventEncodingVersionJSONCDC)
 	if err != nil {
 		return nil, newEntityToMessageError(entityCadenceValue, err)
 	}

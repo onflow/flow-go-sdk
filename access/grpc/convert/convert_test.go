@@ -23,8 +23,6 @@ import (
 	"time"
 
 	"github.com/onflow/cadence"
-	"github.com/onflow/cadence/encoding/ccf"
-	"github.com/onflow/flow/protobuf/go/flow/entities"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -107,10 +105,22 @@ func TestConvert_BlockHeader(t *testing.T) {
 }
 
 func TestConvert_CadenceValue(t *testing.T) {
-	t.Run("Valid value", func(t *testing.T) {
+	t.Run("Valid jsoncdc encoded value", func(t *testing.T) {
 		valueA := cadence.NewInt(42)
 
-		msg, err := CadenceValueToMessage(valueA)
+		msg, err := CadenceValueToMessage(valueA, flow.EventEncodingVersionJSONCDC)
+		require.NoError(t, err)
+
+		valueB, err := MessageToCadenceValue(msg, nil)
+		require.NoError(t, err)
+
+		assert.Equal(t, valueA, valueB)
+	})
+
+	t.Run("Valid CCF encoded value", func(t *testing.T) {
+		valueA := cadence.NewInt(42)
+
+		msg, err := CadenceValueToMessage(valueA, flow.EventEncodingVersionCCF)
 		require.NoError(t, err)
 
 		valueB, err := MessageToCadenceValue(msg, nil)
@@ -125,18 +135,6 @@ func TestConvert_CadenceValue(t *testing.T) {
 		value, err := MessageToCadenceValue(msg, nil)
 		assert.Error(t, err)
 		assert.Nil(t, value)
-	})
-
-	t.Run("CCF encoded value", func(t *testing.T) {
-		valueA := cadence.NewInt(42)
-
-		msg, err := ccf.Encode(valueA)
-		require.NoError(t, err)
-
-		valueB, err := MessageToCadenceValue(msg, nil)
-		require.NoError(t, err)
-
-		assert.Equal(t, valueA, valueB)
 	})
 }
 
@@ -210,10 +208,8 @@ func TestConvert_BlockSeals(t *testing.T) {
 func TestConvert_Event(t *testing.T) {
 
 	t.Run("JSON-CDC encoded payload", func(t *testing.T) {
-		eventA := test.EventGenerator().
-			WithEncoding(entities.EventEncodingVersion_JSON_CDC_V0).
-			New()
-		msg, err := EventToMessage(eventA)
+		eventA := test.EventGenerator(flow.EventEncodingVersionJSONCDC).New()
+		msg, err := EventToMessage(eventA, flow.EventEncodingVersionJSONCDC)
 		require.NoError(t, err)
 
 		eventB, err := MessageToEvent(msg, nil)
@@ -227,15 +223,9 @@ func TestConvert_Event(t *testing.T) {
 	})
 
 	t.Run("CCF encoded payload", func(t *testing.T) {
-		eventA := test.EventGenerator().
-			WithEncoding(entities.EventEncodingVersion_CCF_V0).
-			New()
+		eventA := test.EventGenerator(flow.EventEncodingVersionCCF).New()
 
-		msg, err := EventToMessage(eventA)
-		require.NoError(t, err)
-
-		// explicitly re-encode the payload using CCF
-		msg.Payload, err = ccf.Encode(eventA.Value)
+		msg, err := EventToMessage(eventA, flow.EventEncodingVersionCCF)
 		require.NoError(t, err)
 
 		eventB, err := MessageToEvent(msg, nil)
@@ -301,20 +291,39 @@ func TestConvert_Transaction(t *testing.T) {
 }
 
 func TestConvert_TransactionResult(t *testing.T) {
-	resultA := test.TransactionResultGenerator().New()
+	t.Run("with JSON-CDC encoded events", func(t *testing.T) {
+		resultA := test.TransactionResultGenerator(flow.EventEncodingVersionJSONCDC).New()
 
-	msg, err := TransactionResultToMessage(resultA)
+		msg, err := TransactionResultToMessage(resultA, flow.EventEncodingVersionJSONCDC)
 
-	resultB, err := MessageToTransactionResult(msg, nil)
-	require.NoError(t, err)
+		resultB, err := MessageToTransactionResult(msg, nil)
+		require.NoError(t, err)
 
-	// Force evaluation of type ID, which is cached in type.
-	// Necessary for equality check below
-	for _, event := range resultB.Events {
-		_ = event.Value.Type().ID()
-	}
+		// Force evaluation of type ID, which is cached in type.
+		// Necessary for equality check below
+		for _, event := range resultB.Events {
+			_ = event.Value.Type().ID()
+		}
 
-	assert.Equal(t, resultA, resultB)
+		assert.Equal(t, resultA, resultB)
+	})
+
+	t.Run("with CCF encoded events", func(t *testing.T) {
+		resultA := test.TransactionResultGenerator(flow.EventEncodingVersionCCF).New()
+
+		msg, err := TransactionResultToMessage(resultA, flow.EventEncodingVersionCCF)
+
+		resultB, err := MessageToTransactionResult(msg, nil)
+		require.NoError(t, err)
+
+		// Force evaluation of type ID, which is cached in type.
+		// Necessary for equality check below
+		for _, event := range resultB.Events {
+			_ = event.Value.Type().ID()
+		}
+
+		assert.Equal(t, resultA, resultB)
+	})
 }
 
 func TestConvert_ExecutionData(t *testing.T) {

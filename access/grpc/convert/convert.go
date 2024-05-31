@@ -192,7 +192,16 @@ func MessageToBlockHeader(m *entities.BlockHeader) (flow.BlockHeader, error) {
 	}, nil
 }
 
-func CadenceValueToMessage(value cadence.Value) ([]byte, error) {
+func CadenceValueToMessage(value cadence.Value, encodingVersion flow.EventEncodingVersion) ([]byte, error) {
+	if encodingVersion == flow.EventEncodingVersionCCF {
+		b, err := ccf.Encode(value)
+		if err != nil {
+			return nil, fmt.Errorf("ccf convert: %w", err)
+		}
+
+		return b, nil
+	}
+
 	b, err := jsoncdc.Encode(value)
 	if err != nil {
 		return nil, fmt.Errorf("jsoncdc convert: %w", err)
@@ -201,10 +210,10 @@ func CadenceValueToMessage(value cadence.Value) ([]byte, error) {
 	return b, nil
 }
 
-func CadenceValuesToMessages(values []cadence.Value) ([][]byte, error) {
+func CadenceValuesToMessages(values []cadence.Value, encodingVersion flow.EventEncodingVersion) ([][]byte, error) {
 	msgs := make([][]byte, len(values))
 	for i, val := range values {
-		msg, err := CadenceValueToMessage(val)
+		msg, err := CadenceValueToMessage(val, encodingVersion)
 		if err != nil {
 			return nil, err
 		}
@@ -333,8 +342,8 @@ func MessagesToBlockSeals(l []*entities.BlockSeal) ([]*flow.BlockSeal, error) {
 	return results, nil
 }
 
-func EventToMessage(e flow.Event) (*entities.Event, error) {
-	payload, err := CadenceValueToMessage(e.Value)
+func EventToMessage(e flow.Event, encodingVersion flow.EventEncodingVersion) (*entities.Event, error) {
+	payload, err := CadenceValueToMessage(e.Value, encodingVersion)
 	if err != nil {
 		return nil, err
 	}
@@ -497,11 +506,11 @@ func MessageToTransaction(m *entities.Transaction) (flow.Transaction, error) {
 	return *t, nil
 }
 
-func TransactionResultToMessage(result flow.TransactionResult) (*access.TransactionResultResponse, error) {
+func TransactionResultToMessage(result flow.TransactionResult, encodingVersion flow.EventEncodingVersion) (*access.TransactionResultResponse, error) {
 	eventMessages := make([]*entities.Event, len(result.Events))
 
 	for i, event := range result.Events {
-		eventMsg, err := EventToMessage(event)
+		eventMsg, err := EventToMessage(event, encodingVersion)
 		if err != nil {
 			return nil, err
 		}
@@ -624,15 +633,10 @@ func ChunkExecutionDataToMessage(
 
 	events := make([]*entities.Event, len(chunk.Events))
 	for i, ev := range chunk.Events {
-		res, err := EventToMessage(*ev)
+		// execution data uses CCF encoding
+		res, err := EventToMessage(*ev, flow.EventEncodingVersionCCF)
 		if err != nil {
 			return nil, err
-		}
-
-		// execution data uses CCF encoding
-		res.Payload, err = ccf.Encode(ev.Value)
-		if err != nil {
-			return nil, fmt.Errorf("ccf convert: %w", err)
 		}
 
 		events[i] = res
