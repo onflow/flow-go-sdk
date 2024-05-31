@@ -193,21 +193,22 @@ func MessageToBlockHeader(m *entities.BlockHeader) (flow.BlockHeader, error) {
 }
 
 func CadenceValueToMessage(value cadence.Value, encodingVersion flow.EventEncodingVersion) ([]byte, error) {
-	if encodingVersion == flow.EventEncodingVersionCCF {
+	switch encodingVersion {
+	case flow.EventEncodingVersionCCF:
 		b, err := ccf.Encode(value)
 		if err != nil {
 			return nil, fmt.Errorf("ccf convert: %w", err)
 		}
-
 		return b, nil
+	case flow.EventEncodingVersionJSONCDC:
+		b, err := jsoncdc.Encode(value)
+		if err != nil {
+			return nil, fmt.Errorf("jsoncdc convert: %w", err)
+		}
+		return b, nil
+	default:
+		return nil, fmt.Errorf("unsupported cadence encoding version: %v", encodingVersion)
 	}
-
-	b, err := jsoncdc.Encode(value)
-	if err != nil {
-		return nil, fmt.Errorf("jsoncdc convert: %w", err)
-	}
-
-	return b, nil
 }
 
 func CadenceValuesToMessages(values []cadence.Value, encodingVersion flow.EventEncodingVersion) ([][]byte, error) {
