@@ -22,6 +22,7 @@ import (
 	"encoding/base64"
 	"fmt"
 
+	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/access/http/models"
 	"github.com/onflow/flow-go-sdk/test"
 )
@@ -64,7 +65,7 @@ func accountKeyFlowFixture() models.AccountPublicKey {
 
 func networkParametersFlowFixture() models.NetworkParameters {
 	return models.NetworkParameters{
-		ChainId:  "flow-testnet",
+		ChainId: "flow-testnet",
 	}
 }
 
@@ -147,8 +148,8 @@ func transactionFlowFixture() models.Transaction {
 	}
 }
 
-func transactionResultFlowFixture() models.TransactionResult {
-	txr := test.TransactionResultGenerator().New()
+func transactionResultFlowFixture(encoding flow.EventEncodingVersion) models.TransactionResult {
+	txr := test.TransactionResultGenerator(encoding).New()
 	status := models.SEALED_TransactionStatus
 
 	return models.TransactionResult{
@@ -167,11 +168,11 @@ func transactionResultFlowFixture() models.TransactionResult {
 	}
 }
 
-func eventsFlowFixture(n int) []models.Event {
+func eventsFlowFixture(n int, encoding flow.EventEncodingVersion) []models.Event {
 	events := make([]models.Event, n)
 
 	for i := 0; i < n; i++ {
-		e := test.EventGenerator().New()
+		e := test.EventGenerator(encoding).New()
 		events[i] = models.Event{
 			Type_:            e.Type,
 			TransactionId:    e.TransactionID.String(),
@@ -184,9 +185,9 @@ func eventsFlowFixture(n int) []models.Event {
 	return events
 }
 
-func blockEventsFlowFixture() models.BlockEvents {
+func blockEventsFlowFixture(encoding flow.EventEncodingVersion) models.BlockEvents {
 	block := test.BlockGenerator().New()
-	events := eventsFlowFixture(4)
+	events := eventsFlowFixture(4, encoding)
 
 	return models.BlockEvents{
 		BlockId:        block.ID.String(),
@@ -196,9 +197,9 @@ func blockEventsFlowFixture() models.BlockEvents {
 	}
 }
 
-func executionResultFlowFixture() models.ExecutionResult {
+func executionResultFlowFixture(encoding flow.EventEncodingVersion) models.ExecutionResult {
 	block := test.BlockGenerator().New()
-	events := eventsFlowFixture(4)
+	events := eventsFlowFixture(4, encoding)
 	id := test.IdentifierGenerator().New()
 	prevId := test.IdentifierGenerator().New()
 

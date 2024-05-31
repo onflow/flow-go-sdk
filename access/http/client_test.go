@@ -28,6 +28,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/onflow/flow-go-sdk"
+	"github.com/onflow/flow-go-sdk/access/http/convert"
 	"github.com/onflow/flow-go-sdk/access/http/models"
 	"github.com/onflow/flow-go-sdk/test"
 
@@ -91,7 +92,7 @@ func TestBaseClient_GetNodeInfo(t *testing.T) {
 			SporkRootBlockHeight: "123",
 			NodeRootBlockHeight:  "321",
 		}
-		expectedInfo, err := toNodeVersionInfo(httpInfo)
+		expectedInfo, err := convert.ToNodeVersionInfo(httpInfo)
 		require.NoError(t, err)
 
 		handler.
@@ -109,7 +110,7 @@ func TestBaseClient_GetNetworkParameters(t *testing.T) {
 
 	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		httpParams := networkParametersFlowFixture()
-		expectedParams := toNetworkParameters(&httpParams)
+		expectedParams := convert.ToNetworkParameters(&httpParams)
 
 		handler.
 			On(handlerName, mock.Anything).
@@ -139,7 +140,7 @@ func TestBaseClient_GetBlockByID(t *testing.T) {
 	const handlerName = "getBlockByID"
 	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		httpBlock := blockFlowFixture()
-		expectedBlock, err := toBlock(&httpBlock)
+		expectedBlock, err := convert.ToBlock(&httpBlock)
 		assert.NoError(t, err)
 
 		handler.
@@ -153,7 +154,7 @@ func TestBaseClient_GetBlockByID(t *testing.T) {
 
 	t.Run("Get Block Header", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		httpBlock := blockFlowFixture()
-		expectedBlock, err := toBlock(&httpBlock)
+		expectedBlock, err := convert.ToBlock(&httpBlock)
 		assert.NoError(t, err)
 
 		handler.
@@ -184,7 +185,7 @@ func TestBaseClient_GetBlockByHeight(t *testing.T) {
 
 	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		httpBlock := blockFlowFixture()
-		expectedBlock, err := toBlock(&httpBlock)
+		expectedBlock, err := convert.ToBlock(&httpBlock)
 		assert.NoError(t, err)
 
 		handler.
@@ -212,7 +213,7 @@ func TestBaseClient_GetBlockByHeight(t *testing.T) {
 
 	t.Run("Get Block Header", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		httpBlock := blockFlowFixture()
-		expectedBlock, err := toBlock(&httpBlock)
+		expectedBlock, err := convert.ToBlock(&httpBlock)
 		assert.NoError(t, err)
 
 		handler.
@@ -230,7 +231,7 @@ func TestBaseClient_GetLatestBlock(t *testing.T) {
 
 	t.Run("Block Sealed", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		httpBlock := blockFlowFixture()
-		expectedBlock, err := toBlock(&httpBlock)
+		expectedBlock, err := convert.ToBlock(&httpBlock)
 		assert.NoError(t, err)
 
 		handler.
@@ -244,7 +245,7 @@ func TestBaseClient_GetLatestBlock(t *testing.T) {
 
 	t.Run("Block Not Sealed", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		httpBlock := blockFlowFixture()
-		expectedBlock, err := toBlock(&httpBlock)
+		expectedBlock, err := convert.ToBlock(&httpBlock)
 		assert.NoError(t, err)
 
 		handler.
@@ -258,7 +259,7 @@ func TestBaseClient_GetLatestBlock(t *testing.T) {
 
 	t.Run("Final Header", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		httpBlock := blockFlowFixture()
-		expectedBlock, err := toBlock(&httpBlock)
+		expectedBlock, err := convert.ToBlock(&httpBlock)
 		assert.NoError(t, err)
 
 		handler.
@@ -272,7 +273,7 @@ func TestBaseClient_GetLatestBlock(t *testing.T) {
 
 	t.Run("Sealed Header", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		httpBlock := blockFlowFixture()
-		expectedBlock, err := toBlock(&httpBlock)
+		expectedBlock, err := convert.ToBlock(&httpBlock)
 		assert.NoError(t, err)
 
 		handler.
@@ -290,7 +291,7 @@ func TestBaseClient_GetCollection(t *testing.T) {
 
 	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		httpCollection := collectionFlowFixture()
-		expectedCollection := toCollection(&httpCollection)
+		expectedCollection := convert.ToCollection(&httpCollection)
 
 		handler.
 			On(handlerName, mock.Anything, expectedCollection.ID().String()).
@@ -322,10 +323,10 @@ func TestBaseClient_SendTransaction(t *testing.T) {
 
 	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		httpTx := transactionFlowFixture()
-		expectedTx, err := toTransaction(&httpTx)
+		expectedTx, err := convert.ToTransaction(&httpTx)
 		assert.NoError(t, err)
 
-		sentTx, err := encodeTransaction(*expectedTx)
+		sentTx, err := convert.TncodeTransaction(*expectedTx)
 		assert.NoError(t, err)
 
 		handler.
@@ -354,7 +355,7 @@ func TestBaseClient_GetTransaction(t *testing.T) {
 
 	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		httpTx := transactionFlowFixture()
-		expectedTx, err := toTransaction(&httpTx)
+		expectedTx, err := convert.ToTransaction(&httpTx)
 		assert.NoError(t, err)
 
 		handler.
@@ -384,12 +385,12 @@ func TestBaseClient_GetTransactionResult(t *testing.T) {
 
 	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		httpTx := transactionFlowFixture()
-		httpTxRes := transactionResultFlowFixture()
+		httpTxRes := transactionResultFlowFixture(flow.EventEncodingVersionJSONCDC)
 		httpTx.Result = &httpTxRes
-		expectedTx, err := toTransaction(&httpTx)
+		expectedTx, err := convert.ToTransaction(&httpTx)
 		assert.NoError(t, err)
 
-		expectedTxRes, err := toTransactionResult(&httpTxRes, nil)
+		expectedTxRes, err := convert.ToTransactionResult(&httpTxRes, nil)
 		assert.NoError(t, err)
 
 		handler.
@@ -419,7 +420,7 @@ func TestBaseClient_GetAccount(t *testing.T) {
 
 	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		httpAccount := accountFlowFixture()
-		expectedAccount, err := toAccount(&httpAccount)
+		expectedAccount, err := convert.ToAccount(&httpAccount)
 		assert.NoError(t, err)
 
 		handler.
@@ -457,7 +458,7 @@ func TestBaseClient_GetAccountAtBlockHeight(t *testing.T) {
 
 	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
 		httpAccount := accountFlowFixture()
-		expectedAccount, err := toAccount(&httpAccount)
+		expectedAccount, err := convert.ToAccount(&httpAccount)
 		assert.NoError(t, err)
 
 		handler.
@@ -555,8 +556,8 @@ func TestBaseClient_GetEvents(t *testing.T) {
 	const handlerName = "getEvents"
 
 	t.Run("Get For Height Range", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
-		httpEvents := blockEventsFlowFixture()
-		expectedEvents, err := toBlockEvents([]models.BlockEvents{httpEvents}, nil)
+		httpEvents := blockEventsFlowFixture(flow.EventEncodingVersionJSONCDC)
+		expectedEvents, err := convert.ToBlockEvents([]models.BlockEvents{httpEvents}, nil)
 		const eType = "A.Foo.Bar"
 		handler.
 			On(handlerName, mock.Anything, eType, "0", "5", []string(nil)).
@@ -568,8 +569,8 @@ func TestBaseClient_GetEvents(t *testing.T) {
 	}))
 
 	t.Run("Get For Block IDs", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
-		httpEvents := blockEventsFlowFixture()
-		expectedEvents, err := toBlockEvents([]models.BlockEvents{httpEvents}, nil)
+		httpEvents := blockEventsFlowFixture(flow.EventEncodingVersionJSONCDC)
+		expectedEvents, err := convert.ToBlockEvents([]models.BlockEvents{httpEvents}, nil)
 		const eType = "A.Foo.Bar"
 		handler.
 			On(handlerName, mock.Anything, eType, "", "", []string{expectedEvents[0].BlockID.String()}).

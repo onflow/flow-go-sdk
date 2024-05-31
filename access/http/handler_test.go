@@ -497,7 +497,7 @@ func TestHandler_GetEvents(t *testing.T) {
 			start     = "1"
 			end       = "3"
 		)
-		httpEvents := []models.BlockEvents{blockEventsFlowFixture()}
+		httpEvents := []models.BlockEvents{blockEventsFlowFixture(flow.EventEncodingVersionJSONCDC)}
 
 		req.SetData(
 			newEventsURL(map[string]string{
@@ -514,7 +514,7 @@ func TestHandler_GetEvents(t *testing.T) {
 	}))
 
 	t.Run("Get for IDs", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
-		httpEvents := []models.BlockEvents{blockEventsFlowFixture()}
+		httpEvents := []models.BlockEvents{blockEventsFlowFixture(flow.EventEncodingVersionJSONCDC)}
 
 		const eventType = "A.Foo"
 		ids := []string{"0x1", "0x2"}
@@ -564,7 +564,7 @@ func TestHandler_GetEvents(t *testing.T) {
 
 func TestHandler_GetExecResult(t *testing.T) {
 	t.Run("Collection by IDs", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
-		fixture := []models.ExecutionResult{executionResultFlowFixture()}
+		fixture := []models.ExecutionResult{executionResultFlowFixture(flow.EventEncodingVersionJSONCDC)}
 		ids := []string{"0x1"}
 
 		u, _ := url.Parse("/execution_results")
@@ -580,7 +580,7 @@ func TestHandler_GetExecResult(t *testing.T) {
 	}))
 
 	t.Run("By ID", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
-		fixture := executionResultFlowFixture()
+		fixture := executionResultFlowFixture(flow.EventEncodingVersionJSONCDC)
 		id := "0x1"
 
 		u, _ := url.Parse(fmt.Sprintf("/execution_results/%s", id))
