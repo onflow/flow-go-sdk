@@ -34,6 +34,7 @@ import (
 	"github.com/onflow/flow/protobuf/go/flow/executiondata"
 
 	"github.com/onflow/flow-go-sdk"
+	"github.com/onflow/flow-go-sdk/access/grpc/convert"
 )
 
 // RPCClient is an RPC client for the Flow Access API.
@@ -223,7 +224,7 @@ func (c *BaseClient) GetBlockHeaderByHeight(
 }
 
 func getBlockHeaderResult(res *access.BlockHeaderResponse) (*flow.BlockHeader, error) {
-	header, err := messageToBlockHeader(res.GetBlock())
+	header, err := convert.MessageToBlockHeader(res.GetBlock())
 	if err != nil {
 		return nil, newMessageToEntityError(entityBlockHeader, err)
 	}
@@ -283,7 +284,7 @@ func (c *BaseClient) GetBlockByHeight(
 }
 
 func getBlockResult(res *access.BlockResponse) (*flow.Block, error) {
-	block, err := messageToBlock(res.GetBlock())
+	block, err := convert.MessageToBlock(res.GetBlock())
 	if err != nil {
 		return nil, newMessageToEntityError(entityBlock, err)
 	}
@@ -305,7 +306,7 @@ func (c *BaseClient) GetCollection(
 		return nil, newRPCError(err)
 	}
 
-	result, err := messageToCollection(res.GetCollection())
+	result, err := convert.MessageToCollection(res.GetCollection())
 	if err != nil {
 		return nil, newMessageToEntityError(entityCollection, err)
 	}
@@ -318,7 +319,7 @@ func (c *BaseClient) SendTransaction(
 	tx flow.Transaction,
 	opts ...grpc.CallOption,
 ) error {
-	txMsg, err := transactionToMessage(tx)
+	txMsg, err := convert.TransactionToMessage(tx)
 	if err != nil {
 		return newEntityToMessageError(entityTransaction, err)
 	}
@@ -349,7 +350,7 @@ func (c *BaseClient) GetTransaction(
 		return nil, newRPCError(err)
 	}
 
-	result, err := messageToTransaction(res.GetTransaction())
+	result, err := convert.MessageToTransaction(res.GetTransaction())
 	if err != nil {
 		return nil, newMessageToEntityError(entityTransaction, err)
 	}
@@ -374,7 +375,7 @@ func (c *BaseClient) GetTransactionsByBlockID(
 	unparsedResults := res.GetTransactions()
 	results := make([]*flow.Transaction, 0, len(unparsedResults))
 	for _, result := range unparsedResults {
-		parsed, err := messageToTransaction(result)
+		parsed, err := convert.MessageToTransaction(result)
 		if err != nil {
 			return nil, newMessageToEntityError(entityTransaction, err)
 		}
@@ -399,7 +400,7 @@ func (c *BaseClient) GetTransactionResult(
 		return nil, newRPCError(err)
 	}
 
-	result, err := messageToTransactionResult(res, c.jsonOptions)
+	result, err := convert.MessageToTransactionResult(res, c.jsonOptions)
 	if err != nil {
 		return nil, newMessageToEntityError(entityTransactionResult, err)
 	}
@@ -425,7 +426,7 @@ func (c *BaseClient) GetTransactionResultByIndex(
 		return nil, newRPCError(err)
 	}
 
-	parsed, err := messageToTransactionResult(res, c.jsonOptions)
+	parsed, err := convert.MessageToTransactionResult(res, c.jsonOptions)
 	if err != nil {
 		return nil, newMessageToEntityError(entityTransactionResult, err)
 	}
@@ -451,7 +452,7 @@ func (c *BaseClient) GetTransactionResultsByBlockID(
 	unparsedResults := res.GetTransactionResults()
 	results := make([]*flow.TransactionResult, 0, len(unparsedResults))
 	for _, result := range unparsedResults {
-		parsed, err := messageToTransactionResult(result, c.jsonOptions)
+		parsed, err := convert.MessageToTransactionResult(result, c.jsonOptions)
 		if err != nil {
 			return nil, newMessageToEntityError(entityTransactionResult, err)
 		}
@@ -479,7 +480,7 @@ func (c *BaseClient) GetAccountAtLatestBlock(
 		return nil, newRPCError(err)
 	}
 
-	account, err := messageToAccount(res.GetAccount())
+	account, err := convert.MessageToAccount(res.GetAccount())
 	if err != nil {
 		return nil, newMessageToEntityError(entityAccount, err)
 	}
@@ -503,7 +504,7 @@ func (c *BaseClient) GetAccountAtBlockHeight(
 		return nil, newRPCError(err)
 	}
 
-	account, err := messageToAccount(res.GetAccount())
+	account, err := convert.MessageToAccount(res.GetAccount())
 	if err != nil {
 		return nil, newMessageToEntityError(entityAccount, err)
 	}
@@ -518,7 +519,7 @@ func (c *BaseClient) ExecuteScriptAtLatestBlock(
 	opts ...grpc.CallOption,
 ) (cadence.Value, error) {
 
-	args, err := cadenceValuesToMessages(arguments)
+	args, err := convert.CadenceValuesToMessages(arguments)
 	if err != nil {
 		return nil, newEntityToMessageError(entityCadenceValue, err)
 	}
@@ -544,7 +545,7 @@ func (c *BaseClient) ExecuteScriptAtBlockID(
 	opts ...grpc.CallOption,
 ) (cadence.Value, error) {
 
-	args, err := cadenceValuesToMessages(arguments)
+	args, err := convert.CadenceValuesToMessages(arguments)
 	if err != nil {
 		return nil, newEntityToMessageError(entityCadenceValue, err)
 	}
@@ -571,7 +572,7 @@ func (c *BaseClient) ExecuteScriptAtBlockHeight(
 	opts ...grpc.CallOption,
 ) (cadence.Value, error) {
 
-	args, err := cadenceValuesToMessages(arguments)
+	args, err := convert.CadenceValuesToMessages(arguments)
 	if err != nil {
 		return nil, newEntityToMessageError(entityCadenceValue, err)
 	}
@@ -591,7 +592,7 @@ func (c *BaseClient) ExecuteScriptAtBlockHeight(
 }
 
 func executeScriptResult(res *access.ExecuteScriptResponse, options []json.Option) (cadence.Value, error) {
-	value, err := messageToCadenceValue(res.GetValue(), options)
+	value, err := convert.MessageToCadenceValue(res.GetValue(), options)
 	if err != nil {
 		return nil, newMessageToEntityError(entityCadenceValue, err)
 	}
@@ -637,7 +638,7 @@ func (c *BaseClient) GetEventsForBlockIDs(
 ) ([]flow.BlockEvents, error) {
 	req := &access.GetEventsForBlockIDsRequest{
 		Type:                 eventType,
-		BlockIds:             identifiersToMessages(blockIDs),
+		BlockIds:             convert.IdentifiersToMessages(blockIDs),
 		EventEncodingVersion: c.eventEncoding,
 	}
 
@@ -659,7 +660,7 @@ func getEventsResult(res *access.EventsResponse, options []json.Option) ([]flow.
 		events := make([]flow.Event, len(eventMessages))
 
 		for i, m := range eventMessages {
-			evt, err := messageToEvent(m, options)
+			evt, err := convert.MessageToEvent(m, options)
 			if err != nil {
 				return nil, newMessageToEntityError(entityEvent, err)
 			}
@@ -690,7 +691,7 @@ func (c *BaseClient) GetLatestProtocolStateSnapshot(ctx context.Context, opts ..
 
 func (c *BaseClient) GetExecutionResultForBlockID(ctx context.Context, blockID flow.Identifier, opts ...grpc.CallOption) (*flow.ExecutionResult, error) {
 	er, err := c.rpcClient.GetExecutionResultForBlockID(ctx, &access.GetExecutionResultForBlockIDRequest{
-		BlockId: identifierToMessage(blockID),
+		BlockId: convert.IdentifierToMessage(blockID),
 	}, opts...)
 	if err != nil {
 		return nil, newRPCError(err)
@@ -734,14 +735,14 @@ func (c *BaseClient) GetExecutionDataByBlockID(
 ) (*flow.ExecutionData, error) {
 
 	ed, err := c.executionDataClient.GetExecutionDataByBlockID(ctx, &executiondata.GetExecutionDataByBlockIDRequest{
-		BlockId:              identifierToMessage(blockID),
+		BlockId:              convert.IdentifierToMessage(blockID),
 		EventEncodingVersion: c.eventEncoding,
 	}, opts...)
 	if err != nil {
 		return nil, newRPCError(err)
 	}
 
-	return messageToBlockExecutionData(ed.GetBlockExecutionData())
+	return convert.MessageToBlockExecutionData(ed.GetBlockExecutionData())
 
 }
 
@@ -804,7 +805,7 @@ func (c *BaseClient) subscribeExecutionData(
 				return
 			}
 
-			execData, err := messageToBlockExecutionData(resp.GetBlockExecutionData())
+			execData, err := convert.MessageToBlockExecutionData(resp.GetBlockExecutionData())
 			if err != nil {
 				sendErr(fmt.Errorf("error converting execution data for block %d: %w", resp.GetBlockHeight(), err))
 				return
@@ -901,7 +902,7 @@ func (c *BaseClient) subscribeEvents(
 				return
 			}
 
-			events, err := messagesToEvents(resp.GetEvents(), c.jsonOptions)
+			events, err := convert.MessagesToEvents(resp.GetEvents(), c.jsonOptions)
 			if err != nil {
 				sendErr(fmt.Errorf("error converting event for block %d: %w", resp.GetBlockHeight(), err))
 				return
@@ -909,7 +910,7 @@ func (c *BaseClient) subscribeEvents(
 
 			response := flow.BlockEvents{
 				Height:         resp.GetBlockHeight(),
-				BlockID:        messageToIdentifier(resp.GetBlockId()),
+				BlockID:        convert.MessageToIdentifier(resp.GetBlockId()),
 				Events:         events,
 				BlockTimestamp: resp.GetBlockTimestamp().AsTime(),
 			}
