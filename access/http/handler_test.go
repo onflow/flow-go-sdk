@@ -28,12 +28,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/onflow/flow-go-sdk"
+	"github.com/onflow/flow-go-sdk/access/http/internal/unittest"
 	"github.com/onflow/flow-go-sdk/access/http/models"
-
-	"github.com/stretchr/testify/assert"
 )
 
 // handlerTest is a helper that builds handler with a http test server
@@ -150,7 +150,7 @@ func TestHandler_GetNodeVersionInfo(t *testing.T) {
 
 func TestHandler_GetBlockByID(t *testing.T) {
 	t.Run("Success", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
-		b := blockFlowFixture()
+		b := unittest.BlockFlowFixture()
 		httpBlock := []*models.Block{&b}
 
 		const id = "0x1"
@@ -182,7 +182,7 @@ func TestHandler_GetBlockByHeights(t *testing.T) {
 	const heightKey = "height"
 
 	t.Run("Range Height Success", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
-		b := blockFlowFixture()
+		b := unittest.BlockFlowFixture()
 		httpBlock := []*models.Block{&b}
 
 		const (
@@ -203,8 +203,8 @@ func TestHandler_GetBlockByHeights(t *testing.T) {
 	}))
 
 	t.Run("List Height Success", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
-		b1 := blockFlowFixture()
-		b2 := blockFlowFixture()
+		b1 := unittest.BlockFlowFixture()
+		b2 := unittest.BlockFlowFixture()
 		httpBlocks := []*models.Block{&b1, &b2}
 
 		const heights = "1,2"
@@ -283,7 +283,7 @@ func newAccountsURL(address string, query map[string]string) url.URL {
 func TestHandler_GetAccount(t *testing.T) {
 
 	t.Run("Success", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
-		httpAccount := accountFlowFixture()
+		httpAccount := unittest.AccountFlowFixture()
 
 		const height = "sealed"
 		req.SetData(
@@ -325,7 +325,7 @@ func TestHandler_GetCollection(t *testing.T) {
 	const collectionURL = "/collections"
 
 	t.Run("Success", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
-		httpCollection := collectionFlowFixture()
+		httpCollection := unittest.CollectionFlowFixture()
 		id := "0x1"
 
 		collURL, _ := url.Parse(fmt.Sprintf("%s/%s", collectionURL, id))
@@ -395,7 +395,7 @@ func TestHandler_ExecuteScript(t *testing.T) {
 func TestHandler_SendTransaction(t *testing.T) {
 
 	t.Run("Success", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
-		httpTx := transactionFlowFixture()
+		httpTx := unittest.TransactionFlowFixture()
 		u, _ := url.Parse("/transactions")
 
 		req.SetData(*u, httpTx)
@@ -408,7 +408,7 @@ func TestHandler_SendTransaction(t *testing.T) {
 	}))
 
 	t.Run("Invalid Argument", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
-		httpTx := transactionFlowFixture()
+		httpTx := unittest.TransactionFlowFixture()
 		u, _ := url.Parse("/transactions")
 
 		req.SetErr(
@@ -435,7 +435,7 @@ func newTransactionURL(id string, query map[string]string) url.URL {
 func TestHandler_GetTransaction(t *testing.T) {
 
 	t.Run("Success", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
-		httpTx := transactionFlowFixture()
+		httpTx := unittest.TransactionFlowFixture()
 		id := "0x1"
 
 		txURL := newTransactionURL(id, nil)
@@ -447,7 +447,7 @@ func TestHandler_GetTransaction(t *testing.T) {
 	}))
 
 	t.Run("Success With Results", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
-		httpTx := transactionFlowFixture()
+		httpTx := unittest.TransactionFlowFixture()
 		id := "0x1"
 
 		txURL := newTransactionURL(id, map[string]string{
@@ -497,7 +497,7 @@ func TestHandler_GetEvents(t *testing.T) {
 			start     = "1"
 			end       = "3"
 		)
-		httpEvents := []models.BlockEvents{blockEventsFlowFixture(flow.EventEncodingVersionJSONCDC)}
+		httpEvents := []models.BlockEvents{unittest.BlockEventsFlowFixture(flow.EventEncodingVersionJSONCDC)}
 
 		req.SetData(
 			newEventsURL(map[string]string{
@@ -514,7 +514,7 @@ func TestHandler_GetEvents(t *testing.T) {
 	}))
 
 	t.Run("Get for IDs", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
-		httpEvents := []models.BlockEvents{blockEventsFlowFixture(flow.EventEncodingVersionJSONCDC)}
+		httpEvents := []models.BlockEvents{unittest.BlockEventsFlowFixture(flow.EventEncodingVersionJSONCDC)}
 
 		const eventType = "A.Foo"
 		ids := []string{"0x1", "0x2"}
@@ -564,7 +564,7 @@ func TestHandler_GetEvents(t *testing.T) {
 
 func TestHandler_GetExecResult(t *testing.T) {
 	t.Run("Collection by IDs", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
-		fixture := []models.ExecutionResult{executionResultFlowFixture(flow.EventEncodingVersionJSONCDC)}
+		fixture := []models.ExecutionResult{unittest.ExecutionResultFlowFixture(flow.EventEncodingVersionJSONCDC)}
 		ids := []string{"0x1"}
 
 		u, _ := url.Parse("/execution_results")
@@ -580,7 +580,7 @@ func TestHandler_GetExecResult(t *testing.T) {
 	}))
 
 	t.Run("By ID", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
-		fixture := executionResultFlowFixture(flow.EventEncodingVersionJSONCDC)
+		fixture := unittest.ExecutionResultFlowFixture(flow.EventEncodingVersionJSONCDC)
 		id := "0x1"
 
 		u, _ := url.Parse(fmt.Sprintf("/execution_results/%s", id))

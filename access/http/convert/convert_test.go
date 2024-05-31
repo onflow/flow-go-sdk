@@ -24,16 +24,15 @@ import (
 	"testing"
 
 	"github.com/onflow/cadence"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/onflow/flow-go-sdk"
-	"github.com/onflow/flow-go-sdk/access/http"
-
-	"github.com/stretchr/testify/assert"
+	"github.com/onflow/flow-go-sdk/access/http/internal/unittest"
 )
 
 func Test_ConvertBlock(t *testing.T) {
-	httpBlock := http.blockFlowFixture()
+	httpBlock := unittest.BlockFlowFixture()
 
 	block, err := ToBlock(&httpBlock)
 
@@ -48,8 +47,8 @@ func Test_ConvertBlock(t *testing.T) {
 }
 
 func Test_ConvertAccount(t *testing.T) {
-	httpAccount := http.accountFlowFixture()
-	contractName, contractCode := http.contractFlowFixture()
+	httpAccount := unittest.AccountFlowFixture()
+	contractName, contractCode := unittest.ContractFlowFixture()
 
 	account, err := ToAccount(&httpAccount)
 
@@ -63,7 +62,7 @@ func Test_ConvertAccount(t *testing.T) {
 }
 
 func Test_ConvertCollection(t *testing.T) {
-	httpColl := http.collectionFlowFixture()
+	httpColl := unittest.CollectionFlowFixture()
 
 	collection := ToCollection(&httpColl)
 
@@ -72,7 +71,7 @@ func Test_ConvertCollection(t *testing.T) {
 }
 
 func Test_ConvertTransaction(t *testing.T) {
-	httpTx := http.transactionFlowFixture()
+	httpTx := unittest.TransactionFlowFixture()
 	script, _ := base64.StdEncoding.DecodeString(httpTx.Script)
 
 	tx, err := ToTransaction(&httpTx)
@@ -104,7 +103,7 @@ func Test_ConvertTransaction(t *testing.T) {
 }
 
 func Test_ConvertTransactionResult(t *testing.T) {
-	httpTxr := http.transactionResultFlowFixture(flow.EventEncodingVersionJSONCDC)
+	httpTxr := unittest.TransactionResultFlowFixture(flow.EventEncodingVersionJSONCDC)
 	txr, err := ToTransactionResult(&httpTxr, nil)
 
 	assert.NoError(t, err)
@@ -142,7 +141,7 @@ func Test_EncodeCadenceArgs(t *testing.T) {
 }
 
 func Test_ConvertExecutionResults(t *testing.T) {
-	exec := http.executionResultFlowFixture(flow.EventEncodingVersionJSONCDC)
+	exec := unittest.ExecutionResultFlowFixture(flow.EventEncodingVersionJSONCDC)
 	res := ToExecutionResults(exec)
 	assert.Equal(t, res.BlockID.String(), exec.BlockId)
 	assert.Equal(t, res.Chunks[0].BlockID.String(), exec.Chunks[0].BlockId)
