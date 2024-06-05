@@ -29,6 +29,7 @@ import (
 	"github.com/onflow/cadence/encoding/json"
 
 	"github.com/onflow/flow-go-sdk"
+	"github.com/onflow/flow-go-sdk/access/http/convert"
 	"github.com/onflow/flow-go-sdk/access/http/models"
 
 	"github.com/pkg/errors"
@@ -195,7 +196,7 @@ func (c *BaseClient) GetNetworkParameters(ctx context.Context) (*flow.NetworkPar
 		return nil, err
 	}
 
-	return toNetworkParameters(params), nil
+	return convert.ToNetworkParameters(params), nil
 }
 
 func (c *BaseClient) GetNodeVersionInfo(ctx context.Context) (*flow.NodeVersionInfo, error) {
@@ -204,7 +205,7 @@ func (c *BaseClient) GetNodeVersionInfo(ctx context.Context) (*flow.NodeVersionI
 		return nil, err
 	}
 
-	return toNodeVersionInfo(info)
+	return convert.ToNodeVersionInfo(info)
 }
 
 func (c *BaseClient) GetBlockByID(ctx context.Context, blockID flow.Identifier, opts ...queryOpts) (*flow.Block, error) {
@@ -213,7 +214,7 @@ func (c *BaseClient) GetBlockByID(ctx context.Context, blockID flow.Identifier, 
 		return nil, err
 	}
 
-	return toBlock(block)
+	return convert.ToBlock(block)
 }
 
 // GetBlocksByHeights requests the blocks by the specified block query.
@@ -243,7 +244,7 @@ func (c *BaseClient) GetBlocksByHeights(
 		return nil, err
 	}
 
-	return toBlocks(httpBlocks)
+	return convert.ToBlocks(httpBlocks)
 }
 
 func (c *BaseClient) GetCollection(
@@ -256,7 +257,7 @@ func (c *BaseClient) GetCollection(
 		return nil, err
 	}
 
-	return toCollection(collection), nil
+	return convert.ToCollection(collection), nil
 }
 
 func (c *BaseClient) SendTransaction(
@@ -264,7 +265,7 @@ func (c *BaseClient) SendTransaction(
 	tx flow.Transaction,
 	opts ...queryOpts,
 ) error {
-	convertedTx, err := encodeTransaction(tx)
+	convertedTx, err := convert.TncodeTransaction(tx)
 	if err != nil {
 		return err
 	}
@@ -282,7 +283,7 @@ func (c *BaseClient) GetTransaction(
 		return nil, err
 	}
 
-	return toTransaction(tx)
+	return convert.ToTransaction(tx)
 }
 
 func (c *BaseClient) GetTransactionResult(
@@ -295,7 +296,7 @@ func (c *BaseClient) GetTransactionResult(
 		return nil, err
 	}
 
-	return toTransactionResult(tx.Result, c.jsonOptions)
+	return convert.ToTransactionResult(tx.Result, c.jsonOptions)
 }
 
 func (c *BaseClient) GetAccountAtBlockHeight(
@@ -313,7 +314,7 @@ func (c *BaseClient) GetAccountAtBlockHeight(
 		return nil, err
 	}
 
-	return toAccount(account)
+	return convert.ToAccount(account)
 }
 
 func (c *BaseClient) ExecuteScriptAtBlockID(
@@ -323,7 +324,7 @@ func (c *BaseClient) ExecuteScriptAtBlockID(
 	arguments []cadence.Value,
 	opts ...queryOpts,
 ) (cadence.Value, error) {
-	args, err := encodeCadenceArgs(arguments)
+	args, err := convert.EncodeCadenceArgs(arguments)
 	if err != nil {
 		return nil, err
 	}
@@ -331,7 +332,7 @@ func (c *BaseClient) ExecuteScriptAtBlockID(
 	result, err := c.handler.executeScriptAtBlockID(
 		ctx,
 		blockID.String(),
-		encodeScript(script),
+		convert.EncodeScript(script),
 		args,
 		opts...,
 	)
@@ -339,7 +340,7 @@ func (c *BaseClient) ExecuteScriptAtBlockID(
 		return nil, err
 	}
 
-	return decodeCadenceValue(result, c.jsonOptions)
+	return convert.DecodeCadenceValue(result, c.jsonOptions)
 }
 
 func (c *BaseClient) ExecuteScriptAtBlockHeight(
@@ -349,7 +350,7 @@ func (c *BaseClient) ExecuteScriptAtBlockHeight(
 	arguments []cadence.Value,
 	opts ...queryOpts,
 ) (cadence.Value, error) {
-	args, err := encodeCadenceArgs(arguments)
+	args, err := convert.EncodeCadenceArgs(arguments)
 	if err != nil {
 		return nil, err
 	}
@@ -361,7 +362,7 @@ func (c *BaseClient) ExecuteScriptAtBlockHeight(
 	result, err := c.handler.executeScriptAtBlockHeight(
 		ctx,
 		blockQuery.heightsString(),
-		encodeScript(script),
+		convert.EncodeScript(script),
 		args,
 		opts...,
 	)
@@ -369,7 +370,7 @@ func (c *BaseClient) ExecuteScriptAtBlockHeight(
 		return nil, err
 	}
 
-	return decodeCadenceValue(result, c.jsonOptions)
+	return convert.DecodeCadenceValue(result, c.jsonOptions)
 }
 
 func (c *BaseClient) GetEventsForHeightRange(
@@ -397,7 +398,7 @@ func (c *BaseClient) GetEventsForHeightRange(
 		return nil, err
 	}
 
-	return toBlockEvents(events, c.jsonOptions)
+	return convert.ToBlockEvents(events, c.jsonOptions)
 }
 
 func (c *BaseClient) GetEventsForBlockIDs(
@@ -415,7 +416,7 @@ func (c *BaseClient) GetEventsForBlockIDs(
 		return nil, err
 	}
 
-	return toBlockEvents(events, c.jsonOptions)
+	return convert.ToBlockEvents(events, c.jsonOptions)
 }
 
 func (c *BaseClient) GetLatestProtocolStateSnapshot(ctx context.Context) ([]byte, error) {
@@ -432,5 +433,5 @@ func (c *BaseClient) GetExecutionResultForBlockID(ctx context.Context, blockID f
 		return nil, fmt.Errorf("results not found") // sanity check
 	}
 
-	return toExecutionResults(results[0]), nil
+	return convert.ToExecutionResults(results[0]), nil
 }

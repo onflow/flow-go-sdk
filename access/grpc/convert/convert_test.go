@@ -16,15 +16,13 @@
  * limitations under the License.
  */
 
-package grpc
+package convert
 
 import (
 	"testing"
 	"time"
 
 	"github.com/onflow/cadence"
-	"github.com/onflow/cadence/encoding/ccf"
-	"github.com/onflow/flow/protobuf/go/flow/entities"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -35,9 +33,9 @@ import (
 func TestConvert_Account(t *testing.T) {
 	accountA := test.AccountGenerator().New()
 
-	msg := accountToMessage(*accountA)
+	msg := AccountToMessage(*accountA)
 
-	accountB, err := messageToAccount(msg)
+	accountB, err := MessageToAccount(msg)
 	require.NoError(t, err)
 
 	assert.Equal(t, *accountA, accountB)
@@ -46,9 +44,9 @@ func TestConvert_Account(t *testing.T) {
 func TestConvert_AccountKey(t *testing.T) {
 	keyA := test.AccountKeyGenerator().New()
 
-	msg := accountKeyToMessage(keyA)
+	msg := AccountKeyToMessage(keyA)
 
-	keyB, err := messageToAccountKey(msg)
+	keyB, err := MessageToAccountKey(msg)
 	require.NoError(t, err)
 
 	assert.Equal(t, keyA, keyB)
@@ -57,10 +55,10 @@ func TestConvert_AccountKey(t *testing.T) {
 func TestConvert_Block(t *testing.T) {
 	blockA := test.BlockGenerator().New()
 
-	msg, err := blockToMessage(*blockA)
+	msg, err := BlockToMessage(*blockA)
 	require.NoError(t, err)
 
-	blockB, err := messageToBlock(msg)
+	blockB, err := MessageToBlock(msg)
 	require.NoError(t, err)
 
 	assert.Equal(t, *blockA, blockB)
@@ -68,12 +66,12 @@ func TestConvert_Block(t *testing.T) {
 	t.Run("Without timestamp", func(t *testing.T) {
 		blockA := test.BlockGenerator().New()
 
-		msg, err := blockToMessage(*blockA)
+		msg, err := BlockToMessage(*blockA)
 		require.NoError(t, err)
 
 		msg.Timestamp = nil
 
-		blockB, err = messageToBlock(msg)
+		blockB, err = MessageToBlock(msg)
 		require.NoError(t, err)
 
 		assert.Equal(t, time.Time{}, blockB.Timestamp)
@@ -83,10 +81,10 @@ func TestConvert_Block(t *testing.T) {
 func TestConvert_BlockHeader(t *testing.T) {
 	headerA := test.BlockHeaderGenerator().New()
 
-	msg, err := blockHeaderToMessage(headerA)
+	msg, err := BlockHeaderToMessage(headerA)
 	require.NoError(t, err)
 
-	headerB, err := messageToBlockHeader(msg)
+	headerB, err := MessageToBlockHeader(msg)
 	require.NoError(t, err)
 
 	assert.Equal(t, headerA, headerB)
@@ -94,12 +92,12 @@ func TestConvert_BlockHeader(t *testing.T) {
 	t.Run("Without timestamp", func(t *testing.T) {
 		headerA := test.BlockHeaderGenerator().New()
 
-		msg, err := blockHeaderToMessage(headerA)
+		msg, err := BlockHeaderToMessage(headerA)
 		require.NoError(t, err)
 
 		msg.Timestamp = nil
 
-		headerB, err = messageToBlockHeader(msg)
+		headerB, err = MessageToBlockHeader(msg)
 		require.NoError(t, err)
 
 		assert.Equal(t, time.Time{}, headerB.Timestamp)
@@ -107,13 +105,25 @@ func TestConvert_BlockHeader(t *testing.T) {
 }
 
 func TestConvert_CadenceValue(t *testing.T) {
-	t.Run("Valid value", func(t *testing.T) {
+	t.Run("Valid jsoncdc encoded value", func(t *testing.T) {
 		valueA := cadence.NewInt(42)
 
-		msg, err := cadenceValueToMessage(valueA)
+		msg, err := CadenceValueToMessage(valueA, flow.EventEncodingVersionJSONCDC)
 		require.NoError(t, err)
 
-		valueB, err := messageToCadenceValue(msg, nil)
+		valueB, err := MessageToCadenceValue(msg, nil)
+		require.NoError(t, err)
+
+		assert.Equal(t, valueA, valueB)
+	})
+
+	t.Run("Valid CCF encoded value", func(t *testing.T) {
+		valueA := cadence.NewInt(42)
+
+		msg, err := CadenceValueToMessage(valueA, flow.EventEncodingVersionCCF)
+		require.NoError(t, err)
+
+		valueB, err := MessageToCadenceValue(msg, nil)
 		require.NoError(t, err)
 
 		assert.Equal(t, valueA, valueB)
@@ -122,30 +132,18 @@ func TestConvert_CadenceValue(t *testing.T) {
 	t.Run("Invalid message", func(t *testing.T) {
 		msg := []byte("invalid JSON-CDC bytes")
 
-		value, err := messageToCadenceValue(msg, nil)
+		value, err := MessageToCadenceValue(msg, nil)
 		assert.Error(t, err)
 		assert.Nil(t, value)
-	})
-
-	t.Run("CCF encoded value", func(t *testing.T) {
-		valueA := cadence.NewInt(42)
-
-		msg, err := ccf.Encode(valueA)
-		require.NoError(t, err)
-
-		valueB, err := messageToCadenceValue(msg, nil)
-		require.NoError(t, err)
-
-		assert.Equal(t, valueA, valueB)
 	})
 }
 
 func TestConvert_Collection(t *testing.T) {
 	colA := test.CollectionGenerator().New()
 
-	msg := collectionToMessage(*colA)
+	msg := CollectionToMessage(*colA)
 
-	colB, err := messageToCollection(msg)
+	colB, err := MessageToCollection(msg)
 	require.NoError(t, err)
 
 	assert.Equal(t, *colA, colB)
@@ -154,9 +152,9 @@ func TestConvert_Collection(t *testing.T) {
 func TestConvert_CollectionGuarantee(t *testing.T) {
 	cgA := test.CollectionGuaranteeGenerator().New()
 
-	msg := collectionGuaranteeToMessage(*cgA)
+	msg := CollectionGuaranteeToMessage(*cgA)
 
-	cgB, err := messageToCollectionGuarantee(msg)
+	cgB, err := MessageToCollectionGuarantee(msg)
 	require.NoError(t, err)
 
 	assert.Equal(t, *cgA, cgB)
@@ -165,9 +163,9 @@ func TestConvert_CollectionGuarantee(t *testing.T) {
 func TestConvert_BlockSeal(t *testing.T) {
 	bsA := test.BlockSealGenerator().New()
 
-	msg := blockSealToMessage(*bsA)
+	msg := BlockSealToMessage(*bsA)
 
-	bsB, err := messageToBlockSeal(msg)
+	bsB, err := MessageToBlockSeal(msg)
 	require.NoError(t, err)
 
 	assert.Equal(t, *bsA, bsB)
@@ -182,9 +180,9 @@ func TestConvert_CollectionGuarantees(t *testing.T) {
 		cgs.New(),
 	}
 
-	msg := collectionGuaranteesToMessages(cgsA)
+	msg := CollectionGuaranteesToMessages(cgsA)
 
-	cgsB, err := messagesToCollectionGuarantees(msg)
+	cgsB, err := MessagesToCollectionGuarantees(msg)
 	require.NoError(t, err)
 
 	assert.Equal(t, cgsA, cgsB)
@@ -199,9 +197,9 @@ func TestConvert_BlockSeals(t *testing.T) {
 		bss.New(),
 	}
 
-	msg := blockSealsToMessages(bssA)
+	msg := BlockSealsToMessages(bssA)
 
-	bssB, err := messagesToBlockSeals(msg)
+	bssB, err := MessagesToBlockSeals(msg)
 	require.NoError(t, err)
 
 	assert.Equal(t, bssA, bssB)
@@ -210,13 +208,11 @@ func TestConvert_BlockSeals(t *testing.T) {
 func TestConvert_Event(t *testing.T) {
 
 	t.Run("JSON-CDC encoded payload", func(t *testing.T) {
-		eventA := test.EventGenerator().
-			WithEncoding(entities.EventEncodingVersion_JSON_CDC_V0).
-			New()
-		msg, err := eventToMessage(eventA)
+		eventA := test.EventGenerator(flow.EventEncodingVersionJSONCDC).New()
+		msg, err := EventToMessage(eventA, flow.EventEncodingVersionJSONCDC)
 		require.NoError(t, err)
 
-		eventB, err := messageToEvent(msg, nil)
+		eventB, err := MessageToEvent(msg, nil)
 		require.NoError(t, err)
 
 		// Force evaluation of type ID, which is cached in type.
@@ -227,18 +223,12 @@ func TestConvert_Event(t *testing.T) {
 	})
 
 	t.Run("CCF encoded payload", func(t *testing.T) {
-		eventA := test.EventGenerator().
-			WithEncoding(entities.EventEncodingVersion_CCF_V0).
-			New()
+		eventA := test.EventGenerator(flow.EventEncodingVersionCCF).New()
 
-		msg, err := eventToMessage(eventA)
+		msg, err := EventToMessage(eventA, flow.EventEncodingVersionCCF)
 		require.NoError(t, err)
 
-		// explicitly re-encode the payload using CCF
-		msg.Payload, err = ccf.Encode(eventA.Value)
-		require.NoError(t, err)
-
-		eventB, err := messageToEvent(msg, nil)
+		eventB, err := MessageToEvent(msg, nil)
 		require.NoError(t, err)
 
 		// Force evaluation of type ID, which is cached in type.
@@ -252,8 +242,8 @@ func TestConvert_Event(t *testing.T) {
 func TestConvert_Identifier(t *testing.T) {
 	idA := test.IdentifierGenerator().New()
 
-	msg := identifierToMessage(idA)
-	idB := messageToIdentifier(msg)
+	msg := IdentifierToMessage(idA)
+	idB := MessageToIdentifier(msg)
 
 	assert.Equal(t, idA, idB)
 }
@@ -267,8 +257,8 @@ func TestConvert_Identifiers(t *testing.T) {
 		ids.New(),
 	}
 
-	msg := identifiersToMessages(idsA)
-	idsB := messagesToIdentifiers(msg)
+	msg := IdentifiersToMessages(idsA)
+	idsB := MessagesToIdentifiers(msg)
 
 	assert.Equal(t, idsA, idsB)
 }
@@ -278,10 +268,10 @@ func TestConvert_Transaction(t *testing.T) {
 		txA := test.TransactionGenerator().New()
 		txA.Arguments = nil
 
-		msg, err := transactionToMessage(*txA)
+		msg, err := TransactionToMessage(*txA)
 		require.NoError(t, err)
 
-		txB, err := messageToTransaction(msg)
+		txB, err := MessageToTransaction(msg)
 		require.NoError(t, err)
 
 		assert.Equal(t, txA.ID(), txB.ID())
@@ -290,10 +280,10 @@ func TestConvert_Transaction(t *testing.T) {
 	t.Run("With arguments", func(t *testing.T) {
 		txA := test.TransactionGenerator().New()
 
-		msg, err := transactionToMessage(*txA)
+		msg, err := TransactionToMessage(*txA)
 		require.NoError(t, err)
 
-		txB, err := messageToTransaction(msg)
+		txB, err := MessageToTransaction(msg)
 		require.NoError(t, err)
 
 		assert.Equal(t, txA.ID(), txB.ID())
@@ -301,29 +291,48 @@ func TestConvert_Transaction(t *testing.T) {
 }
 
 func TestConvert_TransactionResult(t *testing.T) {
-	resultA := test.TransactionResultGenerator().New()
+	t.Run("with JSON-CDC encoded events", func(t *testing.T) {
+		resultA := test.TransactionResultGenerator(flow.EventEncodingVersionJSONCDC).New()
 
-	msg, err := transactionResultToMessage(resultA)
+		msg, err := TransactionResultToMessage(resultA, flow.EventEncodingVersionJSONCDC)
 
-	resultB, err := messageToTransactionResult(msg, nil)
-	require.NoError(t, err)
+		resultB, err := MessageToTransactionResult(msg, nil)
+		require.NoError(t, err)
 
-	// Force evaluation of type ID, which is cached in type.
-	// Necessary for equality check below
-	for _, event := range resultB.Events {
-		_ = event.Value.Type().ID()
-	}
+		// Force evaluation of type ID, which is cached in type.
+		// Necessary for equality check below
+		for _, event := range resultB.Events {
+			_ = event.Value.Type().ID()
+		}
 
-	assert.Equal(t, resultA, resultB)
+		assert.Equal(t, resultA, resultB)
+	})
+
+	t.Run("with CCF encoded events", func(t *testing.T) {
+		resultA := test.TransactionResultGenerator(flow.EventEncodingVersionCCF).New()
+
+		msg, err := TransactionResultToMessage(resultA, flow.EventEncodingVersionCCF)
+
+		resultB, err := MessageToTransactionResult(msg, nil)
+		require.NoError(t, err)
+
+		// Force evaluation of type ID, which is cached in type.
+		// Necessary for equality check below
+		for _, event := range resultB.Events {
+			_ = event.Value.Type().ID()
+		}
+
+		assert.Equal(t, resultA, resultB)
+	})
 }
 
 func TestConvert_ExecutionData(t *testing.T) {
 	executionDataA := test.ExecutionDataGenerator().New()
 
-	msg, err := blockExecutionDataToMessage(executionDataA)
+	msg, err := BlockExecutionDataToMessage(executionDataA)
 	require.NoError(t, err)
 
-	executionDataB, err := messageToBlockExecutionData(msg)
+	executionDataB, err := MessageToBlockExecutionData(msg)
 	require.NoError(t, err)
 
 	assert.Equal(t, executionDataA.BlockID[:], executionDataB.BlockID[:])

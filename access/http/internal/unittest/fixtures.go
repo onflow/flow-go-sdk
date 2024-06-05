@@ -16,29 +16,30 @@
  * limitations under the License.
  */
 
-package http
+package unittest
 
 import (
 	"encoding/base64"
 	"fmt"
 
+	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/access/http/models"
 	"github.com/onflow/flow-go-sdk/test"
 )
 
-func contractFlowFixture() (string, string) {
+func ContractFlowFixture() (string, string) {
 	return "HelloWorld", base64.StdEncoding.EncodeToString([]byte(`
 		contract HelloWorld {}
 	`))
 }
 
-func accountFlowFixture() models.Account {
-	name, source := contractFlowFixture()
+func AccountFlowFixture() models.Account {
+	name, source := ContractFlowFixture()
 	return models.Account{
 		Address: test.AddressGenerator().New().String(),
 		Balance: "10",
 		Keys: []models.AccountPublicKey{
-			accountKeyFlowFixture(),
+			AccountKeyFlowFixture(),
 		},
 		Contracts:  map[string]string{name: source},
 		Expandable: nil,
@@ -46,7 +47,7 @@ func accountFlowFixture() models.Account {
 	}
 }
 
-func accountKeyFlowFixture() models.AccountPublicKey {
+func AccountKeyFlowFixture() models.AccountPublicKey {
 	key := test.AccountKeyGenerator().New()
 	sigAlgo := models.SigningAlgorithm(key.SigAlgo.String())
 	hashAlgo := models.HashingAlgorithm(key.HashAlgo.String())
@@ -62,13 +63,13 @@ func accountKeyFlowFixture() models.AccountPublicKey {
 	}
 }
 
-func networkParametersFlowFixture() models.NetworkParameters {
+func NetworkParametersFlowFixture() models.NetworkParameters {
 	return models.NetworkParameters{
-		ChainId:  "flow-testnet",
+		ChainId: "flow-testnet",
 	}
 }
 
-func blockFlowFixture() models.Block {
+func BlockFlowFixture() models.Block {
 	block := test.BlockGenerator().New()
 
 	return models.Block{
@@ -97,7 +98,7 @@ func blockFlowFixture() models.Block {
 	}
 }
 
-func collectionFlowFixture() models.Collection {
+func CollectionFlowFixture() models.Collection {
 	collection := test.CollectionGenerator().New()
 
 	return models.Collection{
@@ -108,7 +109,7 @@ func collectionFlowFixture() models.Collection {
 	}
 }
 
-func transactionFlowFixture() models.Transaction {
+func TransactionFlowFixture() models.Transaction {
 	tx := test.TransactionGenerator().New()
 
 	args := make([]string, len(tx.Arguments))
@@ -147,8 +148,8 @@ func transactionFlowFixture() models.Transaction {
 	}
 }
 
-func transactionResultFlowFixture() models.TransactionResult {
-	txr := test.TransactionResultGenerator().New()
+func TransactionResultFlowFixture(encoding flow.EventEncodingVersion) models.TransactionResult {
+	txr := test.TransactionResultGenerator(encoding).New()
 	status := models.SEALED_TransactionStatus
 
 	return models.TransactionResult{
@@ -167,11 +168,11 @@ func transactionResultFlowFixture() models.TransactionResult {
 	}
 }
 
-func eventsFlowFixture(n int) []models.Event {
+func EventsFlowFixture(n int, encoding flow.EventEncodingVersion) []models.Event {
 	events := make([]models.Event, n)
 
 	for i := 0; i < n; i++ {
-		e := test.EventGenerator().New()
+		e := test.EventGenerator(encoding).New()
 		events[i] = models.Event{
 			Type_:            e.Type,
 			TransactionId:    e.TransactionID.String(),
@@ -184,9 +185,9 @@ func eventsFlowFixture(n int) []models.Event {
 	return events
 }
 
-func blockEventsFlowFixture() models.BlockEvents {
+func BlockEventsFlowFixture(encoding flow.EventEncodingVersion) models.BlockEvents {
 	block := test.BlockGenerator().New()
-	events := eventsFlowFixture(4)
+	events := EventsFlowFixture(4, encoding)
 
 	return models.BlockEvents{
 		BlockId:        block.ID.String(),
@@ -196,9 +197,9 @@ func blockEventsFlowFixture() models.BlockEvents {
 	}
 }
 
-func executionResultFlowFixture() models.ExecutionResult {
+func ExecutionResultFlowFixture(encoding flow.EventEncodingVersion) models.ExecutionResult {
 	block := test.BlockGenerator().New()
-	events := eventsFlowFixture(4)
+	events := EventsFlowFixture(4, encoding)
 	id := test.IdentifierGenerator().New()
 	prevId := test.IdentifierGenerator().New()
 

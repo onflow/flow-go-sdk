@@ -246,23 +246,12 @@ type Events struct {
 	encoding entities.EventEncodingVersion
 }
 
-func EventGenerator() *Events {
+func EventGenerator(encoding entities.EventEncodingVersion) *Events {
 	return &Events{
-		count: 1,
-		ids:   IdentifierGenerator(),
+		count:    1,
+		ids:      IdentifierGenerator(),
+		encoding: encoding,
 	}
-}
-
-func (g *Events) WithEncoding(encoding entities.EventEncodingVersion) *Events {
-	switch encoding {
-	case flow.EventEncodingVersionCCF:
-		g.encoding = encoding
-	case flow.EventEncodingVersionJSONCDC:
-		g.encoding = encoding
-	default:
-		panic(fmt.Errorf("unsupported event encoding: %v", encoding))
-	}
-	return g
 }
 
 func (g *Events) New() flow.Event {
@@ -434,9 +423,9 @@ type TransactionResults struct {
 	ids    *Identifiers
 }
 
-func TransactionResultGenerator() *TransactionResults {
+func TransactionResultGenerator(encoding entities.EventEncodingVersion) *TransactionResults {
 	return &TransactionResults{
-		events: EventGenerator(),
+		events: EventGenerator(encoding),
 		ids:    IdentifierGenerator(),
 	}
 }
@@ -490,7 +479,7 @@ func ChunkExecutionDataGenerator() *ChunkExecutionDatas {
 	return &ChunkExecutionDatas{
 		ids:         IdentifierGenerator(),
 		txs:         TransactionGenerator(),
-		events:      EventGenerator().WithEncoding(flow.EventEncodingVersionCCF),
+		events:      EventGenerator(flow.EventEncodingVersionCCF),
 		trieUpdates: TrieUpdateGenerator(),
 		results:     LightTransactionResultGenerator(),
 	}

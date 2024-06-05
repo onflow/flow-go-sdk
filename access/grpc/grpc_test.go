@@ -25,7 +25,6 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/onflow/cadence/encoding/ccf"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -40,6 +39,7 @@ import (
 	"github.com/onflow/flow/protobuf/go/flow/entities"
 	"github.com/onflow/flow/protobuf/go/flow/executiondata"
 
+	"github.com/onflow/flow-go-sdk/access/grpc/convert"
 	"github.com/onflow/flow-go-sdk/access/grpc/mocks"
 
 	"github.com/onflow/flow-go-sdk"
@@ -191,7 +191,7 @@ func TestClient_GetLatestBlockHeader(t *testing.T) {
 	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		expectedHeader := blocks.New().BlockHeader
 
-		b, err := blockHeaderToMessage(expectedHeader)
+		b, err := convert.BlockHeaderToMessage(expectedHeader)
 		require.NoError(t, err)
 
 		response := &access.BlockHeaderResponse{
@@ -225,7 +225,7 @@ func TestClient_GetBlockHeaderByID(t *testing.T) {
 		blockID := ids.New()
 		expectedHeader := blocks.New().BlockHeader
 
-		b, err := blockHeaderToMessage(expectedHeader)
+		b, err := convert.BlockHeaderToMessage(expectedHeader)
 		require.NoError(t, err)
 
 		response := &access.BlockHeaderResponse{
@@ -259,7 +259,7 @@ func TestClient_GetBlockHeaderByHeight(t *testing.T) {
 	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		expectedHeader := blocks.New().BlockHeader
 
-		b, err := blockHeaderToMessage(expectedHeader)
+		b, err := convert.BlockHeaderToMessage(expectedHeader)
 		require.NoError(t, err)
 
 		response := &access.BlockHeaderResponse{
@@ -291,7 +291,7 @@ func TestClient_GetLatestBlock(t *testing.T) {
 	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		expectedBlock := blocks.New()
 
-		b, err := blockToMessage(*expectedBlock)
+		b, err := convert.BlockToMessage(*expectedBlock)
 		require.NoError(t, err)
 
 		response := &access.BlockResponse{
@@ -325,7 +325,7 @@ func TestClient_GetBlockByID(t *testing.T) {
 		blockID := ids.New()
 		expectedBlock := blocks.New()
 
-		b, err := blockToMessage(*expectedBlock)
+		b, err := convert.BlockToMessage(*expectedBlock)
 		require.NoError(t, err)
 
 		response := &access.BlockResponse{
@@ -359,7 +359,7 @@ func TestClient_GetBlockByHeight(t *testing.T) {
 	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		expectedBlock := blocks.New()
 
-		b, err := blockToMessage(*expectedBlock)
+		b, err := convert.BlockToMessage(*expectedBlock)
 		require.NoError(t, err)
 
 		response := &access.BlockResponse{
@@ -393,7 +393,7 @@ func TestClient_GetCollection(t *testing.T) {
 		colID := ids.New()
 		expectedCol := cols.New()
 		response := &access.CollectionResponse{
-			Collection: collectionToMessage(*expectedCol),
+			Collection: convert.CollectionToMessage(*expectedCol),
 		}
 
 		rpc.On("GetCollectionByID", ctx, mock.Anything).Return(response, nil)
@@ -453,7 +453,7 @@ func TestClient_GetTransaction(t *testing.T) {
 		txID := ids.New()
 		expectedTx := txs.New()
 
-		txMsg, err := transactionToMessage(*expectedTx)
+		txMsg, err := convert.TransactionToMessage(*expectedTx)
 		require.NoError(t, err)
 
 		response := &access.TransactionResponse{
@@ -489,7 +489,7 @@ func TestClient_GetTransactionsByBlockID(t *testing.T) {
 	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		expectedTx := txs.New()
 
-		txMsg, err := transactionToMessage(*expectedTx)
+		txMsg, err := convert.TransactionToMessage(*expectedTx)
 		require.NoError(t, err)
 
 		responses := &access.TransactionsResponse{
@@ -517,13 +517,34 @@ func TestClient_GetTransactionsByBlockID(t *testing.T) {
 }
 
 func TestClient_GetTransactionResult(t *testing.T) {
-	results := test.TransactionResultGenerator()
 	ids := test.IdentifierGenerator()
 
 	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		results := test.TransactionResultGenerator(flow.EventEncodingVersionCCF)
 		txID := ids.New()
 		expectedResult := results.New()
-		response, _ := transactionResultToMessage(expectedResult)
+		response, _ := convert.TransactionResultToMessage(expectedResult, flow.EventEncodingVersionCCF)
+
+		rpc.On("GetTransactionResult", ctx, mock.Anything).Return(response, nil)
+
+		result, err := c.GetTransactionResult(ctx, txID)
+		require.NoError(t, err)
+
+		// Force evaluation of type ID, which is cached in type.
+		// Necessary for equality check below
+		for _, event := range result.Events {
+			_ = event.Value.Type().ID()
+		}
+
+		assert.Equal(t, expectedResult, *result)
+
+	}))
+
+	t.Run("Success with jsoncdc", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		results := test.TransactionResultGenerator(flow.EventEncodingVersionJSONCDC)
+		txID := ids.New()
+		expectedResult := results.New()
+		response, _ := convert.TransactionResultToMessage(expectedResult, flow.EventEncodingVersionJSONCDC)
 
 		rpc.On("GetTransactionResult", ctx, mock.Anything).Return(response, nil)
 
@@ -554,13 +575,41 @@ func TestClient_GetTransactionResult(t *testing.T) {
 }
 
 func TestClient_GetTransactionResultsByBlockID(t *testing.T) {
-	resultGenerator := test.TransactionResultGenerator()
 	ids := test.IdentifierGenerator()
 
 	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		resultGenerator := test.TransactionResultGenerator(flow.EventEncodingVersionCCF)
 		blockID := ids.New()
 		expectedResult := resultGenerator.New()
-		response, err := transactionResultToMessage(expectedResult)
+		response, err := convert.TransactionResultToMessage(expectedResult, flow.EventEncodingVersionCCF)
+		require.NoError(t, err)
+
+		responses := &access.TransactionResultsResponse{
+			TransactionResults: []*access.TransactionResultResponse{response},
+		}
+
+		rpc.On("GetTransactionResultsByBlockID", ctx, mock.Anything).Return(responses, nil)
+
+		results, err := c.GetTransactionResultsByBlockID(ctx, blockID)
+		require.NoError(t, err)
+
+		// Force evaluation of type ID, which is cached in type.
+		// Necessary for equality check below
+		for _, result := range results {
+			for _, event := range result.Events {
+				_ = event.Value.Type().ID()
+			}
+		}
+
+		assert.Equal(t, len(results), 1)
+		assert.Equal(t, expectedResult, *results[0])
+	}))
+
+	t.Run("Success with jsoncdc", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		resultGenerator := test.TransactionResultGenerator(flow.EventEncodingVersionJSONCDC)
+		blockID := ids.New()
+		expectedResult := resultGenerator.New()
+		response, err := convert.TransactionResultToMessage(expectedResult, flow.EventEncodingVersionJSONCDC)
 		require.NoError(t, err)
 
 		responses := &access.TransactionResultsResponse{
@@ -604,7 +653,7 @@ func TestClient_GetAccountAtLatestBlock(t *testing.T) {
 	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		expectedAccount := accounts.New()
 		response := &access.AccountResponse{
-			Account: accountToMessage(*expectedAccount),
+			Account: convert.AccountToMessage(*expectedAccount),
 		}
 
 		rpc.On("GetAccountAtLatestBlock", ctx, mock.Anything).Return(response, nil)
@@ -636,7 +685,7 @@ func TestClient_GetAccountAtBlockHeight(t *testing.T) {
 	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		expectedAccount := accounts.New()
 		response := &access.AccountResponse{
-			Account: accountToMessage(*expectedAccount),
+			Account: convert.AccountToMessage(*expectedAccount),
 		}
 
 		rpc.On("GetAccountAtBlockHeight", ctx, mock.Anything).Return(response, nil)
@@ -823,7 +872,7 @@ func TestClient_ExecuteScriptAtBlockHeight(t *testing.T) {
 
 func TestClient_GetEventsForHeightRange(t *testing.T) {
 	ids := test.IdentifierGenerator()
-	events := test.EventGenerator()
+	events := test.EventGenerator(flow.EventEncodingVersionCCF)
 
 	t.Run(
 		"Empty result",
@@ -850,10 +899,10 @@ func TestClient_GetEventsForHeightRange(t *testing.T) {
 		clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 			eventA, eventB, eventC, eventD := events.New(), events.New(), events.New(), events.New()
 
-			eventAMsg, _ := eventToMessage(eventA)
-			eventBMsg, _ := eventToMessage(eventB)
-			eventCMsg, _ := eventToMessage(eventC)
-			eventDMsg, _ := eventToMessage(eventD)
+			eventAMsg, _ := convert.EventToMessage(eventA, flow.EventEncodingVersionCCF)
+			eventBMsg, _ := convert.EventToMessage(eventB, flow.EventEncodingVersionCCF)
+			eventCMsg, _ := convert.EventToMessage(eventC, flow.EventEncodingVersionCCF)
+			eventDMsg, _ := convert.EventToMessage(eventD, flow.EventEncodingVersionCCF)
 
 			response := &access.EventsResponse{
 				Results: []*access.EventsResponse_Result{
@@ -928,8 +977,6 @@ func TestClient_GetEventsForHeightRange(t *testing.T) {
 
 func TestClient_GetEventsForBlockIDs(t *testing.T) {
 	ids := test.IdentifierGenerator()
-	ccfEvents := test.EventGenerator().WithEncoding(flow.EventEncodingVersionCCF)
-	jsonEvents := test.EventGenerator().WithEncoding(flow.EventEncodingVersionJSONCDC)
 
 	t.Run(
 		"Empty result",
@@ -952,26 +999,14 @@ func TestClient_GetEventsForBlockIDs(t *testing.T) {
 	t.Run(
 		"Non-empty result with ccf encoding",
 		clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+			events := test.EventGenerator(flow.EventEncodingVersionCCF)
 			blockIDA, blockIDB := ids.New(), ids.New()
-			eventA, eventB, eventC, eventD := ccfEvents.New(), ccfEvents.New(), ccfEvents.New(), ccfEvents.New()
+			eventA, eventB, eventC, eventD := events.New(), events.New(), events.New(), events.New()
 
-			eventAMsg, _ := eventToMessage(eventA)
-			eventBMsg, _ := eventToMessage(eventB)
-			eventCMsg, _ := eventToMessage(eventC)
-			eventDMsg, _ := eventToMessage(eventD)
-
-			var err error
-			eventAMsg.Payload, err = ccf.Encode(eventA.Value)
-			require.NoError(t, err)
-
-			eventBMsg.Payload, err = ccf.Encode(eventB.Value)
-			require.NoError(t, err)
-
-			eventCMsg.Payload, err = ccf.Encode(eventC.Value)
-			require.NoError(t, err)
-
-			eventDMsg.Payload, err = ccf.Encode(eventD.Value)
-			require.NoError(t, err)
+			eventAMsg, _ := convert.EventToMessage(eventA, flow.EventEncodingVersionCCF)
+			eventBMsg, _ := convert.EventToMessage(eventB, flow.EventEncodingVersionCCF)
+			eventCMsg, _ := convert.EventToMessage(eventC, flow.EventEncodingVersionCCF)
+			eventDMsg, _ := convert.EventToMessage(eventD, flow.EventEncodingVersionCCF)
 
 			response := &access.EventsResponse{
 				Results: []*access.EventsResponse_Result{
@@ -1027,13 +1062,14 @@ func TestClient_GetEventsForBlockIDs(t *testing.T) {
 	t.Run(
 		"Non-empty result with json encoding",
 		clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+			events := test.EventGenerator(flow.EventEncodingVersionJSONCDC)
 			blockIDA, blockIDB := ids.New(), ids.New()
-			eventA, eventB, eventC, eventD := jsonEvents.New(), jsonEvents.New(), jsonEvents.New(), jsonEvents.New()
+			eventA, eventB, eventC, eventD := events.New(), events.New(), events.New(), events.New()
 
-			eventAMsg, _ := eventToMessage(eventA)
-			eventBMsg, _ := eventToMessage(eventB)
-			eventCMsg, _ := eventToMessage(eventC)
-			eventDMsg, _ := eventToMessage(eventD)
+			eventAMsg, _ := convert.EventToMessage(eventA, flow.EventEncodingVersionJSONCDC)
+			eventBMsg, _ := convert.EventToMessage(eventB, flow.EventEncodingVersionJSONCDC)
+			eventCMsg, _ := convert.EventToMessage(eventC, flow.EventEncodingVersionJSONCDC)
+			eventDMsg, _ := convert.EventToMessage(eventD, flow.EventEncodingVersionJSONCDC)
 
 			response := &access.EventsResponse{
 				Results: []*access.EventsResponse_Result{
@@ -1370,7 +1406,7 @@ func TestClient_SubscribeExecutionData(t *testing.T) {
 
 func TestClient_SubscribeEvents(t *testing.T) {
 	ids := test.IdentifierGenerator()
-	events := test.EventGenerator().WithEncoding(entities.EventEncodingVersion_CCF_V0)
+	events := test.EventGenerator(flow.EventEncodingVersionCCF)
 	addresses := test.AddressGenerator()
 
 	getEvents := func(count int) []flow.Event {
@@ -1404,7 +1440,7 @@ func TestClient_SubscribeEvents(t *testing.T) {
 		ctx, cancel := context.WithCancel(ctx)
 		stream := &mockEventStream{ctx: ctx}
 		for i := startHeight; i < startHeight+responseCount; i++ {
-			stream.responses = append(stream.responses, generateEventResponse(t, ids.New(), i, getEvents(2)))
+			stream.responses = append(stream.responses, generateEventResponse(t, ids.New(), i, getEvents(2), flow.EventEncodingVersionCCF))
 		}
 
 		rpc.On("SubscribeEvents", ctx, mock.Anything).
@@ -1457,7 +1493,7 @@ func TestClient_SubscribeEvents(t *testing.T) {
 		ctx, cancel := context.WithCancel(ctx)
 		stream := &mockEventStream{ctx: ctx}
 		for i := startHeight; i < startHeight+responseCount; i++ {
-			stream.responses = append(stream.responses, generateEventResponse(t, ids.New(), i, getEvents(2)))
+			stream.responses = append(stream.responses, generateEventResponse(t, ids.New(), i, getEvents(2), flow.EventEncodingVersionCCF))
 		}
 
 		rpc.On("SubscribeEvents", ctx, mock.Anything).
@@ -1546,7 +1582,7 @@ func TestClient_SubscribeEvents(t *testing.T) {
 		}
 
 		stream := &mockEventStream{ctx: ctx}
-		stream.responses = append(stream.responses, generateEventResponse(t, ids.New(), startHeight, getEvents(2)))
+		stream.responses = append(stream.responses, generateEventResponse(t, ids.New(), startHeight, getEvents(2), flow.EventEncodingVersionCCF))
 
 		// corrupt the event payload
 		stream.responses[0].Events[0].Payload[0] = 'x'
@@ -1575,10 +1611,10 @@ func TestClient_SubscribeEvents(t *testing.T) {
 	}))
 }
 
-func generateEventResponse(t *testing.T, blockID flow.Identifier, height uint64, events []flow.Event) *executiondata.SubscribeEventsResponse {
+func generateEventResponse(t *testing.T, blockID flow.Identifier, height uint64, events []flow.Event, encoding flow.EventEncodingVersion) *executiondata.SubscribeEventsResponse {
 	responseEvents := make([]*entities.Event, 0, len(events))
 	for _, e := range events {
-		eventMsg, err := eventToMessage(e)
+		eventMsg, err := convert.EventToMessage(e, encoding)
 		require.NoError(t, err)
 		responseEvents = append(responseEvents, eventMsg)
 	}

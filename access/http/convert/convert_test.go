@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package http
+package convert
 
 import (
 	"encoding/base64"
@@ -24,17 +24,17 @@ import (
 	"testing"
 
 	"github.com/onflow/cadence"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/onflow/flow-go-sdk"
-
-	"github.com/stretchr/testify/assert"
+	"github.com/onflow/flow-go-sdk/access/http/internal/unittest"
 )
 
 func Test_ConvertBlock(t *testing.T) {
-	httpBlock := blockFlowFixture()
+	httpBlock := unittest.BlockFlowFixture()
 
-	block, err := toBlock(&httpBlock)
+	block, err := ToBlock(&httpBlock)
 
 	assert.NoError(t, err)
 	assert.Equal(t, block.ID.String(), httpBlock.Header.Id)
@@ -47,10 +47,10 @@ func Test_ConvertBlock(t *testing.T) {
 }
 
 func Test_ConvertAccount(t *testing.T) {
-	httpAccount := accountFlowFixture()
-	contractName, contractCode := contractFlowFixture()
+	httpAccount := unittest.AccountFlowFixture()
+	contractName, contractCode := unittest.ContractFlowFixture()
 
-	account, err := toAccount(&httpAccount)
+	account, err := ToAccount(&httpAccount)
 
 	assert.NoError(t, err)
 	assert.Equal(t, account.Address.String(), httpAccount.Address)
@@ -62,19 +62,19 @@ func Test_ConvertAccount(t *testing.T) {
 }
 
 func Test_ConvertCollection(t *testing.T) {
-	httpColl := collectionFlowFixture()
+	httpColl := unittest.CollectionFlowFixture()
 
-	collection := toCollection(&httpColl)
+	collection := ToCollection(&httpColl)
 
 	assert.Len(t, collection.TransactionIDs, len(httpColl.Transactions))
 	assert.Equal(t, collection.TransactionIDs[0].String(), httpColl.Transactions[0].Id)
 }
 
 func Test_ConvertTransaction(t *testing.T) {
-	httpTx := transactionFlowFixture()
+	httpTx := unittest.TransactionFlowFixture()
 	script, _ := base64.StdEncoding.DecodeString(httpTx.Script)
 
-	tx, err := toTransaction(&httpTx)
+	tx, err := ToTransaction(&httpTx)
 
 	auths := make([]string, len(tx.Authorizers))
 	for i, a := range tx.Authorizers {
@@ -103,8 +103,8 @@ func Test_ConvertTransaction(t *testing.T) {
 }
 
 func Test_ConvertTransactionResult(t *testing.T) {
-	httpTxr := transactionResultFlowFixture()
-	txr, err := toTransactionResult(&httpTxr, nil)
+	httpTxr := unittest.TransactionResultFlowFixture(flow.EventEncodingVersionJSONCDC)
+	txr, err := ToTransactionResult(&httpTxr, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, txr.Status, flow.TransactionStatusSealed)
@@ -128,7 +128,7 @@ func Test_EncodeCadenceArgs(t *testing.T) {
 	v2, err := cadence.NewString("World")
 	require.NoError(t, err)
 
-	res, err := encodeCadenceArgs([]cadence.Value{v1, v2})
+	res, err := EncodeCadenceArgs([]cadence.Value{v1, v2})
 	assert.NoError(t, err)
 
 	assert.Equal(t,
@@ -141,8 +141,8 @@ func Test_EncodeCadenceArgs(t *testing.T) {
 }
 
 func Test_ConvertExecutionResults(t *testing.T) {
-	exec := executionResultFlowFixture()
-	res := toExecutionResults(exec)
+	exec := unittest.ExecutionResultFlowFixture(flow.EventEncodingVersionJSONCDC)
+	res := ToExecutionResults(exec)
 	assert.Equal(t, res.BlockID.String(), exec.BlockId)
 	assert.Equal(t, res.Chunks[0].BlockID.String(), exec.Chunks[0].BlockId)
 	assert.Len(t, res.Chunks, 1)

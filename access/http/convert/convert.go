@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package http
+package convert
 
 import (
 	"encoding/base64"
@@ -34,11 +34,11 @@ import (
 	"github.com/onflow/flow-go-sdk/crypto"
 )
 
-func toAddress(address string) flow.Address {
+func ToAddress(address string) flow.Address {
 	return flow.HexToAddress(address)
 }
 
-func toKeys(keys []models.AccountPublicKey) []*flow.AccountKey {
+func ToKeys(keys []models.AccountPublicKey) []*flow.AccountKey {
 	accountKeys := make([]*flow.AccountKey, len(keys))
 
 	for i, key := range keys {
@@ -46,12 +46,12 @@ func toKeys(keys []models.AccountPublicKey) []*flow.AccountKey {
 		pkey, _ := crypto.DecodePublicKeyHex(sigAlgo, strings.TrimPrefix(key.PublicKey, "0x")) // validation is done on AN
 
 		accountKeys[i] = &flow.AccountKey{
-			Index:          mustToInt(key.Index),
+			Index:          MustToInt(key.Index),
 			PublicKey:      pkey,
 			SigAlgo:        sigAlgo,
 			HashAlgo:       crypto.StringToHashAlgorithm(string(*key.HashingAlgorithm)),
-			Weight:         mustToInt(key.Weight),
-			SequenceNumber: mustToUint(key.SequenceNumber),
+			Weight:         MustToInt(key.Weight),
+			SequenceNumber: MustToUint(key.SequenceNumber),
 			Revoked:        key.Revoked,
 		}
 	}
@@ -59,7 +59,7 @@ func toKeys(keys []models.AccountPublicKey) []*flow.AccountKey {
 	return accountKeys
 }
 
-func toContracts(contracts map[string]string) (map[string][]byte, error) {
+func ToContracts(contracts map[string]string) (map[string][]byte, error) {
 	decoded := make(map[string][]byte, len(contracts))
 	for name, code := range contracts {
 		dec, err := base64.StdEncoding.DecodeString(code)
@@ -73,31 +73,31 @@ func toContracts(contracts map[string]string) (map[string][]byte, error) {
 	return decoded, nil
 }
 
-func toAccount(account *models.Account) (*flow.Account, error) {
-	contracts, err := toContracts(account.Contracts)
+func ToAccount(account *models.Account) (*flow.Account, error) {
+	contracts, err := ToContracts(account.Contracts)
 	if err != nil {
 		return nil, err
 	}
 
 	return &flow.Account{
-		Address:   toAddress(account.Address),
-		Balance:   mustToUint(account.Balance),
-		Keys:      toKeys(account.Keys),
+		Address:   ToAddress(account.Address),
+		Balance:   MustToUint(account.Balance),
+		Keys:      ToKeys(account.Keys),
 		Contracts: contracts,
 	}, nil
 }
 
-func toBlockHeader(header *models.BlockHeader, blockStatus string) *flow.BlockHeader {
+func ToBlockHeader(header *models.BlockHeader, blockStatus string) *flow.BlockHeader {
 	return &flow.BlockHeader{
 		ID:        flow.HexToID(header.Id),
 		ParentID:  flow.HexToID(header.ParentId),
-		Height:    mustToUint(header.Height),
+		Height:    MustToUint(header.Height),
 		Timestamp: header.Timestamp,
 		Status:    flow.BlockStatusFromString(blockStatus),
 	}
 }
 
-func toCollectionGuarantees(guarantees []models.CollectionGuarantee) []*flow.CollectionGuarantee {
+func ToCollectionGuarantees(guarantees []models.CollectionGuarantee) []*flow.CollectionGuarantee {
 	flowGuarantees := make([]*flow.CollectionGuarantee, len(guarantees))
 
 	for i, guarantee := range guarantees {
@@ -109,7 +109,7 @@ func toCollectionGuarantees(guarantees []models.CollectionGuarantee) []*flow.Col
 	return flowGuarantees
 }
 
-func toBlockSeals(seals []models.BlockSeal) ([]*flow.BlockSeal, error) {
+func ToBlockSeals(seals []models.BlockSeal) ([]*flow.BlockSeal, error) {
 	flowSeal := make([]*flow.BlockSeal, len(seals))
 
 	for i, seal := range seals {
@@ -135,22 +135,22 @@ func toBlockSeals(seals []models.BlockSeal) ([]*flow.BlockSeal, error) {
 	return flowSeal, nil
 }
 
-func toBlockPayload(payload *models.BlockPayload) (*flow.BlockPayload, error) {
-	seals, err := toBlockSeals(payload.BlockSeals)
+func ToBlockPayload(payload *models.BlockPayload) (*flow.BlockPayload, error) {
+	seals, err := ToBlockSeals(payload.BlockSeals)
 	if err != nil {
 		return nil, err
 	}
 
 	return &flow.BlockPayload{
-		CollectionGuarantees: toCollectionGuarantees(payload.CollectionGuarantees),
+		CollectionGuarantees: ToCollectionGuarantees(payload.CollectionGuarantees),
 		Seals:                seals,
 	}, nil
 }
 
-func toBlocks(blocks []*models.Block) ([]*flow.Block, error) {
+func ToBlocks(blocks []*models.Block) ([]*flow.Block, error) {
 	convertedBlocks := make([]*flow.Block, len(blocks))
 	for i, b := range blocks {
-		converted, err := toBlock(b)
+		converted, err := ToBlock(b)
 		if err != nil {
 			return nil, err
 		}
@@ -160,19 +160,19 @@ func toBlocks(blocks []*models.Block) ([]*flow.Block, error) {
 	return convertedBlocks, nil
 }
 
-func toBlock(block *models.Block) (*flow.Block, error) {
-	payload, err := toBlockPayload(block.Payload)
+func ToBlock(block *models.Block) (*flow.Block, error) {
+	payload, err := ToBlockPayload(block.Payload)
 	if err != nil {
 		return nil, err
 	}
 
 	return &flow.Block{
-		BlockHeader:  *toBlockHeader(block.Header, block.BlockStatus),
+		BlockHeader:  *ToBlockHeader(block.Header, block.BlockStatus),
 		BlockPayload: *payload,
 	}, nil
 }
 
-func toCollection(collection *models.Collection) *flow.Collection {
+func ToCollection(collection *models.Collection) *flow.Collection {
 	IDs := make([]flow.Identifier, len(collection.Transactions))
 	for i, tx := range collection.Transactions {
 		IDs[i] = flow.HexToID(tx.Id)
@@ -182,15 +182,15 @@ func toCollection(collection *models.Collection) *flow.Collection {
 	}
 }
 
-func encodeScript(script []byte) string {
+func EncodeScript(script []byte) string {
 	return base64.StdEncoding.EncodeToString(script)
 }
 
-func toScript(script string) ([]byte, error) {
+func ToScript(script string) ([]byte, error) {
 	return base64.StdEncoding.DecodeString(script)
 }
 
-func encodeArgs(args [][]byte) []string {
+func EncodeArgs(args [][]byte) []string {
 	encodedArgs := make([]string, len(args))
 	for i, a := range args {
 		encodedArgs[i] = base64.StdEncoding.EncodeToString(a)
@@ -198,7 +198,7 @@ func encodeArgs(args [][]byte) []string {
 	return encodedArgs
 }
 
-func toArgs(arguments []string) ([][]byte, error) {
+func ToArgs(arguments []string) ([][]byte, error) {
 	args := make([][]byte, len(arguments))
 	for i, arg := range arguments {
 		a, err := base64.StdEncoding.DecodeString(arg)
@@ -211,17 +211,17 @@ func toArgs(arguments []string) ([][]byte, error) {
 	return args, nil
 }
 
-func mustToUint(value string) uint64 {
+func MustToUint(value string) uint64 {
 	parsed, _ := strconv.ParseUint(value, 10, 64) // we can ignore error since these values are validated before returned
 	return parsed
 }
 
-func mustToInt(value string) int {
+func MustToInt(value string) int {
 	parsed, _ := strconv.Atoi(value) // we can ignore error since these values are validated before returned
 	return parsed
 }
 
-func encodeCadenceArgs(args []cadence.Value) ([]string, error) {
+func EncodeCadenceArgs(args []cadence.Value) ([]string, error) {
 	encArgs := make([]string, len(args))
 
 	for i, a := range args {
@@ -236,7 +236,7 @@ func encodeCadenceArgs(args []cadence.Value) ([]string, error) {
 	return encArgs, nil
 }
 
-func decodeCadenceValue(value string, options []cadenceJSON.Option) (cadence.Value, error) {
+func DecodeCadenceValue(value string, options []cadenceJSON.Option) (cadence.Value, error) {
 	decoded, err := base64.StdEncoding.DecodeString(value)
 	if err != nil {
 		return nil, err
@@ -245,33 +245,33 @@ func decodeCadenceValue(value string, options []cadenceJSON.Option) (cadence.Val
 	return cadenceJSON.Decode(nil, decoded, options...)
 }
 
-func toProposalKey(key *models.ProposalKey) flow.ProposalKey {
+func ToProposalKey(key *models.ProposalKey) flow.ProposalKey {
 	return flow.ProposalKey{
 		Address:        flow.HexToAddress(key.Address),
-		KeyIndex:       mustToInt(key.KeyIndex),
-		SequenceNumber: mustToUint(key.SequenceNumber),
+		KeyIndex:       MustToInt(key.KeyIndex),
+		SequenceNumber: MustToUint(key.SequenceNumber),
 	}
 }
 
-func toSignatures(signatures []models.TransactionSignature) []flow.TransactionSignature {
+func ToSignatures(signatures []models.TransactionSignature) []flow.TransactionSignature {
 	sigs := make([]flow.TransactionSignature, len(signatures))
 	for i, sig := range signatures {
 		signature, _ := base64.StdEncoding.DecodeString(sig.Signature) // signatures are validated and must be valid
 		sigs[i] = flow.TransactionSignature{
 			Address:   flow.HexToAddress(sig.Address),
-			KeyIndex:  mustToInt(sig.KeyIndex),
+			KeyIndex:  MustToInt(sig.KeyIndex),
 			Signature: signature,
 		}
 	}
 	return sigs
 }
 
-func toTransaction(tx *models.Transaction) (*flow.Transaction, error) {
-	script, err := toScript(tx.Script)
+func ToTransaction(tx *models.Transaction) (*flow.Transaction, error) {
+	script, err := ToScript(tx.Script)
 	if err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf("failed to decode script of transaction with ID %s", tx.Id))
 	}
-	args, err := toArgs(tx.Arguments)
+	args, err := ToArgs(tx.Arguments)
 	if err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf("failed to decode arguments of transaction with ID %s", tx.Id))
 	}
@@ -285,16 +285,16 @@ func toTransaction(tx *models.Transaction) (*flow.Transaction, error) {
 		Script:             script,
 		Arguments:          args,
 		ReferenceBlockID:   flow.HexToID(tx.ReferenceBlockId),
-		GasLimit:           mustToUint(tx.GasLimit),
-		ProposalKey:        toProposalKey(tx.ProposalKey),
+		GasLimit:           MustToUint(tx.GasLimit),
+		ProposalKey:        ToProposalKey(tx.ProposalKey),
 		Payer:              flow.HexToAddress(tx.Payer),
 		Authorizers:        auths,
-		PayloadSignatures:  toSignatures(tx.PayloadSignatures),
-		EnvelopeSignatures: toSignatures(tx.EnvelopeSignatures),
+		PayloadSignatures:  ToSignatures(tx.PayloadSignatures),
+		EnvelopeSignatures: ToSignatures(tx.EnvelopeSignatures),
 	}, nil
 }
 
-func toTransactionStatus(status *models.TransactionStatus) flow.TransactionStatus {
+func ToTransactionStatus(status *models.TransactionStatus) flow.TransactionStatus {
 	switch *status {
 	case models.PENDING_TransactionStatus:
 		return flow.TransactionStatusPending
@@ -311,7 +311,7 @@ func toTransactionStatus(status *models.TransactionStatus) flow.TransactionStatu
 	}
 }
 
-func toEvents(events []models.Event, options []cadenceJSON.Option) ([]flow.Event, error) {
+func ToEvents(events []models.Event, options []cadenceJSON.Option) ([]flow.Event, error) {
 	flowEvents := make([]flow.Event, len(events))
 	for i, e := range events {
 		payload, err := base64.StdEncoding.DecodeString(e.Payload)
@@ -327,8 +327,8 @@ func toEvents(events []models.Event, options []cadenceJSON.Option) ([]flow.Event
 		flowEvents[i] = flow.Event{
 			Type:             e.Type_,
 			TransactionID:    flow.HexToID(e.TransactionId),
-			TransactionIndex: mustToInt(e.TransactionIndex),
-			EventIndex:       mustToInt(e.EventIndex),
+			TransactionIndex: MustToInt(e.TransactionIndex),
+			EventIndex:       MustToInt(e.EventIndex),
 			Value:            event.(cadence.Event),
 			Payload:          payload,
 		}
@@ -336,17 +336,17 @@ func toEvents(events []models.Event, options []cadenceJSON.Option) ([]flow.Event
 	return flowEvents, nil
 }
 
-func toBlockEvents(blockEvents []models.BlockEvents, options []cadenceJSON.Option) ([]flow.BlockEvents, error) {
+func ToBlockEvents(blockEvents []models.BlockEvents, options []cadenceJSON.Option) ([]flow.BlockEvents, error) {
 	blocks := make([]flow.BlockEvents, len(blockEvents))
 	for i, block := range blockEvents {
-		events, err := toEvents(block.Events, options)
+		events, err := ToEvents(block.Events, options)
 		if err != nil {
 			return nil, err
 		}
 
 		blocks[i] = flow.BlockEvents{
 			BlockID:        flow.HexToID(block.BlockId),
-			Height:         mustToUint(block.BlockHeight),
+			Height:         MustToUint(block.BlockHeight),
 			BlockTimestamp: block.BlockTimestamp,
 			Events:         events,
 		}
@@ -354,8 +354,8 @@ func toBlockEvents(blockEvents []models.BlockEvents, options []cadenceJSON.Optio
 	return blocks, nil
 }
 
-func toTransactionResult(txr *models.TransactionResult, options []cadenceJSON.Option) (*flow.TransactionResult, error) {
-	events, err := toEvents(txr.Events, options)
+func ToTransactionResult(txr *models.TransactionResult, options []cadenceJSON.Option) (*flow.TransactionResult, error) {
+	events, err := ToEvents(txr.Events, options)
 	if err != nil {
 		return nil, err
 	}
@@ -366,7 +366,7 @@ func toTransactionResult(txr *models.TransactionResult, options []cadenceJSON.Op
 	}
 
 	return &flow.TransactionResult{
-		Status:       toTransactionStatus(txr.Status),
+		Status:       ToTransactionStatus(txr.Status),
 		Error:        txErr,
 		Events:       events,
 		BlockID:      flow.HexToID(txr.BlockId),
@@ -374,7 +374,7 @@ func toTransactionResult(txr *models.TransactionResult, options []cadenceJSON.Op
 	}, nil
 }
 
-func encodeSignatures(signatures []flow.TransactionSignature) []models.TransactionSignature {
+func EncodeSignatures(signatures []flow.TransactionSignature) []models.TransactionSignature {
 	sigs := make([]models.TransactionSignature, len(signatures))
 	for i, sig := range signatures {
 		sigs[i] = models.TransactionSignature{
@@ -387,15 +387,15 @@ func encodeSignatures(signatures []flow.TransactionSignature) []models.Transacti
 	return sigs
 }
 
-func encodeTransaction(tx flow.Transaction) ([]byte, error) {
+func TncodeTransaction(tx flow.Transaction) ([]byte, error) {
 	auths := make([]string, len(tx.Authorizers))
 	for i, address := range tx.Authorizers {
 		auths[i] = address.String()
 	}
 
 	return json.Marshal(models.TransactionsBody{
-		Script:           encodeScript(tx.Script),
-		Arguments:        encodeArgs(tx.Arguments),
+		Script:           EncodeScript(tx.Script),
+		Arguments:        EncodeArgs(tx.Arguments),
 		ReferenceBlockId: tx.ReferenceBlockID.String(),
 		GasLimit:         fmt.Sprintf("%d", tx.GasLimit),
 		Payer:            tx.Payer.String(),
@@ -405,12 +405,12 @@ func encodeTransaction(tx flow.Transaction) ([]byte, error) {
 			SequenceNumber: fmt.Sprintf("%d", tx.ProposalKey.SequenceNumber),
 		},
 		Authorizers:        auths,
-		PayloadSignatures:  encodeSignatures(tx.PayloadSignatures),
-		EnvelopeSignatures: encodeSignatures(tx.EnvelopeSignatures),
+		PayloadSignatures:  EncodeSignatures(tx.PayloadSignatures),
+		EnvelopeSignatures: EncodeSignatures(tx.EnvelopeSignatures),
 	})
 }
 
-func toExecutionResults(result models.ExecutionResult) *flow.ExecutionResult {
+func ToExecutionResults(result models.ExecutionResult) *flow.ExecutionResult {
 	events := make([]*flow.ServiceEvent, len(result.Events))
 	for i, e := range result.Events {
 		events[i] = &flow.ServiceEvent{
@@ -423,13 +423,13 @@ func toExecutionResults(result models.ExecutionResult) *flow.ExecutionResult {
 
 	for i, chunk := range result.Chunks {
 		chunks[i] = &flow.Chunk{
-			CollectionIndex:      uint(mustToUint(chunk.CollectionIndex)),
+			CollectionIndex:      uint(MustToUint(chunk.CollectionIndex)),
 			StartState:           flow.HexToStateCommitment(chunk.StartState),
 			EventCollection:      crypto.Hash(chunk.EventCollection),
 			BlockID:              flow.HexToID(chunk.BlockId),
-			TotalComputationUsed: mustToUint(chunk.TotalComputationUsed),
-			NumberOfTransactions: uint16(mustToUint(chunk.NumberOfTransactions)),
-			Index:                mustToUint(chunk.Index),
+			TotalComputationUsed: MustToUint(chunk.TotalComputationUsed),
+			NumberOfTransactions: uint16(MustToUint(chunk.NumberOfTransactions)),
+			Index:                MustToUint(chunk.Index),
 			EndState:             flow.HexToStateCommitment(chunk.EndState),
 		}
 	}
@@ -442,13 +442,13 @@ func toExecutionResults(result models.ExecutionResult) *flow.ExecutionResult {
 	}
 }
 
-func toNetworkParameters(params *models.NetworkParameters) *flow.NetworkParameters {
+func ToNetworkParameters(params *models.NetworkParameters) *flow.NetworkParameters {
 	return &flow.NetworkParameters{
 		ChainID: flow.ChainID(params.ChainId),
 	}
 }
 
-func toNodeVersionInfo(info *models.NodeVersionInfo) (*flow.NodeVersionInfo, error) {
+func ToNodeVersionInfo(info *models.NodeVersionInfo) (*flow.NodeVersionInfo, error) {
 	version, err := strconv.ParseUint(info.ProtocolVersion, 10, 64)
 	if err != nil {
 		return nil, err
