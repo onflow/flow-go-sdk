@@ -261,10 +261,10 @@ func (g *Events) New() flow.Event {
 
 	location := common.StringLocation("test")
 
-	testEventType := &cadence.EventType{
-		Location:            location,
-		QualifiedIdentifier: identifier,
-		Fields: []cadence.Field{
+	testEventType := cadence.NewEventType(
+		location,
+		identifier,
+		[]cadence.Field{
 			{
 				Identifier: "a",
 				Type:       cadence.IntType,
@@ -274,7 +274,8 @@ func (g *Events) New() flow.Event {
 				Type:       cadence.StringType,
 			},
 		},
-	}
+		nil,
+	)
 
 	testEvent := cadence.NewEvent(
 		[]cadence.Value{
