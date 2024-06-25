@@ -13,7 +13,7 @@ require (
 	github.com/onflow/crypto v0.25.1
 	github.com/onflow/flow/protobuf/go/flow v0.4.3
 	github.com/onflow/go-ethereum v1.13.4
-	github.com/onflow/sdks v0.5.1-0.20230912225508-b35402f12bba
+	github.com/onflow/sdks v0.6.0-preview.1
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.9.0
 	google.golang.org/api v0.162.0
