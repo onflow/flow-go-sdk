@@ -150,10 +150,10 @@ func AccountKeyToCadenceCryptoKey(key *flow.AccountKey) (cadence.Value, error) {
 		hash,
 		weight,
 		cadence.NewBool(false),
-	}).WithType(&cadence.StructType{
-		Location:            common.IdentifierLocation("Crypto"),
-		QualifiedIdentifier: "Crypto.KeyListEntry",
-		Fields: []cadence.Field{{
+	}).WithType(cadence.NewStructType(
+		common.IdentifierLocation("Crypto"),
+		"Crypto.KeyListEntry",
+		[]cadence.Field{{
 			Identifier: "keyIndex",
 			Type:       cadence.IntType,
 		}, {
@@ -169,7 +169,8 @@ func AccountKeyToCadenceCryptoKey(key *flow.AccountKey) (cadence.Value, error) {
 			Identifier: "isRevoked",
 			Type:       cadence.BoolType,
 		}},
-	}), nil
+		nil,
+	)), nil
 }
 
 // CreateAccount generates a transactions that creates a new account.
