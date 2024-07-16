@@ -41,7 +41,7 @@ func TestAccountKey(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		privateKey := generateKey()
 		weight := 500
-		index := 0
+		index := uint32(0)
 		seq := uint64(1)
 
 		key := AccountKey{

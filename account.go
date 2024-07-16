@@ -38,7 +38,7 @@ const AccountKeyWeightThreshold int = 1000
 
 // An AccountKey is a public key associated with an account.
 type AccountKey struct {
-	Index          int
+	Index          uint32
 	PublicKey      crypto.PublicKey
 	SigAlgo        crypto.SignatureAlgorithm
 	HashAlgo       crypto.HashAlgorithm

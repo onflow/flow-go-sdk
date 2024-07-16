@@ -248,7 +248,7 @@ func TestTransaction_SetGasLimit(t *testing.T) {
 
 func TestTransaction_SetProposalKey(t *testing.T) {
 	address := flow.ServiceAddress(flow.Mainnet)
-	keyIndex := 7
+	keyIndex := uint32(7)
 	var sequenceNumber uint64 = 42
 
 	tx := flow.NewTransaction().
@@ -308,7 +308,7 @@ func TestTransaction_AddPayloadSignature(t *testing.T) {
 		addressA := addresses.New()
 		addressB := addresses.New()
 
-		keyIndex := 7
+		keyIndex := uint32(7)
 		sig := []byte{42}
 
 		tx := flow.NewTransaction().
@@ -336,7 +336,7 @@ func TestTransaction_AddPayloadSignature(t *testing.T) {
 		addressA := addresses.New()
 		addressB := addresses.New()
 
-		keyIndex := 7
+		keyIndex := uint32(7)
 		sig := []byte{42}
 
 		tx := flow.NewTransaction().
@@ -364,10 +364,10 @@ func TestTransaction_AddPayloadSignature(t *testing.T) {
 	t.Run("Multiple signatures", func(t *testing.T) {
 		address := addresses.New()
 
-		keyIndexA := 7
+		keyIndexA := uint32(7)
 		sigA := []byte{42}
 
-		keyIndexB := 8
+		keyIndexB := uint32(8)
 		sigB := []byte{43}
 
 		tx := flow.NewTransaction().
@@ -411,7 +411,7 @@ func TestTransaction_AddEnvelopeSignature(t *testing.T) {
 	t.Run("Valid signer", func(t *testing.T) {
 		address := addresses.New()
 
-		keyIndex := 7
+		keyIndex := uint32(7)
 		sig := []byte{42}
 
 		tx := flow.NewTransaction().
@@ -430,10 +430,10 @@ func TestTransaction_AddEnvelopeSignature(t *testing.T) {
 	t.Run("Multiple signatures", func(t *testing.T) {
 		address := addresses.New()
 
-		keyIndexA := 7
+		keyIndexA := uint32(7)
 		sigA := []byte{42}
 
-		keyIndexB := 8
+		keyIndexB := uint32(8)
 		sigB := []byte{43}
 
 		tx := flow.NewTransaction().AddAuthorizer(address)
@@ -462,7 +462,7 @@ func TestTransaction_AbleToReconstructTransaction(t *testing.T) {
 	addressOne := addresses.New()
 	addressTwo := addresses.New()
 
-	keyIndex := 7
+	keyIndex := uint32(7)
 	sig := []byte{42}
 
 	tx := flow.NewTransaction().
@@ -516,16 +516,16 @@ func TestTransaction_SignatureOrdering(t *testing.T) {
 	addresses := test.AddressGenerator()
 
 	proposerAddress := addresses.New()
-	proposerKeyIndex := 8
+	proposerKeyIndex := uint32(8)
 	proposerSequenceNumber := uint64(42)
 	proposerSignature := []byte{1, 2, 3}
 
 	authorizerAddress := addresses.New()
-	authorizerKeyIndex := 0
+	authorizerKeyIndex := uint32(0)
 	authorizerSignature := []byte{4, 5, 6}
 
 	payerAddress := addresses.New()
-	payerKeyIndex := 0
+	payerKeyIndex := uint32(0)
 	payerSignature := []byte{7, 8, 9}
 
 	tx.SetProposalKey(proposerAddress, proposerKeyIndex, proposerSequenceNumber)

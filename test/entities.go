@@ -58,7 +58,7 @@ func (g *Accounts) New() *flow.Account {
 }
 
 type AccountKeys struct {
-	count int
+	count uint32
 	ids   *Identifiers
 }
 
