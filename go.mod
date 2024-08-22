@@ -9,7 +9,7 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.27.0
 	github.com/aws/aws-sdk-go-v2/config v1.27.15
 	github.com/aws/aws-sdk-go-v2/service/kms v1.31.0
-	github.com/onflow/cadence v1.0.0-preview.48
+	github.com/onflow/cadence v1.0.0-preview.49
 	github.com/onflow/crypto v0.25.1
 	github.com/onflow/flow/protobuf/go/flow v0.4.3
 	github.com/onflow/go-ethereum v1.13.4
@@ -59,7 +59,7 @@ require (
 	github.com/logrusorgru/aurora/v4 v4.0.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/onflow/atree v0.8.0-rc.5 // indirect
+	github.com/onflow/atree v0.8.0-rc.6 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/rogpeppe/go-internal v1.10.0 // indirect
