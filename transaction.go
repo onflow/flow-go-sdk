@@ -23,6 +23,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/onflow/go-ethereum/rlp"
 
@@ -625,6 +626,31 @@ type TransactionResult struct {
 	BlockHeight   uint64
 	TransactionID Identifier
 	CollectionID  Identifier
+}
+
+// Fee returns the transaction fee that was paid by the payer account
+// in Flow.
+//
+// Error is returned if the fee events could not be parsed correctly from
+// the transaction result.
+func (t *TransactionResult) Fee() (uint64, error) {
+	var feeEvent cadence.Event
+	for _, e := range t.Events {
+		if strings.Contains(e.Type, "FlowFees.FeesDeducted") {
+			if feeEvent.Type() != nil {
+				return 0, fmt.Errorf("could not extract transaction fee")
+			}
+			feeEvent = e.Value
+		}
+	}
+
+	feesValue := cadence.SearchFieldByName(feeEvent, "amount")
+	fee, ok := feesValue.(cadence.UFix64)
+	if !ok {
+		return 0, fmt.Errorf("failed to convert fee value")
+	}
+
+	return uint64(fee), nil
 }
 
 // TransactionStatus represents the status of a transaction.
