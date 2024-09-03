@@ -629,7 +629,7 @@ type TransactionResult struct {
 }
 
 // Fee returns the transaction fee that was paid by the payer account
-// in Flow.
+// in the smallest unit of Flow (10^-8).
 //
 // Error is returned if the fee events could not be parsed correctly from
 // the transaction result.
