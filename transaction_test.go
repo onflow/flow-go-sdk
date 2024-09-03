@@ -25,6 +25,7 @@ import (
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
+	"github.com/onflow/cadence/runtime/common"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -690,5 +691,58 @@ func TestTransaction_RLPMessages(t *testing.T) {
 			assert.Equal(t, txPayload, newTxFromPayload)
 			assert.Equal(t, txPayload.ID(), newTxFromPayload.ID())
 		})
+	}
+}
+
+func Test_TransactionResult(t *testing.T) {
+
+	t.Run("Fees successfully extracted", func(t *testing.T) {
+		feeAmount, _ := cadence.NewUFix64("0.005")
+		res := flow.TransactionResult{
+			Events: []flow.Event{createFeeEvent(feeAmount)},
+		}
+
+		extractedFee, err := res.Fee()
+		require.NoError(t, err)
+		require.Equal(t, uint64(feeAmount), extractedFee)
+	})
+
+	t.Run("Fees unsuccessfully extracted", func(t *testing.T) {
+		fee1, _ := cadence.NewUFix64("0.1")
+		fee2, _ := cadence.NewUFix64("0.2")
+
+		// duplicate fees
+		res := flow.TransactionResult{
+			Events: []flow.Event{createFeeEvent(fee1), createFeeEvent(fee2)},
+		}
+
+		fee, err := res.Fee()
+		require.EqualError(t, err, "could not extract transaction fee")
+		require.Zero(t, fee)
+
+		// no fees
+		res = flow.TransactionResult{}
+		fee, err = res.Fee()
+		require.EqualError(t, err, "failed to convert fee value")
+	})
+}
+
+func createFeeEvent(feeValue cadence.UFix64) flow.Event {
+	address, _ := common.HexToAddress("f919ee77447b7497")
+	location := common.NewAddressLocation(nil, address, "FlowFees")
+
+	eventType := cadence.NewEventType(
+		location,
+		"FlowFees.FeesDeducted",
+		[]cadence.Field{{
+			Identifier: "amount",
+			Type:       cadence.UFix64Type,
+		}},
+		nil,
+	)
+
+	return flow.Event{
+		Type:  eventType.ID(),
+		Value: cadence.NewEvent([]cadence.Value{feeValue}).WithType(eventType),
 	}
 }
