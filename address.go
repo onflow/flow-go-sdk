@@ -108,8 +108,6 @@ func chainCustomizer(chain ChainID) uint64 {
 		return 0
 	case Testnet:
 		return invalidCodeTestNetwork
-	case Previewnet:
-		return invalidCodePreviewNetwork
 	case Emulator, Localnet, Benchnet, BftTestnet:
 		return invalidCodeTransientNetwork
 	default:
@@ -273,9 +271,6 @@ const (
 
 	// invalidCodeTransientNetwork  is the invalid codeword used for transient test networks.
 	invalidCodeTransientNetwork = uint64(0x1cb159857af02018)
-
-	// invalidCodePreviewNetwork is the invalid codeword used for Preview networks.
-	invalidCodePreviewNetwork = uint64(0x5211829E88528817)
 )
 
 // Rows of the generator matrix G of the [64,45]-code used for Flow addresses.

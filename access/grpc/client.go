@@ -43,7 +43,6 @@ const EmulatorHost = "127.0.0.1:3569"
 const TestnetHost = "access.devnet.nodes.onflow.org:9000"
 const CanarynetHost = "access.canary.nodes.onflow.org:9000"
 const MainnetHost = "access.mainnet.nodes.onflow.org:9000"
-const PreviewnetHost = "access.previewnet.nodes.onflow.org:9000"
 
 // ClientOption is a configuration option for the client.
 type ClientOption func(*options)
