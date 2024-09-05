@@ -95,7 +95,6 @@ func TestAddressConstants(t *testing.T) {
 		Mainnet,
 		Testnet,
 		Emulator,
-		Previewnet,
 	}
 
 	for _, net := range networks {
@@ -136,7 +135,6 @@ func TestAddressGeneration(t *testing.T) {
 		Mainnet,
 		Testnet,
 		Emulator,
-		Previewnet,
 	}
 
 	for _, net := range networks {
