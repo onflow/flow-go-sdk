@@ -241,7 +241,7 @@ func MessageToCadenceValue(m []byte, options []jsoncdc.Option) (cadence.Value, e
 	return v, nil
 }
 
-func LightCollectionToMessage(c flow.LightCollection) *entities.Collection {
+func LightCollectionToMessage(c flow.Collection) *entities.Collection {
 	transactionIDMessages := make([][]byte, len(c.TransactionIDs))
 	for i, transactionID := range c.TransactionIDs {
 		transactionIDMessages[i] = transactionID.Bytes()
@@ -267,9 +267,9 @@ func FullCollectionToTransactionsMessage(tx flow.FullCollection) ([]*entities.Tr
 	return convertedTxs, nil
 }
 
-func MessageToLightCollection(m *entities.Collection) (flow.LightCollection, error) {
+func MessageToLightCollection(m *entities.Collection) (flow.Collection, error) {
 	if m == nil {
-		return flow.LightCollection{}, ErrEmptyMessage
+		return flow.Collection{}, ErrEmptyMessage
 	}
 
 	transactionIDMessages := m.GetTransactionIds()
@@ -279,7 +279,7 @@ func MessageToLightCollection(m *entities.Collection) (flow.LightCollection, err
 		transactionIDs[i] = flow.HashToID(transactionIDMsg)
 	}
 
-	return flow.LightCollection{
+	return flow.Collection{
 		TransactionIDs: transactionIDs,
 	}, nil
 }

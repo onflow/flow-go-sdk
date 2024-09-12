@@ -42,7 +42,7 @@ func demo(exampleCollectionID flow.Identifier) {
 	printCollection(collection, err)
 }
 
-func printCollection(collection *flow.LightCollection, err error) {
+func printCollection(collection *flow.Collection, err error) {
 	examples.Handle(err)
 
 	fmt.Printf("\nID: %s", collection.ID().String())

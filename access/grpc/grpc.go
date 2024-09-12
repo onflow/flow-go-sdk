@@ -296,7 +296,7 @@ func (c *BaseClient) GetCollection(
 	ctx context.Context,
 	colID flow.Identifier,
 	opts ...grpc.CallOption,
-) (*flow.LightCollection, error) {
+) (*flow.Collection, error) {
 	req := &access.GetCollectionByIDRequest{
 		Id: colID.Bytes(),
 	}
@@ -318,7 +318,7 @@ func (c *BaseClient) GetLightCollectionByID(
 	ctx context.Context,
 	id flow.Identifier,
 	opts ...grpc.CallOption,
-) (*flow.LightCollection, error) {
+) (*flow.Collection, error) {
 	req := &access.GetCollectionByIDRequest{
 		Id: id.Bytes(),
 	}

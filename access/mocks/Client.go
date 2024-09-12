@@ -263,15 +263,15 @@ func (_m *Client) GetBlockHeaderByID(ctx context.Context, blockID flow.Identifie
 }
 
 // GetCollection provides a mock function with given fields: ctx, colID
-func (_m *Client) GetCollection(ctx context.Context, colID flow.Identifier) (*flow.LightCollection, error) {
+func (_m *Client) GetCollection(ctx context.Context, colID flow.Identifier) (*flow.Collection, error) {
 	ret := _m.Called(ctx, colID)
 
-	var r0 *flow.LightCollection
-	if rf, ok := ret.Get(0).(func(context.Context, flow.Identifier) *flow.LightCollection); ok {
+	var r0 *flow.Collection
+	if rf, ok := ret.Get(0).(func(context.Context, flow.Identifier) *flow.Collection); ok {
 		r0 = rf(ctx, colID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*flow.LightCollection)
+			r0 = ret.Get(0).(*flow.Collection)
 		}
 	}
 

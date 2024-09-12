@@ -18,18 +18,18 @@
 
 package flow
 
-// A LightCollection is a list of transactions bundled together for inclusion in a block.
-type LightCollection struct {
+// A Collection is a list of transactions bundled together for inclusion in a block.
+type Collection struct {
 	TransactionIDs []Identifier
 }
 
 // ID returns the canonical SHA3-256 hash of this collection.
-func (c LightCollection) ID() Identifier {
+func (c Collection) ID() Identifier {
 	return HashToID(defaultEntityHasher.ComputeHash(c.Encode()))
 }
 
 // Encode returns the canonical RLP byte representation of this collection.
-func (c LightCollection) Encode() []byte {
+func (c Collection) Encode() []byte {
 	transactionIDs := make([][]byte, len(c.TransactionIDs))
 	for i, id := range c.TransactionIDs {
 		transactionIDs[i] = id.Bytes()
@@ -53,8 +53,8 @@ type FullCollection struct {
 }
 
 // Light returns the light, reference-only version of the collection.
-func (c FullCollection) Light() LightCollection {
-	lc := LightCollection{TransactionIDs: make([]Identifier, 0, len(c.Transactions))}
+func (c FullCollection) Light() Collection {
+	lc := Collection{TransactionIDs: make([]Identifier, 0, len(c.Transactions))}
 	for _, tx := range c.Transactions {
 		lc.TransactionIDs = append(lc.TransactionIDs, tx.ID())
 	}

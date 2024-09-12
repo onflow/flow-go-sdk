@@ -62,7 +62,7 @@ type Client interface {
 	GetBlockByHeight(ctx context.Context, height uint64) (*flow.Block, error)
 
 	// GetCollection gets a collection by ID.
-	GetCollection(ctx context.Context, colID flow.Identifier) (*flow.LightCollection, error)
+	GetCollection(ctx context.Context, colID flow.Identifier) (*flow.Collection, error)
 
 	// SendTransaction submits a transaction to the network.
 	SendTransaction(ctx context.Context, tx flow.Transaction) error

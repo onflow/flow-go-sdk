@@ -198,8 +198,8 @@ func LightCollectionGenerator() *LightCollection {
 	}
 }
 
-func (g *LightCollection) New() *flow.LightCollection {
-	return &flow.LightCollection{
+func (g *LightCollection) New() *flow.Collection {
+	return &flow.Collection{
 		TransactionIDs: []flow.Identifier{
 			g.ids.New(),
 			g.ids.New(),

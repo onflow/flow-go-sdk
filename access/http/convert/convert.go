@@ -172,12 +172,12 @@ func ToBlock(block *models.Block) (*flow.Block, error) {
 	}, nil
 }
 
-func ToCollection(collection *models.Collection) *flow.LightCollection {
+func ToCollection(collection *models.Collection) *flow.Collection {
 	IDs := make([]flow.Identifier, len(collection.Transactions))
 	for i, tx := range collection.Transactions {
 		IDs[i] = flow.HexToID(tx.Id)
 	}
-	return &flow.LightCollection{
+	return &flow.Collection{
 		TransactionIDs: IDs,
 	}
 }
