@@ -393,7 +393,7 @@ func TestClient_GetCollection(t *testing.T) {
 		colID := ids.New()
 		expectedCol := cols.New()
 		response := &access.CollectionResponse{
-			Collection: convert.LightCollectionToMessage(*expectedCol),
+			Collection: convert.CollectionToMessage(*expectedCol),
 		}
 
 		rpc.On("GetCollectionByID", ctx, mock.Anything).Return(response, nil)

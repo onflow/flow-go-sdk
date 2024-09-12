@@ -141,7 +141,7 @@ func TestConvert_CadenceValue(t *testing.T) {
 func TestConvert_Collection(t *testing.T) {
 	colA := test.LightCollectionGenerator().New()
 
-	msg := LightCollectionToMessage(*colA)
+	msg := CollectionToMessage(*colA)
 
 	colB, err := MessageToLightCollection(msg)
 	require.NoError(t, err)
