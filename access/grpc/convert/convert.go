@@ -241,7 +241,7 @@ func MessageToCadenceValue(m []byte, options []jsoncdc.Option) (cadence.Value, e
 	return v, nil
 }
 
-func CollectionToMessage(c flow.Collection) *entities.Collection {
+func LightCollectionToMessage(c flow.LightCollection) *entities.Collection {
 	transactionIDMessages := make([][]byte, len(c.TransactionIDs))
 	for i, transactionID := range c.TransactionIDs {
 		transactionIDMessages[i] = transactionID.Bytes()
@@ -252,9 +252,24 @@ func CollectionToMessage(c flow.Collection) *entities.Collection {
 	}
 }
 
-func MessageToCollection(m *entities.Collection) (flow.Collection, error) {
+func FullCollectionToTransactionsMessage(tx flow.FullCollection) ([]*entities.Transaction, error) {
+	var convertedTxs []*entities.Transaction
+
+	for _, tx := range tx.Transactions {
+		convertedTx, err := TransactionToMessage(*tx)
+		if err != nil {
+			return nil, err
+		}
+
+		convertedTxs = append(convertedTxs, convertedTx)
+	}
+
+	return convertedTxs, nil
+}
+
+func MessageToLightCollection(m *entities.Collection) (flow.LightCollection, error) {
 	if m == nil {
-		return flow.Collection{}, ErrEmptyMessage
+		return flow.LightCollection{}, ErrEmptyMessage
 	}
 
 	transactionIDMessages := m.GetTransactionIds()
@@ -264,9 +279,24 @@ func MessageToCollection(m *entities.Collection) (flow.Collection, error) {
 		transactionIDs[i] = flow.HashToID(transactionIDMsg)
 	}
 
-	return flow.Collection{
+	return flow.LightCollection{
 		TransactionIDs: transactionIDs,
 	}, nil
+}
+
+func MessageToFullCollection(m []*entities.Transaction) (flow.FullCollection, error) {
+	var collection flow.FullCollection
+
+	for _, tx := range m {
+		convertedTx, err := MessageToTransaction(tx)
+		if err != nil {
+			return flow.FullCollection{}, err
+		}
+
+		collection.Transactions = append(collection.Transactions, &convertedTx)
+	}
+
+	return collection, nil
 }
 
 func CollectionGuaranteeToMessage(g flow.CollectionGuarantee) *entities.CollectionGuarantee {

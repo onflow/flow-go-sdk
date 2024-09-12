@@ -152,7 +152,7 @@ func (c *Client) GetBlockByHeight(ctx context.Context, height uint64) (*flow.Blo
 	return blocks[0], nil
 }
 
-func (c *Client) GetCollection(ctx context.Context, ID flow.Identifier) (*flow.Collection, error) {
+func (c *Client) GetCollection(ctx context.Context, ID flow.Identifier) (*flow.LightCollection, error) {
 	return c.httpClient.GetCollection(ctx, ID)
 }
 

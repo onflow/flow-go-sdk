@@ -251,7 +251,7 @@ func (c *BaseClient) GetCollection(
 	ctx context.Context,
 	ID flow.Identifier,
 	opts ...queryOpts,
-) (*flow.Collection, error) {
+) (*flow.LightCollection, error) {
 	collection, err := c.handler.getCollection(ctx, ID.String(), opts...)
 	if err != nil {
 		return nil, err

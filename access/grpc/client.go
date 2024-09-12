@@ -157,8 +157,16 @@ func (c *Client) GetBlockByHeight(ctx context.Context, height uint64) (*flow.Blo
 	return c.grpc.GetBlockByHeight(ctx, height)
 }
 
-func (c *Client) GetCollection(ctx context.Context, colID flow.Identifier) (*flow.Collection, error) {
+func (c *Client) GetCollection(ctx context.Context, colID flow.Identifier) (*flow.LightCollection, error) {
 	return c.grpc.GetCollection(ctx, colID)
+}
+
+func (c *Client) GetCollectionByID(ctx context.Context, id flow.Identifier) (*flow.LightCollection, error) {
+	return c.grpc.GetLightCollectionByID(ctx, id)
+}
+
+func (c *Client) GetFullCollectionByID(ctx context.Context, id flow.Identifier) (*flow.FullCollection, error) {
+	return c.grpc.GetFullCollectionByID(ctx, id)
 }
 
 func (c *Client) SendTransaction(ctx context.Context, tx flow.Transaction) error {

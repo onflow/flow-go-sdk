@@ -296,7 +296,7 @@ func (c *BaseClient) GetCollection(
 	ctx context.Context,
 	colID flow.Identifier,
 	opts ...grpc.CallOption,
-) (*flow.Collection, error) {
+) (*flow.LightCollection, error) {
 	req := &access.GetCollectionByIDRequest{
 		Id: colID.Bytes(),
 	}
@@ -306,7 +306,51 @@ func (c *BaseClient) GetCollection(
 		return nil, newRPCError(err)
 	}
 
-	result, err := convert.MessageToCollection(res.GetCollection())
+	result, err := convert.MessageToLightCollection(res.GetCollection())
+	if err != nil {
+		return nil, newMessageToEntityError(entityCollection, err)
+	}
+
+	return &result, nil
+}
+
+func (c *BaseClient) GetLightCollectionByID(
+	ctx context.Context,
+	id flow.Identifier,
+	opts ...grpc.CallOption,
+) (*flow.LightCollection, error) {
+	req := &access.GetCollectionByIDRequest{
+		Id: id.Bytes(),
+	}
+
+	res, err := c.rpcClient.GetCollectionByID(ctx, req, opts...)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	result, err := convert.MessageToLightCollection(res.GetCollection())
+	if err != nil {
+		return nil, newMessageToEntityError(entityCollection, err)
+	}
+
+	return &result, nil
+}
+
+func (c *BaseClient) GetFullCollectionByID(
+	ctx context.Context,
+	id flow.Identifier,
+	opts ...grpc.CallOption,
+) (*flow.FullCollection, error) {
+	req := &access.GetFullCollectionByIDRequest{
+		Id: id.Bytes(),
+	}
+
+	res, err := c.rpcClient.GetFullCollectionByID(ctx, req, opts...)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	result, err := convert.MessageToFullCollection(res.GetTransactions())
 	if err != nil {
 		return nil, newMessageToEntityError(entityCollection, err)
 	}
