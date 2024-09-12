@@ -267,7 +267,7 @@ func FullCollectionToTransactionsMessage(tx flow.FullCollection) ([]*entities.Tr
 	return convertedTxs, nil
 }
 
-func MessageToLightCollection(m *entities.Collection) (flow.Collection, error) {
+func MessageToCollection(m *entities.Collection) (flow.Collection, error) {
 	if m == nil {
 		return flow.Collection{}, ErrEmptyMessage
 	}

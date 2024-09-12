@@ -143,7 +143,7 @@ func TestConvert_Collection(t *testing.T) {
 
 	msg := CollectionToMessage(*colA)
 
-	colB, err := MessageToLightCollection(msg)
+	colB, err := MessageToCollection(msg)
 	require.NoError(t, err)
 
 	assert.Equal(t, *colA, colB)

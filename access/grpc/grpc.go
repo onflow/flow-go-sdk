@@ -306,7 +306,7 @@ func (c *BaseClient) GetCollection(
 		return nil, newRPCError(err)
 	}
 
-	result, err := convert.MessageToLightCollection(res.GetCollection())
+	result, err := convert.MessageToCollection(res.GetCollection())
 	if err != nil {
 		return nil, newMessageToEntityError(entityCollection, err)
 	}
@@ -328,7 +328,7 @@ func (c *BaseClient) GetLightCollectionByID(
 		return nil, newRPCError(err)
 	}
 
-	result, err := convert.MessageToLightCollection(res.GetCollection())
+	result, err := convert.MessageToCollection(res.GetCollection())
 	if err != nil {
 		return nil, newMessageToEntityError(entityCollection, err)
 	}
