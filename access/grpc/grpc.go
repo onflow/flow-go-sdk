@@ -358,6 +358,51 @@ func (c *BaseClient) GetTransaction(
 	return &result, nil
 }
 
+func (c *BaseClient) GetSystemTransaction(
+	ctx context.Context,
+	blockID flow.Identifier,
+	opts ...grpc.CallOption,
+) (*flow.Transaction, error) {
+	req := &access.GetSystemTransactionRequest{
+		BlockId: blockID.Bytes(),
+	}
+
+	res, err := c.rpcClient.GetSystemTransaction(ctx, req, opts...)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	result, err := convert.MessageToTransaction(res.GetTransaction())
+	if err != nil {
+		return nil, newMessageToEntityError(entityTransaction, err)
+	}
+
+	return &result, nil
+}
+
+func (c *BaseClient) GetSystemTransactionResult(
+	ctx context.Context,
+	blockID flow.Identifier,
+	opts ...grpc.CallOption,
+) (*flow.TransactionResult, error) {
+	req := &access.GetSystemTransactionResultRequest{
+		BlockId:              blockID.Bytes(),
+		EventEncodingVersion: c.eventEncoding,
+	}
+
+	res, err := c.rpcClient.GetSystemTransactionResult(ctx, req, opts...)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	result, err := convert.MessageToTransactionResult(res, c.jsonOptions)
+	if err != nil {
+		return nil, newMessageToEntityError(entityTransactionResult, err)
+	}
+
+	return &result, nil
+}
+
 func (c *BaseClient) GetTransactionsByBlockID(
 	ctx context.Context,
 	blockID flow.Identifier,
