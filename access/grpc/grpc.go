@@ -380,29 +380,6 @@ func (c *BaseClient) GetSystemTransaction(
 	return &result, nil
 }
 
-func (c *BaseClient) GetSystemTransactionResult(
-	ctx context.Context,
-	blockID flow.Identifier,
-	opts ...grpc.CallOption,
-) (*flow.TransactionResult, error) {
-	req := &access.GetSystemTransactionResultRequest{
-		BlockId:              blockID.Bytes(),
-		EventEncodingVersion: c.eventEncoding,
-	}
-
-	res, err := c.rpcClient.GetSystemTransactionResult(ctx, req, opts...)
-	if err != nil {
-		return nil, newRPCError(err)
-	}
-
-	result, err := convert.MessageToTransactionResult(res, c.jsonOptions)
-	if err != nil {
-		return nil, newMessageToEntityError(entityTransactionResult, err)
-	}
-
-	return &result, nil
-}
-
 func (c *BaseClient) GetTransactionsByBlockID(
 	ctx context.Context,
 	blockID flow.Identifier,
@@ -428,6 +405,29 @@ func (c *BaseClient) GetTransactionsByBlockID(
 	}
 
 	return results, nil
+}
+
+func (c *BaseClient) GetSystemTransactionResult(
+	ctx context.Context,
+	blockID flow.Identifier,
+	opts ...grpc.CallOption,
+) (*flow.TransactionResult, error) {
+	req := &access.GetSystemTransactionResultRequest{
+		BlockId:              blockID.Bytes(),
+		EventEncodingVersion: c.eventEncoding,
+	}
+
+	res, err := c.rpcClient.GetSystemTransactionResult(ctx, req, opts...)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	result, err := convert.MessageToTransactionResult(res, c.jsonOptions)
+	if err != nil {
+		return nil, newMessageToEntityError(entityTransactionResult, err)
+	}
+
+	return &result, nil
 }
 
 func (c *BaseClient) GetTransactionResult(
