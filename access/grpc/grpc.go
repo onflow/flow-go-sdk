@@ -134,6 +134,10 @@ func (c *BaseClient) RPCClient() RPCClient {
 	return c.rpcClient
 }
 
+func (c *BaseClient) ExecutionDataRPCClient() ExecutionDataRPCClient {
+	return c.executionDataClient
+}
+
 // Close closes the client connection.
 func (c *BaseClient) Close() error {
 	return c.close()
