@@ -117,6 +117,10 @@ func (c *Client) RPCClient() RPCClient {
 	return c.grpc.RPCClient()
 }
 
+func (c *Client) ExecutionDataRPCClient() ExecutionDataRPCClient {
+	return c.grpc.ExecutionDataRPCClient()
+}
+
 func (c *Client) Ping(ctx context.Context) error {
 	return c.grpc.Ping(ctx)
 }
