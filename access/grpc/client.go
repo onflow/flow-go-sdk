@@ -232,6 +232,10 @@ func (c *Client) GetExecutionResultForBlockID(ctx context.Context, blockID flow.
 	return c.grpc.GetExecutionResultForBlockID(ctx, blockID)
 }
 
+func (c *Client) GetExecutionResultByID(ctx context.Context, id flow.Identifier) (*flow.ExecutionResult, error) {
+	return c.grpc.GetExecutionResultByID(ctx, id)
+}
+
 func (c *Client) GetExecutionDataByBlockID(ctx context.Context, blockID flow.Identifier) (*flow.ExecutionData, error) {
 	return c.grpc.GetExecutionDataByBlockID(ctx, blockID)
 }
