@@ -362,6 +362,28 @@ func (c *BaseClient) GetTransaction(
 	return &result, nil
 }
 
+func (c *BaseClient) GetSystemTransaction(
+	ctx context.Context,
+	blockID flow.Identifier,
+	opts ...grpc.CallOption,
+) (*flow.Transaction, error) {
+	req := &access.GetSystemTransactionRequest{
+		BlockId: blockID.Bytes(),
+	}
+
+	res, err := c.rpcClient.GetSystemTransaction(ctx, req, opts...)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	result, err := convert.MessageToTransaction(res.GetTransaction())
+	if err != nil {
+		return nil, newMessageToEntityError(entityTransaction, err)
+	}
+
+	return &result, nil
+}
+
 func (c *BaseClient) GetTransactionsByBlockID(
 	ctx context.Context,
 	blockID flow.Identifier,
@@ -387,6 +409,29 @@ func (c *BaseClient) GetTransactionsByBlockID(
 	}
 
 	return results, nil
+}
+
+func (c *BaseClient) GetSystemTransactionResult(
+	ctx context.Context,
+	blockID flow.Identifier,
+	opts ...grpc.CallOption,
+) (*flow.TransactionResult, error) {
+	req := &access.GetSystemTransactionResultRequest{
+		BlockId:              blockID.Bytes(),
+		EventEncodingVersion: c.eventEncoding,
+	}
+
+	res, err := c.rpcClient.GetSystemTransactionResult(ctx, req, opts...)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	result, err := convert.MessageToTransactionResult(res, c.jsonOptions)
+	if err != nil {
+		return nil, newMessageToEntityError(entityTransactionResult, err)
+	}
+
+	return &result, nil
 }
 
 func (c *BaseClient) GetTransactionResult(
@@ -514,6 +559,42 @@ func (c *BaseClient) GetAccountAtBlockHeight(
 	}
 
 	return &account, nil
+}
+
+func (c *BaseClient) GetAccountBalanceAtLatestBlock(
+	ctx context.Context,
+	address flow.Address,
+	opts ...grpc.CallOption,
+) (uint64, error) {
+	request := &access.GetAccountBalanceAtLatestBlockRequest{
+		Address: address.Bytes(),
+	}
+
+	response, err := c.rpcClient.GetAccountBalanceAtLatestBlock(ctx, request, opts...)
+	if err != nil {
+		return 0, newRPCError(err)
+	}
+
+	return response.GetBalance(), nil
+}
+
+func (c *BaseClient) GetAccountBalanceAtBlockHeight(
+	ctx context.Context,
+	address flow.Address,
+	blockHeight uint64,
+	opts ...grpc.CallOption,
+) (uint64, error) {
+	request := &access.GetAccountBalanceAtBlockHeightRequest{
+		Address:     address.Bytes(),
+		BlockHeight: blockHeight,
+	}
+
+	response, err := c.rpcClient.GetAccountBalanceAtBlockHeight(ctx, request, opts...)
+	if err != nil {
+		return 0, newRPCError(err)
+	}
+
+	return response.GetBalance(), nil
 }
 
 func (c *BaseClient) ExecuteScriptAtLatestBlock(

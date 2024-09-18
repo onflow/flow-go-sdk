@@ -43,7 +43,7 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/onflow/atree v0.8.0-rc.6 // indirect
 	github.com/onflow/crypto v0.25.1 // indirect
-	github.com/onflow/flow/protobuf/go/flow v0.4.3 // indirect
+	github.com/onflow/flow/protobuf/go/flow v0.4.7 // indirect
 	github.com/onflow/sdks v0.6.0-preview.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
