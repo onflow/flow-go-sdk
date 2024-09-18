@@ -729,6 +729,32 @@ func (c *BaseClient) GetLatestProtocolStateSnapshot(ctx context.Context, opts ..
 	return res.GetSerializedSnapshot(), nil
 }
 
+func (c *BaseClient) GetProtocolStateSnapshotByBlockID(ctx context.Context, blockID flow.Identifier, opts ...grpc.CallOption) ([]byte, error) {
+	req := &access.GetProtocolStateSnapshotByBlockIDRequest{
+		BlockId: blockID.Bytes(),
+	}
+
+	res, err := c.rpcClient.GetProtocolStateSnapshotByBlockID(ctx, req, opts...)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	return res.GetSerializedSnapshot(), nil
+}
+
+func (c *BaseClient) GetProtocolStateSnapshotByHeight(ctx context.Context, blockHeight uint64, opts ...grpc.CallOption) ([]byte, error) {
+	req := &access.GetProtocolStateSnapshotByHeightRequest{
+		BlockHeight: blockHeight,
+	}
+
+	res, err := c.rpcClient.GetProtocolStateSnapshotByHeight(ctx, req, opts...)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	return res.GetSerializedSnapshot(), nil
+}
+
 func (c *BaseClient) GetExecutionResultForBlockID(ctx context.Context, blockID flow.Identifier, opts ...grpc.CallOption) (*flow.ExecutionResult, error) {
 	er, err := c.rpcClient.GetExecutionResultForBlockID(ctx, &access.GetExecutionResultForBlockIDRequest{
 		BlockId: convert.IdentifierToMessage(blockID),
