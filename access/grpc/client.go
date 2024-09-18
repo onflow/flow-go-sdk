@@ -173,8 +173,16 @@ func (c *Client) GetTransaction(ctx context.Context, txID flow.Identifier) (*flo
 	return c.grpc.GetTransaction(ctx, txID)
 }
 
+func (c *Client) GetSystemTransaction(ctx context.Context, blockID flow.Identifier) (*flow.Transaction, error) {
+	return c.grpc.GetSystemTransaction(ctx, blockID)
+}
+
 func (c *Client) GetTransactionsByBlockID(ctx context.Context, blockID flow.Identifier) ([]*flow.Transaction, error) {
 	return c.grpc.GetTransactionsByBlockID(ctx, blockID)
+}
+
+func (c *Client) GetSystemTransactionResult(ctx context.Context, blockID flow.Identifier) (*flow.TransactionResult, error) {
+	return c.grpc.GetSystemTransactionResult(ctx, blockID)
 }
 
 func (c *Client) GetTransactionResult(ctx context.Context, txID flow.Identifier) (*flow.TransactionResult, error) {
