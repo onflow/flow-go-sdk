@@ -208,6 +208,14 @@ func (c *Client) GetAccountAtBlockHeight(ctx context.Context, address flow.Addre
 	return c.grpc.GetAccountAtBlockHeight(ctx, address, blockHeight)
 }
 
+func (c *Client) GetAccountBalanceAtLatestBlock(ctx context.Context, address flow.Address) (uint64, error) {
+	return c.grpc.GetAccountBalanceAtLatestBlock(ctx, address)
+}
+
+func (c *Client) GetAccountBalanceAtBlockHeight(ctx context.Context, address flow.Address, blockHeight uint64) (uint64, error) {
+	return c.grpc.GetAccountBalanceAtBlockHeight(ctx, address, blockHeight)
+}
+
 func (c *Client) ExecuteScriptAtLatestBlock(ctx context.Context, script []byte, arguments []cadence.Value) (cadence.Value, error) {
 	return c.grpc.ExecuteScriptAtLatestBlock(ctx, script, arguments)
 }

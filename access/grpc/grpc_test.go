@@ -801,6 +801,73 @@ func TestClient_GetAccountAtBlockHeight(t *testing.T) {
 	}))
 }
 
+func TestClient_GetAccountBalanceAtLatestBlock(t *testing.T) {
+	accounts := test.AccountGenerator()
+	addresses := test.AddressGenerator()
+
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		account := accounts.New()
+
+		response := &access.AccountBalanceResponse{
+			Balance: account.Balance,
+		}
+
+		rpc.On("GetAccountBalanceAtLatestBlock", ctx, mock.Anything).Return(response, nil)
+
+		balance, err := c.GetAccountBalanceAtLatestBlock(ctx, account.Address)
+		require.NoError(t, err)
+
+		assert.Equal(t, account.Balance, balance)
+
+	}))
+
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		address := addresses.New()
+
+		rpc.On("GetAccountBalanceAtLatestBlock", ctx, mock.Anything).
+			Return(nil, errNotFound)
+
+		balance, err := c.GetAccountBalanceAtLatestBlock(ctx, address)
+		assert.Error(t, err)
+		assert.Equal(t, codes.NotFound, status.Code(err))
+		assert.Equal(t, balance, uint64(0))
+	}))
+}
+
+func TestClient_GetAccountBalanceAtBlockHeight(t *testing.T) {
+	accounts := test.AccountGenerator()
+	addresses := test.AddressGenerator()
+	blockHeight := uint64(42)
+
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		account := accounts.New()
+
+		response := &access.AccountBalanceResponse{
+			Balance: account.Balance,
+		}
+
+		rpc.On("GetAccountBalanceAtBlockHeight", ctx, mock.Anything).Return(response, nil)
+
+		balance, err := c.GetAccountBalanceAtBlockHeight(ctx, account.Address, blockHeight)
+		require.NoError(t, err)
+
+		assert.Equal(t, account.Balance, balance)
+
+	}))
+
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		address := addresses.New()
+
+		rpc.On("GetAccountBalanceAtBlockHeight", ctx, mock.Anything).
+			Return(nil, errNotFound)
+
+		balance, err := c.GetAccountBalanceAtBlockHeight(ctx, address, blockHeight)
+		assert.Error(t, err)
+		assert.Equal(t, codes.NotFound, status.Code(err))
+		assert.Equal(t, balance, uint64(0))
+	}))
+}
+
 func TestClient_ExecuteScriptAtLatestBlock(t *testing.T) {
 	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		expectedValue := cadence.NewInt(42)
