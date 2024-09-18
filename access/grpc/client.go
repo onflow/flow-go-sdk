@@ -200,6 +200,14 @@ func (c *Client) GetAccountAtBlockHeight(ctx context.Context, address flow.Addre
 	return c.grpc.GetAccountAtBlockHeight(ctx, address, blockHeight)
 }
 
+func (c *Client) GetAccountBalanceAtLatestBlock(ctx context.Context, address flow.Address) (uint64, error) {
+	return c.grpc.GetAccountBalanceAtLatestBlock(ctx, address)
+}
+
+func (c *Client) GetAccountBalanceAtBlockHeight(ctx context.Context, address flow.Address, blockHeight uint64) (uint64, error) {
+	return c.grpc.GetAccountBalanceAtBlockHeight(ctx, address, blockHeight)
+}
+
 func (c *Client) GetAccountKeyAtLatestBlock(ctx context.Context, address flow.Address, keyIndex uint32) (*flow.AccountKey, error) {
 	return c.grpc.GetAccountKeyAtLatestBlock(ctx, address, keyIndex)
 }
