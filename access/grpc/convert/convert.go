@@ -192,6 +192,33 @@ func MessageToBlockHeader(m *entities.BlockHeader) (flow.BlockHeader, error) {
 	}, nil
 }
 
+func MessageToBlockDigest(m *access.SubscribeBlockDigestsResponse) flow.BlockDigest {
+	return flow.BlockDigest{
+		BlockID:   flow.BytesToID(m.GetBlockId()),
+		Height:    m.GetBlockHeight(),
+		Timestamp: m.GetBlockTimestamp().AsTime(),
+	}
+}
+
+func BlockDigestToMessage(blockDigest flow.BlockDigest) *access.SubscribeBlockDigestsResponse {
+	return &access.SubscribeBlockDigestsResponse{
+		BlockId:        IdentifierToMessage(blockDigest.BlockID),
+		BlockHeight:    blockDigest.Height,
+		BlockTimestamp: timestamppb.New(blockDigest.Timestamp),
+	}
+}
+
+func BlockStatusToEntity(blockStatus flow.BlockStatus) entities.BlockStatus {
+	switch blockStatus {
+	case flow.BlockStatusFinalized:
+		return entities.BlockStatus_BLOCK_FINALIZED
+	case flow.BlockStatusSealed:
+		return entities.BlockStatus_BLOCK_SEALED
+	default:
+		return entities.BlockStatus_BLOCK_UNKNOWN
+	}
+}
+
 func CadenceValueToMessage(value cadence.Value, encodingVersion flow.EventEncodingVersion) ([]byte, error) {
 	switch encodingVersion {
 	case flow.EventEncodingVersionCCF:

@@ -20,11 +20,6 @@ package grpc
 
 import (
 	"context"
-	"io"
-	"math/rand"
-	"sync"
-	"testing"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -32,6 +27,10 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	"io"
+	"math/rand"
+	"sync"
+	"testing"
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
@@ -1918,6 +1917,151 @@ func TestClient_SubscribeEvents(t *testing.T) {
 	}))
 }
 
+func Test_SubscribeBlockDigest(t *testing.T) {
+	blockHeaders := test.BlockHeaderGenerator()
+
+	generateBlockDigestResponses := func(count uint64) []*access.SubscribeBlockDigestsResponse {
+		var resBlockDigests []*access.SubscribeBlockDigestsResponse
+
+		for i := uint64(0); i < count; i++ {
+			blockHeader := blockHeaders.New()
+
+			digest := flow.BlockDigest{
+				BlockID:   blockHeader.ID,
+				Height:    blockHeader.Height,
+				Timestamp: blockHeader.Timestamp,
+			}
+
+			resBlockDigests = append(resBlockDigests, convert.BlockDigestToMessage(digest))
+		}
+
+		return resBlockDigests
+	}
+
+	t.Run("Happy Path - from start height", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		startHeight := uint64(1)
+		responseCount := uint64(100)
+
+		ctx, cancel := context.WithCancel(ctx)
+		stream := &mockBlockDigestClientStream[access.SubscribeBlockDigestsResponse]{
+			ctx:       ctx,
+			responses: generateBlockDigestResponses(responseCount),
+		}
+
+		rpc.
+			On("SubscribeBlockDigestsFromStartHeight", ctx, mock.Anything).
+			Return(stream, nil)
+
+		blockDigestsCh, errCh, err := c.SubscribeBlockDigestsFromStartHeight(ctx, startHeight, flow.BlockStatusUnknown)
+		require.NoError(t, err)
+
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go assertNoErrors(t, errCh, wg.Done)
+
+		for i := uint64(0); i < responseCount; i++ {
+			actualDigest := <-blockDigestsCh
+			expectedDigest := convert.MessageToBlockDigest(stream.responses[i])
+			require.Equal(t, expectedDigest, actualDigest)
+		}
+		cancel()
+
+		wg.Wait()
+	}))
+
+	t.Run("Happy Path - from start block id", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		responseCount := uint64(100)
+
+		ctx, cancel := context.WithCancel(ctx)
+		stream := &mockBlockDigestClientStream[access.SubscribeBlockDigestsResponse]{
+			ctx:       ctx,
+			responses: generateBlockDigestResponses(responseCount),
+		}
+
+		rpc.
+			On("SubscribeBlockDigestsFromStartBlockID", ctx, mock.Anything).
+			Return(stream, nil)
+
+		startBlockID := convert.MessageToIdentifier(stream.responses[0].BlockId)
+		blockDigestsCh, errCh, err := c.SubscribeBlockDigestsFromStartBlockID(ctx, startBlockID, flow.BlockStatusUnknown)
+		require.NoError(t, err)
+
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go assertNoErrors(t, errCh, wg.Done)
+
+		for i := uint64(0); i < responseCount; i++ {
+			actualDigest := <-blockDigestsCh
+			expectedDigest := convert.MessageToBlockDigest(stream.responses[i])
+			require.Equal(t, expectedDigest, actualDigest)
+		}
+		cancel()
+
+		wg.Wait()
+	}))
+
+	t.Run("Happy Path - from latest", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		responseCount := uint64(100)
+
+		ctx, cancel := context.WithCancel(ctx)
+		stream := &mockBlockDigestClientStream[access.SubscribeBlockDigestsResponse]{
+			ctx:       ctx,
+			responses: generateBlockDigestResponses(responseCount),
+		}
+
+		rpc.
+			On("SubscribeBlockDigestsFromLatest", ctx, mock.Anything).
+			Return(stream, nil)
+
+		blockDigestsCh, errCh, err := c.SubscribeBlockDigestsFromLatest(ctx, flow.BlockStatusUnknown)
+		require.NoError(t, err)
+
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go assertNoErrors(t, errCh, wg.Done)
+
+		for i := uint64(0); i < responseCount; i++ {
+			actualDigest := <-blockDigestsCh
+			expectedDigest := convert.MessageToBlockDigest(stream.responses[i])
+			require.Equal(t, expectedDigest, actualDigest)
+		}
+		cancel()
+
+		wg.Wait()
+	}))
+
+	t.Run("Stream returns error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		ctx, cancel := context.WithCancel(ctx)
+		stream := &mockBlockDigestClientStream[access.SubscribeBlockDigestsResponse]{
+			ctx: ctx,
+			err: status.Error(codes.Internal, "internal error"),
+		}
+
+		rpc.
+			On("SubscribeBlockDigestsFromLatest", ctx, mock.Anything).
+			Return(stream, nil)
+
+		blockDigestsCh, errCh, err := c.SubscribeBlockDigestsFromLatest(ctx, flow.BlockStatusUnknown)
+		require.NoError(t, err)
+
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go assertNoBlockDigests(t, blockDigestsCh, wg.Done)
+
+		errorCount := 0
+		for e := range errCh {
+			require.Error(t, e)
+			require.ErrorIs(t, e, stream.err)
+			errorCount += 1
+		}
+		cancel()
+
+		require.Equalf(t, 1, errorCount, "only 1 error is expected")
+
+		wg.Wait()
+	}))
+
+}
 func generateEventResponse(t *testing.T, blockID flow.Identifier, height uint64, events []flow.Event, encoding flow.EventEncodingVersion) *executiondata.SubscribeEventsResponse {
 	responseEvents := make([]*entities.Event, 0, len(events))
 	for _, e := range events {
@@ -2026,4 +2170,34 @@ func (m *mockExecutionDataStream) Recv() (*executiondata.SubscribeExecutionDataR
 	defer func() { m.offset++ }()
 
 	return m.responses[m.offset], nil
+}
+
+type mockBlockDigestClientStream[SubscribeBlockDigestsResponse any] struct {
+	grpc.ClientStream
+
+	ctx       context.Context
+	err       error
+	offset    int
+	responses []*SubscribeBlockDigestsResponse
+}
+
+func (s *mockBlockDigestClientStream[SubscribeBlockDigestsResponse]) Recv() (*SubscribeBlockDigestsResponse, error) {
+	if s.err != nil {
+		return nil, s.err
+	}
+
+	if s.offset >= len(s.responses) {
+		<-s.ctx.Done()
+		return nil, io.EOF
+	}
+	defer func() { s.offset++ }()
+
+	return s.responses[s.offset], nil
+}
+
+func assertNoBlockDigests[BlockDigest any](t *testing.T, blockDigestsChan <-chan BlockDigest, done func()) {
+	defer done()
+	for range blockDigestsChan {
+		require.FailNow(t, "should not receive block digests")
+	}
 }

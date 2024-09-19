@@ -1019,3 +1019,123 @@ func (c *BaseClient) subscribeEvents(
 
 	return sub, errChan, nil
 }
+
+func (c *BaseClient) SubscribeBlockDigestsFromStartBlockID(
+	ctx context.Context,
+	startBlockID flow.Identifier,
+	blockStatus flow.BlockStatus,
+	opts ...grpc.CallOption,
+) (<-chan flow.BlockDigest, <-chan error, error) {
+	request := &access.SubscribeBlockDigestsFromStartBlockIDRequest{
+		StartBlockId: startBlockID.Bytes(),
+		BlockStatus:  convert.BlockStatusToEntity(blockStatus),
+	}
+
+	subscribeClient, err := c.rpcClient.SubscribeBlockDigestsFromStartBlockID(ctx, request, opts...)
+	if err != nil {
+		return nil, nil, newRPCError(err)
+	}
+
+	blocksChan := make(chan flow.BlockDigest)
+	errChan := make(chan error)
+
+	go func() {
+		defer close(blocksChan)
+		defer close(errChan)
+		receiveBlockDigestFromClient(ctx, subscribeClient, blocksChan, errChan)
+	}()
+
+	return blocksChan, errChan, nil
+}
+
+func (c *BaseClient) SubscribeBlockDigestsFromStartHeight(
+	ctx context.Context,
+	startHeight uint64,
+	blockStatus flow.BlockStatus,
+	opts ...grpc.CallOption,
+) (<-chan flow.BlockDigest, <-chan error, error) {
+	request := &access.SubscribeBlockDigestsFromStartHeightRequest{
+		StartBlockHeight: startHeight,
+		BlockStatus:      convert.BlockStatusToEntity(blockStatus),
+	}
+
+	subscribeClient, err := c.rpcClient.SubscribeBlockDigestsFromStartHeight(ctx, request, opts...)
+	if err != nil {
+		return nil, nil, newRPCError(err)
+	}
+
+	blocksChan := make(chan flow.BlockDigest)
+	errChan := make(chan error)
+
+	go func() {
+		defer close(blocksChan)
+		defer close(errChan)
+		receiveBlockDigestFromClient(ctx, subscribeClient, blocksChan, errChan)
+	}()
+
+	return blocksChan, errChan, nil
+}
+
+func (c *BaseClient) SubscribeBlockDigestsFromLatest(
+	ctx context.Context,
+	blockStatus flow.BlockStatus,
+	opts ...grpc.CallOption,
+) (<-chan flow.BlockDigest, <-chan error, error) {
+	request := &access.SubscribeBlockDigestsFromLatestRequest{
+		BlockStatus: convert.BlockStatusToEntity(blockStatus),
+	}
+
+	subscribeClient, err := c.rpcClient.SubscribeBlockDigestsFromLatest(ctx, request, opts...)
+	if err != nil {
+		return nil, nil, newRPCError(err)
+	}
+
+	blocksChan := make(chan flow.BlockDigest)
+	errChan := make(chan error)
+
+	go func() {
+		defer close(blocksChan)
+		defer close(errChan)
+		receiveBlockDigestFromClient(ctx, subscribeClient, blocksChan, errChan)
+	}()
+
+	return blocksChan, errChan, nil
+}
+
+func receiveBlockDigestFromClient[Client interface {
+	Recv() (*access.SubscribeBlockDigestsResponse, error)
+}](
+	ctx context.Context,
+	client Client,
+	blockDigestsChan chan<- flow.BlockDigest,
+	errChan chan<- error,
+) {
+	sendErr := func(err error) {
+		select {
+		case <-ctx.Done():
+		case errChan <- err:
+		}
+	}
+
+	for {
+		// Receive the next blockDigest response
+		blockDigestResponse, err := client.Recv()
+		if err != nil {
+			if err == io.EOF {
+				// End of stream, return gracefully
+				return
+			}
+
+			sendErr(fmt.Errorf("error receiving blockHeader: %w", err))
+			return
+		}
+
+		blockDigest := convert.MessageToBlockDigest(blockDigestResponse)
+
+		select {
+		case <-ctx.Done():
+			return
+		case blockDigestsChan <- blockDigest:
+		}
+	}
+}
