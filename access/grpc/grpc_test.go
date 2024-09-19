@@ -1941,7 +1941,6 @@ type mockBlockClientStream[SubscribeBlocksResponse any] struct {
 	responses []*SubscribeBlocksResponse
 }
 
-// TODO: wtf is offset doing?
 func (s *mockBlockClientStream[SubscribeBlocksResponse]) Recv() (*SubscribeBlocksResponse, error) {
 	if s.err != nil {
 		return nil, s.err
