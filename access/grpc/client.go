@@ -278,6 +278,29 @@ func (c *Client) SubscribeEventsByBlockHeight(
 	return c.grpc.SubscribeEventsByBlockHeight(ctx, startHeight, filter, WithHeartbeatInterval(conf.heartbeatInterval))
 }
 
+func (c *Client) SubscribeBlockHeadersFromStartBlockID(
+	ctx context.Context,
+	startBlockID flow.Identifier,
+	blockStatus flow.BlockStatus,
+) (<-chan flow.BlockHeader, <-chan error, error) {
+	return c.grpc.SubscribeBlockHeadersFromStartBlockID(ctx, startBlockID, blockStatus)
+}
+
+func (c *Client) SubscribeBlockHeadersFromStartHeight(
+	ctx context.Context,
+	startHeight uint64,
+	blockStatus flow.BlockStatus,
+) (<-chan flow.BlockHeader, <-chan error, error) {
+	return c.grpc.SubscribeBlockHeadersFromStartHeight(ctx, startHeight, blockStatus)
+}
+
+func (c *Client) SubscribeBlocksHeadersFromLatest(
+	ctx context.Context,
+	blockStatus flow.BlockStatus,
+) (<-chan flow.BlockHeader, <-chan error, error) {
+	return c.grpc.SubscribeBlockHeadersFromLatest(ctx, blockStatus)
+}
+
 func (c *Client) Close() error {
 	return c.grpc.Close()
 }

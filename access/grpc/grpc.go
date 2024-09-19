@@ -965,3 +965,127 @@ func (c *BaseClient) subscribeEvents(
 
 	return sub, errChan, nil
 }
+
+func (c *BaseClient) SubscribeBlockHeadersFromStartBlockID(
+	ctx context.Context,
+	startBlockID flow.Identifier,
+	blockStatus flow.BlockStatus,
+	opts ...grpc.CallOption,
+) (<-chan flow.BlockHeader, <-chan error, error) {
+	request := &access.SubscribeBlockHeadersFromStartBlockIDRequest{
+		StartBlockId: startBlockID.Bytes(),
+		BlockStatus:  convert.BlockStatusToEntity(blockStatus),
+	}
+
+	subscribeClient, err := c.rpcClient.SubscribeBlockHeadersFromStartBlockID(ctx, request, opts...)
+	if err != nil {
+		return nil, nil, newRPCError(err)
+	}
+
+	blockHeaderChan := make(chan flow.BlockHeader)
+	errChan := make(chan error)
+
+	go func() {
+		defer close(blockHeaderChan)
+		defer close(errChan)
+		receiveBlockHeadersFromClient(ctx, subscribeClient, blockHeaderChan, errChan)
+	}()
+
+	return blockHeaderChan, errChan, nil
+}
+
+func (c *BaseClient) SubscribeBlockHeadersFromStartHeight(
+	ctx context.Context,
+	startHeight uint64,
+	blockStatus flow.BlockStatus,
+	opts ...grpc.CallOption,
+) (<-chan flow.BlockHeader, <-chan error, error) {
+	request := &access.SubscribeBlockHeadersFromStartHeightRequest{
+		StartBlockHeight: startHeight,
+		BlockStatus:      convert.BlockStatusToEntity(blockStatus),
+	}
+
+	subscribeClient, err := c.rpcClient.SubscribeBlockHeadersFromStartHeight(ctx, request, opts...)
+	if err != nil {
+		return nil, nil, newRPCError(err)
+	}
+
+	blockHeaderChan := make(chan flow.BlockHeader)
+	errChan := make(chan error)
+
+	go func() {
+		defer close(blockHeaderChan)
+		defer close(errChan)
+		receiveBlockHeadersFromClient(ctx, subscribeClient, blockHeaderChan, errChan)
+	}()
+
+	return blockHeaderChan, errChan, nil
+}
+
+func (c *BaseClient) SubscribeBlockHeadersFromLatest(
+	ctx context.Context,
+	blockStatus flow.BlockStatus,
+	opts ...grpc.CallOption,
+) (<-chan flow.BlockHeader, <-chan error, error) {
+	request := &access.SubscribeBlockHeadersFromLatestRequest{
+		BlockStatus: convert.BlockStatusToEntity(blockStatus),
+	}
+
+	subscribeClient, err := c.rpcClient.SubscribeBlockHeadersFromLatest(ctx, request, opts...)
+	if err != nil {
+		return nil, nil, newRPCError(err)
+	}
+
+	blockHeaderChan := make(chan flow.BlockHeader)
+	errChan := make(chan error)
+
+	go func() {
+		defer close(blockHeaderChan)
+		defer close(errChan)
+		receiveBlockHeadersFromClient(ctx, subscribeClient, blockHeaderChan, errChan)
+	}()
+
+	return blockHeaderChan, errChan, nil
+}
+
+func receiveBlockHeadersFromClient[Client interface {
+	Recv() (*access.SubscribeBlockHeadersResponse, error)
+}](
+	ctx context.Context,
+	client Client,
+	blockHeadersChan chan<- flow.BlockHeader,
+	errChan chan<- error,
+) {
+	sendErr := func(err error) {
+		select {
+		case <-ctx.Done():
+		case errChan <- err:
+		}
+	}
+
+	for {
+		// Receive the next blockHeader response
+		blockHeaderResponse, err := client.Recv()
+		if err != nil {
+			if err == io.EOF {
+				// End of stream, return gracefully
+				return
+			}
+
+			sendErr(fmt.Errorf("error receiving blockHeader: %w", err))
+			return
+		}
+
+		blockHeader, err := convert.MessageToBlockHeader(blockHeaderResponse.GetHeader())
+		if err != nil {
+			sendErr(fmt.Errorf("error converting message to block header: %w", err))
+			return
+		}
+
+		select {
+		case <-ctx.Done():
+			return
+		case blockHeadersChan <- blockHeader:
+		}
+	}
+}
