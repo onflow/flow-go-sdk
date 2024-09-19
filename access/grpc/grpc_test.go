@@ -445,6 +445,42 @@ func TestClient_SendTransaction(t *testing.T) {
 	}))
 }
 
+func TestClient_GetSystemTransaction(t *testing.T) {
+	txs := test.TransactionGenerator()
+	ids := test.IdentifierGenerator()
+
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		blockID := ids.New()
+		expectedTx := txs.New()
+
+		txMsg, err := convert.TransactionToMessage(*expectedTx)
+		require.NoError(t, err)
+
+		response := &access.TransactionResponse{
+			Transaction: txMsg,
+		}
+
+		rpc.On("GetSystemTransaction", ctx, mock.Anything).Return(response, nil)
+
+		tx, err := c.GetSystemTransaction(ctx, blockID)
+		require.NoError(t, err)
+
+		assert.Equal(t, expectedTx, tx)
+	}))
+
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		blockID := ids.New()
+
+		rpc.On("GetSystemTransaction", ctx, mock.Anything).
+			Return(nil, errNotFound)
+
+		tx, err := c.GetSystemTransaction(ctx, blockID)
+		assert.Error(t, err)
+		assert.Equal(t, codes.NotFound, status.Code(err))
+		assert.Nil(t, tx)
+	}))
+}
+
 func TestClient_GetTransaction(t *testing.T) {
 	txs := test.TransactionGenerator()
 	ids := test.IdentifierGenerator()
@@ -513,6 +549,62 @@ func TestClient_GetTransactionsByBlockID(t *testing.T) {
 		assert.Error(t, err)
 		assert.Equal(t, codes.NotFound, status.Code(err))
 		assert.Nil(t, tx)
+	}))
+}
+
+func TestClient_GetSystemTransactionResult(t *testing.T) {
+	ids := test.IdentifierGenerator()
+
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		results := test.TransactionResultGenerator(flow.EventEncodingVersionCCF)
+		blockID := ids.New()
+		expectedResult := results.New()
+		response, _ := convert.TransactionResultToMessage(expectedResult, flow.EventEncodingVersionCCF)
+
+		rpc.On("GetSystemTransactionResult", ctx, mock.Anything).Return(response, nil)
+
+		result, err := c.GetSystemTransactionResult(ctx, blockID)
+		require.NoError(t, err)
+
+		// Force evaluation of type ID, which is cached in type.
+		// Necessary for equality check below
+		for _, event := range result.Events {
+			_ = event.Value.Type().ID()
+		}
+
+		assert.Equal(t, expectedResult, *result)
+	}))
+
+	t.Run("Success with jsoncdc", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		results := test.TransactionResultGenerator(flow.EventEncodingVersionJSONCDC)
+		blockID := ids.New()
+		expectedResult := results.New()
+		response, _ := convert.TransactionResultToMessage(expectedResult, flow.EventEncodingVersionJSONCDC)
+
+		rpc.On("GetSystemTransactionResult", ctx, mock.Anything).Return(response, nil)
+
+		result, err := c.GetSystemTransactionResult(ctx, blockID)
+		require.NoError(t, err)
+
+		// Force evaluation of type ID, which is cached in type.
+		// Necessary for equality check below
+		for _, event := range result.Events {
+			_ = event.Value.Type().ID()
+		}
+
+		assert.Equal(t, expectedResult, *result)
+	}))
+
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		blockID := ids.New()
+
+		rpc.On("GetSystemTransactionResult", ctx, mock.Anything).
+			Return(nil, errNotFound)
+
+		result, err := c.GetSystemTransactionResult(ctx, blockID)
+		assert.Error(t, err)
+		assert.Equal(t, codes.NotFound, status.Code(err))
+		assert.Nil(t, result)
 	}))
 }
 
@@ -1358,13 +1450,103 @@ func TestClient_GetExecutionResultForBlockID(t *testing.T) {
 
 	}))
 
-	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
-		rpc.On("GetLatestProtocolStateSnapshot", ctx, mock.Anything).
-			Return(nil, errInternal)
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		blockId := ids.New()
 
-		_, err := c.GetLatestProtocolStateSnapshot(ctx)
+		rpc.On("GetExecutionResultForBlockID", ctx, &access.GetExecutionResultForBlockIDRequest{
+			BlockId: blockId.Bytes(),
+		}).Return(nil, errNotFound)
+
+		res, err := c.GetExecutionResultForBlockID(ctx, blockId)
 		assert.Error(t, err)
-		assert.Equal(t, codes.Internal, status.Code(err))
+		assert.Nil(t, res)
+		assert.Equal(t, codes.NotFound, status.Code(err))
+	}))
+}
+
+func TestClient_GetExecutionResultByID(t *testing.T) {
+	ids := test.IdentifierGenerator()
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		blockID := ids.New()
+		executionResult := &entities.ExecutionResult{
+			PreviousResultId: ids.New().Bytes(),
+			BlockId:          blockID.Bytes(),
+			Chunks: []*entities.Chunk{
+				{
+					CollectionIndex:      0,
+					StartState:           ids.New().Bytes(),
+					EventCollection:      ids.New().Bytes(),
+					BlockId:              blockID.Bytes(),
+					TotalComputationUsed: 22,
+					NumberOfTransactions: 33,
+					Index:                0,
+					EndState:             ids.New().Bytes(),
+				},
+				{
+					CollectionIndex:      1,
+					StartState:           ids.New().Bytes(),
+					EventCollection:      ids.New().Bytes(),
+					BlockId:              blockID.Bytes(),
+					TotalComputationUsed: 222,
+					NumberOfTransactions: 333,
+					Index:                1,
+					EndState:             ids.New().Bytes(),
+				},
+			},
+			ServiceEvents: []*entities.ServiceEvent{
+				{
+					Type:    "serviceEvent",
+					Payload: []byte("{\"whatever\":21}"),
+				},
+			},
+		}
+		result := &access.ExecutionResultByIDResponse{
+			ExecutionResult: executionResult,
+		}
+		rpc.On("GetExecutionResultByID", ctx, &access.GetExecutionResultByIDRequest{
+			Id: blockID.Bytes(),
+		}).Return(result, nil)
+
+		res, err := c.GetExecutionResultByID(ctx, blockID)
+		assert.NoError(t, err)
+
+		require.NotNil(t, res)
+
+		require.Len(t, res.Chunks, len(executionResult.Chunks))
+		require.Len(t, res.ServiceEvents, len(executionResult.ServiceEvents))
+
+		assert.Equal(t, res.BlockID.Bytes(), executionResult.BlockId)
+		assert.Equal(t, res.PreviousResultID.Bytes(), executionResult.PreviousResultId)
+
+		for i, chunk := range res.Chunks {
+			assert.Equal(t, chunk.BlockID[:], executionResult.Chunks[i].BlockId)
+			assert.Equal(t, chunk.Index, executionResult.Chunks[i].Index)
+			assert.Equal(t, uint32(chunk.CollectionIndex), executionResult.Chunks[i].CollectionIndex)
+			assert.Equal(t, chunk.StartState[:], executionResult.Chunks[i].StartState)
+			assert.Equal(t, []byte(chunk.EventCollection), executionResult.Chunks[i].EventCollection)
+			assert.Equal(t, chunk.TotalComputationUsed, executionResult.Chunks[i].TotalComputationUsed)
+			assert.Equal(t, uint32(chunk.NumberOfTransactions), executionResult.Chunks[i].NumberOfTransactions)
+			assert.Equal(t, chunk.EndState[:], executionResult.Chunks[i].EndState)
+		}
+
+		for i, serviceEvent := range res.ServiceEvents {
+			assert.Equal(t, serviceEvent.Type, executionResult.ServiceEvents[i].Type)
+			assert.Equal(t, serviceEvent.Payload, executionResult.ServiceEvents[i].Payload)
+		}
+
+	}))
+
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		id := ids.New()
+
+		rpc.On("GetExecutionResultByID", ctx, &access.GetExecutionResultByIDRequest{
+			Id: id.Bytes(),
+		}).Return(nil, errNotFound)
+
+		res, err := c.GetExecutionResultByID(ctx, id)
+		assert.Error(t, err)
+		assert.Nil(t, res)
+		assert.Equal(t, codes.NotFound, status.Code(err))
 	}))
 }
 
