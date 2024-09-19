@@ -586,6 +586,38 @@ func MessageToTransactionResult(m *access.TransactionResultResponse, options []j
 	}, nil
 }
 
+func MessageToExecutionResult(execResult *entities.ExecutionResult) (*flow.ExecutionResult, error) {
+	chunks := make([]*flow.Chunk, len(execResult.Chunks))
+	serviceEvents := make([]*flow.ServiceEvent, len(execResult.ServiceEvents))
+
+	for i, chunk := range execResult.Chunks {
+		chunks[i] = &flow.Chunk{
+			CollectionIndex:      uint(chunk.CollectionIndex),
+			StartState:           flow.BytesToStateCommitment(chunk.StartState),
+			EventCollection:      flow.BytesToHash(chunk.EventCollection),
+			BlockID:              flow.BytesToID(chunk.BlockId),
+			TotalComputationUsed: chunk.TotalComputationUsed,
+			NumberOfTransactions: uint16(chunk.NumberOfTransactions),
+			Index:                chunk.Index,
+			EndState:             flow.BytesToStateCommitment(chunk.EndState),
+		}
+	}
+
+	for i, serviceEvent := range execResult.ServiceEvents {
+		serviceEvents[i] = &flow.ServiceEvent{
+			Type:    serviceEvent.Type,
+			Payload: serviceEvent.Payload,
+		}
+	}
+
+	return &flow.ExecutionResult{
+		PreviousResultID: flow.BytesToID(execResult.PreviousResultId),
+		BlockID:          flow.BytesToID(execResult.BlockId),
+		Chunks:           chunks,
+		ServiceEvents:    serviceEvents,
+	}, nil
+}
+
 func BlockExecutionDataToMessage(
 	execData *flow.ExecutionData,
 ) (*entities.BlockExecutionData, error) {
