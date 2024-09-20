@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/onflow/flow/protobuf/go/flow/executiondata"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/onflow/cadence"
@@ -74,6 +75,43 @@ func MessageToAccount(m *entities.Account) (flow.Account, error) {
 		Keys:      accountKeys,
 		Contracts: m.GetContracts(),
 	}, nil
+}
+
+func MessageToAccountStatus(m *executiondata.SubscribeAccountStatusesResponse) (flow.AccountStatus, error) {
+	if m == nil {
+		return flow.AccountStatus{}, ErrEmptyMessage
+	}
+
+	results, err := MessageToAccountStatusResults(m.GetResults())
+	if err != nil {
+		return flow.AccountStatus{}, fmt.Errorf("error converting results: %w", err)
+	}
+
+	return flow.AccountStatus{
+		BlockID:      MessageToIdentifier(m.GetBlockId()),
+		BlockHeight:  m.GetBlockHeight(),
+		MessageIndex: m.GetMessageIndex(),
+		Results:      results,
+	}, nil
+}
+
+func MessageToAccountStatusResults(m []*executiondata.SubscribeAccountStatusesResponse_Result) ([]*flow.AccountStatusResult, error) {
+	results := make([]*flow.AccountStatusResult, len(m))
+	var emptyOptions []jsoncdc.Option
+
+	for i, r := range m {
+		events, err := MessagesToEvents(r.GetEvents(), emptyOptions)
+		if err != nil {
+			return nil, fmt.Errorf("error converting events: %w", err)
+		}
+
+		results[i] = &flow.AccountStatusResult{
+			Address: MessageToIdentifier(r.GetAddress()),
+			Events:  events,
+		}
+	}
+
+	return results, nil
 }
 
 func AccountKeyToMessage(a *flow.AccountKey) *entities.AccountKey {
