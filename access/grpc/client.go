@@ -196,6 +196,13 @@ func (c *Client) GetTransactionResultsByBlockID(ctx context.Context, blockID flo
 	return c.grpc.GetTransactionResultsByBlockID(ctx, blockID)
 }
 
+func (c *Client) SendAndSubscribeTransactionStatuses(
+	ctx context.Context,
+	tx flow.Transaction,
+) (<-chan flow.TransactionStatus, <-chan error, error) {
+	return c.grpc.SendAndSubscribeTransactionStatuses(ctx, tx)
+}
+
 func (c *Client) GetAccount(ctx context.Context, address flow.Address) (*flow.Account, error) {
 	return c.grpc.GetAccount(ctx, address)
 }

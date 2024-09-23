@@ -811,7 +811,6 @@ func (c *BaseClient) GetExecutionDataByBlockID(
 	}
 
 	return convert.MessageToBlockExecutionData(ed.GetBlockExecutionData())
-
 }
 
 func (c *BaseClient) SubscribeExecutionDataByBlockID(
@@ -992,4 +991,63 @@ func (c *BaseClient) subscribeEvents(
 	}()
 
 	return sub, errChan, nil
+}
+
+func (c *BaseClient) SendAndSubscribeTransactionStatuses(
+	ctx context.Context,
+	tx flow.Transaction,
+	opts ...grpc.CallOption,
+) (<-chan flow.TransactionStatus, <-chan error, error) {
+	txMsg, err := convert.TransactionToMessage(tx)
+	if err != nil {
+		return nil, nil, newEntityToMessageError(entityTransaction, err)
+	}
+
+	req := &access.SendAndSubscribeTransactionStatusesRequest{
+		Transaction:          txMsg,
+		EventEncodingVersion: c.eventEncoding,
+	}
+
+	subscribeClient, err := c.rpcClient.SendAndSubscribeTransactionStatuses(ctx, req, opts...)
+	if err != nil {
+		return nil, nil, newRPCError(err)
+	}
+
+	txStatusChan := make(chan flow.TransactionStatus)
+	errChan := make(chan error)
+
+	sendErr := func(err error) {
+		select {
+		case <-ctx.Done():
+		case errChan <- err:
+		}
+	}
+
+	go func() {
+		defer close(txStatusChan)
+		defer close(errChan)
+
+		for {
+			// Receive the next txStatus response
+			txStatusResponse, err := subscribeClient.Recv()
+			if err != nil {
+				if err == io.EOF {
+					// End of stream, return gracefully
+					return
+				}
+				sendErr(fmt.Errorf("error receiving blockHeader: %w", err))
+				return
+			}
+
+			txStatus := flow.TransactionStatus(txStatusResponse.GetTransactionResults().Status)
+
+			select {
+			case <-ctx.Done():
+				return
+			case txStatusChan <- txStatus:
+			}
+		}
+	}()
+
+	return txStatusChan, errChan, nil
 }

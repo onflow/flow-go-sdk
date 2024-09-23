@@ -1969,3 +1969,116 @@ func (m *mockExecutionDataStream) Recv() (*executiondata.SubscribeExecutionDataR
 
 	return m.responses[m.offset], nil
 }
+
+func TestClient_SendAndSubscribeTransactionStatuses(t *testing.T) {
+	transactions := test.TransactionGenerator()
+	results := test.TransactionResultGenerator(flow.EventEncodingVersionCCF)
+
+	generateTransactionStatusResponses := func(count uint64) []*access.SendAndSubscribeTransactionStatusesResponse {
+		var resTransactionStatuses []*access.SendAndSubscribeTransactionStatusesResponse
+
+		for i := uint64(0); i < count; i++ {
+			expectedResult := results.New()
+			transactionResult, _ := convert.TransactionResultToMessage(expectedResult, flow.EventEncodingVersionCCF)
+
+			response := &access.SendAndSubscribeTransactionStatusesResponse{
+				TransactionResults: transactionResult,
+			}
+
+			resTransactionStatuses = append(resTransactionStatuses, response)
+		}
+
+		return resTransactionStatuses
+	}
+
+	t.Run("Happy Path", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		responseCount := uint64(100)
+		tx := transactions.New()
+
+		ctx, cancel := context.WithCancel(ctx)
+		stream := &mockTransactionStatusesClientStream{
+			ctx:       ctx,
+			responses: generateTransactionStatusResponses(responseCount),
+		}
+
+		rpc.On("SendAndSubscribeTransactionStatuses", ctx, mock.Anything).Return(stream, nil)
+
+		txStatusesCh, errCh, err := c.SendAndSubscribeTransactionStatuses(ctx, *tx)
+		require.NoError(t, err)
+
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go assertNoErrors(t, errCh, wg.Done)
+
+		for i := uint64(0); i < responseCount; i++ {
+			actualTxStatus := <-txStatusesCh
+			expectedTxStatus := flow.TransactionStatus(stream.responses[i].GetTransactionResults().Status)
+			require.Equal(t, expectedTxStatus, actualTxStatus)
+		}
+		cancel()
+
+		wg.Wait()
+	}))
+
+	t.Run("Stream returns error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		ctx, cancel := context.WithCancel(ctx)
+		stream := &mockTransactionStatusesClientStream{
+			ctx: ctx,
+			err: status.Error(codes.Internal, "internal error"),
+		}
+
+		rpc.
+			On("SendAndSubscribeTransactionStatuses", ctx, mock.Anything).
+			Return(stream, nil)
+
+		txStatusChan, errCh, err := c.SendAndSubscribeTransactionStatuses(ctx, flow.Transaction{})
+		require.NoError(t, err)
+
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go assertNoTxStatuses(t, txStatusChan, wg.Done)
+
+		errorCount := 0
+		for e := range errCh {
+			require.Error(t, e)
+			require.ErrorIs(t, e, stream.err)
+			errorCount += 1
+		}
+		cancel()
+
+		require.Equalf(t, 1, errorCount, "only 1 error is expected")
+
+		wg.Wait()
+	}))
+
+}
+
+type mockTransactionStatusesClientStream struct {
+	grpc.ClientStream
+
+	ctx       context.Context
+	err       error
+	offset    int
+	responses []*access.SendAndSubscribeTransactionStatusesResponse
+}
+
+func (m *mockTransactionStatusesClientStream) Recv() (*access.SendAndSubscribeTransactionStatusesResponse, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+
+	if m.offset >= len(m.responses) {
+		<-m.ctx.Done()
+		return nil, io.EOF
+	}
+	defer func() { m.offset++ }()
+
+	return m.responses[m.offset], nil
+}
+
+func assertNoTxStatuses[TxStatus any](t *testing.T, txStatusChan <-chan TxStatus, done func()) {
+	defer done()
+	for range txStatusChan {
+		require.FailNow(t, "should not receive txStatus")
+	}
+}
