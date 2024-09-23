@@ -1860,7 +1860,7 @@ func TestClient_SubscribeEvents(t *testing.T) {
 	}))
 }
 
-func Test_SubscribeBlockDigest(t *testing.T) {
+func TestClient_SubscribeBlockDigest(t *testing.T) {
 	blockHeaders := test.BlockHeaderGenerator()
 
 	generateBlockDigestResponses := func(count uint64) []*access.SubscribeBlockDigestsResponse {
