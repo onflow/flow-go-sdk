@@ -47,3 +47,20 @@ func (c Collection) Encode() []byte {
 type CollectionGuarantee struct {
 	CollectionID Identifier
 }
+
+type FullCollection struct {
+	Transactions []*Transaction
+}
+
+// Light returns the light, reference-only version of the collection.
+func (c FullCollection) Light() Collection {
+	lc := Collection{TransactionIDs: make([]Identifier, 0, len(c.Transactions))}
+	for _, tx := range c.Transactions {
+		lc.TransactionIDs = append(lc.TransactionIDs, tx.ID())
+	}
+	return lc
+}
+
+func (c FullCollection) ID() Identifier {
+	return c.Light().ID()
+}

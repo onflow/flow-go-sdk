@@ -99,7 +99,7 @@ func BlockFlowFixture() models.Block {
 }
 
 func CollectionFlowFixture() models.Collection {
-	collection := test.CollectionGenerator().New()
+	collection := test.LightCollectionGenerator().New()
 
 	return models.Collection{
 		Id: collection.ID().String(),
