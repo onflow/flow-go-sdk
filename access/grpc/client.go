@@ -165,6 +165,14 @@ func (c *Client) GetCollection(ctx context.Context, colID flow.Identifier) (*flo
 	return c.grpc.GetCollection(ctx, colID)
 }
 
+func (c *Client) GetCollectionByID(ctx context.Context, id flow.Identifier) (*flow.Collection, error) {
+	return c.grpc.GetLightCollectionByID(ctx, id)
+}
+
+func (c *Client) GetFullCollectionByID(ctx context.Context, id flow.Identifier) (*flow.FullCollection, error) {
+	return c.grpc.GetFullCollectionByID(ctx, id)
+}
+
 func (c *Client) SendTransaction(ctx context.Context, tx flow.Transaction) error {
 	return c.grpc.SendTransaction(ctx, tx)
 }

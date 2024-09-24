@@ -386,7 +386,7 @@ func TestClient_GetBlockByHeight(t *testing.T) {
 }
 
 func TestClient_GetCollection(t *testing.T) {
-	cols := test.CollectionGenerator()
+	cols := test.LightCollectionGenerator()
 	ids := test.IdentifierGenerator()
 
 	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
@@ -411,6 +411,44 @@ func TestClient_GetCollection(t *testing.T) {
 			Return(nil, errNotFound)
 
 		col, err := c.GetCollection(ctx, colID)
+		assert.Error(t, err)
+		assert.Equal(t, codes.NotFound, status.Code(err))
+		assert.Nil(t, col)
+	}))
+}
+
+func TestClient_GetFullCollectionById(t *testing.T) {
+	collections := test.FullCollectionGenerator()
+	ids := test.IdentifierGenerator()
+
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		expectedCollection := collections.New()
+		txs, err := convert.FullCollectionToTransactionsMessage(*expectedCollection)
+		require.NoError(t, err)
+
+		response := &access.FullCollectionResponse{
+			Transactions: txs,
+		}
+
+		rpc.
+			On("GetFullCollectionByID", ctx, mock.Anything).
+			Return(response, nil)
+
+		id := ids.New()
+		actualCollection, err := c.GetFullCollectionByID(ctx, id)
+		require.NoError(t, err)
+
+		require.Equal(t, expectedCollection, actualCollection)
+
+	}))
+
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		rpc.
+			On("GetFullCollectionByID", ctx, mock.Anything).
+			Return(nil, errNotFound)
+
+		id := ids.New()
+		col, err := c.GetFullCollectionByID(ctx, id)
 		assert.Error(t, err)
 		assert.Equal(t, codes.NotFound, status.Code(err))
 		assert.Nil(t, col)
