@@ -150,6 +150,21 @@ func MessageToAccountKey(m *entities.AccountKey) (*flow.AccountKey, error) {
 	}, nil
 }
 
+func MessageToAccountKeys(m []*entities.AccountKey) ([]flow.AccountKey, error) {
+	var accountKeys []flow.AccountKey
+
+	for _, entity := range m {
+		accountKey, err := MessageToAccountKey(entity)
+		if err != nil {
+			return nil, err
+		}
+
+		accountKeys = append(accountKeys, *accountKey)
+	}
+
+	return accountKeys, nil
+}
+
 func BlockToMessage(b flow.Block) (*entities.Block, error) {
 
 	t := timestamppb.New(b.BlockHeader.Timestamp)
