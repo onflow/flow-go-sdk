@@ -362,6 +362,28 @@ func (c *BaseClient) GetTransaction(
 	return &result, nil
 }
 
+func (c *BaseClient) GetSystemTransaction(
+	ctx context.Context,
+	blockID flow.Identifier,
+	opts ...grpc.CallOption,
+) (*flow.Transaction, error) {
+	req := &access.GetSystemTransactionRequest{
+		BlockId: blockID.Bytes(),
+	}
+
+	res, err := c.rpcClient.GetSystemTransaction(ctx, req, opts...)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	result, err := convert.MessageToTransaction(res.GetTransaction())
+	if err != nil {
+		return nil, newMessageToEntityError(entityTransaction, err)
+	}
+
+	return &result, nil
+}
+
 func (c *BaseClient) GetTransactionsByBlockID(
 	ctx context.Context,
 	blockID flow.Identifier,
@@ -387,6 +409,29 @@ func (c *BaseClient) GetTransactionsByBlockID(
 	}
 
 	return results, nil
+}
+
+func (c *BaseClient) GetSystemTransactionResult(
+	ctx context.Context,
+	blockID flow.Identifier,
+	opts ...grpc.CallOption,
+) (*flow.TransactionResult, error) {
+	req := &access.GetSystemTransactionResultRequest{
+		BlockId:              blockID.Bytes(),
+		EventEncodingVersion: c.eventEncoding,
+	}
+
+	res, err := c.rpcClient.GetSystemTransactionResult(ctx, req, opts...)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	result, err := convert.MessageToTransactionResult(res, c.jsonOptions)
+	if err != nil {
+		return nil, newMessageToEntityError(entityTransactionResult, err)
+	}
+
+	return &result, nil
 }
 
 func (c *BaseClient) GetTransactionResult(
@@ -829,35 +874,18 @@ func (c *BaseClient) GetExecutionResultForBlockID(ctx context.Context, blockID f
 		return nil, newRPCError(err)
 	}
 
-	chunks := make([]*flow.Chunk, len(er.ExecutionResult.Chunks))
-	serviceEvents := make([]*flow.ServiceEvent, len(er.ExecutionResult.ServiceEvents))
+	return convert.MessageToExecutionResult(er.ExecutionResult)
+}
 
-	for i, chunk := range er.ExecutionResult.Chunks {
-		chunks[i] = &flow.Chunk{
-			CollectionIndex:      uint(chunk.CollectionIndex),
-			StartState:           flow.BytesToStateCommitment(chunk.StartState),
-			EventCollection:      flow.BytesToHash(chunk.EventCollection),
-			BlockID:              flow.BytesToID(chunk.BlockId),
-			TotalComputationUsed: chunk.TotalComputationUsed,
-			NumberOfTransactions: uint16(chunk.NumberOfTransactions),
-			Index:                chunk.Index,
-			EndState:             flow.BytesToStateCommitment(chunk.EndState),
-		}
+func (c *BaseClient) GetExecutionResultByID(ctx context.Context, id flow.Identifier, opts ...grpc.CallOption) (*flow.ExecutionResult, error) {
+	er, err := c.rpcClient.GetExecutionResultByID(ctx, &access.GetExecutionResultByIDRequest{
+		Id: convert.IdentifierToMessage(id),
+	}, opts...)
+	if err != nil {
+		return nil, newRPCError(err)
 	}
 
-	for i, serviceEvent := range er.ExecutionResult.ServiceEvents {
-		serviceEvents[i] = &flow.ServiceEvent{
-			Type:    serviceEvent.Type,
-			Payload: serviceEvent.Payload,
-		}
-	}
-
-	return &flow.ExecutionResult{
-		PreviousResultID: flow.BytesToID(er.ExecutionResult.PreviousResultId),
-		BlockID:          flow.BytesToID(er.ExecutionResult.BlockId),
-		Chunks:           chunks,
-		ServiceEvents:    serviceEvents,
-	}, nil
+	return convert.MessageToExecutionResult(er.ExecutionResult)
 }
 
 func (c *BaseClient) GetExecutionDataByBlockID(
