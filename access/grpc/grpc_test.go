@@ -977,6 +977,148 @@ func TestClient_ExecuteScriptAtLatestBlock(t *testing.T) {
 	}))
 }
 
+func TestClient_GetAccountKeyAtLatestBlock(t *testing.T) {
+	accounts := test.AccountGenerator()
+	addresses := test.AddressGenerator()
+	index := uint32(0)
+
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		account := accounts.New()
+		response := &access.AccountKeyResponse{
+			AccountKey: convert.AccountKeyToMessage(account.Keys[index]),
+		}
+
+		rpc.
+			On("GetAccountKeyAtLatestBlock", ctx, mock.Anything).
+			Return(response, nil)
+
+		key, err := c.GetAccountKeyAtLatestBlock(ctx, account.Address, index)
+		require.NoError(t, err)
+
+		assert.Equal(t, account.Keys[index], key)
+	}))
+
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		address := addresses.New()
+
+		rpc.
+			On("GetAccountKeyAtLatestBlock", ctx, mock.Anything).
+			Return(nil, errNotFound)
+
+		key, err := c.GetAccountKeyAtLatestBlock(ctx, address, index)
+		assert.Error(t, err)
+		assert.Equal(t, codes.NotFound, status.Code(err))
+		assert.Nil(t, key)
+	}))
+}
+
+func TestClient_GetAccountKeyAtBlockHeight(t *testing.T) {
+	accounts := test.AccountGenerator()
+	addresses := test.AddressGenerator()
+	height := uint64(42)
+	index := uint32(0)
+
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		account := accounts.New()
+		response := &access.AccountKeyResponse{
+			AccountKey: convert.AccountKeyToMessage(account.Keys[index]),
+		}
+
+		rpc.
+			On("GetAccountKeyAtBlockHeight", ctx, mock.Anything).
+			Return(response, nil)
+
+		key, err := c.GetAccountKeyAtBlockHeight(ctx, account.Address, index, height)
+		require.NoError(t, err)
+
+		assert.Equal(t, account.Keys[index], key)
+	}))
+
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		address := addresses.New()
+
+		rpc.
+			On("GetAccountKeyAtBlockHeight", ctx, mock.Anything).
+			Return(nil, errNotFound)
+
+		key, err := c.GetAccountKeyAtBlockHeight(ctx, address, index, height)
+		assert.Error(t, err)
+		assert.Equal(t, codes.NotFound, status.Code(err))
+		assert.Nil(t, key)
+	}))
+}
+
+func TestClient_GetAccountKeysAtLatestBlock(t *testing.T) {
+	accounts := test.AccountGenerator()
+	addresses := test.AddressGenerator()
+	index := uint32(0)
+
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		account := accounts.New()
+
+		response := &access.AccountKeysResponse{
+			AccountKeys: []*entities.AccountKey{convert.AccountKeyToMessage(account.Keys[index])},
+		}
+
+		rpc.
+			On("GetAccountKeysAtLatestBlock", ctx, mock.Anything).
+			Return(response, nil)
+
+		keys, err := c.GetAccountKeysAtLatestBlock(ctx, account.Address)
+		require.NoError(t, err)
+		assert.Equal(t, *account.Keys[index], keys[index])
+	}))
+
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		address := addresses.New()
+
+		rpc.
+			On("GetAccountKeysAtLatestBlock", ctx, mock.Anything).
+			Return(nil, errNotFound)
+
+		keys, err := c.GetAccountKeysAtLatestBlock(ctx, address)
+		assert.Error(t, err)
+		assert.Equal(t, codes.NotFound, status.Code(err))
+		assert.Empty(t, keys)
+	}))
+}
+
+func TestClient_GetAccountKeysAtBlockHeight(t *testing.T) {
+	accounts := test.AccountGenerator()
+	addresses := test.AddressGenerator()
+	height := uint64(42)
+	index := uint32(0)
+
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		account := accounts.New()
+
+		response := &access.AccountKeysResponse{
+			AccountKeys: []*entities.AccountKey{convert.AccountKeyToMessage(account.Keys[index])},
+		}
+
+		rpc.
+			On("GetAccountKeysAtBlockHeight", ctx, mock.Anything).
+			Return(response, nil)
+
+		keys, err := c.GetAccountKeysAtBlockHeight(ctx, account.Address, height)
+		require.NoError(t, err)
+		assert.Equal(t, *account.Keys[index], keys[index])
+	}))
+
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		address := addresses.New()
+
+		rpc.
+			On("GetAccountKeysAtBlockHeight", ctx, mock.Anything).
+			Return(nil, errNotFound)
+
+		keys, err := c.GetAccountKeysAtBlockHeight(ctx, address, height)
+		assert.Error(t, err)
+		assert.Equal(t, codes.NotFound, status.Code(err))
+		assert.Empty(t, keys)
+	}))
+}
+
 func TestClient_ExecuteScriptAtBlockID(t *testing.T) {
 	ids := test.IdentifierGenerator()
 
