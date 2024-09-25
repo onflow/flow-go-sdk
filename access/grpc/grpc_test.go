@@ -1972,14 +1972,14 @@ func (m *mockExecutionDataStream) Recv() (*executiondata.SubscribeExecutionDataR
 
 func TestClient_SendAndSubscribeTransactionStatuses(t *testing.T) {
 	transactions := test.TransactionGenerator()
-	results := test.TransactionResultGenerator(flow.EventEncodingVersionCCF)
 
-	generateTransactionStatusResponses := func(count uint64) []*access.SendAndSubscribeTransactionStatusesResponse {
+	generateTransactionStatusResponses := func(count uint64, encodingVersion flow.EventEncodingVersion) []*access.SendAndSubscribeTransactionStatusesResponse {
 		var resTransactionStatuses []*access.SendAndSubscribeTransactionStatusesResponse
+		results := test.TransactionResultGenerator(encodingVersion)
 
 		for i := uint64(0); i < count; i++ {
 			expectedResult := results.New()
-			transactionResult, _ := convert.TransactionResultToMessage(expectedResult, flow.EventEncodingVersionCCF)
+			transactionResult, _ := convert.TransactionResultToMessage(expectedResult, encodingVersion)
 
 			response := &access.SendAndSubscribeTransactionStatusesResponse{
 				TransactionResults: transactionResult,
@@ -1991,14 +1991,43 @@ func TestClient_SendAndSubscribeTransactionStatuses(t *testing.T) {
 		return resTransactionStatuses
 	}
 
-	t.Run("Happy Path", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+	t.Run("Happy Path - CCF", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
 		responseCount := uint64(100)
 		tx := transactions.New()
 
 		ctx, cancel := context.WithCancel(ctx)
 		stream := &mockTransactionStatusesClientStream{
 			ctx:       ctx,
-			responses: generateTransactionStatusResponses(responseCount),
+			responses: generateTransactionStatusResponses(responseCount, flow.EventEncodingVersionCCF),
+		}
+
+		rpc.On("SendAndSubscribeTransactionStatuses", ctx, mock.Anything).Return(stream, nil)
+
+		txStatusesCh, errCh, err := c.SendAndSubscribeTransactionStatuses(ctx, *tx)
+		require.NoError(t, err)
+
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go assertNoErrors(t, errCh, wg.Done)
+
+		for i := uint64(0); i < responseCount; i++ {
+			actualTxStatus := <-txStatusesCh
+			expectedTxStatus := flow.TransactionStatus(stream.responses[i].GetTransactionResults().Status)
+			require.Equal(t, expectedTxStatus, actualTxStatus)
+		}
+		cancel()
+
+		wg.Wait()
+	}))
+
+	t.Run("Happy Path - JSON-CDC", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		responseCount := uint64(100)
+		tx := transactions.New()
+
+		ctx, cancel := context.WithCancel(ctx)
+		stream := &mockTransactionStatusesClientStream{
+			ctx:       ctx,
+			responses: generateTransactionStatusResponses(responseCount, flow.EventEncodingVersionJSONCDC),
 		}
 
 		rpc.On("SendAndSubscribeTransactionStatuses", ctx, mock.Anything).Return(stream, nil)
