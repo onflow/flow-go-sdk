@@ -2225,146 +2225,6 @@ func TestClient_SubscribeAccountStatuses(t *testing.T) {
 	}))
 }
 
-func generateEventResponse(t *testing.T, blockID flow.Identifier, height uint64, events []flow.Event, encoding flow.EventEncodingVersion) *executiondata.SubscribeEventsResponse {
-	responseEvents := make([]*entities.Event, 0, len(events))
-	for _, e := range events {
-		eventMsg, err := convert.EventToMessage(e, encoding)
-		require.NoError(t, err)
-		responseEvents = append(responseEvents, eventMsg)
-	}
-
-	return &executiondata.SubscribeEventsResponse{
-		BlockHeight: height,
-		BlockId:     blockID[:],
-		Events:      responseEvents,
-	}
-}
-
-func generateExecutionDataResponse(t *testing.T, blockID flow.Identifier, height uint64) *executiondata.SubscribeExecutionDataResponse {
-	return &executiondata.SubscribeExecutionDataResponse{
-		BlockHeight: height,
-		BlockExecutionData: &entities.BlockExecutionData{
-			BlockId:            blockID[:],
-			ChunkExecutionData: []*entities.ChunkExecutionData{},
-		},
-		BlockTimestamp: timestamppb.Now(),
-	}
-}
-
-func assertSubscribeEventsArgs(t *testing.T, expected *executiondata.SubscribeEventsRequest) func(args mock.Arguments) {
-	return func(args mock.Arguments) {
-		actual, ok := args.Get(1).(*executiondata.SubscribeEventsRequest)
-		require.True(t, ok)
-
-		assert.Equal(t, expected.Filter, actual.Filter)
-		assert.Equal(t, expected.EventEncodingVersion, actual.EventEncodingVersion)
-		assert.Equal(t, expected.HeartbeatInterval, actual.HeartbeatInterval)
-		assert.Equal(t, expected.StartBlockHeight, actual.StartBlockHeight)
-		assert.Equal(t, expected.StartBlockId, actual.StartBlockId)
-	}
-}
-
-func assertSubscribeExecutionDataArgs(t *testing.T, expected *executiondata.SubscribeExecutionDataRequest) func(args mock.Arguments) {
-	return func(args mock.Arguments) {
-		actual, ok := args.Get(1).(*executiondata.SubscribeExecutionDataRequest)
-		require.True(t, ok)
-
-		assert.Equal(t, expected.EventEncodingVersion, actual.EventEncodingVersion)
-		assert.Equal(t, expected.StartBlockHeight, actual.StartBlockHeight)
-		assert.Equal(t, expected.StartBlockId, actual.StartBlockId)
-	}
-}
-
-func assertNoErrors(t *testing.T, errCh <-chan error, done func()) {
-	defer done()
-	for err := range errCh {
-		require.NoError(t, err)
-	}
-}
-
-func assertNoEvents[T any](t *testing.T, eventCh <-chan T, done func()) {
-	defer done()
-	for range eventCh {
-		t.Fatal("should not receive events")
-	}
-}
-
-func assertNoAccountStatuses(t *testing.T, accountStatusesChan <-chan flow.AccountStatus, done func()) {
-	defer done()
-	for range accountStatusesChan {
-		require.FailNow(t, "should not receive account statuses")
-	}
-}
-
-type mockEventStream struct {
-	grpc.ClientStream
-
-	ctx       context.Context
-	err       error
-	offset    int
-	responses []*executiondata.SubscribeEventsResponse
-}
-
-func (m *mockEventStream) Recv() (*executiondata.SubscribeEventsResponse, error) {
-	if m.err != nil {
-		return nil, m.err
-	}
-
-	if m.offset >= len(m.responses) {
-		<-m.ctx.Done()
-		return nil, io.EOF
-	}
-	defer func() { m.offset++ }()
-
-	return m.responses[m.offset], nil
-}
-
-type mockExecutionDataStream struct {
-	grpc.ClientStream
-
-	ctx       context.Context
-	err       error
-	offset    int
-	responses []*executiondata.SubscribeExecutionDataResponse
-}
-
-func (m *mockExecutionDataStream) Recv() (*executiondata.SubscribeExecutionDataResponse, error) {
-	if m.err != nil {
-		return nil, m.err
-	}
-
-	if m.offset >= len(m.responses) {
-		<-m.ctx.Done()
-		return nil, io.EOF
-	}
-	defer func() { m.offset++ }()
-
-	return m.responses[m.offset], nil
-}
-
-type mockAccountStatutesClientStream struct {
-	grpc.ClientStream
-
-	ctx       context.Context
-	err       error
-	offset    int
-	responses []*executiondata.SubscribeAccountStatusesResponse
-}
-
-func (m *mockAccountStatutesClientStream) Recv() (*executiondata.SubscribeAccountStatusesResponse, error) {
-	if m.err != nil {
-		return nil, m.err
-	}
-
-	if m.offset >= len(m.responses) {
-		<-m.ctx.Done()
-		return nil, io.EOF
-	}
-	defer func() { m.offset++ }()
-
-	return m.responses[m.offset], nil
-}
-
 func TestClient_SubscribeBlockHeaders(t *testing.T) {
 	blockHeaders := test.BlockHeaderGenerator()
 
@@ -2510,36 +2370,6 @@ func TestClient_SubscribeBlockHeaders(t *testing.T) {
 	}))
 }
 
-type mockBlockHeaderClientStream[SubscribeBlockHeadersResponse any] struct {
-	grpc.ClientStream
-
-	ctx       context.Context
-	err       error
-	offset    int
-	responses []*SubscribeBlockHeadersResponse
-}
-
-func (s *mockBlockHeaderClientStream[SubscribeBlockHeadersResponse]) Recv() (*SubscribeBlockHeadersResponse, error) {
-	if s.err != nil {
-		return nil, s.err
-	}
-
-	if s.offset >= len(s.responses) {
-		<-s.ctx.Done()
-		return nil, io.EOF
-	}
-	defer func() { s.offset++ }()
-
-	return s.responses[s.offset], nil
-}
-
-func assertNoBlockHeaders[BlockHeader any](t *testing.T, blockHeadersChan <-chan BlockHeader, done func()) {
-	defer done()
-	for range blockHeadersChan {
-		require.FailNow(t, "should not receive block headers")
-	}
-}
-
 func TestClient_SubscribeBlocks(t *testing.T) {
 	blocks := test.BlockGenerator()
 
@@ -2682,6 +2512,176 @@ func TestClient_SubscribeBlocks(t *testing.T) {
 
 		wg.Wait()
 	}))
+}
+
+func generateEventResponse(t *testing.T, blockID flow.Identifier, height uint64, events []flow.Event, encoding flow.EventEncodingVersion) *executiondata.SubscribeEventsResponse {
+	responseEvents := make([]*entities.Event, 0, len(events))
+	for _, e := range events {
+		eventMsg, err := convert.EventToMessage(e, encoding)
+		require.NoError(t, err)
+		responseEvents = append(responseEvents, eventMsg)
+	}
+
+	return &executiondata.SubscribeEventsResponse{
+		BlockHeight: height,
+		BlockId:     blockID[:],
+		Events:      responseEvents,
+	}
+}
+
+func generateExecutionDataResponse(t *testing.T, blockID flow.Identifier, height uint64) *executiondata.SubscribeExecutionDataResponse {
+	return &executiondata.SubscribeExecutionDataResponse{
+		BlockHeight: height,
+		BlockExecutionData: &entities.BlockExecutionData{
+			BlockId:            blockID[:],
+			ChunkExecutionData: []*entities.ChunkExecutionData{},
+		},
+		BlockTimestamp: timestamppb.Now(),
+	}
+}
+
+func assertSubscribeEventsArgs(t *testing.T, expected *executiondata.SubscribeEventsRequest) func(args mock.Arguments) {
+	return func(args mock.Arguments) {
+		actual, ok := args.Get(1).(*executiondata.SubscribeEventsRequest)
+		require.True(t, ok)
+
+		assert.Equal(t, expected.Filter, actual.Filter)
+		assert.Equal(t, expected.EventEncodingVersion, actual.EventEncodingVersion)
+		assert.Equal(t, expected.HeartbeatInterval, actual.HeartbeatInterval)
+		assert.Equal(t, expected.StartBlockHeight, actual.StartBlockHeight)
+		assert.Equal(t, expected.StartBlockId, actual.StartBlockId)
+	}
+}
+
+func assertSubscribeExecutionDataArgs(t *testing.T, expected *executiondata.SubscribeExecutionDataRequest) func(args mock.Arguments) {
+	return func(args mock.Arguments) {
+		actual, ok := args.Get(1).(*executiondata.SubscribeExecutionDataRequest)
+		require.True(t, ok)
+
+		assert.Equal(t, expected.EventEncodingVersion, actual.EventEncodingVersion)
+		assert.Equal(t, expected.StartBlockHeight, actual.StartBlockHeight)
+		assert.Equal(t, expected.StartBlockId, actual.StartBlockId)
+	}
+}
+
+func assertNoErrors(t *testing.T, errCh <-chan error, done func()) {
+	defer done()
+	for err := range errCh {
+		require.NoError(t, err)
+	}
+}
+
+func assertNoEvents[T any](t *testing.T, eventCh <-chan T, done func()) {
+	defer done()
+	for range eventCh {
+		t.Fatal("should not receive events")
+	}
+}
+
+func assertNoAccountStatuses(t *testing.T, accountStatusesChan <-chan flow.AccountStatus, done func()) {
+	defer done()
+	for range accountStatusesChan {
+		require.FailNow(t, "should not receive account statuses")
+	}
+}
+
+type mockEventStream struct {
+	grpc.ClientStream
+
+	ctx       context.Context
+	err       error
+	offset    int
+	responses []*executiondata.SubscribeEventsResponse
+}
+
+func (m *mockEventStream) Recv() (*executiondata.SubscribeEventsResponse, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+
+	if m.offset >= len(m.responses) {
+		<-m.ctx.Done()
+		return nil, io.EOF
+	}
+	defer func() { m.offset++ }()
+
+	return m.responses[m.offset], nil
+}
+
+type mockExecutionDataStream struct {
+	grpc.ClientStream
+
+	ctx       context.Context
+	err       error
+	offset    int
+	responses []*executiondata.SubscribeExecutionDataResponse
+}
+
+func (m *mockExecutionDataStream) Recv() (*executiondata.SubscribeExecutionDataResponse, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+
+	if m.offset >= len(m.responses) {
+		<-m.ctx.Done()
+		return nil, io.EOF
+	}
+	defer func() { m.offset++ }()
+
+	return m.responses[m.offset], nil
+}
+
+type mockAccountStatutesClientStream struct {
+	grpc.ClientStream
+
+	ctx       context.Context
+	err       error
+	offset    int
+	responses []*executiondata.SubscribeAccountStatusesResponse
+}
+
+func (m *mockAccountStatutesClientStream) Recv() (*executiondata.SubscribeAccountStatusesResponse, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+
+	if m.offset >= len(m.responses) {
+		<-m.ctx.Done()
+		return nil, io.EOF
+	}
+	defer func() { m.offset++ }()
+
+	return m.responses[m.offset], nil
+}
+
+type mockBlockHeaderClientStream[SubscribeBlockHeadersResponse any] struct {
+	grpc.ClientStream
+
+	ctx       context.Context
+	err       error
+	offset    int
+	responses []*SubscribeBlockHeadersResponse
+}
+
+func (s *mockBlockHeaderClientStream[SubscribeBlockHeadersResponse]) Recv() (*SubscribeBlockHeadersResponse, error) {
+	if s.err != nil {
+		return nil, s.err
+	}
+
+	if s.offset >= len(s.responses) {
+		<-s.ctx.Done()
+		return nil, io.EOF
+	}
+	defer func() { s.offset++ }()
+
+	return s.responses[s.offset], nil
+}
+
+func assertNoBlockHeaders[BlockHeader any](t *testing.T, blockHeadersChan <-chan BlockHeader, done func()) {
+	defer done()
+	for range blockHeadersChan {
+		require.FailNow(t, "should not receive block headers")
+	}
 }
 
 type mockBlockClientStream[SubscribeBlocksResponse any] struct {

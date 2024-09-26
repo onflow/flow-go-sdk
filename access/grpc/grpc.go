@@ -1512,3 +1512,44 @@ func receiveBlocksFromClient[Client interface {
 		}
 	}
 }
+
+func receiveDataFromClient[DataItem, Response, Client interface{ Recv() (*Response, error) }](
+	ctx context.Context,
+	client Client,
+	dataItemChan chan<- DataItem,
+	errChan chan<- error,
+	conversionFunc func(*Response) (DataItem, error),
+) {
+	sendErr := func(err error) {
+		select {
+		case <-ctx.Done():
+		case errChan <- err:
+		}
+	}
+
+	for {
+		// Receive the next dataItem response
+		response, err := client.Recv()
+		if err != nil {
+			if err == io.EOF {
+				// End of stream, return gracefully
+				return
+			}
+
+			sendErr(fmt.Errorf("error receiving data item: %w", err))
+			return
+		}
+
+		dataItem, err := conversionFunc(response)
+		if err != nil {
+			sendErr(fmt.Errorf("error converting message to data item: %w", err))
+			return
+		}
+
+		select {
+		case <-ctx.Done():
+			return
+		case dataItemChan <- dataItem:
+		}
+	}
+}
