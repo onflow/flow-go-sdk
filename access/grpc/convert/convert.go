@@ -112,6 +112,21 @@ func MessageToAccountKey(m *entities.AccountKey) (*flow.AccountKey, error) {
 	}, nil
 }
 
+func MessageToAccountKeys(m []*entities.AccountKey) ([]flow.AccountKey, error) {
+	var accountKeys []flow.AccountKey
+
+	for _, entity := range m {
+		accountKey, err := MessageToAccountKey(entity)
+		if err != nil {
+			return nil, err
+		}
+
+		accountKeys = append(accountKeys, *accountKey)
+	}
+
+	return accountKeys, nil
+}
+
 func BlockToMessage(b flow.Block) (*entities.Block, error) {
 
 	t := timestamppb.New(b.BlockHeader.Timestamp)
@@ -279,6 +294,21 @@ func CollectionToMessage(c flow.Collection) *entities.Collection {
 	}
 }
 
+func FullCollectionToTransactionsMessage(tx flow.FullCollection) ([]*entities.Transaction, error) {
+	var convertedTxs []*entities.Transaction
+
+	for _, tx := range tx.Transactions {
+		convertedTx, err := TransactionToMessage(*tx)
+		if err != nil {
+			return nil, err
+		}
+
+		convertedTxs = append(convertedTxs, convertedTx)
+	}
+
+	return convertedTxs, nil
+}
+
 func MessageToCollection(m *entities.Collection) (flow.Collection, error) {
 	if m == nil {
 		return flow.Collection{}, ErrEmptyMessage
@@ -294,6 +324,21 @@ func MessageToCollection(m *entities.Collection) (flow.Collection, error) {
 	return flow.Collection{
 		TransactionIDs: transactionIDs,
 	}, nil
+}
+
+func MessageToFullCollection(m []*entities.Transaction) (flow.FullCollection, error) {
+	var collection flow.FullCollection
+
+	for _, tx := range m {
+		convertedTx, err := MessageToTransaction(tx)
+		if err != nil {
+			return flow.FullCollection{}, err
+		}
+
+		collection.Transactions = append(collection.Transactions, &convertedTx)
+	}
+
+	return collection, nil
 }
 
 func CollectionGuaranteeToMessage(g flow.CollectionGuarantee) *entities.CollectionGuarantee {
