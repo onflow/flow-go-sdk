@@ -375,3 +375,26 @@ func convertSubscribeOptions(opts ...access.SubscribeOption) *SubscribeConfig {
 	}
 	return subsConf
 }
+
+func (c *Client) SubscribeAccountStatusesFromStartHeight(
+	ctx context.Context,
+	startBlockHeight uint64,
+	filter flow.AccountStatusFilter,
+) (<-chan flow.AccountStatus, <-chan error, error) {
+	return c.grpc.SubscribeAccountStatusesFromStartHeight(ctx, startBlockHeight, filter)
+}
+
+func (c *Client) SubscribeAccountStatusesFromStartBlockID(
+	ctx context.Context,
+	startBlockID flow.Identifier,
+	filter flow.AccountStatusFilter,
+) (<-chan flow.AccountStatus, <-chan error, error) {
+	return c.grpc.SubscribeAccountStatusesFromStartBlockID(ctx, startBlockID, filter)
+}
+
+func (c *Client) SubscribeAccountStatusesFromLatestBlock(
+	ctx context.Context,
+	filter flow.AccountStatusFilter,
+) (<-chan flow.AccountStatus, <-chan error, error) {
+	return c.grpc.SubscribeAccountStatusesFromLatestBlock(ctx, filter)
+}

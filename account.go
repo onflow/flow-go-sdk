@@ -154,3 +154,19 @@ type accountKeyWrapper struct {
 	HashAlgo         uint
 	Weight           uint
 }
+
+type AccountStatusFilter struct {
+	EventFilter
+}
+
+type AccountStatus struct {
+	BlockID      Identifier
+	BlockHeight  uint64
+	MessageIndex uint64
+	Results      []*AccountStatusResult
+}
+
+type AccountStatusResult struct {
+	Address Identifier
+	Events  []Event
+}
