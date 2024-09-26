@@ -573,14 +573,15 @@ func TransactionResultToMessage(result flow.TransactionResult, encodingVersion f
 	}
 
 	return &access.TransactionResultResponse{
-		Status:        entities.TransactionStatus(result.Status),
-		StatusCode:    uint32(statusCode),
-		ErrorMessage:  errorMsg,
-		Events:        eventMessages,
-		BlockId:       IdentifierToMessage(result.BlockID),
-		BlockHeight:   result.BlockHeight,
-		TransactionId: IdentifierToMessage(result.TransactionID),
-		CollectionId:  IdentifierToMessage(result.CollectionID),
+		Status:           entities.TransactionStatus(result.Status),
+		StatusCode:       uint32(statusCode),
+		ErrorMessage:     errorMsg,
+		Events:           eventMessages,
+		BlockId:          IdentifierToMessage(result.BlockID),
+		BlockHeight:      result.BlockHeight,
+		TransactionId:    IdentifierToMessage(result.TransactionID),
+		CollectionId:     IdentifierToMessage(result.CollectionID),
+		ComputationUsage: result.ComputationUsage,
 	}, nil
 }
 
@@ -610,13 +611,14 @@ func MessageToTransactionResult(m *access.TransactionResultResponse, options []j
 	}
 
 	return flow.TransactionResult{
-		Status:        flow.TransactionStatus(m.GetStatus()),
-		Error:         err,
-		Events:        events,
-		BlockID:       flow.BytesToID(m.GetBlockId()),
-		BlockHeight:   m.GetBlockHeight(),
-		TransactionID: flow.BytesToID(m.GetTransactionId()),
-		CollectionID:  flow.BytesToID(m.GetCollectionId()),
+		Status:           flow.TransactionStatus(m.GetStatus()),
+		Error:            err,
+		Events:           events,
+		BlockID:          flow.BytesToID(m.GetBlockId()),
+		BlockHeight:      m.GetBlockHeight(),
+		TransactionID:    flow.BytesToID(m.GetTransactionId()),
+		CollectionID:     flow.BytesToID(m.GetCollectionId()),
+		ComputationUsage: m.GetComputationUsage(),
 	}, nil
 }
 
