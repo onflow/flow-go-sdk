@@ -165,6 +165,11 @@ func (c *BaseClient) GetNodeVersionInfo(ctx context.Context, opts ...grpc.CallOp
 	}
 
 	info := res.GetInfo()
+	compRange := flow.CompatibleRange{
+		StartHeight: info.CompatibleRange.GetStartHeight(),
+		EndHeight:   info.CompatibleRange.GetEndHeight(),
+	}
+
 	return &flow.NodeVersionInfo{
 		Semver:               info.Semver,
 		Commit:               info.Commit,
@@ -172,6 +177,7 @@ func (c *BaseClient) GetNodeVersionInfo(ctx context.Context, opts ...grpc.CallOp
 		ProtocolVersion:      info.ProtocolVersion,
 		SporkRootBlockHeight: info.SporkRootBlockHeight,
 		NodeRootBlockHeight:  info.NodeRootBlockHeight,
+		CompatibleRange:      compRange,
 	}, nil
 }
 

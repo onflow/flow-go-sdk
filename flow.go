@@ -134,6 +134,12 @@ type NodeVersionInfo struct {
 	ProtocolVersion      uint64
 	SporkRootBlockHeight uint64
 	NodeRootBlockHeight  uint64
+	CompatibleRange      CompatibleRange
+}
+
+type CompatibleRange struct {
+	StartHeight uint64
+	EndHeight   uint64
 }
 
 // entityHasher is a thread-safe hasher used to hash Flow entities.
