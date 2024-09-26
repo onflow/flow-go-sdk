@@ -1100,7 +1100,7 @@ func receiveBlockDigestFromClient[Client interface {
 				return
 			}
 
-			sendErr(fmt.Errorf("error receiving blockHeader: %w", err))
+			sendErr(fmt.Errorf("error receiving blockDigest: %w", err))
 			return
 		}
 
