@@ -139,7 +139,7 @@ func TestConvert_CadenceValue(t *testing.T) {
 }
 
 func TestConvert_Collection(t *testing.T) {
-	colA := test.CollectionGenerator().New()
+	colA := test.LightCollectionGenerator().New()
 
 	msg := CollectionToMessage(*colA)
 
