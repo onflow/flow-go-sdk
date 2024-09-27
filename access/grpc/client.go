@@ -207,7 +207,7 @@ func (c *Client) GetTransactionResultsByBlockID(ctx context.Context, blockID flo
 func (c *Client) SendAndSubscribeTransactionStatuses(
 	ctx context.Context,
 	tx flow.Transaction,
-) (<-chan flow.TransactionStatus, <-chan error, error) {
+) (<-chan flow.TransactionResult, <-chan error, error) {
 	return c.grpc.SendAndSubscribeTransactionStatuses(ctx, tx)
 }
 

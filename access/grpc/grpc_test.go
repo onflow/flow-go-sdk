@@ -2154,7 +2154,7 @@ func TestClient_SendAndSubscribeTransactionStatuses(t *testing.T) {
 	transactions := test.TransactionGenerator()
 
 	generateTransactionStatusResponses := func(count uint64, encodingVersion flow.EventEncodingVersion) []*access.SendAndSubscribeTransactionStatusesResponse {
-		var resTransactionStatuses []*access.SendAndSubscribeTransactionStatusesResponse
+		var resTransactionResults []*access.SendAndSubscribeTransactionStatusesResponse
 		results := test.TransactionResultGenerator(encodingVersion)
 
 		for i := uint64(0); i < count; i++ {
@@ -2163,12 +2163,13 @@ func TestClient_SendAndSubscribeTransactionStatuses(t *testing.T) {
 
 			response := &access.SendAndSubscribeTransactionStatusesResponse{
 				TransactionResults: transactionResult,
+				MessageIndex:       i,
 			}
 
-			resTransactionStatuses = append(resTransactionStatuses, response)
+			resTransactionResults = append(resTransactionResults, response)
 		}
 
-		return resTransactionStatuses
+		return resTransactionResults
 	}
 
 	t.Run("Happy Path - CCF", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
@@ -2183,17 +2184,23 @@ func TestClient_SendAndSubscribeTransactionStatuses(t *testing.T) {
 
 		rpc.On("SendAndSubscribeTransactionStatuses", ctx, mock.Anything).Return(stream, nil)
 
-		txStatusesCh, errCh, err := c.SendAndSubscribeTransactionStatuses(ctx, *tx)
+		txResultCh, errCh, err := c.SendAndSubscribeTransactionStatuses(ctx, *tx)
 		require.NoError(t, err)
 
 		wg := sync.WaitGroup{}
 		wg.Add(1)
 		go assertNoErrors(t, errCh, wg.Done)
 
+		expectedCounter := uint64(0)
+
 		for i := uint64(0); i < responseCount; i++ {
-			actualTxStatus := <-txStatusesCh
-			expectedTxStatus := flow.TransactionStatus(stream.responses[i].GetTransactionResults().Status)
-			require.Equal(t, expectedTxStatus, actualTxStatus)
+			actualTxResult := <-txResultCh
+			expectedTxResult, err := convert.MessageToTransactionResult(stream.responses[i].GetTransactionResults(), DefaultClientOptions().jsonOptions)
+			require.NoError(t, err)
+			require.Equal(t, expectedTxResult, actualTxResult)
+			require.Equal(t, expectedCounter, stream.responses[i].MessageIndex)
+
+			expectedCounter++
 		}
 		cancel()
 
@@ -2212,17 +2219,22 @@ func TestClient_SendAndSubscribeTransactionStatuses(t *testing.T) {
 
 		rpc.On("SendAndSubscribeTransactionStatuses", ctx, mock.Anything).Return(stream, nil)
 
-		txStatusesCh, errCh, err := c.SendAndSubscribeTransactionStatuses(ctx, *tx)
+		txResultCh, errCh, err := c.SendAndSubscribeTransactionStatuses(ctx, *tx)
 		require.NoError(t, err)
 
 		wg := sync.WaitGroup{}
 		wg.Add(1)
 		go assertNoErrors(t, errCh, wg.Done)
 
+		expectedCounter := uint64(0)
 		for i := uint64(0); i < responseCount; i++ {
-			actualTxStatus := <-txStatusesCh
-			expectedTxStatus := flow.TransactionStatus(stream.responses[i].GetTransactionResults().Status)
-			require.Equal(t, expectedTxStatus, actualTxStatus)
+			actualTxResult := <-txResultCh
+			expectedTxResult, err := convert.MessageToTransactionResult(stream.responses[i].GetTransactionResults(), DefaultClientOptions().jsonOptions)
+			require.NoError(t, err)
+			require.Equal(t, expectedTxResult, actualTxResult)
+			require.Equal(t, expectedCounter, stream.responses[i].MessageIndex)
+
+			expectedCounter++
 		}
 		cancel()
 
@@ -2240,12 +2252,12 @@ func TestClient_SendAndSubscribeTransactionStatuses(t *testing.T) {
 			On("SendAndSubscribeTransactionStatuses", ctx, mock.Anything).
 			Return(stream, nil)
 
-		txStatusChan, errCh, err := c.SendAndSubscribeTransactionStatuses(ctx, flow.Transaction{})
+		txResultChan, errCh, err := c.SendAndSubscribeTransactionStatuses(ctx, flow.Transaction{})
 		require.NoError(t, err)
 
 		wg := sync.WaitGroup{}
 		wg.Add(1)
-		go assertNoTxStatuses(t, txStatusChan, wg.Done)
+		go assertNoTxResults(t, txResultChan, wg.Done)
 
 		errorCount := 0
 		for e := range errCh {
@@ -2285,9 +2297,9 @@ func (m *mockTransactionStatusesClientStream) Recv() (*access.SendAndSubscribeTr
 	return m.responses[m.offset], nil
 }
 
-func assertNoTxStatuses[TxStatus any](t *testing.T, txStatusChan <-chan TxStatus, done func()) {
+func assertNoTxResults[TxStatus any](t *testing.T, txResultChan <-chan TxStatus, done func()) {
 	defer done()
-	for range txStatusChan {
+	for range txResultChan {
 		require.FailNow(t, "should not receive txStatus")
 	}
 }

@@ -1133,7 +1133,7 @@ func (c *BaseClient) SendAndSubscribeTransactionStatuses(
 	ctx context.Context,
 	tx flow.Transaction,
 	opts ...grpc.CallOption,
-) (<-chan flow.TransactionStatus, <-chan error, error) {
+) (<-chan flow.TransactionResult, <-chan error, error) {
 	txMsg, err := convert.TransactionToMessage(tx)
 	if err != nil {
 		return nil, nil, newEntityToMessageError(entityTransaction, err)
@@ -1149,7 +1149,7 @@ func (c *BaseClient) SendAndSubscribeTransactionStatuses(
 		return nil, nil, newRPCError(err)
 	}
 
-	txStatusChan := make(chan flow.TransactionStatus)
+	txStatusChan := make(chan flow.TransactionResult)
 	errChan := make(chan error)
 
 	sendErr := func(err error) {
@@ -1163,24 +1163,37 @@ func (c *BaseClient) SendAndSubscribeTransactionStatuses(
 		defer close(txStatusChan)
 		defer close(errChan)
 
+		messageIndex := uint64(0)
+
 		for {
-			// Receive the next txStatus response
-			txStatusResponse, err := subscribeClient.Recv()
+			// Receive the next txResult response
+			txResultsResponse, err := subscribeClient.Recv()
 			if err != nil {
 				if err == io.EOF {
 					// End of stream, return gracefully
 					return
 				}
-				sendErr(fmt.Errorf("error receiving blockHeader: %w", err))
+				sendErr(fmt.Errorf("error receiving transaction result: %w", err))
 				return
 			}
 
-			txStatus := flow.TransactionStatus(txStatusResponse.GetTransactionResults().Status)
+			if messageIndex != txResultsResponse.GetMessageIndex() {
+				sendErr(fmt.Errorf("tx result response was lost"))
+				return
+			}
+
+			txResult, err := convert.MessageToTransactionResult(txResultsResponse.GetTransactionResults(), c.jsonOptions)
+			if err != nil {
+				sendErr(fmt.Errorf("error converting transaction result: %w", err))
+				return
+			}
+
+			messageIndex++
 
 			select {
 			case <-ctx.Done():
 				return
-			case txStatusChan <- txStatus:
+			case txStatusChan <- txResult:
 			}
 		}
 	}()
