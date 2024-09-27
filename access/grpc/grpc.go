@@ -318,6 +318,50 @@ func (c *BaseClient) GetCollection(
 	return &result, nil
 }
 
+func (c *BaseClient) GetLightCollectionByID(
+	ctx context.Context,
+	id flow.Identifier,
+	opts ...grpc.CallOption,
+) (*flow.Collection, error) {
+	req := &access.GetCollectionByIDRequest{
+		Id: id.Bytes(),
+	}
+
+	res, err := c.rpcClient.GetCollectionByID(ctx, req, opts...)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	result, err := convert.MessageToCollection(res.GetCollection())
+	if err != nil {
+		return nil, newMessageToEntityError(entityCollection, err)
+	}
+
+	return &result, nil
+}
+
+func (c *BaseClient) GetFullCollectionByID(
+	ctx context.Context,
+	id flow.Identifier,
+	opts ...grpc.CallOption,
+) (*flow.FullCollection, error) {
+	req := &access.GetFullCollectionByIDRequest{
+		Id: id.Bytes(),
+	}
+
+	res, err := c.rpcClient.GetFullCollectionByID(ctx, req, opts...)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	result, err := convert.MessageToFullCollection(res.GetTransactions())
+	if err != nil {
+		return nil, newMessageToEntityError(entityCollection, err)
+	}
+
+	return &result, nil
+}
+
 func (c *BaseClient) SendTransaction(
 	ctx context.Context,
 	tx flow.Transaction,
@@ -595,6 +639,98 @@ func (c *BaseClient) GetAccountBalanceAtBlockHeight(
 	}
 
 	return response.GetBalance(), nil
+}
+
+func (c *BaseClient) GetAccountKeyAtLatestBlock(
+	ctx context.Context,
+	address flow.Address,
+	keyIndex uint32,
+) (*flow.AccountKey, error) {
+	request := &access.GetAccountKeyAtLatestBlockRequest{
+		Address: address.Bytes(),
+		Index:   keyIndex,
+	}
+
+	response, err := c.rpcClient.GetAccountKeyAtLatestBlock(ctx, request)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	accountKey, err := convert.MessageToAccountKey(response.GetAccountKey())
+	if err != nil {
+		return nil, newMessageToEntityError(entityAccount, err)
+	}
+
+	return accountKey, nil
+}
+
+func (c *BaseClient) GetAccountKeyAtBlockHeight(
+	ctx context.Context,
+	address flow.Address,
+	keyIndex uint32,
+	height uint64,
+) (*flow.AccountKey, error) {
+	request := &access.GetAccountKeyAtBlockHeightRequest{
+		Address:     address.Bytes(),
+		Index:       keyIndex,
+		BlockHeight: height,
+	}
+
+	response, err := c.rpcClient.GetAccountKeyAtBlockHeight(ctx, request)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	accountKey, err := convert.MessageToAccountKey(response.GetAccountKey())
+	if err != nil {
+		return nil, newMessageToEntityError(entityAccount, err)
+	}
+
+	return accountKey, nil
+}
+
+func (c *BaseClient) GetAccountKeysAtLatestBlock(
+	ctx context.Context,
+	address flow.Address,
+) ([]flow.AccountKey, error) {
+	request := &access.GetAccountKeysAtLatestBlockRequest{
+		Address: address.Bytes(),
+	}
+
+	response, err := c.rpcClient.GetAccountKeysAtLatestBlock(ctx, request)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	accountKeys, err := convert.MessageToAccountKeys(response.GetAccountKeys())
+	if err != nil {
+		return nil, newMessageToEntityError(entityAccount, err)
+	}
+
+	return accountKeys, nil
+}
+
+func (c *BaseClient) GetAccountKeysAtBlockHeight(
+	ctx context.Context,
+	address flow.Address,
+	height uint64,
+) ([]flow.AccountKey, error) {
+	request := &access.GetAccountKeysAtBlockHeightRequest{
+		Address:     address.Bytes(),
+		BlockHeight: height,
+	}
+
+	response, err := c.rpcClient.GetAccountKeysAtBlockHeight(ctx, request)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	accountKeys, err := convert.MessageToAccountKeys(response.GetAccountKeys())
+	if err != nil {
+		return nil, newMessageToEntityError(entityAccount, err)
+	}
+
+	return accountKeys, nil
 }
 
 func (c *BaseClient) ExecuteScriptAtLatestBlock(

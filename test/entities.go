@@ -188,22 +188,38 @@ func (g *BlockHeaders) New() flow.BlockHeader {
 	}
 }
 
-type Collections struct {
+type LightCollection struct {
 	ids *Identifiers
 }
 
-func CollectionGenerator() *Collections {
-	return &Collections{
+func LightCollectionGenerator() *LightCollection {
+	return &LightCollection{
 		ids: IdentifierGenerator(),
 	}
 }
 
-func (g *Collections) New() *flow.Collection {
+func (g *LightCollection) New() *flow.Collection {
 	return &flow.Collection{
 		TransactionIDs: []flow.Identifier{
 			g.ids.New(),
 			g.ids.New(),
 		},
+	}
+}
+
+type FullCollection struct {
+	Transactions *Transactions
+}
+
+func FullCollectionGenerator() *FullCollection {
+	return &FullCollection{
+		Transactions: TransactionGenerator(),
+	}
+}
+
+func (c *FullCollection) New() *flow.FullCollection {
+	return &flow.FullCollection{
+		Transactions: []*flow.Transaction{c.Transactions.New(), c.Transactions.New()},
 	}
 }
 
@@ -439,10 +455,11 @@ func (g *TransactionResults) New() flow.TransactionResult {
 			g.events.New(),
 			g.events.New(),
 		},
-		BlockID:       g.ids.New(),
-		BlockHeight:   uint64(42),
-		TransactionID: g.ids.New(),
-		CollectionID:  g.ids.New(),
+		BlockID:          g.ids.New(),
+		BlockHeight:      uint64(42),
+		TransactionID:    g.ids.New(),
+		CollectionID:     g.ids.New(),
+		ComputationUsage: uint64(42),
 	}
 }
 
