@@ -984,52 +984,28 @@ func (c *BaseClient) subscribeExecutionData(
 		return nil, nil, err
 	}
 
-	sub := make(chan flow.ExecutionDataStreamResponse)
-	errChan := make(chan error)
-
-	sendErr := func(err error) {
-		select {
-		case <-ctx.Done():
-		case errChan <- err:
+	convertExecutionData := func(resp *executiondata.SubscribeExecutionDataResponse) (flow.ExecutionDataStreamResponse, error) {
+		execData, err := convert.MessageToBlockExecutionData(resp.GetBlockExecutionData())
+		if err != nil {
+			return flow.ExecutionDataStreamResponse{}, fmt.Errorf("error converting execution data for block %d: %w", resp.GetBlockHeight(), err)
 		}
+
+		response := flow.ExecutionDataStreamResponse{
+			Height:         resp.BlockHeight,
+			ExecutionData:  execData,
+			BlockTimestamp: resp.BlockTimestamp.AsTime(),
+		}
+		return response, nil
 	}
 
-	go func() {
-		defer close(sub)
-		defer close(errChan)
+	execDataChan, errChan := subscribe(
+		ctx,
+		stream.Recv,
+		convertExecutionData,
+		"execution data",
+	)
 
-		for {
-			resp, err := stream.Recv()
-			if err != nil {
-				if err == io.EOF {
-					return
-				}
-
-				sendErr(fmt.Errorf("error receiving execution data: %w", err))
-				return
-			}
-
-			execData, err := convert.MessageToBlockExecutionData(resp.GetBlockExecutionData())
-			if err != nil {
-				sendErr(fmt.Errorf("error converting execution data for block %d: %w", resp.GetBlockHeight(), err))
-				return
-			}
-
-			response := flow.ExecutionDataStreamResponse{
-				Height:         resp.BlockHeight,
-				ExecutionData:  execData,
-				BlockTimestamp: resp.BlockTimestamp.AsTime(),
-			}
-
-			select {
-			case <-ctx.Done():
-				return
-			case sub <- response:
-			}
-		}
-	}()
-
-	return sub, errChan, nil
+	return execDataChan, errChan, nil
 }
 
 func (c *BaseClient) SubscribeEventsByBlockID(
@@ -1051,11 +1027,11 @@ func (c *BaseClient) SubscribeEventsByBlockHeight(
 	filter flow.EventFilter,
 	opts ...SubscribeOption,
 ) (<-chan flow.BlockEvents, <-chan error, error) {
-	req := executiondata.SubscribeEventsRequest{
+	req := &executiondata.SubscribeEventsRequest{
 		StartBlockHeight:     startHeight,
 		EventEncodingVersion: c.eventEncoding,
 	}
-	return c.subscribeEvents(ctx, &req, filter, opts...)
+	return c.subscribeEvents(ctx, req, filter, opts...)
 }
 
 func (c *BaseClient) subscribeEvents(
@@ -1081,53 +1057,24 @@ func (c *BaseClient) subscribeEvents(
 		return nil, nil, err
 	}
 
-	sub := make(chan flow.BlockEvents)
-	errChan := make(chan error)
-
-	sendErr := func(err error) {
-		select {
-		case <-ctx.Done():
-		case errChan <- err:
+	convertEventsResponse := func(response *executiondata.SubscribeEventsResponse) (flow.BlockEvents, error) {
+		events, err := convert.MessagesToEvents(response.GetEvents(), c.jsonOptions)
+		if err != nil {
+			return flow.BlockEvents{}, fmt.Errorf("error converting events: %w", err)
 		}
+
+		blockEvents := flow.BlockEvents{
+			Height:         response.GetBlockHeight(),
+			BlockID:        convert.MessageToIdentifier(response.GetBlockId()),
+			Events:         events,
+			BlockTimestamp: response.GetBlockTimestamp().AsTime(),
+		}
+
+		return blockEvents, nil
 	}
+	eventsChan, errChan := subscribe(ctx, stream.Recv, convertEventsResponse, "events")
 
-	go func() {
-		defer close(sub)
-		defer close(errChan)
-
-		for {
-			resp, err := stream.Recv()
-			if err != nil {
-				if err == io.EOF {
-					return
-				}
-
-				sendErr(fmt.Errorf("error receiving event: %w", err))
-				return
-			}
-
-			events, err := convert.MessagesToEvents(resp.GetEvents(), c.jsonOptions)
-			if err != nil {
-				sendErr(fmt.Errorf("error converting event for block %d: %w", resp.GetBlockHeight(), err))
-				return
-			}
-
-			response := flow.BlockEvents{
-				Height:         resp.GetBlockHeight(),
-				BlockID:        convert.MessageToIdentifier(resp.GetBlockId()),
-				Events:         events,
-				BlockTimestamp: resp.GetBlockTimestamp().AsTime(),
-			}
-
-			select {
-			case <-ctx.Done():
-				return
-			case sub <- response:
-			}
-		}
-	}()
-
-	return sub, errChan, nil
+	return eventsChan, errChan, nil
 }
 
 func (c *BaseClient) SubscribeAccountStatusesFromStartHeight(
@@ -1150,14 +1097,15 @@ func (c *BaseClient) SubscribeAccountStatusesFromStartHeight(
 		return nil, nil, newRPCError(err)
 	}
 
-	accountStatutesChan := make(chan flow.AccountStatus)
-	errChan := make(chan error)
-
-	go func() {
-		defer close(accountStatutesChan)
-		defer close(errChan)
-		receiveAccountStatusesFromClient(ctx, subscribeClient, accountStatutesChan, errChan)
-	}()
+	convertAccountStatusResponse := func(response *executiondata.SubscribeAccountStatusesResponse) (flow.AccountStatus, error) {
+		return convert.MessageToAccountStatus(response)
+	}
+	accountStatutesChan, errChan := subscribe(
+		ctx,
+		subscribeClient.Recv,
+		convertAccountStatusResponse,
+		"account statutes",
+	)
 
 	return accountStatutesChan, errChan, nil
 }
@@ -1182,14 +1130,15 @@ func (c *BaseClient) SubscribeAccountStatusesFromStartBlockID(
 		return nil, nil, newRPCError(err)
 	}
 
-	accountStatutesChan := make(chan flow.AccountStatus)
-	errChan := make(chan error)
-
-	go func() {
-		defer close(accountStatutesChan)
-		defer close(errChan)
-		receiveAccountStatusesFromClient(ctx, subscribeClient, accountStatutesChan, errChan)
-	}()
+	convertAccountStatusResponse := func(response *executiondata.SubscribeAccountStatusesResponse) (flow.AccountStatus, error) {
+		return convert.MessageToAccountStatus(response)
+	}
+	accountStatutesChan, errChan := subscribe(
+		ctx,
+		subscribeClient.Recv,
+		convertAccountStatusResponse,
+		"account statutes",
+	)
 
 	return accountStatutesChan, errChan, nil
 }
@@ -1212,57 +1161,17 @@ func (c *BaseClient) SubscribeAccountStatusesFromLatestBlock(
 		return nil, nil, newRPCError(err)
 	}
 
-	accountStatutesChan := make(chan flow.AccountStatus)
-	errChan := make(chan error)
-
-	go func() {
-		defer close(accountStatutesChan)
-		defer close(errChan)
-		receiveAccountStatusesFromClient(ctx, subscribeClient, accountStatutesChan, errChan)
-	}()
+	convertAccountStatusResponse := func(response *executiondata.SubscribeAccountStatusesResponse) (flow.AccountStatus, error) {
+		return convert.MessageToAccountStatus(response)
+	}
+	accountStatutesChan, errChan := subscribe(
+		ctx,
+		subscribeClient.Recv,
+		convertAccountStatusResponse,
+		"account statutes",
+	)
 
 	return accountStatutesChan, errChan, nil
-}
-
-func receiveAccountStatusesFromClient[Client interface {
-	Recv() (*executiondata.SubscribeAccountStatusesResponse, error)
-}](
-	ctx context.Context,
-	client Client,
-	accountStatutesChan chan<- flow.AccountStatus,
-	errChan chan<- error,
-) {
-	sendErr := func(err error) {
-		select {
-		case <-ctx.Done():
-		case errChan <- err:
-		}
-	}
-
-	for {
-		accountStatusResponse, err := client.Recv()
-		if err != nil {
-			if err == io.EOF {
-				// End of stream, return gracefully
-				return
-			}
-
-			sendErr(fmt.Errorf("error receiving account status: %w", err))
-			return
-		}
-
-		accountStatus, err := convert.MessageToAccountStatus(accountStatusResponse)
-		if err != nil {
-			sendErr(fmt.Errorf("error converting message to account status: %w", err))
-			return
-		}
-
-		select {
-		case <-ctx.Done():
-			return
-		case accountStatutesChan <- accountStatus:
-		}
-	}
 }
 
 func (c *BaseClient) SubscribeBlockHeadersFromStartBlockID(
@@ -1281,16 +1190,17 @@ func (c *BaseClient) SubscribeBlockHeadersFromStartBlockID(
 		return nil, nil, newRPCError(err)
 	}
 
-	blockHeaderChan := make(chan flow.BlockHeader)
-	errChan := make(chan error)
+	convertBlockHeaderResponse := func(response *access.SubscribeBlockHeadersResponse) (flow.BlockHeader, error) {
+		return convert.MessageToBlockHeader(response.GetHeader())
+	}
+	blockHeadersChan, errChan := subscribe(
+		ctx,
+		subscribeClient.Recv,
+		convertBlockHeaderResponse,
+		"block header",
+	)
 
-	go func() {
-		defer close(blockHeaderChan)
-		defer close(errChan)
-		receiveBlockHeadersFromClient(ctx, subscribeClient, blockHeaderChan, errChan)
-	}()
-
-	return blockHeaderChan, errChan, nil
+	return blockHeadersChan, errChan, nil
 }
 
 func (c *BaseClient) SubscribeBlockHeadersFromStartHeight(
@@ -1309,16 +1219,17 @@ func (c *BaseClient) SubscribeBlockHeadersFromStartHeight(
 		return nil, nil, newRPCError(err)
 	}
 
-	blockHeaderChan := make(chan flow.BlockHeader)
-	errChan := make(chan error)
+	convertBlockHeaderResponse := func(response *access.SubscribeBlockHeadersResponse) (flow.BlockHeader, error) {
+		return convert.MessageToBlockHeader(response.GetHeader())
+	}
+	blockHeadersChan, errChan := subscribe(
+		ctx,
+		subscribeClient.Recv,
+		convertBlockHeaderResponse,
+		"block header",
+	)
 
-	go func() {
-		defer close(blockHeaderChan)
-		defer close(errChan)
-		receiveBlockHeadersFromClient(ctx, subscribeClient, blockHeaderChan, errChan)
-	}()
-
-	return blockHeaderChan, errChan, nil
+	return blockHeadersChan, errChan, nil
 }
 
 func (c *BaseClient) SubscribeBlockHeadersFromLatest(
@@ -1335,58 +1246,17 @@ func (c *BaseClient) SubscribeBlockHeadersFromLatest(
 		return nil, nil, newRPCError(err)
 	}
 
-	blockHeaderChan := make(chan flow.BlockHeader)
-	errChan := make(chan error)
-
-	go func() {
-		defer close(blockHeaderChan)
-		defer close(errChan)
-		receiveBlockHeadersFromClient(ctx, subscribeClient, blockHeaderChan, errChan)
-	}()
-
-	return blockHeaderChan, errChan, nil
-}
-
-func receiveBlockHeadersFromClient[Client interface {
-	Recv() (*access.SubscribeBlockHeadersResponse, error)
-}](
-	ctx context.Context,
-	client Client,
-	blockHeadersChan chan<- flow.BlockHeader,
-	errChan chan<- error,
-) {
-	sendErr := func(err error) {
-		select {
-		case <-ctx.Done():
-		case errChan <- err:
-		}
+	convertBlockHeaderResponse := func(response *access.SubscribeBlockHeadersResponse) (flow.BlockHeader, error) {
+		return convert.MessageToBlockHeader(response.GetHeader())
 	}
+	blockHeadersChan, errChan := subscribe(
+		ctx,
+		subscribeClient.Recv,
+		convertBlockHeaderResponse,
+		"block header",
+	)
 
-	for {
-		// Receive the next blockHeader response
-		blockHeaderResponse, err := client.Recv()
-		if err != nil {
-			if err == io.EOF {
-				// End of stream, return gracefully
-				return
-			}
-
-			sendErr(fmt.Errorf("error receiving blockHeader: %w", err))
-			return
-		}
-
-		blockHeader, err := convert.MessageToBlockHeader(blockHeaderResponse.GetHeader())
-		if err != nil {
-			sendErr(fmt.Errorf("error converting message to block header: %w", err))
-			return
-		}
-
-		select {
-		case <-ctx.Done():
-			return
-		case blockHeadersChan <- blockHeader:
-		}
-	}
+	return blockHeadersChan, errChan, nil
 }
 
 func (c *BaseClient) SubscribeBlocksFromStartBlockID(
@@ -1405,14 +1275,10 @@ func (c *BaseClient) SubscribeBlocksFromStartBlockID(
 		return nil, nil, newRPCError(err)
 	}
 
-	blocksChan := make(chan flow.Block)
-	errChan := make(chan error)
-
-	go func() {
-		defer close(blocksChan)
-		defer close(errChan)
-		receiveBlocksFromClient(ctx, subscribeClient, blocksChan, errChan)
-	}()
+	convertBlockResponse := func(response *access.SubscribeBlocksResponse) (flow.Block, error) {
+		return convert.MessageToBlock(response.GetBlock())
+	}
+	blocksChan, errChan := subscribe(ctx, subscribeClient.Recv, convertBlockResponse, "block")
 
 	return blocksChan, errChan, nil
 }
@@ -1433,14 +1299,10 @@ func (c *BaseClient) SubscribeBlocksFromStartHeight(
 		return nil, nil, newRPCError(err)
 	}
 
-	blocksChan := make(chan flow.Block)
-	errChan := make(chan error)
-
-	go func() {
-		defer close(blocksChan)
-		defer close(errChan)
-		receiveBlocksFromClient(ctx, subscribeClient, blocksChan, errChan)
-	}()
+	convertBlockResponse := func(response *access.SubscribeBlocksResponse) (flow.Block, error) {
+		return convert.MessageToBlock(response.GetBlock())
+	}
+	blocksChan, errChan := subscribe(ctx, subscribeClient.Recv, convertBlockResponse, "block")
 
 	return blocksChan, errChan, nil
 }
@@ -1459,26 +1321,23 @@ func (c *BaseClient) SubscribeBlocksFromLatest(
 		return nil, nil, newRPCError(err)
 	}
 
-	blocksChan := make(chan flow.Block)
-	errChan := make(chan error)
-
-	go func() {
-		defer close(blocksChan)
-		defer close(errChan)
-		receiveBlocksFromClient(ctx, subscribeClient, blocksChan, errChan)
-	}()
+	convertBlockResponse := func(response *access.SubscribeBlocksResponse) (flow.Block, error) {
+		return convert.MessageToBlock(response.GetBlock())
+	}
+	blocksChan, errChan := subscribe(ctx, subscribeClient.Recv, convertBlockResponse, "block")
 
 	return blocksChan, errChan, nil
 }
 
-func receiveBlocksFromClient[Client interface {
-	Recv() (*access.SubscribeBlocksResponse, error)
-}](
+func subscribe[Response any, ClientResponse any](
 	ctx context.Context,
-	client Client,
-	blocksChan chan<- flow.Block,
-	errChan chan<- error,
-) {
+	receive func() (*ClientResponse, error),
+	convertResponse func(*ClientResponse) (Response, error),
+	topicNameForErrors string,
+) (chan Response, chan error) {
+	subChan := make(chan Response)
+	errChan := make(chan error)
+
 	sendErr := func(err error) {
 		select {
 		case <-ctx.Done():
@@ -1486,70 +1345,34 @@ func receiveBlocksFromClient[Client interface {
 		}
 	}
 
-	for {
-		// Receive the next block response
-		blockResponse, err := client.Recv()
-		if err != nil {
-			if err == io.EOF {
-				// End of stream, return gracefully
+	go func() {
+		defer close(subChan)
+		defer close(errChan)
+
+		for {
+			resp, err := receive()
+			if err != nil {
+				if err == io.EOF {
+					return
+				}
+
+				sendErr(fmt.Errorf("error receiving %s: %w", topicNameForErrors, err))
 				return
 			}
 
-			sendErr(fmt.Errorf("error receiving block: %w", err))
-			return
-		}
-
-		block, err := convert.MessageToBlock(blockResponse.GetBlock())
-		if err != nil {
-			sendErr(fmt.Errorf("error converting message to block: %w", err))
-			return
-		}
-
-		select {
-		case <-ctx.Done():
-			return
-		case blocksChan <- block:
-		}
-	}
-}
-
-func receiveDataFromClient[DataItem, Response, Client interface{ Recv() (*Response, error) }](
-	ctx context.Context,
-	client Client,
-	dataItemChan chan<- DataItem,
-	errChan chan<- error,
-	conversionFunc func(*Response) (DataItem, error),
-) {
-	sendErr := func(err error) {
-		select {
-		case <-ctx.Done():
-		case errChan <- err:
-		}
-	}
-
-	for {
-		// Receive the next dataItem response
-		response, err := client.Recv()
-		if err != nil {
-			if err == io.EOF {
-				// End of stream, return gracefully
+			response, err := convertResponse(resp)
+			if err != nil {
+				sendErr(fmt.Errorf("error converting %s: %w", topicNameForErrors, err))
 				return
 			}
 
-			sendErr(fmt.Errorf("error receiving data item: %w", err))
-			return
+			select {
+			case <-ctx.Done():
+				return
+			case subChan <- response:
+			}
 		}
+	}()
 
-		dataItem, err := conversionFunc(response)
-		if err != nil {
-			sendErr(fmt.Errorf("error converting message to data item: %w", err))
-			return
-		}
-
-		select {
-		case <-ctx.Done():
-			return
-		case dataItemChan <- dataItem:
-		}
-	}
+	return subChan, errChan
 }
