@@ -23,9 +23,11 @@ package grpc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 
+	"github.com/onflow/flow/protobuf/go/flow/entities"
 	"google.golang.org/grpc"
 
 	"github.com/onflow/cadence"
@@ -1136,9 +1138,14 @@ func (c *BaseClient) SubscribeBlockHeadersFromStartBlockID(
 	blockStatus flow.BlockStatus,
 	opts ...grpc.CallOption,
 ) (<-chan flow.BlockHeader, <-chan error, error) {
+	status := convert.BlockStatusToEntity(blockStatus)
+	if status == entities.BlockStatus_BLOCK_UNKNOWN {
+		return nil, nil, newRPCError(errors.New("unknown block status"))
+	}
+
 	request := &access.SubscribeBlockHeadersFromStartBlockIDRequest{
 		StartBlockId: startBlockID.Bytes(),
-		BlockStatus:  convert.BlockStatusToEntity(blockStatus),
+		BlockStatus:  status,
 	}
 
 	subscribeClient, err := c.rpcClient.SubscribeBlockHeadersFromStartBlockID(ctx, request, opts...)
@@ -1164,9 +1171,14 @@ func (c *BaseClient) SubscribeBlockHeadersFromStartHeight(
 	blockStatus flow.BlockStatus,
 	opts ...grpc.CallOption,
 ) (<-chan flow.BlockHeader, <-chan error, error) {
+	status := convert.BlockStatusToEntity(blockStatus)
+	if status == entities.BlockStatus_BLOCK_UNKNOWN {
+		return nil, nil, newRPCError(errors.New("unknown block status"))
+	}
+
 	request := &access.SubscribeBlockHeadersFromStartHeightRequest{
 		StartBlockHeight: startHeight,
-		BlockStatus:      convert.BlockStatusToEntity(blockStatus),
+		BlockStatus:      status,
 	}
 
 	subscribeClient, err := c.rpcClient.SubscribeBlockHeadersFromStartHeight(ctx, request, opts...)
@@ -1191,8 +1203,13 @@ func (c *BaseClient) SubscribeBlockHeadersFromLatest(
 	blockStatus flow.BlockStatus,
 	opts ...grpc.CallOption,
 ) (<-chan flow.BlockHeader, <-chan error, error) {
+	status := convert.BlockStatusToEntity(blockStatus)
+	if status == entities.BlockStatus_BLOCK_UNKNOWN {
+		return nil, nil, newRPCError(errors.New("unknown block status"))
+	}
+
 	request := &access.SubscribeBlockHeadersFromLatestRequest{
-		BlockStatus: convert.BlockStatusToEntity(blockStatus),
+		BlockStatus: status,
 	}
 
 	subscribeClient, err := c.rpcClient.SubscribeBlockHeadersFromLatest(ctx, request, opts...)
