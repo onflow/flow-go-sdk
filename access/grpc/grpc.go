@@ -1010,52 +1010,28 @@ func (c *BaseClient) subscribeExecutionData(
 		return nil, nil, err
 	}
 
-	sub := make(chan flow.ExecutionDataStreamResponse)
-	errChan := make(chan error)
-
-	sendErr := func(err error) {
-		select {
-		case <-ctx.Done():
-		case errChan <- err:
+	convertExecutionData := func(resp *executiondata.SubscribeExecutionDataResponse) (flow.ExecutionDataStreamResponse, error) {
+		execData, err := convert.MessageToBlockExecutionData(resp.GetBlockExecutionData())
+		if err != nil {
+			return flow.ExecutionDataStreamResponse{}, fmt.Errorf("error converting execution data for block %d: %w", resp.GetBlockHeight(), err)
 		}
+
+		response := flow.ExecutionDataStreamResponse{
+			Height:         resp.BlockHeight,
+			ExecutionData:  execData,
+			BlockTimestamp: resp.BlockTimestamp.AsTime(),
+		}
+		return response, nil
 	}
 
-	go func() {
-		defer close(sub)
-		defer close(errChan)
+	execDataChan, errChan := subscribe(
+		ctx,
+		stream.Recv,
+		convertExecutionData,
+		"execution data",
+	)
 
-		for {
-			resp, err := stream.Recv()
-			if err != nil {
-				if err == io.EOF {
-					return
-				}
-
-				sendErr(fmt.Errorf("error receiving execution data: %w", err))
-				return
-			}
-
-			execData, err := convert.MessageToBlockExecutionData(resp.GetBlockExecutionData())
-			if err != nil {
-				sendErr(fmt.Errorf("error converting execution data for block %d: %w", resp.GetBlockHeight(), err))
-				return
-			}
-
-			response := flow.ExecutionDataStreamResponse{
-				Height:         resp.BlockHeight,
-				ExecutionData:  execData,
-				BlockTimestamp: resp.BlockTimestamp.AsTime(),
-			}
-
-			select {
-			case <-ctx.Done():
-				return
-			case sub <- response:
-			}
-		}
-	}()
-
-	return sub, errChan, nil
+	return execDataChan, errChan, nil
 }
 
 func (c *BaseClient) SubscribeEventsByBlockID(
@@ -1077,11 +1053,11 @@ func (c *BaseClient) SubscribeEventsByBlockHeight(
 	filter flow.EventFilter,
 	opts ...SubscribeOption,
 ) (<-chan flow.BlockEvents, <-chan error, error) {
-	req := executiondata.SubscribeEventsRequest{
+	req := &executiondata.SubscribeEventsRequest{
 		StartBlockHeight:     startHeight,
 		EventEncodingVersion: c.eventEncoding,
 	}
-	return c.subscribeEvents(ctx, &req, filter, opts...)
+	return c.subscribeEvents(ctx, req, filter, opts...)
 }
 
 func (c *BaseClient) subscribeEvents(
@@ -1107,7 +1083,285 @@ func (c *BaseClient) subscribeEvents(
 		return nil, nil, err
 	}
 
-	sub := make(chan flow.BlockEvents)
+	convertEventsResponse := func(response *executiondata.SubscribeEventsResponse) (flow.BlockEvents, error) {
+		events, err := convert.MessagesToEvents(response.GetEvents(), c.jsonOptions)
+		if err != nil {
+			return flow.BlockEvents{}, fmt.Errorf("error converting events: %w", err)
+		}
+
+		blockEvents := flow.BlockEvents{
+			Height:         response.GetBlockHeight(),
+			BlockID:        convert.MessageToIdentifier(response.GetBlockId()),
+			Events:         events,
+			BlockTimestamp: response.GetBlockTimestamp().AsTime(),
+		}
+
+		return blockEvents, nil
+	}
+	eventsChan, errChan := subscribe(ctx, stream.Recv, convertEventsResponse, "events")
+
+	return eventsChan, errChan, nil
+}
+
+func (c *BaseClient) SubscribeAccountStatusesFromStartHeight(
+	ctx context.Context,
+	startHeight uint64,
+	filter flow.AccountStatusFilter,
+	opts ...grpc.CallOption,
+) (<-chan flow.AccountStatus, <-chan error, error) {
+	request := &executiondata.SubscribeAccountStatusesFromStartHeightRequest{
+		StartBlockHeight:     startHeight,
+		EventEncodingVersion: c.eventEncoding,
+	}
+	request.Filter = &executiondata.StatusFilter{
+		EventType: filter.EventTypes,
+		Address:   filter.Addresses,
+	}
+
+	subscribeClient, err := c.executionDataClient.SubscribeAccountStatusesFromStartHeight(ctx, request, opts...)
+	if err != nil {
+		return nil, nil, newRPCError(err)
+	}
+
+	convertAccountStatusResponse := func(response *executiondata.SubscribeAccountStatusesResponse) (flow.AccountStatus, error) {
+		return convert.MessageToAccountStatus(response)
+	}
+	accountStatutesChan, errChan := subscribe(
+		ctx,
+		subscribeClient.Recv,
+		convertAccountStatusResponse,
+		"account statutes",
+	)
+
+	return accountStatutesChan, errChan, nil
+}
+
+func (c *BaseClient) SubscribeAccountStatusesFromStartBlockID(
+	ctx context.Context,
+	startBlockID flow.Identifier,
+	filter flow.AccountStatusFilter,
+	opts ...grpc.CallOption,
+) (<-chan flow.AccountStatus, <-chan error, error) {
+	request := &executiondata.SubscribeAccountStatusesFromStartBlockIDRequest{
+		StartBlockId:         startBlockID.Bytes(),
+		EventEncodingVersion: c.eventEncoding,
+	}
+	request.Filter = &executiondata.StatusFilter{
+		EventType: filter.EventTypes,
+		Address:   filter.Addresses,
+	}
+
+	subscribeClient, err := c.executionDataClient.SubscribeAccountStatusesFromStartBlockID(ctx, request, opts...)
+	if err != nil {
+		return nil, nil, newRPCError(err)
+	}
+
+	convertAccountStatusResponse := func(response *executiondata.SubscribeAccountStatusesResponse) (flow.AccountStatus, error) {
+		return convert.MessageToAccountStatus(response)
+	}
+	accountStatutesChan, errChan := subscribe(
+		ctx,
+		subscribeClient.Recv,
+		convertAccountStatusResponse,
+		"account statutes",
+	)
+
+	return accountStatutesChan, errChan, nil
+}
+
+func (c *BaseClient) SubscribeAccountStatusesFromLatestBlock(
+	ctx context.Context,
+	filter flow.AccountStatusFilter,
+	opts ...grpc.CallOption,
+) (<-chan flow.AccountStatus, <-chan error, error) {
+	request := &executiondata.SubscribeAccountStatusesFromLatestBlockRequest{
+		EventEncodingVersion: c.eventEncoding,
+	}
+	request.Filter = &executiondata.StatusFilter{
+		EventType: filter.EventTypes,
+		Address:   filter.Addresses,
+	}
+
+	subscribeClient, err := c.executionDataClient.SubscribeAccountStatusesFromLatestBlock(ctx, request, opts...)
+	if err != nil {
+		return nil, nil, newRPCError(err)
+	}
+
+	convertAccountStatusResponse := func(response *executiondata.SubscribeAccountStatusesResponse) (flow.AccountStatus, error) {
+		return convert.MessageToAccountStatus(response)
+	}
+	accountStatutesChan, errChan := subscribe(
+		ctx,
+		subscribeClient.Recv,
+		convertAccountStatusResponse,
+		"account statutes",
+	)
+
+	return accountStatutesChan, errChan, nil
+}
+
+func (c *BaseClient) SubscribeBlockHeadersFromStartBlockID(
+	ctx context.Context,
+	startBlockID flow.Identifier,
+	blockStatus flow.BlockStatus,
+	opts ...grpc.CallOption,
+) (<-chan flow.BlockHeader, <-chan error, error) {
+	request := &access.SubscribeBlockHeadersFromStartBlockIDRequest{
+		StartBlockId: startBlockID.Bytes(),
+		BlockStatus:  convert.BlockStatusToEntity(blockStatus),
+	}
+
+	subscribeClient, err := c.rpcClient.SubscribeBlockHeadersFromStartBlockID(ctx, request, opts...)
+	if err != nil {
+		return nil, nil, newRPCError(err)
+	}
+
+	convertBlockHeaderResponse := func(response *access.SubscribeBlockHeadersResponse) (flow.BlockHeader, error) {
+		return convert.MessageToBlockHeader(response.GetHeader())
+	}
+	blockHeadersChan, errChan := subscribe(
+		ctx,
+		subscribeClient.Recv,
+		convertBlockHeaderResponse,
+		"block header",
+	)
+
+	return blockHeadersChan, errChan, nil
+}
+
+func (c *BaseClient) SubscribeBlockHeadersFromStartHeight(
+	ctx context.Context,
+	startHeight uint64,
+	blockStatus flow.BlockStatus,
+	opts ...grpc.CallOption,
+) (<-chan flow.BlockHeader, <-chan error, error) {
+	request := &access.SubscribeBlockHeadersFromStartHeightRequest{
+		StartBlockHeight: startHeight,
+		BlockStatus:      convert.BlockStatusToEntity(blockStatus),
+	}
+
+	subscribeClient, err := c.rpcClient.SubscribeBlockHeadersFromStartHeight(ctx, request, opts...)
+	if err != nil {
+		return nil, nil, newRPCError(err)
+	}
+
+	convertBlockHeaderResponse := func(response *access.SubscribeBlockHeadersResponse) (flow.BlockHeader, error) {
+		return convert.MessageToBlockHeader(response.GetHeader())
+	}
+	blockHeadersChan, errChan := subscribe(
+		ctx,
+		subscribeClient.Recv,
+		convertBlockHeaderResponse,
+		"block header",
+	)
+
+	return blockHeadersChan, errChan, nil
+}
+
+func (c *BaseClient) SubscribeBlockHeadersFromLatest(
+	ctx context.Context,
+	blockStatus flow.BlockStatus,
+	opts ...grpc.CallOption,
+) (<-chan flow.BlockHeader, <-chan error, error) {
+	request := &access.SubscribeBlockHeadersFromLatestRequest{
+		BlockStatus: convert.BlockStatusToEntity(blockStatus),
+	}
+
+	subscribeClient, err := c.rpcClient.SubscribeBlockHeadersFromLatest(ctx, request, opts...)
+	if err != nil {
+		return nil, nil, newRPCError(err)
+	}
+
+	convertBlockHeaderResponse := func(response *access.SubscribeBlockHeadersResponse) (flow.BlockHeader, error) {
+		return convert.MessageToBlockHeader(response.GetHeader())
+	}
+	blockHeadersChan, errChan := subscribe(
+		ctx,
+		subscribeClient.Recv,
+		convertBlockHeaderResponse,
+		"block header",
+	)
+
+	return blockHeadersChan, errChan, nil
+}
+
+func (c *BaseClient) SubscribeBlocksFromStartBlockID(
+	ctx context.Context,
+	startBlockID flow.Identifier,
+	blockStatus flow.BlockStatus,
+	opts ...grpc.CallOption,
+) (<-chan flow.Block, <-chan error, error) {
+	request := &access.SubscribeBlocksFromStartBlockIDRequest{
+		StartBlockId: startBlockID.Bytes(),
+		BlockStatus:  convert.BlockStatusToEntity(blockStatus),
+	}
+
+	subscribeClient, err := c.rpcClient.SubscribeBlocksFromStartBlockID(ctx, request, opts...)
+	if err != nil {
+		return nil, nil, newRPCError(err)
+	}
+
+	convertBlockResponse := func(response *access.SubscribeBlocksResponse) (flow.Block, error) {
+		return convert.MessageToBlock(response.GetBlock())
+	}
+	blocksChan, errChan := subscribe(ctx, subscribeClient.Recv, convertBlockResponse, "block")
+
+	return blocksChan, errChan, nil
+}
+
+func (c *BaseClient) SubscribeBlocksFromStartHeight(
+	ctx context.Context,
+	startHeight uint64,
+	blockStatus flow.BlockStatus,
+	opts ...grpc.CallOption,
+) (<-chan flow.Block, <-chan error, error) {
+	request := &access.SubscribeBlocksFromStartHeightRequest{
+		StartBlockHeight: startHeight,
+		BlockStatus:      convert.BlockStatusToEntity(blockStatus),
+	}
+
+	subscribeClient, err := c.rpcClient.SubscribeBlocksFromStartHeight(ctx, request, opts...)
+	if err != nil {
+		return nil, nil, newRPCError(err)
+	}
+
+	convertBlockResponse := func(response *access.SubscribeBlocksResponse) (flow.Block, error) {
+		return convert.MessageToBlock(response.GetBlock())
+	}
+	blocksChan, errChan := subscribe(ctx, subscribeClient.Recv, convertBlockResponse, "block")
+
+	return blocksChan, errChan, nil
+}
+
+func (c *BaseClient) SubscribeBlocksFromLatest(
+	ctx context.Context,
+	blockStatus flow.BlockStatus,
+	opts ...grpc.CallOption,
+) (<-chan flow.Block, <-chan error, error) {
+	request := &access.SubscribeBlocksFromLatestRequest{
+		BlockStatus: convert.BlockStatusToEntity(blockStatus),
+	}
+
+	subscribeClient, err := c.rpcClient.SubscribeBlocksFromLatest(ctx, request, opts...)
+	if err != nil {
+		return nil, nil, newRPCError(err)
+	}
+
+	convertBlockResponse := func(response *access.SubscribeBlocksResponse) (flow.Block, error) {
+		return convert.MessageToBlock(response.GetBlock())
+	}
+	blocksChan, errChan := subscribe(ctx, subscribeClient.Recv, convertBlockResponse, "block")
+
+	return blocksChan, errChan, nil
+}
+
+func subscribe[Response any, ClientResponse any](
+	ctx context.Context,
+	receive func() (*ClientResponse, error),
+	convertResponse func(*ClientResponse) (Response, error),
+	topicNameForErrors string,
+) (chan Response, chan error) {
+	subChan := make(chan Response)
 	errChan := make(chan error)
 
 	sendErr := func(err error) {
@@ -1118,40 +1372,33 @@ func (c *BaseClient) subscribeEvents(
 	}
 
 	go func() {
-		defer close(sub)
+		defer close(subChan)
 		defer close(errChan)
 
 		for {
-			resp, err := stream.Recv()
+			resp, err := receive()
 			if err != nil {
 				if err == io.EOF {
 					return
 				}
 
-				sendErr(fmt.Errorf("error receiving event: %w", err))
+				sendErr(fmt.Errorf("error receiving %s: %w", topicNameForErrors, err))
 				return
 			}
 
-			events, err := convert.MessagesToEvents(resp.GetEvents(), c.jsonOptions)
+			response, err := convertResponse(resp)
 			if err != nil {
-				sendErr(fmt.Errorf("error converting event for block %d: %w", resp.GetBlockHeight(), err))
+				sendErr(fmt.Errorf("error converting %s: %w", topicNameForErrors, err))
 				return
-			}
-
-			response := flow.BlockEvents{
-				Height:         resp.GetBlockHeight(),
-				BlockID:        convert.MessageToIdentifier(resp.GetBlockId()),
-				Events:         events,
-				BlockTimestamp: resp.GetBlockTimestamp().AsTime(),
 			}
 
 			select {
 			case <-ctx.Done():
 				return
-			case sub <- response:
+			case subChan <- response:
 			}
 		}
 	}()
 
-	return sub, errChan, nil
+	return subChan, errChan
 }

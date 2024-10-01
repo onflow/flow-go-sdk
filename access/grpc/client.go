@@ -322,6 +322,52 @@ func (c *Client) SubscribeEventsByBlockHeight(
 	return c.grpc.SubscribeEventsByBlockHeight(ctx, startHeight, filter, WithHeartbeatInterval(conf.heartbeatInterval))
 }
 
+func (c *Client) SubscribeBlockHeadersFromStartBlockID(
+	ctx context.Context,
+	startBlockID flow.Identifier,
+	blockStatus flow.BlockStatus,
+) (<-chan flow.BlockHeader, <-chan error, error) {
+	return c.grpc.SubscribeBlockHeadersFromStartBlockID(ctx, startBlockID, blockStatus)
+}
+
+func (c *Client) SubscribeBlockHeadersFromStartHeight(
+	ctx context.Context,
+	startHeight uint64,
+	blockStatus flow.BlockStatus,
+) (<-chan flow.BlockHeader, <-chan error, error) {
+	return c.grpc.SubscribeBlockHeadersFromStartHeight(ctx, startHeight, blockStatus)
+}
+
+func (c *Client) SubscribeBlocksHeadersFromLatest(
+	ctx context.Context,
+	blockStatus flow.BlockStatus,
+) (<-chan flow.BlockHeader, <-chan error, error) {
+	return c.grpc.SubscribeBlockHeadersFromLatest(ctx, blockStatus)
+}
+
+func (c *Client) SubscribeBlocksFromStartBlockID(
+	ctx context.Context,
+	startBlockID flow.Identifier,
+	blockStatus flow.BlockStatus,
+) (<-chan flow.Block, <-chan error, error) {
+	return c.grpc.SubscribeBlocksFromStartBlockID(ctx, startBlockID, blockStatus)
+}
+
+func (c *Client) SubscribeBlocksFromStartHeight(
+	ctx context.Context,
+	startHeight uint64,
+	blockStatus flow.BlockStatus,
+) (<-chan flow.Block, <-chan error, error) {
+	return c.grpc.SubscribeBlocksFromStartHeight(ctx, startHeight, blockStatus)
+}
+
+func (c *Client) SubscribeBlocksFromLatest(
+	ctx context.Context,
+	blockStatus flow.BlockStatus,
+) (<-chan flow.Block, <-chan error, error) {
+	return c.grpc.SubscribeBlocksFromLatest(ctx, blockStatus)
+}
+
 func (c *Client) Close() error {
 	return c.grpc.Close()
 }
@@ -336,4 +382,27 @@ func convertSubscribeOptions(opts ...access.SubscribeOption) *SubscribeConfig {
 		opt(conf)
 	}
 	return subsConf
+}
+
+func (c *Client) SubscribeAccountStatusesFromStartHeight(
+	ctx context.Context,
+	startBlockHeight uint64,
+	filter flow.AccountStatusFilter,
+) (<-chan flow.AccountStatus, <-chan error, error) {
+	return c.grpc.SubscribeAccountStatusesFromStartHeight(ctx, startBlockHeight, filter)
+}
+
+func (c *Client) SubscribeAccountStatusesFromStartBlockID(
+	ctx context.Context,
+	startBlockID flow.Identifier,
+	filter flow.AccountStatusFilter,
+) (<-chan flow.AccountStatus, <-chan error, error) {
+	return c.grpc.SubscribeAccountStatusesFromStartBlockID(ctx, startBlockID, filter)
+}
+
+func (c *Client) SubscribeAccountStatusesFromLatestBlock(
+	ctx context.Context,
+	filter flow.AccountStatusFilter,
+) (<-chan flow.AccountStatus, <-chan error, error) {
+	return c.grpc.SubscribeAccountStatusesFromLatestBlock(ctx, filter)
 }
