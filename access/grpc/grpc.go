@@ -23,9 +23,11 @@ package grpc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 
+	"github.com/onflow/flow/protobuf/go/flow/entities"
 	"google.golang.org/grpc"
 
 	"github.com/onflow/cadence"
@@ -1136,9 +1138,14 @@ func (c *BaseClient) SubscribeBlocksFromStartBlockID(
 	blockStatus flow.BlockStatus,
 	opts ...grpc.CallOption,
 ) (<-chan flow.Block, <-chan error, error) {
+	status := convert.BlockStatusToEntity(blockStatus)
+	if status == entities.BlockStatus_BLOCK_UNKNOWN {
+		return nil, nil, newRPCError(errors.New("unknown block status"))
+	}
+
 	request := &access.SubscribeBlocksFromStartBlockIDRequest{
 		StartBlockId: startBlockID.Bytes(),
-		BlockStatus:  convert.BlockStatusToEntity(blockStatus),
+		BlockStatus:  status,
 	}
 
 	subscribeClient, err := c.rpcClient.SubscribeBlocksFromStartBlockID(ctx, request, opts...)
@@ -1164,9 +1171,14 @@ func (c *BaseClient) SubscribeBlocksFromStartHeight(
 	blockStatus flow.BlockStatus,
 	opts ...grpc.CallOption,
 ) (<-chan flow.Block, <-chan error, error) {
+	status := convert.BlockStatusToEntity(blockStatus)
+	if status == entities.BlockStatus_BLOCK_UNKNOWN {
+		return nil, nil, newRPCError(errors.New("unknown block status"))
+	}
+
 	request := &access.SubscribeBlocksFromStartHeightRequest{
 		StartBlockHeight: startHeight,
-		BlockStatus:      convert.BlockStatusToEntity(blockStatus),
+		BlockStatus:      status,
 	}
 
 	subscribeClient, err := c.rpcClient.SubscribeBlocksFromStartHeight(ctx, request, opts...)
@@ -1191,8 +1203,13 @@ func (c *BaseClient) SubscribeBlocksFromLatest(
 	blockStatus flow.BlockStatus,
 	opts ...grpc.CallOption,
 ) (<-chan flow.Block, <-chan error, error) {
+	status := convert.BlockStatusToEntity(blockStatus)
+	if status == entities.BlockStatus_BLOCK_UNKNOWN {
+		return nil, nil, newRPCError(errors.New("unknown block status"))
+	}
+
 	request := &access.SubscribeBlocksFromLatestRequest{
-		BlockStatus: convert.BlockStatusToEntity(blockStatus),
+		BlockStatus: status,
 	}
 
 	subscribeClient, err := c.rpcClient.SubscribeBlocksFromLatest(ctx, request, opts...)
