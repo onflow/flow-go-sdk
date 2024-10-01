@@ -455,10 +455,11 @@ func (g *TransactionResults) New() flow.TransactionResult {
 			g.events.New(),
 			g.events.New(),
 		},
-		BlockID:       g.ids.New(),
-		BlockHeight:   uint64(42),
-		TransactionID: g.ids.New(),
-		CollectionID:  g.ids.New(),
+		BlockID:          g.ids.New(),
+		BlockHeight:      uint64(42),
+		TransactionID:    g.ids.New(),
+		CollectionID:     g.ids.New(),
+		ComputationUsage: uint64(42),
 	}
 }
 
