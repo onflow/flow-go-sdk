@@ -1500,6 +1500,64 @@ func TestClient_GetLatestProtocolStateSnapshot(t *testing.T) {
 	}))
 }
 
+func TestClient_GetProtocolStateSnapshotByBlockID(t *testing.T) {
+	ids := test.IdentifierGenerator()
+
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		blockID := ids.New()
+
+		expected := &access.ProtocolStateSnapshotResponse{
+			SerializedSnapshot: make([]byte, 128),
+		}
+		_, err := rand.Read(expected.SerializedSnapshot)
+		assert.NoError(t, err)
+
+		rpc.On("GetProtocolStateSnapshotByBlockID", ctx, mock.Anything).Return(expected, nil)
+
+		res, err := c.GetProtocolStateSnapshotByBlockID(ctx, blockID)
+		assert.NoError(t, err)
+		assert.Equal(t, expected.SerializedSnapshot, res)
+	}))
+
+	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		blockID := ids.New()
+
+		rpc.On("GetProtocolStateSnapshotByBlockID", ctx, mock.Anything).
+			Return(nil, errInternal)
+
+		_, err := c.GetProtocolStateSnapshotByBlockID(ctx, blockID)
+		assert.Error(t, err)
+		assert.Equal(t, codes.Internal, status.Code(err))
+	}))
+}
+
+func TestClient_GetProtocolStateSnapshotByHeight(t *testing.T) {
+	blockHeight := uint64(42)
+
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		expected := &access.ProtocolStateSnapshotResponse{
+			SerializedSnapshot: make([]byte, 128),
+		}
+		_, err := rand.Read(expected.SerializedSnapshot)
+		assert.NoError(t, err)
+
+		rpc.On("GetProtocolStateSnapshotByHeight", ctx, mock.Anything).Return(expected, nil)
+
+		res, err := c.GetProtocolStateSnapshotByHeight(ctx, blockHeight)
+		assert.NoError(t, err)
+		assert.Equal(t, expected.SerializedSnapshot, res)
+	}))
+
+	t.Run("Internal error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		rpc.On("GetProtocolStateSnapshotByHeight", ctx, mock.Anything).
+			Return(nil, errInternal)
+
+		_, err := c.GetProtocolStateSnapshotByHeight(ctx, blockHeight)
+		assert.Error(t, err)
+		assert.Equal(t, codes.Internal, status.Code(err))
+	}))
+}
+
 func TestClient_GetExecutionResultForBlockID(t *testing.T) {
 	ids := test.IdentifierGenerator()
 	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
