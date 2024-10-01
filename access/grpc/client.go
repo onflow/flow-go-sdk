@@ -275,6 +275,14 @@ func (c *Client) GetLatestProtocolStateSnapshot(ctx context.Context) ([]byte, er
 	return c.grpc.GetLatestProtocolStateSnapshot(ctx)
 }
 
+func (c *Client) GetProtocolStateSnapshotByBlockID(ctx context.Context, blockID flow.Identifier) ([]byte, error) {
+	return c.grpc.GetProtocolStateSnapshotByBlockID(ctx, blockID)
+}
+
+func (c *Client) GetProtocolStateSnapshotByHeight(ctx context.Context, blockHeight uint64) ([]byte, error) {
+	return c.grpc.GetProtocolStateSnapshotByHeight(ctx, blockHeight)
+}
+
 func (c *Client) GetExecutionResultForBlockID(ctx context.Context, blockID flow.Identifier) (*flow.ExecutionResult, error) {
 	return c.grpc.GetExecutionResultForBlockID(ctx, blockID)
 }
