@@ -165,6 +165,14 @@ func (c *Client) GetCollection(ctx context.Context, colID flow.Identifier) (*flo
 	return c.grpc.GetCollection(ctx, colID)
 }
 
+func (c *Client) GetCollectionByID(ctx context.Context, id flow.Identifier) (*flow.Collection, error) {
+	return c.grpc.GetLightCollectionByID(ctx, id)
+}
+
+func (c *Client) GetFullCollectionByID(ctx context.Context, id flow.Identifier) (*flow.FullCollection, error) {
+	return c.grpc.GetFullCollectionByID(ctx, id)
+}
+
 func (c *Client) SendTransaction(ctx context.Context, tx flow.Transaction) error {
 	return c.grpc.SendTransaction(ctx, tx)
 }
@@ -214,6 +222,22 @@ func (c *Client) GetAccountBalanceAtLatestBlock(ctx context.Context, address flo
 
 func (c *Client) GetAccountBalanceAtBlockHeight(ctx context.Context, address flow.Address, blockHeight uint64) (uint64, error) {
 	return c.grpc.GetAccountBalanceAtBlockHeight(ctx, address, blockHeight)
+}
+
+func (c *Client) GetAccountKeyAtLatestBlock(ctx context.Context, address flow.Address, keyIndex uint32) (*flow.AccountKey, error) {
+	return c.grpc.GetAccountKeyAtLatestBlock(ctx, address, keyIndex)
+}
+
+func (c *Client) GetAccountKeyAtBlockHeight(ctx context.Context, address flow.Address, keyIndex uint32, height uint64) (*flow.AccountKey, error) {
+	return c.grpc.GetAccountKeyAtBlockHeight(ctx, address, keyIndex, height)
+}
+
+func (c *Client) GetAccountKeysAtLatestBlock(ctx context.Context, address flow.Address) ([]flow.AccountKey, error) {
+	return c.grpc.GetAccountKeysAtLatestBlock(ctx, address)
+}
+
+func (c *Client) GetAccountKeysAtBlockHeight(ctx context.Context, address flow.Address, height uint64) ([]flow.AccountKey, error) {
+	return c.grpc.GetAccountKeysAtBlockHeight(ctx, address, height)
 }
 
 func (c *Client) ExecuteScriptAtLatestBlock(ctx context.Context, script []byte, arguments []cadence.Value) (cadence.Value, error) {
@@ -311,6 +335,29 @@ func (c *Client) SubscribeBlockDigestsFromLatest(
 	blockStatus flow.BlockStatus,
 ) (<-chan flow.BlockDigest, <-chan error, error) {
 	return c.grpc.SubscribeBlockDigestsFromLatest(ctx, blockStatus)
+}
+
+func (c *Client) SubscribeBlocksFromStartBlockID(
+	ctx context.Context,
+	startBlockID flow.Identifier,
+	blockStatus flow.BlockStatus,
+) (<-chan flow.Block, <-chan error, error) {
+	return c.grpc.SubscribeBlocksFromStartBlockID(ctx, startBlockID, blockStatus)
+}
+
+func (c *Client) SubscribeBlocksFromStartHeight(
+	ctx context.Context,
+	startHeight uint64,
+	blockStatus flow.BlockStatus,
+) (<-chan flow.Block, <-chan error, error) {
+	return c.grpc.SubscribeBlocksFromStartHeight(ctx, startHeight, blockStatus)
+}
+
+func (c *Client) SubscribeBlocksFromLatest(
+	ctx context.Context,
+	blockStatus flow.BlockStatus,
+) (<-chan flow.Block, <-chan error, error) {
+	return c.grpc.SubscribeBlocksFromLatest(ctx, blockStatus)
 }
 
 func (c *Client) Close() error {
