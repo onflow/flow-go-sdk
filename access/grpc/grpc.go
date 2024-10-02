@@ -25,6 +25,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"sync/atomic"
 
 	"google.golang.org/grpc"
 
@@ -82,6 +83,7 @@ type BaseClient struct {
 	close               func() error
 	jsonOptions         []json.Option
 	eventEncoding       flow.EventEncodingVersion
+	msgIndex            atomic.Uint64
 }
 
 // NewBaseClient creates a new gRPC handler for network communication.
@@ -95,13 +97,17 @@ func NewBaseClient(url string, opts ...grpc.DialOption) (*BaseClient, error) {
 
 	execDataClient := executiondata.NewExecutionDataAPIClient(conn)
 
-	return &BaseClient{
+	client := &BaseClient{
 		rpcClient:           grpcClient,
 		executionDataClient: execDataClient,
 		close:               func() error { return conn.Close() },
 		jsonOptions:         []json.Option{json.WithAllowUnstructuredStaticTypes(true)},
 		eventEncoding:       flow.EventEncodingVersionCCF,
-	}, nil
+	}
+
+	client.msgIndex.Store(^uint64(0))
+
+	return client, nil
 }
 
 // NewFromRPCClient initializes a Flow client using a pre-configured gRPC provider.
@@ -1182,7 +1188,7 @@ func (c *BaseClient) SubscribeAccountStatusesFromStartHeight(
 	go func() {
 		defer close(accountStatutesChan)
 		defer close(errChan)
-		receiveAccountStatusesFromClient(ctx, subscribeClient, accountStatutesChan, errChan)
+		receiveAccountStatusesFromClient(ctx, subscribeClient, accountStatutesChan, errChan, c.msgIndex)
 	}()
 
 	return accountStatutesChan, errChan, nil
@@ -1214,7 +1220,7 @@ func (c *BaseClient) SubscribeAccountStatusesFromStartBlockID(
 	go func() {
 		defer close(accountStatutesChan)
 		defer close(errChan)
-		receiveAccountStatusesFromClient(ctx, subscribeClient, accountStatutesChan, errChan)
+		receiveAccountStatusesFromClient(ctx, subscribeClient, accountStatutesChan, errChan, c.msgIndex)
 	}()
 
 	return accountStatutesChan, errChan, nil
@@ -1244,7 +1250,7 @@ func (c *BaseClient) SubscribeAccountStatusesFromLatestBlock(
 	go func() {
 		defer close(accountStatutesChan)
 		defer close(errChan)
-		receiveAccountStatusesFromClient(ctx, subscribeClient, accountStatutesChan, errChan)
+		receiveAccountStatusesFromClient(ctx, subscribeClient, accountStatutesChan, errChan, c.msgIndex)
 	}()
 
 	return accountStatutesChan, errChan, nil
@@ -1257,6 +1263,7 @@ func receiveAccountStatusesFromClient[Client interface {
 	client Client,
 	accountStatutesChan chan<- flow.AccountStatus,
 	errChan chan<- error,
+	previousMsgIndex atomic.Uint64,
 ) {
 	sendErr := func(err error) {
 		select {
@@ -1280,6 +1287,12 @@ func receiveAccountStatusesFromClient[Client interface {
 		accountStatus, err := convert.MessageToAccountStatus(accountStatusResponse)
 		if err != nil {
 			sendErr(fmt.Errorf("error converting message to account status: %w", err))
+			return
+		}
+
+		swapped := previousMsgIndex.CompareAndSwap(accountStatus.MessageIndex-1, accountStatus.MessageIndex)
+		if !swapped {
+			sendErr(fmt.Errorf("messages are not ordered"))
 			return
 		}
 
