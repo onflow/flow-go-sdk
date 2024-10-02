@@ -23,6 +23,7 @@ package grpc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"sync/atomic"
@@ -1188,7 +1189,7 @@ func (c *BaseClient) SubscribeAccountStatusesFromStartHeight(
 	go func() {
 		defer close(accountStatutesChan)
 		defer close(errChan)
-		receiveAccountStatusesFromClient(ctx, subscribeClient, accountStatutesChan, errChan, c.msgIndex)
+		receiveAccountStatusesFromClient(ctx, subscribeClient, accountStatutesChan, errChan, &c.msgIndex)
 	}()
 
 	return accountStatutesChan, errChan, nil
@@ -1220,7 +1221,7 @@ func (c *BaseClient) SubscribeAccountStatusesFromStartBlockID(
 	go func() {
 		defer close(accountStatutesChan)
 		defer close(errChan)
-		receiveAccountStatusesFromClient(ctx, subscribeClient, accountStatutesChan, errChan, c.msgIndex)
+		receiveAccountStatusesFromClient(ctx, subscribeClient, accountStatutesChan, errChan, &c.msgIndex)
 	}()
 
 	return accountStatutesChan, errChan, nil
@@ -1250,7 +1251,7 @@ func (c *BaseClient) SubscribeAccountStatusesFromLatestBlock(
 	go func() {
 		defer close(accountStatutesChan)
 		defer close(errChan)
-		receiveAccountStatusesFromClient(ctx, subscribeClient, accountStatutesChan, errChan, c.msgIndex)
+		receiveAccountStatusesFromClient(ctx, subscribeClient, accountStatutesChan, errChan, &c.msgIndex)
 	}()
 
 	return accountStatutesChan, errChan, nil
@@ -1263,7 +1264,7 @@ func receiveAccountStatusesFromClient[Client interface {
 	client Client,
 	accountStatutesChan chan<- flow.AccountStatus,
 	errChan chan<- error,
-	previousMsgIndex atomic.Uint64,
+	previousMsgIndex *atomic.Uint64,
 ) {
 	sendErr := func(err error) {
 		select {
@@ -1290,9 +1291,8 @@ func receiveAccountStatusesFromClient[Client interface {
 			return
 		}
 
-		swapped := previousMsgIndex.CompareAndSwap(accountStatus.MessageIndex-1, accountStatus.MessageIndex)
-		if !swapped {
-			sendErr(fmt.Errorf("messages are not ordered"))
+		if err = checkAndIncrementMessageIndex(previousMsgIndex, accountStatus.MessageIndex); err != nil {
+			sendErr(fmt.Errorf("error checking message index. messages are not ordered: %w", err))
 			return
 		}
 
@@ -1302,4 +1302,19 @@ func receiveAccountStatusesFromClient[Client interface {
 		case accountStatutesChan <- accountStatus:
 		}
 	}
+}
+
+func checkAndIncrementMessageIndex(previousMessageIndex *atomic.Uint64, currentMessageIndex uint64) error {
+	local := previousMessageIndex.Load()
+
+	if local == 0 && currentMessageIndex == 0 {
+		return nil
+	}
+
+	if currentMessageIndex != local+1 {
+		return errors.New("current message index is not exactly one larger than the previous one")
+	}
+
+	previousMessageIndex.Add(1)
+	return nil
 }
