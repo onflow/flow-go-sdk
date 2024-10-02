@@ -85,6 +85,7 @@ type BaseClient struct {
 	close               func() error
 	jsonOptions         []json.Option
 	eventEncoding       flow.EventEncodingVersion
+	messageIndex        atomic.Uint64
 }
 
 // NewBaseClient creates a new gRPC handler for network communication.
@@ -1324,7 +1325,7 @@ func (c *BaseClient) SubscribeAccountStatusesFromStartHeight(
 	go func() {
 		defer close(accountStatutesChan)
 		defer close(errChan)
-		receiveAccountStatusesFromClient(ctx, subscribeClient, accountStatutesChan, errChan, &c.msgIndex)
+		receiveAccountStatusesFromClient(ctx, subscribeClient, accountStatutesChan, errChan, &c.messageIndex)
 	}()
 
 	return accountStatutesChan, errChan, nil
@@ -1356,7 +1357,7 @@ func (c *BaseClient) SubscribeAccountStatusesFromStartBlockID(
 	go func() {
 		defer close(accountStatutesChan)
 		defer close(errChan)
-		receiveAccountStatusesFromClient(ctx, subscribeClient, accountStatutesChan, errChan, &c.msgIndex)
+		receiveAccountStatusesFromClient(ctx, subscribeClient, accountStatutesChan, errChan, &c.messageIndex)
 	}()
 
 	return accountStatutesChan, errChan, nil
@@ -1386,7 +1387,7 @@ func (c *BaseClient) SubscribeAccountStatusesFromLatestBlock(
 	go func() {
 		defer close(accountStatutesChan)
 		defer close(errChan)
-		receiveAccountStatusesFromClient(ctx, subscribeClient, accountStatutesChan, errChan, &c.msgIndex)
+		receiveAccountStatusesFromClient(ctx, subscribeClient, accountStatutesChan, errChan, &c.messageIndex)
 	}()
 
 	return accountStatutesChan, errChan, nil
