@@ -23,9 +23,11 @@ package grpc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 
+	"github.com/onflow/flow/protobuf/go/flow/entities"
 	"google.golang.org/grpc"
 
 	"github.com/onflow/cadence"
@@ -973,6 +975,7 @@ func (c *BaseClient) GetExecutionDataByBlockID(
 	}
 
 	return convert.MessageToBlockExecutionData(ed.GetBlockExecutionData())
+
 }
 
 func (c *BaseClient) SubscribeExecutionDataByBlockID(
@@ -1155,6 +1158,103 @@ func (c *BaseClient) subscribeEvents(
 	return sub, errChan, nil
 }
 
+func (c *BaseClient) SubscribeBlocksFromStartBlockID(
+	ctx context.Context,
+	startBlockID flow.Identifier,
+	blockStatus flow.BlockStatus,
+	opts ...grpc.CallOption,
+) (<-chan flow.Block, <-chan error, error) {
+	status := convert.BlockStatusToEntity(blockStatus)
+	if status == entities.BlockStatus_BLOCK_UNKNOWN {
+		return nil, nil, newRPCError(errors.New("unknown block status"))
+	}
+
+	request := &access.SubscribeBlocksFromStartBlockIDRequest{
+		StartBlockId: startBlockID.Bytes(),
+		BlockStatus:  status,
+	}
+
+	subscribeClient, err := c.rpcClient.SubscribeBlocksFromStartBlockID(ctx, request, opts...)
+	if err != nil {
+		return nil, nil, newRPCError(err)
+	}
+
+	blocksChan := make(chan flow.Block)
+	errChan := make(chan error)
+
+	go func() {
+		defer close(blocksChan)
+		defer close(errChan)
+		receiveBlocksFromClient(ctx, subscribeClient, blocksChan, errChan)
+	}()
+
+	return blocksChan, errChan, nil
+}
+
+func (c *BaseClient) SubscribeBlocksFromStartHeight(
+	ctx context.Context,
+	startHeight uint64,
+	blockStatus flow.BlockStatus,
+	opts ...grpc.CallOption,
+) (<-chan flow.Block, <-chan error, error) {
+	status := convert.BlockStatusToEntity(blockStatus)
+	if status == entities.BlockStatus_BLOCK_UNKNOWN {
+		return nil, nil, newRPCError(errors.New("unknown block status"))
+	}
+
+	request := &access.SubscribeBlocksFromStartHeightRequest{
+		StartBlockHeight: startHeight,
+		BlockStatus:      status,
+	}
+
+	subscribeClient, err := c.rpcClient.SubscribeBlocksFromStartHeight(ctx, request, opts...)
+	if err != nil {
+		return nil, nil, newRPCError(err)
+	}
+
+	blocksChan := make(chan flow.Block)
+	errChan := make(chan error)
+
+	go func() {
+		defer close(blocksChan)
+		defer close(errChan)
+		receiveBlocksFromClient(ctx, subscribeClient, blocksChan, errChan)
+	}()
+
+	return blocksChan, errChan, nil
+}
+
+func (c *BaseClient) SubscribeBlocksFromLatest(
+	ctx context.Context,
+	blockStatus flow.BlockStatus,
+	opts ...grpc.CallOption,
+) (<-chan flow.Block, <-chan error, error) {
+	status := convert.BlockStatusToEntity(blockStatus)
+	if status == entities.BlockStatus_BLOCK_UNKNOWN {
+		return nil, nil, newRPCError(errors.New("unknown block status"))
+	}
+
+	request := &access.SubscribeBlocksFromLatestRequest{
+		BlockStatus: status,
+	}
+
+	subscribeClient, err := c.rpcClient.SubscribeBlocksFromLatest(ctx, request, opts...)
+	if err != nil {
+		return nil, nil, newRPCError(err)
+	}
+
+	blocksChan := make(chan flow.Block)
+	errChan := make(chan error)
+
+	go func() {
+		defer close(blocksChan)
+		defer close(errChan)
+		receiveBlocksFromClient(ctx, subscribeClient, blocksChan, errChan)
+	}()
+
+	return blocksChan, errChan, nil
+}
+
 func (c *BaseClient) SendAndSubscribeTransactionStatuses(
 	ctx context.Context,
 	tx flow.Transaction,
@@ -1225,4 +1325,46 @@ func (c *BaseClient) SendAndSubscribeTransactionStatuses(
 	}()
 
 	return txStatusChan, errChan, nil
+}
+
+func receiveBlocksFromClient[Client interface {
+	Recv() (*access.SubscribeBlocksResponse, error)
+}](
+	ctx context.Context,
+	client Client,
+	blocksChan chan<- flow.Block,
+	errChan chan<- error,
+) {
+	sendErr := func(err error) {
+		select {
+		case <-ctx.Done():
+		case errChan <- err:
+		}
+	}
+
+	for {
+		// Receive the next block response
+		blockResponse, err := client.Recv()
+		if err != nil {
+			if err == io.EOF {
+				// End of stream, return gracefully
+				return
+			}
+
+			sendErr(fmt.Errorf("error receiving block: %w", err))
+			return
+		}
+
+		block, err := convert.MessageToBlock(blockResponse.GetBlock())
+		if err != nil {
+			sendErr(fmt.Errorf("error converting message to block: %w", err))
+			return
+		}
+
+		select {
+		case <-ctx.Done():
+			return
+		case blocksChan <- block:
+		}
+	}
 }
