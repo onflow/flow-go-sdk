@@ -408,7 +408,7 @@ func (h *httpHandler) getExecutionResults(
 	u := h.mustBuildURL("/execution_results", opts...)
 
 	q := u.Query()
-	q.Add("block_ids", strings.Join(blockIDs, ","))
+	q.Add("block_id", strings.Join(blockIDs, ","))
 	u.RawQuery = q.Encode()
 
 	var results []models.ExecutionResult
