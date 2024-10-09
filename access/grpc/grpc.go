@@ -1408,9 +1408,14 @@ func (c *BaseClient) SubscribeBlockDigestsFromStartHeight(
 	blockStatus flow.BlockStatus,
 	opts ...grpc.CallOption,
 ) (<-chan flow.BlockDigest, <-chan error, error) {
+	status := convert.BlockStatusToEntity(blockStatus)
+	if status == entities.BlockStatus_BLOCK_UNKNOWN {
+		return nil, nil, newRPCError(errors.New("unknown block status"))
+	}
+
 	request := &access.SubscribeBlockDigestsFromStartHeightRequest{
 		StartBlockHeight: startHeight,
-		BlockStatus:      convert.BlockStatusToEntity(blockStatus),
+		BlockStatus:      status,
 	}
 
 	subscribeClient, err := c.rpcClient.SubscribeBlockDigestsFromStartHeight(ctx, request, opts...)
@@ -1435,8 +1440,13 @@ func (c *BaseClient) SubscribeBlockDigestsFromLatest(
 	blockStatus flow.BlockStatus,
 	opts ...grpc.CallOption,
 ) (<-chan flow.BlockDigest, <-chan error, error) {
+	status := convert.BlockStatusToEntity(blockStatus)
+	if status == entities.BlockStatus_BLOCK_UNKNOWN {
+		return nil, nil, newRPCError(errors.New("unknown block status"))
+	}
+
 	request := &access.SubscribeBlockDigestsFromLatestRequest{
-		BlockStatus: convert.BlockStatusToEntity(blockStatus),
+		BlockStatus: status,
 	}
 
 	subscribeClient, err := c.rpcClient.SubscribeBlockDigestsFromLatest(ctx, request, opts...)

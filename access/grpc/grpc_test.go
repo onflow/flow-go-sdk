@@ -2571,7 +2571,7 @@ func TestClient_SubscribeBlockDigest(t *testing.T) {
 			On("SubscribeBlockDigestsFromStartHeight", ctx, mock.Anything).
 			Return(stream, nil)
 
-		blockDigestsCh, errCh, err := c.SubscribeBlockDigestsFromStartHeight(ctx, startHeight, flow.BlockStatusUnknown)
+		blockDigestsCh, errCh, err := c.SubscribeBlockDigestsFromStartHeight(ctx, startHeight, flow.BlockStatusSealed)
 		require.NoError(t, err)
 
 		wg := sync.WaitGroup{}
@@ -2602,7 +2602,7 @@ func TestClient_SubscribeBlockDigest(t *testing.T) {
 			Return(stream, nil)
 
 		startBlockID := convert.MessageToIdentifier(stream.responses[0].BlockId)
-		blockDigestsCh, errCh, err := c.SubscribeBlockDigestsFromStartBlockID(ctx, startBlockID, flow.BlockStatusUnknown)
+		blockDigestsCh, errCh, err := c.SubscribeBlockDigestsFromStartBlockID(ctx, startBlockID, flow.BlockStatusSealed)
 		require.NoError(t, err)
 
 		wg := sync.WaitGroup{}
@@ -2632,7 +2632,7 @@ func TestClient_SubscribeBlockDigest(t *testing.T) {
 			On("SubscribeBlockDigestsFromLatest", ctx, mock.Anything).
 			Return(stream, nil)
 
-		blockDigestsCh, errCh, err := c.SubscribeBlockDigestsFromLatest(ctx, flow.BlockStatusUnknown)
+		blockDigestsCh, errCh, err := c.SubscribeBlockDigestsFromLatest(ctx, flow.BlockStatusSealed)
 		require.NoError(t, err)
 
 		wg := sync.WaitGroup{}
@@ -2660,7 +2660,7 @@ func TestClient_SubscribeBlockDigest(t *testing.T) {
 			On("SubscribeBlockDigestsFromLatest", ctx, mock.Anything).
 			Return(stream, nil)
 
-		blockDigestsCh, errCh, err := c.SubscribeBlockDigestsFromLatest(ctx, flow.BlockStatusUnknown)
+		blockDigestsCh, errCh, err := c.SubscribeBlockDigestsFromLatest(ctx, flow.BlockStatusSealed)
 		require.NoError(t, err)
 
 		wg := sync.WaitGroup{}
