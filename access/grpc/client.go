@@ -204,6 +204,13 @@ func (c *Client) GetTransactionResultsByBlockID(ctx context.Context, blockID flo
 	return c.grpc.GetTransactionResultsByBlockID(ctx, blockID)
 }
 
+func (c *Client) SendAndSubscribeTransactionStatuses(
+	ctx context.Context,
+	tx flow.Transaction,
+) (<-chan flow.TransactionResult, <-chan error, error) {
+	return c.grpc.SendAndSubscribeTransactionStatuses(ctx, tx)
+}
+
 func (c *Client) GetAccount(ctx context.Context, address flow.Address) (*flow.Account, error) {
 	return c.grpc.GetAccount(ctx, address)
 }
@@ -268,6 +275,14 @@ func (c *Client) GetLatestProtocolStateSnapshot(ctx context.Context) ([]byte, er
 	return c.grpc.GetLatestProtocolStateSnapshot(ctx)
 }
 
+func (c *Client) GetProtocolStateSnapshotByBlockID(ctx context.Context, blockID flow.Identifier) ([]byte, error) {
+	return c.grpc.GetProtocolStateSnapshotByBlockID(ctx, blockID)
+}
+
+func (c *Client) GetProtocolStateSnapshotByHeight(ctx context.Context, blockHeight uint64) ([]byte, error) {
+	return c.grpc.GetProtocolStateSnapshotByHeight(ctx, blockHeight)
+}
+
 func (c *Client) GetExecutionResultForBlockID(ctx context.Context, blockID flow.Identifier) (*flow.ExecutionResult, error) {
 	return c.grpc.GetExecutionResultForBlockID(ctx, blockID)
 }
@@ -312,6 +327,29 @@ func (c *Client) SubscribeEventsByBlockHeight(
 ) (<-chan flow.BlockEvents, <-chan error, error) {
 	conf := convertSubscribeOptions(opts...)
 	return c.grpc.SubscribeEventsByBlockHeight(ctx, startHeight, filter, WithHeartbeatInterval(conf.heartbeatInterval))
+}
+
+func (c *Client) SubscribeBlocksFromStartBlockID(
+	ctx context.Context,
+	startBlockID flow.Identifier,
+	blockStatus flow.BlockStatus,
+) (<-chan flow.Block, <-chan error, error) {
+	return c.grpc.SubscribeBlocksFromStartBlockID(ctx, startBlockID, blockStatus)
+}
+
+func (c *Client) SubscribeBlocksFromStartHeight(
+	ctx context.Context,
+	startHeight uint64,
+	blockStatus flow.BlockStatus,
+) (<-chan flow.Block, <-chan error, error) {
+	return c.grpc.SubscribeBlocksFromStartHeight(ctx, startHeight, blockStatus)
+}
+
+func (c *Client) SubscribeBlocksFromLatest(
+	ctx context.Context,
+	blockStatus flow.BlockStatus,
+) (<-chan flow.Block, <-chan error, error) {
+	return c.grpc.SubscribeBlocksFromLatest(ctx, blockStatus)
 }
 
 func (c *Client) Close() error {

@@ -23,9 +23,11 @@ package grpc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 
+	"github.com/onflow/flow/protobuf/go/flow/entities"
 	"google.golang.org/grpc"
 
 	"github.com/onflow/cadence"
@@ -916,6 +918,32 @@ func (c *BaseClient) GetLatestProtocolStateSnapshot(ctx context.Context, opts ..
 	return res.GetSerializedSnapshot(), nil
 }
 
+func (c *BaseClient) GetProtocolStateSnapshotByBlockID(ctx context.Context, blockID flow.Identifier, opts ...grpc.CallOption) ([]byte, error) {
+	req := &access.GetProtocolStateSnapshotByBlockIDRequest{
+		BlockId: blockID.Bytes(),
+	}
+
+	res, err := c.rpcClient.GetProtocolStateSnapshotByBlockID(ctx, req, opts...)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	return res.GetSerializedSnapshot(), nil
+}
+
+func (c *BaseClient) GetProtocolStateSnapshotByHeight(ctx context.Context, blockHeight uint64, opts ...grpc.CallOption) ([]byte, error) {
+	req := &access.GetProtocolStateSnapshotByHeightRequest{
+		BlockHeight: blockHeight,
+	}
+
+	res, err := c.rpcClient.GetProtocolStateSnapshotByHeight(ctx, req, opts...)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	return res.GetSerializedSnapshot(), nil
+}
+
 func (c *BaseClient) GetExecutionResultForBlockID(ctx context.Context, blockID flow.Identifier, opts ...grpc.CallOption) (*flow.ExecutionResult, error) {
 	er, err := c.rpcClient.GetExecutionResultForBlockID(ctx, &access.GetExecutionResultForBlockIDRequest{
 		BlockId: convert.IdentifierToMessage(blockID),
@@ -1134,4 +1162,215 @@ func (c *BaseClient) subscribeEvents(
 	}()
 
 	return sub, errChan, nil
+}
+
+func (c *BaseClient) SubscribeBlocksFromStartBlockID(
+	ctx context.Context,
+	startBlockID flow.Identifier,
+	blockStatus flow.BlockStatus,
+	opts ...grpc.CallOption,
+) (<-chan flow.Block, <-chan error, error) {
+	status := convert.BlockStatusToEntity(blockStatus)
+	if status == entities.BlockStatus_BLOCK_UNKNOWN {
+		return nil, nil, newRPCError(errors.New("unknown block status"))
+	}
+
+	request := &access.SubscribeBlocksFromStartBlockIDRequest{
+		StartBlockId: startBlockID.Bytes(),
+		BlockStatus:  status,
+	}
+
+	subscribeClient, err := c.rpcClient.SubscribeBlocksFromStartBlockID(ctx, request, opts...)
+	if err != nil {
+		return nil, nil, newRPCError(err)
+	}
+
+	blocksChan := make(chan flow.Block)
+	errChan := make(chan error)
+
+	go func() {
+		defer close(blocksChan)
+		defer close(errChan)
+		receiveBlocksFromClient(ctx, subscribeClient, blocksChan, errChan)
+	}()
+
+	return blocksChan, errChan, nil
+}
+
+func (c *BaseClient) SubscribeBlocksFromStartHeight(
+	ctx context.Context,
+	startHeight uint64,
+	blockStatus flow.BlockStatus,
+	opts ...grpc.CallOption,
+) (<-chan flow.Block, <-chan error, error) {
+	status := convert.BlockStatusToEntity(blockStatus)
+	if status == entities.BlockStatus_BLOCK_UNKNOWN {
+		return nil, nil, newRPCError(errors.New("unknown block status"))
+	}
+
+	request := &access.SubscribeBlocksFromStartHeightRequest{
+		StartBlockHeight: startHeight,
+		BlockStatus:      status,
+	}
+
+	subscribeClient, err := c.rpcClient.SubscribeBlocksFromStartHeight(ctx, request, opts...)
+	if err != nil {
+		return nil, nil, newRPCError(err)
+	}
+
+	blocksChan := make(chan flow.Block)
+	errChan := make(chan error)
+
+	go func() {
+		defer close(blocksChan)
+		defer close(errChan)
+		receiveBlocksFromClient(ctx, subscribeClient, blocksChan, errChan)
+	}()
+
+	return blocksChan, errChan, nil
+}
+
+func (c *BaseClient) SubscribeBlocksFromLatest(
+	ctx context.Context,
+	blockStatus flow.BlockStatus,
+	opts ...grpc.CallOption,
+) (<-chan flow.Block, <-chan error, error) {
+	status := convert.BlockStatusToEntity(blockStatus)
+	if status == entities.BlockStatus_BLOCK_UNKNOWN {
+		return nil, nil, newRPCError(errors.New("unknown block status"))
+	}
+
+	request := &access.SubscribeBlocksFromLatestRequest{
+		BlockStatus: status,
+	}
+
+	subscribeClient, err := c.rpcClient.SubscribeBlocksFromLatest(ctx, request, opts...)
+	if err != nil {
+		return nil, nil, newRPCError(err)
+	}
+
+	blocksChan := make(chan flow.Block)
+	errChan := make(chan error)
+
+	go func() {
+		defer close(blocksChan)
+		defer close(errChan)
+		receiveBlocksFromClient(ctx, subscribeClient, blocksChan, errChan)
+	}()
+
+	return blocksChan, errChan, nil
+}
+
+func (c *BaseClient) SendAndSubscribeTransactionStatuses(
+	ctx context.Context,
+	tx flow.Transaction,
+	opts ...grpc.CallOption,
+) (<-chan flow.TransactionResult, <-chan error, error) {
+	txMsg, err := convert.TransactionToMessage(tx)
+	if err != nil {
+		return nil, nil, newEntityToMessageError(entityTransaction, err)
+	}
+
+	req := &access.SendAndSubscribeTransactionStatusesRequest{
+		Transaction:          txMsg,
+		EventEncodingVersion: c.eventEncoding,
+	}
+
+	subscribeClient, err := c.rpcClient.SendAndSubscribeTransactionStatuses(ctx, req, opts...)
+	if err != nil {
+		return nil, nil, newRPCError(err)
+	}
+
+	txStatusChan := make(chan flow.TransactionResult)
+	errChan := make(chan error)
+
+	sendErr := func(err error) {
+		select {
+		case <-ctx.Done():
+		case errChan <- err:
+		}
+	}
+
+	go func() {
+		defer close(txStatusChan)
+		defer close(errChan)
+
+		messageIndex := uint64(0)
+
+		for {
+			// Receive the next txResult response
+			txResultsResponse, err := subscribeClient.Recv()
+			if err != nil {
+				if err == io.EOF {
+					// End of stream, return gracefully
+					return
+				}
+				sendErr(fmt.Errorf("error receiving transaction result: %w", err))
+				return
+			}
+
+			if messageIndex != txResultsResponse.GetMessageIndex() {
+				sendErr(fmt.Errorf("tx result response was lost"))
+				return
+			}
+
+			txResult, err := convert.MessageToTransactionResult(txResultsResponse.GetTransactionResults(), c.jsonOptions)
+			if err != nil {
+				sendErr(fmt.Errorf("error converting transaction result: %w", err))
+				return
+			}
+
+			messageIndex++
+
+			select {
+			case <-ctx.Done():
+				return
+			case txStatusChan <- txResult:
+			}
+		}
+	}()
+
+	return txStatusChan, errChan, nil
+}
+
+func receiveBlocksFromClient[Client interface {
+	Recv() (*access.SubscribeBlocksResponse, error)
+}](
+	ctx context.Context,
+	client Client,
+	blocksChan chan<- flow.Block,
+	errChan chan<- error,
+) {
+	sendErr := func(err error) {
+		select {
+		case <-ctx.Done():
+		case errChan <- err:
+		}
+	}
+
+	for {
+		// Receive the next block response
+		blockResponse, err := client.Recv()
+		if err != nil {
+			if err == io.EOF {
+				// End of stream, return gracefully
+				return
+			}
+
+			sendErr(fmt.Errorf("error receiving block: %w", err))
+			return
+		}
+
+		block, err := convert.MessageToBlock(blockResponse.GetBlock())
+		if err != nil {
+			sendErr(fmt.Errorf("error converting message to block: %w", err))
+			return
+		}
+
+		select {
+		case <-ctx.Done():
+			return
+		case blocksChan <- block:
+		}
+	}
 }

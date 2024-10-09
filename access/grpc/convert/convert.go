@@ -207,6 +207,17 @@ func MessageToBlockHeader(m *entities.BlockHeader) (flow.BlockHeader, error) {
 	}, nil
 }
 
+func BlockStatusToEntity(blockStatus flow.BlockStatus) entities.BlockStatus {
+	switch blockStatus {
+	case flow.BlockStatusFinalized:
+		return entities.BlockStatus_BLOCK_FINALIZED
+	case flow.BlockStatusSealed:
+		return entities.BlockStatus_BLOCK_SEALED
+	default:
+		return entities.BlockStatus_BLOCK_UNKNOWN
+	}
+}
+
 func CadenceValueToMessage(value cadence.Value, encodingVersion flow.EventEncodingVersion) ([]byte, error) {
 	switch encodingVersion {
 	case flow.EventEncodingVersionCCF:
