@@ -106,7 +106,7 @@ func MessageToAccountStatusResults(m []*executiondata.SubscribeAccountStatusesRe
 		}
 
 		results[i] = &flow.AccountStatusResult{
-			Address: MessageToIdentifier(r.GetAddress()),
+			Address: flow.BytesToAddress(r.GetAddress()),
 			Events:  events,
 		}
 	}

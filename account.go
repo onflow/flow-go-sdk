@@ -167,6 +167,6 @@ type AccountStatus struct {
 }
 
 type AccountStatusResult struct {
-	Address Identifier
+	Address Address
 	Events  []Event
 }

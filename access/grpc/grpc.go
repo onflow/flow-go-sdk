@@ -26,7 +26,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"sync/atomic"
 
 	"github.com/onflow/flow/protobuf/go/flow/entities"
 	"google.golang.org/grpc"
@@ -85,7 +84,6 @@ type BaseClient struct {
 	close               func() error
 	jsonOptions         []json.Option
 	eventEncoding       flow.EventEncodingVersion
-	messageIndex        atomic.Uint64
 }
 
 // NewBaseClient creates a new gRPC handler for network communication.
@@ -1325,7 +1323,7 @@ func (c *BaseClient) SubscribeAccountStatusesFromStartHeight(
 	go func() {
 		defer close(accountStatutesChan)
 		defer close(errChan)
-		receiveAccountStatusesFromClient(ctx, subscribeClient, accountStatutesChan, errChan, &c.messageIndex)
+		receiveAccountStatusesFromStream(ctx, subscribeClient, accountStatutesChan, errChan)
 	}()
 
 	return accountStatutesChan, errChan, nil
@@ -1357,7 +1355,7 @@ func (c *BaseClient) SubscribeAccountStatusesFromStartBlockID(
 	go func() {
 		defer close(accountStatutesChan)
 		defer close(errChan)
-		receiveAccountStatusesFromClient(ctx, subscribeClient, accountStatutesChan, errChan, &c.messageIndex)
+		receiveAccountStatusesFromStream(ctx, subscribeClient, accountStatutesChan, errChan)
 	}()
 
 	return accountStatutesChan, errChan, nil
@@ -1387,20 +1385,19 @@ func (c *BaseClient) SubscribeAccountStatusesFromLatestBlock(
 	go func() {
 		defer close(accountStatutesChan)
 		defer close(errChan)
-		receiveAccountStatusesFromClient(ctx, subscribeClient, accountStatutesChan, errChan, &c.messageIndex)
+		receiveAccountStatusesFromStream(ctx, subscribeClient, accountStatutesChan, errChan)
 	}()
 
 	return accountStatutesChan, errChan, nil
 }
 
-func receiveAccountStatusesFromClient[Client interface {
+func receiveAccountStatusesFromStream[Stream interface {
 	Recv() (*executiondata.SubscribeAccountStatusesResponse, error)
 }](
 	ctx context.Context,
-	client Client,
+	stream Stream,
 	accountStatutesChan chan<- flow.AccountStatus,
 	errChan chan<- error,
-	previousMsgIndex *atomic.Uint64,
 ) {
 	sendErr := func(err error) {
 		select {
@@ -1409,8 +1406,9 @@ func receiveAccountStatusesFromClient[Client interface {
 		}
 	}
 
+	var nextExpectedMsgIndex uint64
 	for {
-		accountStatusResponse, err := client.Recv()
+		accountStatusResponse, err := stream.Recv()
 		if err != nil {
 			if err == io.EOF {
 				// End of stream, return gracefully
@@ -1427,10 +1425,11 @@ func receiveAccountStatusesFromClient[Client interface {
 			return
 		}
 
-		if err = checkAndIncrementMessageIndex(previousMsgIndex, accountStatus.MessageIndex); err != nil {
-			sendErr(fmt.Errorf("error checking message index. messages are not ordered: %w", err))
+		if accountStatus.MessageIndex != nextExpectedMsgIndex {
+			sendErr(fmt.Errorf("messages are not ordered"))
 			return
 		}
+		nextExpectedMsgIndex = accountStatus.MessageIndex + 1
 
 		select {
 		case <-ctx.Done():
@@ -1438,19 +1437,4 @@ func receiveAccountStatusesFromClient[Client interface {
 		case accountStatutesChan <- accountStatus:
 		}
 	}
-}
-
-func checkAndIncrementMessageIndex(previousMessageIndex *atomic.Uint64, currentMessageIndex uint64) error {
-	local := previousMessageIndex.Load()
-
-	if local == 0 && currentMessageIndex == 0 {
-		return nil
-	}
-
-	if currentMessageIndex != local+1 {
-		return errors.New("current message index is not exactly one larger than the previous one")
-	}
-
-	previousMessageIndex.Add(1)
-	return nil
 }
