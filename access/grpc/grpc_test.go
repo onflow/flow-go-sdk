@@ -156,6 +156,7 @@ func TestClient_GetNodeInfo(t *testing.T) {
 		ver := uint64(1)
 		spork := uint64(2)
 		root := uint64(3)
+		compRange := &entities.CompatibleRange{StartHeight: 1, EndHeight: 10}
 
 		response := &access.GetNodeVersionInfoResponse{
 			Info: &entities.NodeVersionInfo{
@@ -165,6 +166,7 @@ func TestClient_GetNodeInfo(t *testing.T) {
 				ProtocolVersion:      ver,
 				SporkRootBlockHeight: spork,
 				NodeRootBlockHeight:  root,
+				CompatibleRange:      compRange,
 			},
 		}
 
@@ -175,6 +177,7 @@ func TestClient_GetNodeInfo(t *testing.T) {
 			ProtocolVersion:      ver,
 			SporkRootBlockHeight: spork,
 			NodeRootBlockHeight:  root,
+			CompatibleRange:      &flow.CompatibleRange{StartHeight: compRange.StartHeight, EndHeight: compRange.EndHeight},
 		}
 
 		rpc.On("GetNodeVersionInfo", ctx, mock.Anything).Return(response, nil)
