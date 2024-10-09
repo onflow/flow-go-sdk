@@ -134,7 +134,7 @@ type NodeVersionInfo struct {
 	ProtocolVersion      uint64
 	SporkRootBlockHeight uint64
 	NodeRootBlockHeight  uint64
-	CompatibleRange      CompatibleRange
+	CompatibleRange      *CompatibleRange
 }
 
 type CompatibleRange struct {

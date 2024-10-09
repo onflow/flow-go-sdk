@@ -177,7 +177,7 @@ func TestClient_GetNodeInfo(t *testing.T) {
 			ProtocolVersion:      ver,
 			SporkRootBlockHeight: spork,
 			NodeRootBlockHeight:  root,
-			CompatibleRange:      flow.CompatibleRange{StartHeight: compRange.StartHeight, EndHeight: compRange.EndHeight},
+			CompatibleRange:      &flow.CompatibleRange{StartHeight: compRange.StartHeight, EndHeight: compRange.EndHeight},
 		}
 
 		rpc.On("GetNodeVersionInfo", ctx, mock.Anything).Return(response, nil)
