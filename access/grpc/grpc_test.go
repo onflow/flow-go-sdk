@@ -2281,6 +2281,58 @@ func TestClient_SubscribeAccountStatuses(t *testing.T) {
 
 		wg.Wait()
 	}))
+
+	t.Run("Messages are not ordered", executionDataClientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockExecutionDataRPCClient, c *BaseClient) {
+		generateUnorderedAccountStatusesResponses := func(count uint64) []*executiondata.SubscribeAccountStatusesResponse {
+			resBlockHeaders := generateAccountStatusesResponses(count)
+			resBlockHeaders[1].MessageIndex += 1
+			return resBlockHeaders
+		}
+
+		ctx, cancel := context.WithCancel(ctx)
+		defer cancel()
+
+		stream := &mockAccountStatutesClientStream{
+			ctx:       ctx,
+			err:       status.Error(codes.Internal, "message are not ordered"),
+			responses: generateUnorderedAccountStatusesResponses(2),
+		}
+
+		rpc.
+			On("SubscribeAccountStatusesFromLatestBlock", ctx, mock.Anything).
+			Return(stream, nil)
+
+		accountStatusesCh, errCh, err := c.SubscribeAccountStatusesFromLatestBlock(ctx, filter)
+		require.NoError(t, err)
+
+		wg := sync.WaitGroup{}
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			for accStatus := range accountStatusesCh {
+				// we expect stream to send at least 1 account
+				require.Equal(t, accStatus.MessageIndex, 0)
+			}
+		}()
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			errorCount := 0
+			for e := range errCh {
+				require.Error(t, e)
+				require.ErrorIs(t, e, stream.err)
+				errorCount += 1
+			}
+
+			require.Equalf(t, 1, errorCount, "only 1 error is expected")
+		}()
+
+		wg.Wait()
+	}))
 }
 
 func generateEventResponse(t *testing.T, blockID flow.Identifier, height uint64, events []flow.Event, encoding flow.EventEncodingVersion) *executiondata.SubscribeEventsResponse {
