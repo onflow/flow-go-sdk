@@ -207,6 +207,22 @@ func MessageToBlockHeader(m *entities.BlockHeader) (flow.BlockHeader, error) {
 	}, nil
 }
 
+func MessageToBlockDigest(m *access.SubscribeBlockDigestsResponse) flow.BlockDigest {
+	return flow.BlockDigest{
+		BlockID:   flow.BytesToID(m.GetBlockId()),
+		Height:    m.GetBlockHeight(),
+		Timestamp: m.GetBlockTimestamp().AsTime(),
+	}
+}
+
+func BlockDigestToMessage(blockDigest flow.BlockDigest) *access.SubscribeBlockDigestsResponse {
+	return &access.SubscribeBlockDigestsResponse{
+		BlockId:        IdentifierToMessage(blockDigest.BlockID),
+		BlockHeight:    blockDigest.Height,
+		BlockTimestamp: timestamppb.New(blockDigest.Timestamp),
+	}
+}
+
 func BlockStatusToEntity(blockStatus flow.BlockStatus) entities.BlockStatus {
 	switch blockStatus {
 	case flow.BlockStatusFinalized:
