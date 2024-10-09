@@ -1303,9 +1303,14 @@ func (c *BaseClient) SubscribeBlockDigestsFromStartBlockID(
 	blockStatus flow.BlockStatus,
 	opts ...grpc.CallOption,
 ) (<-chan flow.BlockDigest, <-chan error, error) {
+	status := convert.BlockStatusToEntity(blockStatus)
+	if status == entities.BlockStatus_BLOCK_UNKNOWN {
+		return nil, nil, newRPCError(errors.New("unknown block status"))
+	}
+
 	request := &access.SubscribeBlockDigestsFromStartBlockIDRequest{
 		StartBlockId: startBlockID.Bytes(),
-		BlockStatus:  convert.BlockStatusToEntity(blockStatus),
+		BlockStatus:  status,
 	}
 
 	subscribeClient, err := c.rpcClient.SubscribeBlockDigestsFromStartBlockID(ctx, request, opts...)
