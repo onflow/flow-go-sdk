@@ -156,6 +156,7 @@ func TestClient_GetNodeInfo(t *testing.T) {
 		ver := uint64(1)
 		spork := uint64(2)
 		root := uint64(3)
+		compRange := &entities.CompatibleRange{StartHeight: 1, EndHeight: 10}
 
 		response := &access.GetNodeVersionInfoResponse{
 			Info: &entities.NodeVersionInfo{
@@ -165,6 +166,7 @@ func TestClient_GetNodeInfo(t *testing.T) {
 				ProtocolVersion:      ver,
 				SporkRootBlockHeight: spork,
 				NodeRootBlockHeight:  root,
+				CompatibleRange:      compRange,
 			},
 		}
 
@@ -175,6 +177,7 @@ func TestClient_GetNodeInfo(t *testing.T) {
 			ProtocolVersion:      ver,
 			SporkRootBlockHeight: spork,
 			NodeRootBlockHeight:  root,
+			CompatibleRange:      &flow.CompatibleRange{StartHeight: compRange.StartHeight, EndHeight: compRange.EndHeight},
 		}
 
 		rpc.On("GetNodeVersionInfo", ctx, mock.Anything).Return(response, nil)
@@ -2382,6 +2385,335 @@ func assertNoBlocks[T any](t *testing.T, blocksCh <-chan T, done func()) {
 	}
 }
 
+func TestClient_SendAndSubscribeTransactionStatuses(t *testing.T) {
+	transactions := test.TransactionGenerator()
+
+	generateTransactionStatusResponses := func(count uint64, encodingVersion flow.EventEncodingVersion) []*access.SendAndSubscribeTransactionStatusesResponse {
+		var resTransactionResults []*access.SendAndSubscribeTransactionStatusesResponse
+		results := test.TransactionResultGenerator(encodingVersion)
+
+		for i := uint64(0); i < count; i++ {
+			expectedResult := results.New()
+			transactionResult, _ := convert.TransactionResultToMessage(expectedResult, encodingVersion)
+
+			response := &access.SendAndSubscribeTransactionStatusesResponse{
+				TransactionResults: transactionResult,
+				MessageIndex:       i,
+			}
+
+			resTransactionResults = append(resTransactionResults, response)
+		}
+
+		return resTransactionResults
+	}
+
+	t.Run("Happy Path - CCF", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		responseCount := uint64(100)
+		tx := transactions.New()
+
+		ctx, cancel := context.WithCancel(ctx)
+		stream := &mockTransactionStatusesClientStream{
+			ctx:       ctx,
+			responses: generateTransactionStatusResponses(responseCount, flow.EventEncodingVersionCCF),
+		}
+
+		rpc.On("SendAndSubscribeTransactionStatuses", ctx, mock.Anything).Return(stream, nil)
+
+		txResultCh, errCh, err := c.SendAndSubscribeTransactionStatuses(ctx, *tx)
+		require.NoError(t, err)
+
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go assertNoErrors(t, errCh, wg.Done)
+
+		expectedCounter := uint64(0)
+
+		for i := uint64(0); i < responseCount; i++ {
+			actualTxResult := <-txResultCh
+			expectedTxResult, err := convert.MessageToTransactionResult(stream.responses[i].GetTransactionResults(), DefaultClientOptions().jsonOptions)
+			require.NoError(t, err)
+			require.Equal(t, expectedTxResult, actualTxResult)
+			require.Equal(t, expectedCounter, stream.responses[i].MessageIndex)
+
+			expectedCounter++
+		}
+		cancel()
+
+		wg.Wait()
+	}))
+
+	t.Run("Happy Path - JSON-CDC", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		responseCount := uint64(100)
+		tx := transactions.New()
+
+		ctx, cancel := context.WithCancel(ctx)
+		stream := &mockTransactionStatusesClientStream{
+			ctx:       ctx,
+			responses: generateTransactionStatusResponses(responseCount, flow.EventEncodingVersionJSONCDC),
+		}
+
+		rpc.On("SendAndSubscribeTransactionStatuses", ctx, mock.Anything).Return(stream, nil)
+
+		txResultCh, errCh, err := c.SendAndSubscribeTransactionStatuses(ctx, *tx)
+		require.NoError(t, err)
+
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go assertNoErrors(t, errCh, wg.Done)
+
+		expectedCounter := uint64(0)
+		for i := uint64(0); i < responseCount; i++ {
+			actualTxResult := <-txResultCh
+			expectedTxResult, err := convert.MessageToTransactionResult(stream.responses[i].GetTransactionResults(), DefaultClientOptions().jsonOptions)
+			require.NoError(t, err)
+			require.Equal(t, expectedTxResult, actualTxResult)
+			require.Equal(t, expectedCounter, stream.responses[i].MessageIndex)
+
+			expectedCounter++
+		}
+		cancel()
+
+		wg.Wait()
+	}))
+
+	t.Run("Stream returns error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		ctx, cancel := context.WithCancel(ctx)
+		stream := &mockTransactionStatusesClientStream{
+			ctx: ctx,
+			err: status.Error(codes.Internal, "internal error"),
+		}
+
+		rpc.
+			On("SendAndSubscribeTransactionStatuses", ctx, mock.Anything).
+			Return(stream, nil)
+
+		txResultChan, errCh, err := c.SendAndSubscribeTransactionStatuses(ctx, flow.Transaction{})
+		require.NoError(t, err)
+
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go assertNoTxResults(t, txResultChan, wg.Done)
+
+		errorCount := 0
+		for e := range errCh {
+			require.Error(t, e)
+			require.ErrorIs(t, e, stream.err)
+			errorCount += 1
+		}
+		cancel()
+
+		require.Equalf(t, 1, errorCount, "only 1 error is expected")
+
+		wg.Wait()
+	}))
+
+}
+
+type mockTransactionStatusesClientStream struct {
+	grpc.ClientStream
+
+	ctx       context.Context
+	err       error
+	offset    int
+	responses []*access.SendAndSubscribeTransactionStatusesResponse
+}
+
+func (m *mockTransactionStatusesClientStream) Recv() (*access.SendAndSubscribeTransactionStatusesResponse, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+
+	if m.offset >= len(m.responses) {
+		<-m.ctx.Done()
+		return nil, io.EOF
+	}
+	defer func() { m.offset++ }()
+
+	return m.responses[m.offset], nil
+}
+
+func assertNoTxResults[TxStatus any](t *testing.T, txResultChan <-chan TxStatus, done func()) {
+	defer done()
+	for range txResultChan {
+		require.FailNow(t, "should not receive txStatus")
+	}
+}
+
+func TestClient_SubscribeBlockHeaders(t *testing.T) {
+	blockHeaders := test.BlockHeaderGenerator()
+
+	generateBlockHeaderResponses := func(count uint64) []*access.SubscribeBlockHeadersResponse {
+		var resBlockHeaders []*access.SubscribeBlockHeadersResponse
+
+		for i := uint64(0); i < count; i++ {
+			header, err := convert.BlockHeaderToMessage(blockHeaders.New())
+			require.NoError(t, err)
+
+			resBlockHeaders = append(resBlockHeaders, &access.SubscribeBlockHeadersResponse{
+				Header: header,
+			})
+		}
+
+		return resBlockHeaders
+	}
+
+	t.Run("Happy Path - from start height", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		startHeight := uint64(1)
+		responseCount := uint64(100)
+
+		ctx, cancel := context.WithCancel(ctx)
+		stream := &mockBlockHeaderClientStream[access.SubscribeBlockHeadersResponse]{
+			ctx:       ctx,
+			responses: generateBlockHeaderResponses(responseCount),
+		}
+
+		rpc.
+			On("SubscribeBlockHeadersFromStartHeight", ctx, mock.Anything).
+			Return(stream, nil)
+
+		blockHeadersCh, errCh, err := c.SubscribeBlockHeadersFromStartHeight(ctx, startHeight, flow.BlockStatusFinalized)
+		require.NoError(t, err)
+
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go assertNoErrors(t, errCh, wg.Done)
+
+		for i := uint64(0); i < responseCount; i++ {
+			actualHeader := <-blockHeadersCh
+			expectedHeader, err := convert.MessageToBlockHeader(stream.responses[i].GetHeader())
+			require.NoError(t, err)
+			require.Equal(t, expectedHeader, actualHeader)
+		}
+		cancel()
+
+		wg.Wait()
+	}))
+
+	t.Run("Happy Path - from start block id", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		responseCount := uint64(100)
+
+		ctx, cancel := context.WithCancel(ctx)
+		stream := &mockBlockHeaderClientStream[access.SubscribeBlockHeadersResponse]{
+			ctx:       ctx,
+			responses: generateBlockHeaderResponses(responseCount),
+		}
+
+		rpc.
+			On("SubscribeBlockHeadersFromStartBlockID", ctx, mock.Anything).
+			Return(stream, nil)
+
+		startBlockID := convert.MessageToIdentifier(stream.responses[0].GetHeader().Id)
+		blockHeadersCh, errCh, err := c.SubscribeBlockHeadersFromStartBlockID(ctx, startBlockID, flow.BlockStatusFinalized)
+		require.NoError(t, err)
+
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go assertNoErrors(t, errCh, wg.Done)
+
+		for i := uint64(0); i < responseCount; i++ {
+			actualHeader := <-blockHeadersCh
+			expectedHeader, err := convert.MessageToBlockHeader(stream.responses[i].GetHeader())
+			require.NoError(t, err)
+			require.Equal(t, expectedHeader, actualHeader)
+		}
+		cancel()
+
+		wg.Wait()
+	}))
+
+	t.Run("Happy Path - from latest", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		responseCount := uint64(100)
+
+		ctx, cancel := context.WithCancel(ctx)
+		stream := &mockBlockHeaderClientStream[access.SubscribeBlockHeadersResponse]{
+			ctx:       ctx,
+			responses: generateBlockHeaderResponses(responseCount),
+		}
+
+		rpc.
+			On("SubscribeBlockHeadersFromLatest", ctx, mock.Anything).
+			Return(stream, nil)
+
+		blockHeadersCh, errCh, err := c.SubscribeBlockHeadersFromLatest(ctx, flow.BlockStatusFinalized)
+		require.NoError(t, err)
+
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go assertNoErrors(t, errCh, wg.Done)
+
+		for i := uint64(0); i < responseCount; i++ {
+			actualHeader := <-blockHeadersCh
+			expectedHeader, err := convert.MessageToBlockHeader(stream.responses[i].GetHeader())
+			require.NoError(t, err)
+			require.Equal(t, expectedHeader, actualHeader)
+		}
+		cancel()
+
+		wg.Wait()
+	}))
+
+	t.Run("Stream returns error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		ctx, cancel := context.WithCancel(ctx)
+		stream := &mockBlockHeaderClientStream[access.SubscribeBlockHeadersResponse]{
+			ctx: ctx,
+			err: status.Error(codes.Internal, "internal error"),
+		}
+
+		rpc.
+			On("SubscribeBlockHeadersFromLatest", ctx, mock.Anything).
+			Return(stream, nil)
+
+		blockHeadersCh, errCh, err := c.SubscribeBlockHeadersFromLatest(ctx, flow.BlockStatusFinalized)
+		require.NoError(t, err)
+
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go assertNoBlockHeaders(t, blockHeadersCh, wg.Done)
+
+		errorCount := 0
+		for e := range errCh {
+			require.Error(t, e)
+			require.ErrorIs(t, e, stream.err)
+			errorCount += 1
+		}
+		cancel()
+
+		require.Equalf(t, 1, errorCount, "only 1 error is expected")
+
+		wg.Wait()
+	}))
+}
+
+type mockBlockHeaderClientStream[SubscribeBlockHeadersResponse any] struct {
+	grpc.ClientStream
+
+	ctx       context.Context
+	err       error
+	offset    int
+	responses []*SubscribeBlockHeadersResponse
+}
+
+func (s *mockBlockHeaderClientStream[SubscribeBlockHeadersResponse]) Recv() (*SubscribeBlockHeadersResponse, error) {
+	if s.err != nil {
+		return nil, s.err
+	}
+
+	if s.offset >= len(s.responses) {
+		<-s.ctx.Done()
+		return nil, io.EOF
+	}
+	defer func() { s.offset++ }()
+
+	return s.responses[s.offset], nil
+}
+
+func assertNoBlockHeaders[BlockHeader any](t *testing.T, blockHeadersChan <-chan BlockHeader, done func()) {
+	defer done()
+	for range blockHeadersChan {
+		require.FailNow(t, "should not receive block headers")
+	}
+}
+
 func TestClient_SubscribeBlockDigest(t *testing.T) {
 	blockHeaders := test.BlockHeaderGenerator()
 
@@ -2417,7 +2749,7 @@ func TestClient_SubscribeBlockDigest(t *testing.T) {
 			On("SubscribeBlockDigestsFromStartHeight", ctx, mock.Anything).
 			Return(stream, nil)
 
-		blockDigestsCh, errCh, err := c.SubscribeBlockDigestsFromStartHeight(ctx, startHeight, flow.BlockStatusUnknown)
+		blockDigestsCh, errCh, err := c.SubscribeBlockDigestsFromStartHeight(ctx, startHeight, flow.BlockStatusSealed)
 		require.NoError(t, err)
 
 		wg := sync.WaitGroup{}
@@ -2448,7 +2780,7 @@ func TestClient_SubscribeBlockDigest(t *testing.T) {
 			Return(stream, nil)
 
 		startBlockID := convert.MessageToIdentifier(stream.responses[0].BlockId)
-		blockDigestsCh, errCh, err := c.SubscribeBlockDigestsFromStartBlockID(ctx, startBlockID, flow.BlockStatusUnknown)
+		blockDigestsCh, errCh, err := c.SubscribeBlockDigestsFromStartBlockID(ctx, startBlockID, flow.BlockStatusSealed)
 		require.NoError(t, err)
 
 		wg := sync.WaitGroup{}
@@ -2478,7 +2810,7 @@ func TestClient_SubscribeBlockDigest(t *testing.T) {
 			On("SubscribeBlockDigestsFromLatest", ctx, mock.Anything).
 			Return(stream, nil)
 
-		blockDigestsCh, errCh, err := c.SubscribeBlockDigestsFromLatest(ctx, flow.BlockStatusUnknown)
+		blockDigestsCh, errCh, err := c.SubscribeBlockDigestsFromLatest(ctx, flow.BlockStatusSealed)
 		require.NoError(t, err)
 
 		wg := sync.WaitGroup{}
@@ -2506,7 +2838,7 @@ func TestClient_SubscribeBlockDigest(t *testing.T) {
 			On("SubscribeBlockDigestsFromLatest", ctx, mock.Anything).
 			Return(stream, nil)
 
-		blockDigestsCh, errCh, err := c.SubscribeBlockDigestsFromLatest(ctx, flow.BlockStatusUnknown)
+		blockDigestsCh, errCh, err := c.SubscribeBlockDigestsFromLatest(ctx, flow.BlockStatusSealed)
 		require.NoError(t, err)
 
 		wg := sync.WaitGroup{}

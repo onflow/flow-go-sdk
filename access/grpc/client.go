@@ -204,6 +204,13 @@ func (c *Client) GetTransactionResultsByBlockID(ctx context.Context, blockID flo
 	return c.grpc.GetTransactionResultsByBlockID(ctx, blockID)
 }
 
+func (c *Client) SendAndSubscribeTransactionStatuses(
+	ctx context.Context,
+	tx flow.Transaction,
+) (<-chan flow.TransactionResult, <-chan error, error) {
+	return c.grpc.SendAndSubscribeTransactionStatuses(ctx, tx)
+}
+
 func (c *Client) GetAccount(ctx context.Context, address flow.Address) (*flow.Account, error) {
 	return c.grpc.GetAccount(ctx, address)
 }
@@ -366,6 +373,29 @@ func (c *Client) SubscribeBlocksFromLatest(
 	blockStatus flow.BlockStatus,
 ) (<-chan flow.Block, <-chan error, error) {
 	return c.grpc.SubscribeBlocksFromLatest(ctx, blockStatus)
+}
+
+func (c *Client) SubscribeBlockHeadersFromStartBlockID(
+	ctx context.Context,
+	startBlockID flow.Identifier,
+	blockStatus flow.BlockStatus,
+) (<-chan flow.BlockHeader, <-chan error, error) {
+	return c.grpc.SubscribeBlockHeadersFromStartBlockID(ctx, startBlockID, blockStatus)
+}
+
+func (c *Client) SubscribeBlockHeadersFromStartHeight(
+	ctx context.Context,
+	startHeight uint64,
+	blockStatus flow.BlockStatus,
+) (<-chan flow.BlockHeader, <-chan error, error) {
+	return c.grpc.SubscribeBlockHeadersFromStartHeight(ctx, startHeight, blockStatus)
+}
+
+func (c *Client) SubscribeBlocksHeadersFromLatest(
+	ctx context.Context,
+	blockStatus flow.BlockStatus,
+) (<-chan flow.BlockHeader, <-chan error, error) {
+	return c.grpc.SubscribeBlockHeadersFromLatest(ctx, blockStatus)
 }
 
 func (c *Client) Close() error {
