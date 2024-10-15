@@ -180,11 +180,36 @@ func BlockHeaderGenerator() *BlockHeaders {
 func (g *BlockHeaders) New() flow.BlockHeader {
 	defer func() { g.count++ }()
 
+	qc := flow.QuorumCertificate{
+		View:          42,
+		BlockID:       g.ids.New(),
+		SignerIndices: []byte("dummy"),
+		SigData:       []byte("dummy"),
+	}
+
+	tc := flow.TimeoutCertificate{
+		View:          42,
+		HighQCViews:   []uint64{42},
+		HighestQC:     qc,
+		SignerIndices: []byte("dummy"),
+		SigData:       []byte("dummy"),
+	}
+
 	return flow.BlockHeader{
-		ID:        g.ids.New(),
-		ParentID:  g.ids.New(),
-		Height:    uint64(g.count),
-		Timestamp: g.startTime.Add(time.Hour * time.Duration(g.count)),
+		ID:                         g.ids.New(),
+		ParentID:                   g.ids.New(),
+		Height:                     uint64(g.count),
+		Timestamp:                  g.startTime.Add(time.Hour * time.Duration(g.count)),
+		Status:                     flow.BlockStatusUnknown,
+		PayloadHash:                []byte("dummy"),
+		View:                       42,
+		ParentVoterSigData:         []byte("dummy"),
+		ProposerID:                 g.ids.New(),
+		ProposerSigData:            []byte("dummy"),
+		ChainID:                    g.ids.New(),
+		ParentVoterIndices:         []byte("dummy"),
+		LastViewTimeoutCertificate: tc,
+		ParentView:                 42,
 	}
 }
 
