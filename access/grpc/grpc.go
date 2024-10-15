@@ -1498,7 +1498,7 @@ func receiveAccountStatusesFromStream[Stream interface {
 		}
 
 		if accountStatus.MessageIndex != nextExpectedMsgIndex {
-			sendErr(fmt.Errorf("messages are not ordered"))
+			sendErr(fmt.Errorf("message received out of order"))
 			return
 		}
 		nextExpectedMsgIndex = accountStatus.MessageIndex + 1

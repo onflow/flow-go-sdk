@@ -2294,7 +2294,7 @@ func TestClient_SubscribeAccountStatuses(t *testing.T) {
 
 		stream := &mockAccountStatutesClientStream{
 			ctx:       ctx,
-			err:       status.Error(codes.Internal, "message are not ordered"),
+			err:       status.Error(codes.Internal, "message received out of order"),
 			responses: generateUnorderedAccountStatusesResponses(2),
 		}
 
