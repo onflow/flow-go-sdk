@@ -250,9 +250,19 @@ func BlockSealGenerator() *BlockSeals {
 }
 
 func (g *BlockSeals) New() *flow.BlockSeal {
+	sigs := []*flow.AggregatedSignature{{
+		VerifierSignatures: [][]byte{[]byte("dummy")},
+		SignerIds:          []flow.Identifier{g.ids.New()},
+	}}
+
 	return &flow.BlockSeal{
-		BlockID:            g.ids.New(),
-		ExecutionReceiptID: g.ids.New(),
+		BlockID:                    g.ids.New(),
+		ExecutionReceiptID:         g.ids.New(),
+		ExecutionReceiptSignatures: [][]byte{[]byte("dummy")},
+		ResultApprovalSignatures:   [][]byte{[]byte("dummy")},
+		FinalState:                 []byte("dummy"),
+		ResultId:                   g.ids.New(),
+		AggregatedApprovalSigs:     sigs,
 	}
 }
 
