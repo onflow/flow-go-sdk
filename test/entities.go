@@ -239,7 +239,11 @@ func CollectionGuaranteeGenerator() *CollectionGuarantees {
 
 func (g *CollectionGuarantees) New() *flow.CollectionGuarantee {
 	return &flow.CollectionGuarantee{
-		CollectionID: g.ids.New(),
+		CollectionID:     g.ids.New(),
+		Signatures:       [][]byte{[]byte("dummy")},
+		ReferenceBlockID: g.ids.New(),
+		Signature:        []byte("dummy"),
+		SignerIndices:    []byte("dummy"),
 	}
 }
 

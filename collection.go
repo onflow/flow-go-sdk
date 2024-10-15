@@ -45,7 +45,11 @@ func (c Collection) Encode() []byte {
 
 // A CollectionGuarantee is an attestation signed by the nodes that have guaranteed a collection.
 type CollectionGuarantee struct {
-	CollectionID Identifier
+	CollectionID     Identifier
+	Signatures       [][]byte
+	ReferenceBlockID Identifier
+	Signature        []byte
+	SignerIndices    []byte
 }
 
 type FullCollection struct {
