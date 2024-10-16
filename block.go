@@ -88,3 +88,10 @@ type AggregatedSignature struct {
 	VerifierSignatures [][]byte
 	SignerIds          []Identifier
 }
+
+// BlockDigest holds lightweight block information which includes only block id, block height and block timestamp
+type BlockDigest struct {
+	BlockID   Identifier
+	Height    uint64
+	Timestamp time.Time
+}
