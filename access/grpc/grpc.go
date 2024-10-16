@@ -1517,6 +1517,148 @@ func receiveBlockHeadersFromClient[Client interface {
 	}
 }
 
+func (c *BaseClient) SubscribeAccountStatusesFromStartHeight(
+	ctx context.Context,
+	startHeight uint64,
+	filter flow.AccountStatusFilter,
+	opts ...grpc.CallOption,
+) (<-chan flow.AccountStatus, <-chan error, error) {
+	request := &executiondata.SubscribeAccountStatusesFromStartHeightRequest{
+		StartBlockHeight:     startHeight,
+		EventEncodingVersion: c.eventEncoding,
+	}
+	request.Filter = &executiondata.StatusFilter{
+		EventType: filter.EventTypes,
+		Address:   filter.Addresses,
+	}
+
+	subscribeClient, err := c.executionDataClient.SubscribeAccountStatusesFromStartHeight(ctx, request, opts...)
+	if err != nil {
+		return nil, nil, newRPCError(err)
+	}
+
+	accountStatutesChan := make(chan flow.AccountStatus)
+	errChan := make(chan error)
+
+	go func() {
+		defer close(accountStatutesChan)
+		defer close(errChan)
+		receiveAccountStatusesFromStream(ctx, subscribeClient, accountStatutesChan, errChan)
+	}()
+
+	return accountStatutesChan, errChan, nil
+}
+
+func (c *BaseClient) SubscribeAccountStatusesFromStartBlockID(
+	ctx context.Context,
+	startBlockID flow.Identifier,
+	filter flow.AccountStatusFilter,
+	opts ...grpc.CallOption,
+) (<-chan flow.AccountStatus, <-chan error, error) {
+	request := &executiondata.SubscribeAccountStatusesFromStartBlockIDRequest{
+		StartBlockId:         startBlockID.Bytes(),
+		EventEncodingVersion: c.eventEncoding,
+	}
+	request.Filter = &executiondata.StatusFilter{
+		EventType: filter.EventTypes,
+		Address:   filter.Addresses,
+	}
+
+	subscribeClient, err := c.executionDataClient.SubscribeAccountStatusesFromStartBlockID(ctx, request, opts...)
+	if err != nil {
+		return nil, nil, newRPCError(err)
+	}
+
+	accountStatutesChan := make(chan flow.AccountStatus)
+	errChan := make(chan error)
+
+	go func() {
+		defer close(accountStatutesChan)
+		defer close(errChan)
+		receiveAccountStatusesFromStream(ctx, subscribeClient, accountStatutesChan, errChan)
+	}()
+
+	return accountStatutesChan, errChan, nil
+}
+
+func (c *BaseClient) SubscribeAccountStatusesFromLatestBlock(
+	ctx context.Context,
+	filter flow.AccountStatusFilter,
+	opts ...grpc.CallOption,
+) (<-chan flow.AccountStatus, <-chan error, error) {
+	request := &executiondata.SubscribeAccountStatusesFromLatestBlockRequest{
+		EventEncodingVersion: c.eventEncoding,
+	}
+	request.Filter = &executiondata.StatusFilter{
+		EventType: filter.EventTypes,
+		Address:   filter.Addresses,
+	}
+
+	subscribeClient, err := c.executionDataClient.SubscribeAccountStatusesFromLatestBlock(ctx, request, opts...)
+	if err != nil {
+		return nil, nil, newRPCError(err)
+	}
+
+	accountStatutesChan := make(chan flow.AccountStatus)
+	errChan := make(chan error)
+
+	go func() {
+		defer close(accountStatutesChan)
+		defer close(errChan)
+		receiveAccountStatusesFromStream(ctx, subscribeClient, accountStatutesChan, errChan)
+	}()
+
+	return accountStatutesChan, errChan, nil
+}
+
+func receiveAccountStatusesFromStream[Stream interface {
+	Recv() (*executiondata.SubscribeAccountStatusesResponse, error)
+}](
+	ctx context.Context,
+	stream Stream,
+	accountStatutesChan chan<- flow.AccountStatus,
+	errChan chan<- error,
+) {
+	sendErr := func(err error) {
+		select {
+		case <-ctx.Done():
+		case errChan <- err:
+		}
+	}
+
+	var nextExpectedMsgIndex uint64
+	for {
+		accountStatusResponse, err := stream.Recv()
+		if err != nil {
+			if err == io.EOF {
+				// End of stream, return gracefully
+				return
+			}
+
+			sendErr(fmt.Errorf("error receiving account status: %w", err))
+			return
+		}
+
+		accountStatus, err := convert.MessageToAccountStatus(accountStatusResponse)
+		if err != nil {
+			sendErr(fmt.Errorf("error converting message to account status: %w", err))
+			return
+		}
+
+		if accountStatus.MessageIndex != nextExpectedMsgIndex {
+			sendErr(fmt.Errorf("message received out of order"))
+			return
+		}
+		nextExpectedMsgIndex = accountStatus.MessageIndex + 1
+
+		select {
+		case <-ctx.Done():
+			return
+		case accountStatutesChan <- accountStatus:
+		}
+	}
+}
+
 func (c *BaseClient) SubscribeBlockDigestsFromStartBlockID(
 	ctx context.Context,
 	startBlockID flow.Identifier,
