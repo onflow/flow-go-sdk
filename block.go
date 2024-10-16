@@ -76,3 +76,10 @@ type BlockSeal struct {
 	// block produces the same receipt among all verifying nodes
 	ExecutionReceiptID Identifier
 }
+
+// BlockDigest holds lightweight block information which includes only block id, block height and block timestamp
+type BlockDigest struct {
+	BlockID   Identifier
+	Height    uint64
+	Timestamp time.Time
+}
