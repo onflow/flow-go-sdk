@@ -166,7 +166,7 @@ type BlockHeaders struct {
 	count     int
 	ids       *Identifiers
 	startTime time.Time
-	bytesGen  *BytesGenerator
+	bytes     *Bytes
 }
 
 func BlockHeaderGenerator() *BlockHeaders {
@@ -176,7 +176,7 @@ func BlockHeaderGenerator() *BlockHeaders {
 		count:     1,
 		ids:       IdentifierGenerator(),
 		startTime: startTime.UTC(),
-		bytesGen:  NewBytesGenerator(),
+		bytes:     BytesGenerator(),
 	}
 }
 
@@ -186,16 +186,16 @@ func (g *BlockHeaders) New() flow.BlockHeader {
 	qc := flow.QuorumCertificate{
 		View:          42,
 		BlockID:       g.ids.New(),
-		SignerIndices: g.bytesGen.New(),
-		SigData:       g.bytesGen.New(),
+		SignerIndices: g.bytes.New(),
+		SigData:       g.bytes.New(),
 	}
 
 	tc := flow.TimeoutCertificate{
 		View:          42,
 		HighQCViews:   []uint64{42},
 		HighestQC:     qc,
-		SignerIndices: g.bytesGen.New(),
-		SigData:       g.bytesGen.New(),
+		SignerIndices: g.bytes.New(),
+		SigData:       g.bytes.New(),
 	}
 
 	return flow.BlockHeader{
@@ -204,13 +204,13 @@ func (g *BlockHeaders) New() flow.BlockHeader {
 		Height:                     uint64(g.count),
 		Timestamp:                  g.startTime.Add(time.Hour * time.Duration(g.count)),
 		Status:                     flow.BlockStatusUnknown,
-		PayloadHash:                g.bytesGen.New(),
+		PayloadHash:                g.bytes.New(),
 		View:                       42,
-		ParentVoterSigData:         g.bytesGen.New(),
+		ParentVoterSigData:         g.bytes.New(),
 		ProposerID:                 g.ids.New(),
-		ProposerSigData:            g.bytesGen.New(),
+		ProposerSigData:            g.bytes.New(),
 		ChainID:                    g.ids.New(),
-		ParentVoterIndices:         g.bytesGen.New(),
+		ParentVoterIndices:         g.bytes.New(),
 		LastViewTimeoutCertificate: tc,
 		ParentView:                 42,
 	}
@@ -600,23 +600,21 @@ func (g *LightTransactionResults) New() *flow.LightTransactionResult {
 	}
 }
 
-type Bytes []byte
-
-type BytesGenerator struct {
+type Bytes struct {
 	count int
 }
 
-func NewBytesGenerator() *BytesGenerator {
-	return &BytesGenerator{
+func BytesGenerator() *Bytes {
+	return &Bytes{
 		count: 64,
 	}
 }
 
-func (g *BytesGenerator) New() Bytes {
+func (g *Bytes) New() []byte {
 	randomBytes := make([]byte, g.count)
 	_, err := rand.Read(randomBytes)
 	if err != nil {
 		panic("failed to generate random bytes")
 	}
-	return Bytes(randomBytes)
+	return randomBytes
 }
