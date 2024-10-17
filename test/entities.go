@@ -231,7 +231,7 @@ type CollectionGuarantees struct {
 type BlockSeals struct {
 	ids   *Identifiers
 	sigs  *Signatures
-	bytes *BytesGenerator
+	bytes *Bytes
 }
 
 func CollectionGuaranteeGenerator() *CollectionGuarantees {
@@ -250,7 +250,7 @@ func BlockSealGenerator() *BlockSeals {
 	return &BlockSeals{
 		ids:   IdentifierGenerator(),
 		sigs:  SignaturesGenerator(),
-		bytes: NewBytesGenerator(),
+		bytes: BytesGenerator(),
 	}
 }
 
@@ -587,23 +587,21 @@ func (g *LightTransactionResults) New() *flow.LightTransactionResult {
 	}
 }
 
-type Bytes []byte
-
-type BytesGenerator struct {
+type Bytes struct {
 	count int
 }
 
-func NewBytesGenerator() *BytesGenerator {
-	return &BytesGenerator{
+func BytesGenerator() *Bytes {
+	return &Bytes{
 		count: 64,
 	}
 }
 
-func (b *BytesGenerator) New() Bytes {
+func (b *Bytes) New() []byte {
 	randomBytes := make([]byte, b.count)
 	_, err := rand.Read(randomBytes)
 	if err != nil {
 		panic("failed to generate random bytes")
 	}
-	return Bytes(randomBytes)
+	return randomBytes
 }
