@@ -19,6 +19,7 @@
 package test
 
 import (
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"strconv"
@@ -165,6 +166,7 @@ type BlockHeaders struct {
 	count     int
 	ids       *Identifiers
 	startTime time.Time
+	bytesGen  *BytesGenerator
 }
 
 func BlockHeaderGenerator() *BlockHeaders {
@@ -174,6 +176,7 @@ func BlockHeaderGenerator() *BlockHeaders {
 		count:     1,
 		ids:       IdentifierGenerator(),
 		startTime: startTime.UTC(),
+		bytesGen:  NewBytesGenerator(),
 	}
 }
 
@@ -183,16 +186,16 @@ func (g *BlockHeaders) New() flow.BlockHeader {
 	qc := flow.QuorumCertificate{
 		View:          42,
 		BlockID:       g.ids.New(),
-		SignerIndices: []byte("dummy"),
-		SigData:       []byte("dummy"),
+		SignerIndices: g.bytesGen.New(),
+		SigData:       g.bytesGen.New(),
 	}
 
 	tc := flow.TimeoutCertificate{
 		View:          42,
 		HighQCViews:   []uint64{42},
 		HighestQC:     qc,
-		SignerIndices: []byte("dummy"),
-		SigData:       []byte("dummy"),
+		SignerIndices: g.bytesGen.New(),
+		SigData:       g.bytesGen.New(),
 	}
 
 	return flow.BlockHeader{
@@ -201,13 +204,13 @@ func (g *BlockHeaders) New() flow.BlockHeader {
 		Height:                     uint64(g.count),
 		Timestamp:                  g.startTime.Add(time.Hour * time.Duration(g.count)),
 		Status:                     flow.BlockStatusUnknown,
-		PayloadHash:                []byte("dummy"),
+		PayloadHash:                g.bytesGen.New(),
 		View:                       42,
-		ParentVoterSigData:         []byte("dummy"),
+		ParentVoterSigData:         g.bytesGen.New(),
 		ProposerID:                 g.ids.New(),
-		ProposerSigData:            []byte("dummy"),
+		ProposerSigData:            g.bytesGen.New(),
 		ChainID:                    g.ids.New(),
-		ParentVoterIndices:         []byte("dummy"),
+		ParentVoterIndices:         g.bytesGen.New(),
 		LastViewTimeoutCertificate: tc,
 		ParentView:                 42,
 	}
@@ -595,4 +598,25 @@ func (g *LightTransactionResults) New() *flow.LightTransactionResult {
 		Failed:          false,
 		ComputationUsed: uint64(42),
 	}
+}
+
+type Bytes []byte
+
+type BytesGenerator struct {
+	count int
+}
+
+func NewBytesGenerator() *BytesGenerator {
+	return &BytesGenerator{
+		count: 64,
+	}
+}
+
+func (g *BytesGenerator) New() Bytes {
+	randomBytes := make([]byte, g.count)
+	_, err := rand.Read(randomBytes)
+	if err != nil {
+		panic("failed to generate random bytes")
+	}
+	return Bytes(randomBytes)
 }
