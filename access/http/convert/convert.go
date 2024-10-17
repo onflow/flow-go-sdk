@@ -102,7 +102,7 @@ func ToCollectionGuarantees(guarantees []models.CollectionGuarantee) []*flow.Col
 
 	for i, guarantee := range guarantees {
 		flowGuarantees[i] = &flow.CollectionGuarantee{
-			flow.HexToID(guarantee.CollectionId),
+			CollectionID: flow.HexToID(guarantee.CollectionId),
 		}
 	}
 
