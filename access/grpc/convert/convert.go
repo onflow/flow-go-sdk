@@ -245,12 +245,16 @@ func MessageToBlockHeader(m *entities.BlockHeader) (flow.BlockHeader, error) {
 	}, nil
 }
 
-func MessageToBlockDigest(m *access.SubscribeBlockDigestsResponse) flow.BlockDigest {
+func MessageToBlockDigest(m *access.SubscribeBlockDigestsResponse) (flow.BlockDigest, error) {
+	if m == nil {
+		return flow.BlockDigest{}, ErrEmptyMessage
+	}
+
 	return flow.BlockDigest{
 		BlockID:   flow.BytesToID(m.GetBlockId()),
 		Height:    m.GetBlockHeight(),
 		Timestamp: m.GetBlockTimestamp().AsTime(),
-	}
+	}, nil
 }
 
 func BlockDigestToMessage(blockDigest flow.BlockDigest) *access.SubscribeBlockDigestsResponse {
