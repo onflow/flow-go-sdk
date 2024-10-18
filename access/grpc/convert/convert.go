@@ -166,8 +166,11 @@ func MessageToAccountKeys(m []*entities.AccountKey) ([]flow.AccountKey, error) {
 }
 
 func BlockToMessage(b flow.Block) (*entities.Block, error) {
-
 	t := timestamppb.New(b.BlockHeader.Timestamp)
+	header, err := BlockHeaderToMessage(b.BlockHeader)
+	if err != nil {
+		return nil, err
+	}
 
 	return &entities.Block{
 		Id:                   b.BlockHeader.ID.Bytes(),
@@ -176,6 +179,7 @@ func BlockToMessage(b flow.Block) (*entities.Block, error) {
 		Timestamp:            t,
 		CollectionGuarantees: CollectionGuaranteesToMessages(b.BlockPayload.CollectionGuarantees),
 		BlockSeals:           BlockSealsToMessages(b.BlockPayload.Seals),
+		BlockHeader:          header,
 	}, nil
 }
 
@@ -187,11 +191,25 @@ func MessageToBlock(m *entities.Block) (flow.Block, error) {
 		timestamp = m.GetTimestamp().AsTime()
 	}
 
+	tc, err := MessageToTimeoutCertificate(m.BlockHeader.GetLastViewTc())
+	if err != nil {
+		return flow.Block{}, err
+	}
+
 	header := &flow.BlockHeader{
-		ID:        flow.HashToID(m.GetId()),
-		ParentID:  flow.HashToID(m.GetParentId()),
-		Height:    m.GetHeight(),
-		Timestamp: timestamp,
+		ID:                         flow.HashToID(m.GetId()),
+		ParentID:                   flow.HashToID(m.GetParentId()),
+		Height:                     m.GetHeight(),
+		Timestamp:                  timestamp,
+		PayloadHash:                m.BlockHeader.GetPayloadHash(),
+		View:                       m.BlockHeader.GetView(),
+		ParentVoterSigData:         m.BlockHeader.GetParentVoterSigData(),
+		ProposerID:                 flow.HashToID(m.BlockHeader.GetProposerId()),
+		ProposerSigData:            m.BlockHeader.GetProposerSigData(),
+		ChainID:                    flow.HashToID([]byte(m.BlockHeader.GetChainId())),
+		ParentVoterIndices:         m.BlockHeader.GetParentVoterIndices(),
+		LastViewTimeoutCertificate: tc,
+		ParentView:                 m.BlockHeader.GetParentView(),
 	}
 
 	guarantees, err := MessagesToCollectionGuarantees(m.GetCollectionGuarantees())
@@ -217,12 +235,25 @@ func MessageToBlock(m *entities.Block) (flow.Block, error) {
 
 func BlockHeaderToMessage(b flow.BlockHeader) (*entities.BlockHeader, error) {
 	t := timestamppb.New(b.Timestamp)
+	tc, err := TimeoutCertificateToMessage(b.LastViewTimeoutCertificate)
+	if err != nil {
+		return nil, err
+	}
 
 	return &entities.BlockHeader{
-		Id:        b.ID.Bytes(),
-		ParentId:  b.ParentID.Bytes(),
-		Height:    b.Height,
-		Timestamp: t,
+		Id:                 b.ID.Bytes(),
+		ParentId:           b.ParentID.Bytes(),
+		Height:             b.Height,
+		Timestamp:          t,
+		PayloadHash:        b.PayloadHash,
+		View:               b.View,
+		ParentVoterSigData: b.ParentVoterSigData,
+		ProposerId:         b.ProposerID.Bytes(),
+		ProposerSigData:    b.ProposerSigData,
+		ChainId:            string(b.ChainID.Bytes()),
+		ParentVoterIndices: b.ParentVoterIndices,
+		LastViewTc:         tc,
+		ParentView:         b.ParentView,
 	}, nil
 }
 
@@ -237,11 +268,81 @@ func MessageToBlockHeader(m *entities.BlockHeader) (flow.BlockHeader, error) {
 		timestamp = m.GetTimestamp().AsTime()
 	}
 
+	tc, err := MessageToTimeoutCertificate(m.GetLastViewTc())
+	if err != nil {
+		return flow.BlockHeader{}, err
+	}
+
 	return flow.BlockHeader{
-		ID:        flow.HashToID(m.GetId()),
-		ParentID:  flow.HashToID(m.GetParentId()),
-		Height:    m.GetHeight(),
-		Timestamp: timestamp,
+		ID:                         flow.HashToID(m.GetId()),
+		ParentID:                   flow.HashToID(m.GetParentId()),
+		Height:                     m.GetHeight(),
+		Timestamp:                  timestamp,
+		PayloadHash:                m.GetPayloadHash(),
+		View:                       m.GetView(),
+		ParentVoterSigData:         m.GetParentVoterSigData(),
+		ProposerID:                 flow.HashToID(m.GetProposerId()),
+		ProposerSigData:            m.GetProposerSigData(),
+		ChainID:                    flow.HashToID([]byte(m.GetChainId())),
+		ParentVoterIndices:         m.GetParentVoterIndices(),
+		LastViewTimeoutCertificate: tc,
+		ParentView:                 m.GetParentView(),
+	}, nil
+}
+
+func MessageToTimeoutCertificate(m *entities.TimeoutCertificate) (flow.TimeoutCertificate, error) {
+	if m == nil {
+		return flow.TimeoutCertificate{}, ErrEmptyMessage
+	}
+
+	qc, err := MessageToQuorumCertificate(m.GetHighestQc())
+	if err != nil {
+		return flow.TimeoutCertificate{}, err
+	}
+
+	return flow.TimeoutCertificate{
+		View:          m.GetView(),
+		HighQCViews:   m.GetHighQcViews(),
+		HighestQC:     qc,
+		SignerIndices: m.GetSignerIndices(),
+		SigData:       m.GetSigData(),
+	}, nil
+}
+
+func TimeoutCertificateToMessage(tc flow.TimeoutCertificate) (*entities.TimeoutCertificate, error) {
+	qc, err := QuorumCertificateToMessage(tc.HighestQC)
+	if err != nil {
+		return nil, err
+	}
+
+	return &entities.TimeoutCertificate{
+		View:          tc.View,
+		HighQcViews:   tc.HighQCViews,
+		HighestQc:     qc,
+		SignerIndices: tc.SignerIndices,
+		SigData:       tc.SigData,
+	}, nil
+}
+
+func MessageToQuorumCertificate(m *entities.QuorumCertificate) (flow.QuorumCertificate, error) {
+	if m == nil {
+		return flow.QuorumCertificate{}, ErrEmptyMessage
+	}
+
+	return flow.QuorumCertificate{
+		View:          m.GetView(),
+		BlockID:       flow.HashToID(m.GetBlockId()),
+		SignerIndices: m.GetSignerIndices(),
+		SigData:       m.GetSigData(),
+	}, nil
+}
+
+func QuorumCertificateToMessage(qc flow.QuorumCertificate) (*entities.QuorumCertificate, error) {
+	return &entities.QuorumCertificate{
+		View:          qc.View,
+		BlockId:       qc.BlockID.Bytes(),
+		SignerIndices: qc.SignerIndices,
+		SigData:       qc.SigData,
 	}, nil
 }
 
