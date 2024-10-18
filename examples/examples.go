@@ -40,7 +40,7 @@ import (
 	"github.com/onflow/cadence"
 	"github.com/onflow/flow-cli/flowkit/config/json"
 
-	"github.com/onflow/cadence/runtime/sema"
+	"github.com/onflow/cadence/sema"
 )
 
 const configPath = "./flow.json"
