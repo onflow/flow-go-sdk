@@ -21,8 +21,8 @@ package flow_test
 import (
 	"testing"
 
-	"github.com/onflow/cadence/runtime/common"
-	"github.com/onflow/cadence/runtime/stdlib"
+	"github.com/onflow/cadence/common"
+	"github.com/onflow/cadence/stdlib"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 

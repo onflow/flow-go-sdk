@@ -23,7 +23,7 @@ import (
 	"time"
 
 	"github.com/onflow/cadence"
-	"github.com/onflow/cadence/runtime/stdlib"
+	"github.com/onflow/cadence/stdlib"
 	"github.com/onflow/crypto/hash"
 
 	"github.com/onflow/flow-go-sdk/crypto"
