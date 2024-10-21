@@ -166,6 +166,7 @@ type BlockHeaders struct {
 	count     int
 	ids       *Identifiers
 	startTime time.Time
+	bytes     *Bytes
 }
 
 func BlockHeaderGenerator() *BlockHeaders {
@@ -175,17 +176,43 @@ func BlockHeaderGenerator() *BlockHeaders {
 		count:     1,
 		ids:       IdentifierGenerator(),
 		startTime: startTime.UTC(),
+		bytes:     BytesGenerator(),
 	}
 }
 
 func (g *BlockHeaders) New() flow.BlockHeader {
 	defer func() { g.count++ }()
 
+	qc := flow.QuorumCertificate{
+		View:          42,
+		BlockID:       g.ids.New(),
+		SignerIndices: g.bytes.New(),
+		SigData:       g.bytes.New(),
+	}
+
+	tc := flow.TimeoutCertificate{
+		View:          42,
+		HighQCViews:   []uint64{42},
+		HighestQC:     qc,
+		SignerIndices: g.bytes.New(),
+		SigData:       g.bytes.New(),
+	}
+
 	return flow.BlockHeader{
-		ID:        g.ids.New(),
-		ParentID:  g.ids.New(),
-		Height:    uint64(g.count),
-		Timestamp: g.startTime.Add(time.Hour * time.Duration(g.count)),
+		ID:                         g.ids.New(),
+		ParentID:                   g.ids.New(),
+		Height:                     uint64(g.count),
+		Timestamp:                  g.startTime.Add(time.Hour * time.Duration(g.count)),
+		Status:                     flow.BlockStatusUnknown,
+		PayloadHash:                g.bytes.New(),
+		View:                       42,
+		ParentVoterSigData:         g.bytes.New(),
+		ProposerID:                 g.ids.New(),
+		ProposerSigData:            g.bytes.New(),
+		ChainID:                    g.ids.New(),
+		ParentVoterIndices:         g.bytes.New(),
+		LastViewTimeoutCertificate: tc,
+		ParentView:                 42,
 	}
 }
 
@@ -604,8 +631,8 @@ func BytesGenerator() *Bytes {
 	}
 }
 
-func (b *Bytes) New() []byte {
-	randomBytes := make([]byte, b.count)
+func (g *Bytes) New() []byte {
+	randomBytes := make([]byte, g.count)
 	_, err := rand.Read(randomBytes)
 	if err != nil {
 		panic("failed to generate random bytes")

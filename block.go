@@ -30,11 +30,35 @@ type Block struct {
 
 // BlockHeader is a summary of a full block.
 type BlockHeader struct {
-	ID        Identifier
-	ParentID  Identifier
-	Height    uint64
-	Timestamp time.Time
-	Status    BlockStatus
+	ID                         Identifier
+	ParentID                   Identifier
+	Height                     uint64
+	Timestamp                  time.Time
+	Status                     BlockStatus
+	PayloadHash                []byte
+	View                       uint64
+	ParentVoterSigData         []byte
+	ProposerID                 Identifier
+	ProposerSigData            []byte
+	ChainID                    Identifier
+	ParentVoterIndices         []byte
+	LastViewTimeoutCertificate TimeoutCertificate
+	ParentView                 uint64
+}
+
+type TimeoutCertificate struct {
+	View          uint64
+	HighQCViews   []uint64
+	HighestQC     QuorumCertificate
+	SignerIndices []byte
+	SigData       []byte
+}
+
+type QuorumCertificate struct {
+	View          uint64
+	BlockID       Identifier
+	SignerIndices []byte
+	SigData       []byte
 }
 
 // BlockStatus represents the status of a block.
