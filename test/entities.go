@@ -26,9 +26,9 @@ import (
 	"time"
 
 	"github.com/onflow/cadence"
+	"github.com/onflow/cadence/common"
 	"github.com/onflow/cadence/encoding/ccf"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
-	"github.com/onflow/cadence/runtime/common"
 	"github.com/onflow/flow/protobuf/go/flow/entities"
 
 	"github.com/onflow/flow-go-sdk"
@@ -231,7 +231,9 @@ type CollectionGuarantees struct {
 }
 
 type BlockSeals struct {
-	ids *Identifiers
+	ids   *Identifiers
+	sigs  *Signatures
+	bytes *Bytes
 }
 
 func CollectionGuaranteeGenerator() *CollectionGuarantees {
@@ -253,14 +255,26 @@ func (g *CollectionGuarantees) New() *flow.CollectionGuarantee {
 
 func BlockSealGenerator() *BlockSeals {
 	return &BlockSeals{
-		ids: IdentifierGenerator(),
+		ids:   IdentifierGenerator(),
+		sigs:  SignaturesGenerator(),
+		bytes: BytesGenerator(),
 	}
 }
 
 func (g *BlockSeals) New() *flow.BlockSeal {
+	sigs := []*flow.AggregatedSignature{{
+		VerifierSignatures: g.sigs.New(),
+		SignerIds:          []flow.Identifier{g.ids.New()},
+	}}
+
 	return &flow.BlockSeal{
-		BlockID:            g.ids.New(),
-		ExecutionReceiptID: g.ids.New(),
+		BlockID:                    g.ids.New(),
+		ExecutionReceiptID:         g.ids.New(),
+		ExecutionReceiptSignatures: g.sigs.New(),
+		ResultApprovalSignatures:   g.sigs.New(),
+		FinalState:                 g.bytes.New(),
+		ResultId:                   g.ids.New(),
+		AggregatedApprovalSigs:     sigs,
 	}
 }
 
