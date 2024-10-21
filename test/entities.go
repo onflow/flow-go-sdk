@@ -225,7 +225,9 @@ func (c *FullCollection) New() *flow.FullCollection {
 }
 
 type CollectionGuarantees struct {
-	ids *Identifiers
+	ids   *Identifiers
+	bytes *Bytes
+	sigs  *Signatures
 }
 
 type BlockSeals struct {
@@ -236,13 +238,18 @@ type BlockSeals struct {
 
 func CollectionGuaranteeGenerator() *CollectionGuarantees {
 	return &CollectionGuarantees{
-		ids: IdentifierGenerator(),
+		ids:   IdentifierGenerator(),
+		bytes: BytesGenerator(),
+		sigs:  SignaturesGenerator(),
 	}
 }
 
 func (g *CollectionGuarantees) New() *flow.CollectionGuarantee {
 	return &flow.CollectionGuarantee{
-		CollectionID: g.ids.New(),
+		CollectionID:     g.ids.New(),
+		ReferenceBlockID: g.ids.New(),
+		Signature:        g.sigs.New()[0],
+		SignerIndices:    g.bytes.New(),
 	}
 }
 

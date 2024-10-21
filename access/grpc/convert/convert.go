@@ -381,7 +381,10 @@ func MessageToFullCollection(m []*entities.Transaction) (flow.FullCollection, er
 
 func CollectionGuaranteeToMessage(g flow.CollectionGuarantee) *entities.CollectionGuarantee {
 	return &entities.CollectionGuarantee{
-		CollectionId: g.CollectionID.Bytes(),
+		CollectionId:     g.CollectionID.Bytes(),
+		ReferenceBlockId: g.ReferenceBlockID.Bytes(),
+		Signature:        g.Signature,
+		SignerIndices:    g.SignerIndices,
 	}
 }
 
@@ -453,7 +456,10 @@ func MessageToCollectionGuarantee(m *entities.CollectionGuarantee) (flow.Collect
 	}
 
 	return flow.CollectionGuarantee{
-		CollectionID: flow.HashToID(m.CollectionId),
+		CollectionID:     flow.HashToID(m.CollectionId),
+		ReferenceBlockID: flow.HashToID(m.ReferenceBlockId),
+		Signature:        m.Signature,
+		SignerIndices:    m.SignerIndices,
 	}, nil
 }
 
