@@ -482,15 +482,73 @@ func MessageToFullCollection(m []*entities.Transaction) (flow.FullCollection, er
 
 func CollectionGuaranteeToMessage(g flow.CollectionGuarantee) *entities.CollectionGuarantee {
 	return &entities.CollectionGuarantee{
-		CollectionId: g.CollectionID.Bytes(),
+		CollectionId:     g.CollectionID.Bytes(),
+		ReferenceBlockId: g.ReferenceBlockID.Bytes(),
+		Signature:        g.Signature,
+		SignerIndices:    g.SignerIndices,
 	}
 }
 
 func BlockSealToMessage(g flow.BlockSeal) *entities.BlockSeal {
 	return &entities.BlockSeal{
-		BlockId:            g.BlockID.Bytes(),
-		ExecutionReceiptId: g.ExecutionReceiptID.Bytes(),
+		BlockId:                    g.BlockID.Bytes(),
+		ExecutionReceiptId:         g.ExecutionReceiptID.Bytes(),
+		ExecutionReceiptSignatures: g.ExecutionReceiptSignatures,
+		ResultApprovalSignatures:   g.ResultApprovalSignatures,
+		FinalState:                 g.FinalState,
+		ResultId:                   g.ResultId.Bytes(),
+		AggregatedApprovalSigs:     AggregatedSignaturesToMessage(g.AggregatedApprovalSigs),
 	}
+}
+
+func AggregatedSignaturesToMessage(s []*flow.AggregatedSignature) []*entities.AggregatedSignature {
+	sigs := make([]*entities.AggregatedSignature, len(s))
+	for i, sig := range s {
+		sigs[i] = AggregatedSignatureToMessage(*sig)
+	}
+	return sigs
+}
+
+func AggregatedSignatureToMessage(sig flow.AggregatedSignature) *entities.AggregatedSignature {
+	signerIds := make([][]byte, len(sig.SignerIds))
+	for i, id := range sig.SignerIds {
+		signerIds[i] = id.Bytes()
+	}
+
+	return &entities.AggregatedSignature{
+		VerifierSignatures: sig.VerifierSignatures,
+		SignerIds:          signerIds,
+	}
+}
+
+func MessageToAggregatedSignatures(m []*entities.AggregatedSignature) ([]*flow.AggregatedSignature, error) {
+	sigs := make([]*flow.AggregatedSignature, len(m))
+	for i, sig := range m {
+		convertedSig, err := MessageToAggregatedSignature(sig)
+		if err != nil {
+			return nil, err
+		}
+
+		sigs[i] = &convertedSig
+	}
+
+	return sigs, nil
+}
+
+func MessageToAggregatedSignature(m *entities.AggregatedSignature) (flow.AggregatedSignature, error) {
+	if m == nil {
+		return flow.AggregatedSignature{}, ErrEmptyMessage
+	}
+
+	ids := make([]flow.Identifier, len(m.SignerIds))
+	for i, id := range m.SignerIds {
+		ids[i] = flow.HashToID(id)
+	}
+
+	return flow.AggregatedSignature{
+		VerifierSignatures: m.GetVerifierSignatures(),
+		SignerIds:          ids,
+	}, nil
 }
 
 func MessageToCollectionGuarantee(m *entities.CollectionGuarantee) (flow.CollectionGuarantee, error) {
@@ -499,7 +557,10 @@ func MessageToCollectionGuarantee(m *entities.CollectionGuarantee) (flow.Collect
 	}
 
 	return flow.CollectionGuarantee{
-		CollectionID: flow.HashToID(m.CollectionId),
+		CollectionID:     flow.HashToID(m.CollectionId),
+		ReferenceBlockID: flow.HashToID(m.ReferenceBlockId),
+		Signature:        m.Signature,
+		SignerIndices:    m.SignerIndices,
 	}, nil
 }
 
@@ -508,9 +569,19 @@ func MessageToBlockSeal(m *entities.BlockSeal) (flow.BlockSeal, error) {
 		return flow.BlockSeal{}, ErrEmptyMessage
 	}
 
+	sigs, err := MessageToAggregatedSignatures(m.GetAggregatedApprovalSigs())
+	if err != nil {
+		return flow.BlockSeal{}, err
+	}
+
 	return flow.BlockSeal{
-		BlockID:            flow.BytesToID(m.BlockId),
-		ExecutionReceiptID: flow.BytesToID(m.ExecutionReceiptId),
+		BlockID:                    flow.BytesToID(m.BlockId),
+		ExecutionReceiptID:         flow.BytesToID(m.ExecutionReceiptId),
+		ExecutionReceiptSignatures: m.GetExecutionReceiptSignatures(),
+		ResultApprovalSignatures:   m.GetResultApprovalSignatures(),
+		FinalState:                 m.GetFinalState(),
+		ResultId:                   flow.BytesToID(m.GetResultId()),
+		AggregatedApprovalSigs:     sigs,
 	}, nil
 }
 
