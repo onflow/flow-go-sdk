@@ -19,6 +19,7 @@
 package test
 
 import (
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"strconv"
@@ -228,7 +229,9 @@ type CollectionGuarantees struct {
 }
 
 type BlockSeals struct {
-	ids *Identifiers
+	ids   *Identifiers
+	sigs  *Signatures
+	bytes *Bytes
 }
 
 func CollectionGuaranteeGenerator() *CollectionGuarantees {
@@ -245,14 +248,26 @@ func (g *CollectionGuarantees) New() *flow.CollectionGuarantee {
 
 func BlockSealGenerator() *BlockSeals {
 	return &BlockSeals{
-		ids: IdentifierGenerator(),
+		ids:   IdentifierGenerator(),
+		sigs:  SignaturesGenerator(),
+		bytes: BytesGenerator(),
 	}
 }
 
 func (g *BlockSeals) New() *flow.BlockSeal {
+	sigs := []*flow.AggregatedSignature{{
+		VerifierSignatures: g.sigs.New(),
+		SignerIds:          []flow.Identifier{g.ids.New()},
+	}}
+
 	return &flow.BlockSeal{
-		BlockID:            g.ids.New(),
-		ExecutionReceiptID: g.ids.New(),
+		BlockID:                    g.ids.New(),
+		ExecutionReceiptID:         g.ids.New(),
+		ExecutionReceiptSignatures: g.sigs.New(),
+		ResultApprovalSignatures:   g.sigs.New(),
+		FinalState:                 g.bytes.New(),
+		ResultId:                   g.ids.New(),
+		AggregatedApprovalSigs:     sigs,
 	}
 }
 
@@ -570,4 +585,23 @@ func (g *LightTransactionResults) New() *flow.LightTransactionResult {
 		Failed:          false,
 		ComputationUsed: uint64(42),
 	}
+}
+
+type Bytes struct {
+	count int
+}
+
+func BytesGenerator() *Bytes {
+	return &Bytes{
+		count: 64,
+	}
+}
+
+func (b *Bytes) New() []byte {
+	randomBytes := make([]byte, b.count)
+	_, err := rand.Read(randomBytes)
+	if err != nil {
+		panic("failed to generate random bytes")
+	}
+	return randomBytes
 }
