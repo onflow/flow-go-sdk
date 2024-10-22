@@ -327,7 +327,7 @@ func TimeoutCertificateToMessage(tc flow.TimeoutCertificate) (*entities.TimeoutC
 
 func MessageToQuorumCertificate(m *entities.QuorumCertificate) (flow.QuorumCertificate, error) {
 	if m == nil {
-		return flow.QuorumCertificate{}, ErrEmptyMessage
+		return flow.QuorumCertificate{}, fmt.Errorf("quourum certificate is empty: %w", ErrEmptyMessage)
 	}
 
 	return flow.QuorumCertificate{
