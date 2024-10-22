@@ -26,6 +26,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"reflect"
 
 	"github.com/onflow/flow/protobuf/go/flow/entities"
 	"google.golang.org/grpc"
@@ -1191,9 +1192,8 @@ func (c *BaseClient) SubscribeBlocksFromStartBlockID(
 	convertBlockResponse := func(response *access.SubscribeBlocksResponse) (flow.Block, error) {
 		return convert.MessageToBlock(response.GetBlock())
 	}
-	blocksChan, errChan := subscribe(ctx, subscribeClient.Recv, convertBlockResponse, "block")
 
-	return blocksChan, errChan, nil
+	return subscribe(ctx, subscribeClient.Recv, convertBlockResponse)
 }
 
 func (c *BaseClient) SubscribeBlocksFromStartHeight(
@@ -1220,9 +1220,8 @@ func (c *BaseClient) SubscribeBlocksFromStartHeight(
 	convertBlockResponse := func(response *access.SubscribeBlocksResponse) (flow.Block, error) {
 		return convert.MessageToBlock(response.GetBlock())
 	}
-	blocksChan, errChan := subscribe(ctx, subscribeClient.Recv, convertBlockResponse, "block")
 
-	return blocksChan, errChan, nil
+	return subscribe(ctx, subscribeClient.Recv, convertBlockResponse)
 }
 
 func (c *BaseClient) SubscribeBlocksFromLatest(
@@ -1247,9 +1246,8 @@ func (c *BaseClient) SubscribeBlocksFromLatest(
 	convertBlockResponse := func(response *access.SubscribeBlocksResponse) (flow.Block, error) {
 		return convert.MessageToBlock(response.GetBlock())
 	}
-	blocksChan, errChan := subscribe(ctx, subscribeClient.Recv, convertBlockResponse, "block")
 
-	return blocksChan, errChan, nil
+	return subscribe(ctx, subscribeClient.Recv, convertBlockResponse)
 }
 
 func (c *BaseClient) SendAndSubscribeTransactionStatuses(
@@ -1347,9 +1345,8 @@ func (c *BaseClient) SubscribeBlockHeadersFromStartBlockID(
 	convertBlockHeaderResponse := func(response *access.SubscribeBlockHeadersResponse) (flow.BlockHeader, error) {
 		return convert.MessageToBlockHeader(response.GetHeader())
 	}
-	blockHeaderChan, errChan := subscribe(ctx, subscribeClient.Recv, convertBlockHeaderResponse, "block header")
 
-	return blockHeaderChan, errChan, nil
+	return subscribe(ctx, subscribeClient.Recv, convertBlockHeaderResponse)
 }
 
 func (c *BaseClient) SubscribeBlockHeadersFromStartHeight(
@@ -1376,9 +1373,8 @@ func (c *BaseClient) SubscribeBlockHeadersFromStartHeight(
 	convertBlockHeaderResponse := func(response *access.SubscribeBlockHeadersResponse) (flow.BlockHeader, error) {
 		return convert.MessageToBlockHeader(response.GetHeader())
 	}
-	blockHeaderChan, errChan := subscribe(ctx, subscribeClient.Recv, convertBlockHeaderResponse, "block header")
 
-	return blockHeaderChan, errChan, nil
+	return subscribe(ctx, subscribeClient.Recv, convertBlockHeaderResponse)
 }
 
 func (c *BaseClient) SubscribeBlockHeadersFromLatest(
@@ -1403,9 +1399,8 @@ func (c *BaseClient) SubscribeBlockHeadersFromLatest(
 	convertBlockHeaderResponse := func(response *access.SubscribeBlockHeadersResponse) (flow.BlockHeader, error) {
 		return convert.MessageToBlockHeader(response.GetHeader())
 	}
-	blockHeaderChan, errChan := subscribe(ctx, subscribeClient.Recv, convertBlockHeaderResponse, "block header")
 
-	return blockHeaderChan, errChan, nil
+	return subscribe(ctx, subscribeClient.Recv, convertBlockHeaderResponse)
 }
 
 func (c *BaseClient) SubscribeAccountStatusesFromStartHeight(
@@ -1431,9 +1426,8 @@ func (c *BaseClient) SubscribeAccountStatusesFromStartHeight(
 	convertAccountStatusResponse := func(response *executiondata.SubscribeAccountStatusesResponse) (flow.AccountStatus, error) {
 		return convert.MessageToAccountStatus(response)
 	}
-	accountStatutesChan, errChan := subscribe(ctx, subscribeClient.Recv, convertAccountStatusResponse, "account status")
 
-	return accountStatutesChan, errChan, nil
+	return subscribe(ctx, subscribeClient.Recv, convertAccountStatusResponse)
 }
 
 func (c *BaseClient) SubscribeAccountStatusesFromStartBlockID(
@@ -1459,9 +1453,8 @@ func (c *BaseClient) SubscribeAccountStatusesFromStartBlockID(
 	convertAccountStatusResponse := func(response *executiondata.SubscribeAccountStatusesResponse) (flow.AccountStatus, error) {
 		return convert.MessageToAccountStatus(response)
 	}
-	accountStatutesChan, errChan := subscribe(ctx, subscribeClient.Recv, convertAccountStatusResponse, "account status")
 
-	return accountStatutesChan, errChan, nil
+	return subscribe(ctx, subscribeClient.Recv, convertAccountStatusResponse)
 }
 
 func (c *BaseClient) SubscribeAccountStatusesFromLatestBlock(
@@ -1485,9 +1478,8 @@ func (c *BaseClient) SubscribeAccountStatusesFromLatestBlock(
 	convertAccountStatusResponse := func(response *executiondata.SubscribeAccountStatusesResponse) (flow.AccountStatus, error) {
 		return convert.MessageToAccountStatus(response)
 	}
-	accountStatutesChan, errChan := subscribe(ctx, subscribeClient.Recv, convertAccountStatusResponse, "account status")
 
-	return accountStatutesChan, errChan, nil
+	return subscribe(ctx, subscribeClient.Recv, convertAccountStatusResponse)
 }
 
 func (c *BaseClient) SubscribeBlockDigestsFromStartBlockID(
@@ -1514,9 +1506,8 @@ func (c *BaseClient) SubscribeBlockDigestsFromStartBlockID(
 	convertBlockDigestResponse := func(response *access.SubscribeBlockDigestsResponse) (flow.BlockDigest, error) {
 		return convert.MessageToBlockDigest(response)
 	}
-	blockDigestChan, errChan := subscribe(ctx, subscribeClient.Recv, convertBlockDigestResponse, "block digest")
 
-	return blockDigestChan, errChan, nil
+	return subscribe(ctx, subscribeClient.Recv, convertBlockDigestResponse)
 }
 
 func (c *BaseClient) SubscribeBlockDigestsFromStartHeight(
@@ -1543,9 +1534,8 @@ func (c *BaseClient) SubscribeBlockDigestsFromStartHeight(
 	convertBlockDigestResponse := func(response *access.SubscribeBlockDigestsResponse) (flow.BlockDigest, error) {
 		return convert.MessageToBlockDigest(response)
 	}
-	blockDigestChan, errChan := subscribe(ctx, subscribeClient.Recv, convertBlockDigestResponse, "block digest")
 
-	return blockDigestChan, errChan, nil
+	return subscribe(ctx, subscribeClient.Recv, convertBlockDigestResponse)
 }
 
 func (c *BaseClient) SubscribeBlockDigestsFromLatest(
@@ -1570,17 +1560,15 @@ func (c *BaseClient) SubscribeBlockDigestsFromLatest(
 	convertBlockDigestResponse := func(response *access.SubscribeBlockDigestsResponse) (flow.BlockDigest, error) {
 		return convert.MessageToBlockDigest(response)
 	}
-	blockDigestChan, errChan := subscribe(ctx, subscribeClient.Recv, convertBlockDigestResponse, "block digest")
 
-	return blockDigestChan, errChan, nil
+	return subscribe(ctx, subscribeClient.Recv, convertBlockDigestResponse)
 }
 
 func subscribe[Response any, ClientResponse any](
 	ctx context.Context,
 	receive func() (*ClientResponse, error),
 	convertResponse func(*ClientResponse) (Response, error),
-	topicNameForErrors string,
-) (chan Response, chan error) {
+) (<-chan Response, <-chan error, error) {
 	subChan := make(chan Response)
 	errChan := make(chan error)
 
@@ -1602,13 +1590,13 @@ func subscribe[Response any, ClientResponse any](
 					return
 				}
 
-				sendErr(fmt.Errorf("error receiving %s: %w", topicNameForErrors, err))
+				sendErr(fmt.Errorf("error receiving %s: %w", reflect.TypeOf(resp).Name(), err))
 				return
 			}
 
 			response, err := convertResponse(resp)
 			if err != nil {
-				sendErr(fmt.Errorf("error converting %s: %w", topicNameForErrors, err))
+				sendErr(fmt.Errorf("error converting %s: %w", reflect.TypeOf(resp).Name(), err))
 				return
 			}
 
@@ -1620,5 +1608,5 @@ func subscribe[Response any, ClientResponse any](
 		}
 	}()
 
-	return subChan, errChan
+	return subChan, errChan, nil
 }

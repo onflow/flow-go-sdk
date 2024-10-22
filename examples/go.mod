@@ -7,7 +7,7 @@ toolchain go1.22.4
 replace github.com/onflow/flow-go-sdk => ../
 
 require (
-	github.com/onflow/cadence v1.0.1-0.20241018173327-2e72919b18ac
+	github.com/onflow/cadence v1.2.1
 	github.com/onflow/flow-cli/flowkit v1.11.0
 	github.com/onflow/flow-go-sdk v0.41.17
 	github.com/spf13/afero v1.11.0
