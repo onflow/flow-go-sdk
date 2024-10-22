@@ -127,6 +127,9 @@ type Blocks struct {
 	guarantees *CollectionGuarantees
 	seals      *BlockSeals
 	signatures *Signatures
+	ids        *Identifiers
+	bytes      *Bytes
+	chunks     *ChuckExecutionResult
 }
 
 func BlockGenerator() *Blocks {
@@ -135,6 +138,9 @@ func BlockGenerator() *Blocks {
 		guarantees: CollectionGuaranteeGenerator(),
 		seals:      BlockSealGenerator(),
 		signatures: SignaturesGenerator(),
+		ids:        IdentifierGenerator(),
+		bytes:      BytesGenerator(),
+		chunks:     ChuckExecutionResultGenerator(),
 	}
 }
 
@@ -151,9 +157,32 @@ func (g *Blocks) New() *flow.Block {
 		g.seals.New(),
 	}
 
+	executionReceiptMetaList := []*flow.ExecutionReceiptMeta{{
+		ExecutorID:        g.ids.New(),
+		ResultID:          g.ids.New(),
+		Spocks:            [][]byte{g.bytes.New()},
+		ExecutorSignature: g.bytes.New(),
+	}}
+
+	serviceEvents := []*flow.ServiceEvent{{
+		Type:    string(g.bytes.New()),
+		Payload: g.bytes.New(),
+	}}
+
+	executionResults := []*flow.ExecutionResult{{
+		PreviousResultID: g.ids.New(),
+		BlockID:          g.ids.New(),
+		Chunks:           []*flow.Chunk{g.chunks.New()},
+		ServiceEvents:    serviceEvents,
+	}}
+
 	payload := flow.BlockPayload{
-		CollectionGuarantees: guarantees,
-		Seals:                seals,
+		CollectionGuarantees:     guarantees,
+		Seals:                    seals,
+		Signatures:               g.signatures.New(),
+		ExecutionReceiptMetaList: executionReceiptMetaList,
+		ExecutionResultsList:     executionResults,
+		ProtocolStateID:          g.ids.New(),
 	}
 
 	return &flow.Block{
@@ -638,4 +667,29 @@ func (g *Bytes) New() []byte {
 		panic("failed to generate random bytes")
 	}
 	return randomBytes
+}
+
+type ChuckExecutionResult struct {
+	ids   *Identifiers
+	bytes *Bytes
+}
+
+func ChuckExecutionResultGenerator() *ChuckExecutionResult {
+	return &ChuckExecutionResult{
+		ids:   IdentifierGenerator(),
+		bytes: BytesGenerator(),
+	}
+}
+
+func (g *ChuckExecutionResult) New() *flow.Chunk {
+	return &flow.Chunk{
+		CollectionIndex:      42,
+		StartState:           flow.StateCommitment(g.ids.New()),
+		EventCollection:      g.bytes.New(),
+		BlockID:              g.ids.New(),
+		TotalComputationUsed: 42,
+		NumberOfTransactions: 42,
+		Index:                42,
+		EndState:             flow.StateCommitment(g.ids.New()),
+	}
 }
