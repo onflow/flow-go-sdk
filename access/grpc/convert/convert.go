@@ -172,14 +172,28 @@ func BlockToMessage(b flow.Block) (*entities.Block, error) {
 		return nil, err
 	}
 
+	execReceipts, err := ExecutionReceiptMetaListToMessage(b.ExecutionReceiptMetaList)
+	if err != nil {
+		return nil, fmt.Errorf("error converting execution receipts: %w", err)
+	}
+
+	execResults, err := ExecutionResultsToMessage(b.ExecutionResultsList)
+	if err != nil {
+		return nil, fmt.Errorf("error converting execution results: %w", err)
+	}
+
 	return &entities.Block{
-		Id:                   b.BlockHeader.ID.Bytes(),
-		ParentId:             b.BlockHeader.ParentID.Bytes(),
-		Height:               b.BlockHeader.Height,
-		Timestamp:            t,
-		CollectionGuarantees: CollectionGuaranteesToMessages(b.BlockPayload.CollectionGuarantees),
-		BlockSeals:           BlockSealsToMessages(b.BlockPayload.Seals),
-		BlockHeader:          header,
+		Id:                       b.BlockHeader.ID.Bytes(),
+		ParentId:                 b.BlockHeader.ParentID.Bytes(),
+		Height:                   b.BlockHeader.Height,
+		Timestamp:                t,
+		CollectionGuarantees:     CollectionGuaranteesToMessages(b.BlockPayload.CollectionGuarantees),
+		BlockSeals:               BlockSealsToMessages(b.BlockPayload.Seals),
+		Signatures:               b.Signatures,
+		ExecutionReceiptMetaList: execReceipts,
+		ExecutionResultList:      execResults,
+		BlockHeader:              header,
+		ProtocolStateId:          b.ProtocolStateID.Bytes(),
 	}, nil
 }
 
@@ -193,7 +207,7 @@ func MessageToBlock(m *entities.Block) (flow.Block, error) {
 
 	tc, err := MessageToTimeoutCertificate(m.BlockHeader.GetLastViewTc())
 	if err != nil {
-		return flow.Block{}, err
+		return flow.Block{}, fmt.Errorf("error converting timeout certificate: %w", err)
 	}
 
 	header := &flow.BlockHeader{
@@ -214,23 +228,85 @@ func MessageToBlock(m *entities.Block) (flow.Block, error) {
 
 	guarantees, err := MessagesToCollectionGuarantees(m.GetCollectionGuarantees())
 	if err != nil {
-		return flow.Block{}, err
+		return flow.Block{}, fmt.Errorf("error converting collection guarantees: %w", err)
 	}
 
 	seals, err := MessagesToBlockSeals(m.GetBlockSeals())
 	if err != nil {
-		return flow.Block{}, err
+		return flow.Block{}, fmt.Errorf("error converting block seals: %w", err)
+	}
+
+	executionReceiptsMeta, err := MessageToExecutionReceiptMetaList(m.GetExecutionReceiptMetaList())
+	if err != nil {
+		return flow.Block{}, fmt.Errorf("error converting execution receipt meta list: %w", err)
+	}
+
+	executionResults, err := MessageToExecutionResults(m.GetExecutionResultList())
+	if err != nil {
+		return flow.Block{}, fmt.Errorf("error converting execution results: %w", err)
 	}
 
 	payload := &flow.BlockPayload{
-		CollectionGuarantees: guarantees,
-		Seals:                seals,
+		CollectionGuarantees:     guarantees,
+		Seals:                    seals,
+		Signatures:               m.GetSignatures(),
+		ExecutionReceiptMetaList: executionReceiptsMeta,
+		ExecutionResultsList:     executionResults,
+		ProtocolStateID:          flow.HashToID(m.GetProtocolStateId()),
 	}
 
 	return flow.Block{
 		BlockHeader:  *header,
 		BlockPayload: *payload,
 	}, nil
+}
+
+func MessageToExecutionReceiptMeta(m *entities.ExecutionReceiptMeta) (*flow.ExecutionReceiptMeta, error) {
+	if m == nil {
+		return nil, ErrEmptyMessage
+	}
+
+	return &flow.ExecutionReceiptMeta{
+		ExecutorID:        flow.HashToID(m.GetExecutorId()),
+		ResultID:          flow.HashToID(m.GetResultId()),
+		Spocks:            m.GetSpocks(),
+		ExecutorSignature: m.GetExecutorSignature(),
+	}, nil
+}
+
+func ExecutionReceiptMetaToMessage(receipt flow.ExecutionReceiptMeta) (*entities.ExecutionReceiptMeta, error) {
+	return &entities.ExecutionReceiptMeta{
+		ExecutorId:        receipt.ExecutorID.Bytes(),
+		ResultId:          receipt.ResultID.Bytes(),
+		Spocks:            receipt.Spocks,
+		ExecutorSignature: receipt.ExecutorSignature,
+	}, nil
+}
+
+func MessageToExecutionReceiptMetaList(m []*entities.ExecutionReceiptMeta) ([]*flow.ExecutionReceiptMeta, error) {
+	results := make([]*flow.ExecutionReceiptMeta, len(m))
+
+	for i, entity := range m {
+		executionReceiptMeta, err := MessageToExecutionReceiptMeta(entity)
+		if err != nil {
+			return nil, err
+		}
+		results[i] = executionReceiptMeta
+	}
+
+	return results, nil
+}
+
+func ExecutionReceiptMetaListToMessage(receipts []*flow.ExecutionReceiptMeta) ([]*entities.ExecutionReceiptMeta, error) {
+	results := make([]*entities.ExecutionReceiptMeta, len(receipts))
+	for i, receipt := range receipts {
+		executionReceiptMeta, err := ExecutionReceiptMetaToMessage(*receipt)
+		if err != nil {
+			return nil, err
+		}
+		results[i] = executionReceiptMeta
+	}
+	return results, nil
 }
 
 func BlockHeaderToMessage(b flow.BlockHeader) (*entities.BlockHeader, error) {
@@ -889,6 +965,65 @@ func MessageToExecutionResult(execResult *entities.ExecutionResult) (*flow.Execu
 		Chunks:           chunks,
 		ServiceEvents:    serviceEvents,
 	}, nil
+}
+
+func ExecutionResultToMessage(result flow.ExecutionResult) (*entities.ExecutionResult, error) {
+	chunks := make([]*entities.Chunk, len(result.Chunks))
+	for i, chunk := range result.Chunks {
+		chunks[i] = &entities.Chunk{
+			CollectionIndex:      uint32(chunk.CollectionIndex),
+			StartState:           IdentifierToMessage(flow.Identifier(chunk.StartState)),
+			EventCollection:      chunk.EventCollection,
+			BlockId:              chunk.BlockID.Bytes(),
+			TotalComputationUsed: chunk.TotalComputationUsed,
+			NumberOfTransactions: uint32(chunk.NumberOfTransactions),
+			Index:                chunk.Index,
+			EndState:             IdentifierToMessage(flow.Identifier(chunk.EndState)),
+		}
+	}
+
+	serviceEvents := make([]*entities.ServiceEvent, len(result.ServiceEvents))
+	for i, event := range result.ServiceEvents {
+		serviceEvents[i] = &entities.ServiceEvent{
+			Type:    event.Type,
+			Payload: event.Payload,
+		}
+	}
+
+	return &entities.ExecutionResult{
+		PreviousResultId: result.PreviousResultID.Bytes(),
+		BlockId:          result.BlockID.Bytes(),
+		Chunks:           chunks,
+		ServiceEvents:    serviceEvents,
+	}, nil
+}
+
+func MessageToExecutionResults(m []*entities.ExecutionResult) ([]*flow.ExecutionResult, error) {
+	results := make([]*flow.ExecutionResult, len(m))
+
+	for i, result := range m {
+		res, err := MessageToExecutionResult(result)
+		if err != nil {
+			return nil, err
+		}
+		results[i] = res
+	}
+
+	return results, nil
+}
+
+func ExecutionResultsToMessage(execResults []*flow.ExecutionResult) ([]*entities.ExecutionResult, error) {
+	results := make([]*entities.ExecutionResult, len(execResults))
+
+	for i, result := range execResults {
+		res, err := ExecutionResultToMessage(*result)
+		if err != nil {
+			return nil, err
+		}
+		results[i] = res
+	}
+
+	return results, nil
 }
 
 func BlockExecutionDataToMessage(
