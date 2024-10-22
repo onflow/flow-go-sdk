@@ -268,10 +268,7 @@ func MessageToBlockHeader(m *entities.BlockHeader) (flow.BlockHeader, error) {
 		timestamp = m.GetTimestamp().AsTime()
 	}
 
-	tc, err := MessageToTimeoutCertificate(m.GetLastViewTc())
-	if err != nil {
-		return flow.BlockHeader{}, err
-	}
+	timeoutCertificate, _ := MessageToTimeoutCertificate(m.GetLastViewTc())
 
 	return flow.BlockHeader{
 		ID:                         flow.HashToID(m.GetId()),
@@ -285,19 +282,20 @@ func MessageToBlockHeader(m *entities.BlockHeader) (flow.BlockHeader, error) {
 		ProposerSigData:            m.GetProposerSigData(),
 		ChainID:                    flow.HashToID([]byte(m.GetChainId())),
 		ParentVoterIndices:         m.GetParentVoterIndices(),
-		LastViewTimeoutCertificate: tc,
+		LastViewTimeoutCertificate: timeoutCertificate,
 		ParentView:                 m.GetParentView(),
 	}, nil
 }
 
 func MessageToTimeoutCertificate(m *entities.TimeoutCertificate) (flow.TimeoutCertificate, error) {
 	if m == nil {
-		return flow.TimeoutCertificate{}, ErrEmptyMessage
+		// timeout certificate can be nil
+		return flow.TimeoutCertificate{}, nil
 	}
 
 	qc, err := MessageToQuorumCertificate(m.GetHighestQc())
 	if err != nil {
-		return flow.TimeoutCertificate{}, err
+		return flow.TimeoutCertificate{}, fmt.Errorf("error converting quorum certificate: %w", err)
 	}
 
 	return flow.TimeoutCertificate{
