@@ -22,7 +22,7 @@ import (
 	// NOTE: always import Cadence's stdlib package,
 	// as it registers the type ID decoder for the Flow types,
 	// e.g. `flow.AccountCreated`
-	_ "github.com/onflow/cadence/runtime/stdlib"
+	_ "github.com/onflow/cadence/stdlib"
 	"github.com/onflow/flow/protobuf/go/flow/entities"
 )
 

@@ -19,15 +19,16 @@
 package test
 
 import (
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/onflow/cadence"
+	"github.com/onflow/cadence/common"
 	"github.com/onflow/cadence/encoding/ccf"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
-	"github.com/onflow/cadence/runtime/common"
 	"github.com/onflow/flow/protobuf/go/flow/entities"
 
 	"github.com/onflow/flow-go-sdk"
@@ -165,6 +166,7 @@ type BlockHeaders struct {
 	count     int
 	ids       *Identifiers
 	startTime time.Time
+	bytes     *Bytes
 }
 
 func BlockHeaderGenerator() *BlockHeaders {
@@ -174,17 +176,43 @@ func BlockHeaderGenerator() *BlockHeaders {
 		count:     1,
 		ids:       IdentifierGenerator(),
 		startTime: startTime.UTC(),
+		bytes:     BytesGenerator(),
 	}
 }
 
 func (g *BlockHeaders) New() flow.BlockHeader {
 	defer func() { g.count++ }()
 
+	qc := flow.QuorumCertificate{
+		View:          42,
+		BlockID:       g.ids.New(),
+		SignerIndices: g.bytes.New(),
+		SigData:       g.bytes.New(),
+	}
+
+	tc := flow.TimeoutCertificate{
+		View:          42,
+		HighQCViews:   []uint64{42},
+		HighestQC:     qc,
+		SignerIndices: g.bytes.New(),
+		SigData:       g.bytes.New(),
+	}
+
 	return flow.BlockHeader{
-		ID:        g.ids.New(),
-		ParentID:  g.ids.New(),
-		Height:    uint64(g.count),
-		Timestamp: g.startTime.Add(time.Hour * time.Duration(g.count)),
+		ID:                         g.ids.New(),
+		ParentID:                   g.ids.New(),
+		Height:                     uint64(g.count),
+		Timestamp:                  g.startTime.Add(time.Hour * time.Duration(g.count)),
+		Status:                     flow.BlockStatusUnknown,
+		PayloadHash:                g.bytes.New(),
+		View:                       42,
+		ParentVoterSigData:         g.bytes.New(),
+		ProposerID:                 g.ids.New(),
+		ProposerSigData:            g.bytes.New(),
+		ChainID:                    g.ids.New(),
+		ParentVoterIndices:         g.bytes.New(),
+		LastViewTimeoutCertificate: tc,
+		ParentView:                 42,
 	}
 }
 
@@ -224,35 +252,56 @@ func (c *FullCollection) New() *flow.FullCollection {
 }
 
 type CollectionGuarantees struct {
-	ids *Identifiers
+	ids   *Identifiers
+	bytes *Bytes
+	sigs  *Signatures
 }
 
 type BlockSeals struct {
-	ids *Identifiers
+	ids   *Identifiers
+	sigs  *Signatures
+	bytes *Bytes
 }
 
 func CollectionGuaranteeGenerator() *CollectionGuarantees {
 	return &CollectionGuarantees{
-		ids: IdentifierGenerator(),
+		ids:   IdentifierGenerator(),
+		bytes: BytesGenerator(),
+		sigs:  SignaturesGenerator(),
 	}
 }
 
 func (g *CollectionGuarantees) New() *flow.CollectionGuarantee {
 	return &flow.CollectionGuarantee{
-		CollectionID: g.ids.New(),
+		CollectionID:     g.ids.New(),
+		ReferenceBlockID: g.ids.New(),
+		Signature:        g.sigs.New()[0],
+		SignerIndices:    g.bytes.New(),
 	}
 }
 
 func BlockSealGenerator() *BlockSeals {
 	return &BlockSeals{
-		ids: IdentifierGenerator(),
+		ids:   IdentifierGenerator(),
+		sigs:  SignaturesGenerator(),
+		bytes: BytesGenerator(),
 	}
 }
 
 func (g *BlockSeals) New() *flow.BlockSeal {
+	sigs := []*flow.AggregatedSignature{{
+		VerifierSignatures: g.sigs.New(),
+		SignerIds:          []flow.Identifier{g.ids.New()},
+	}}
+
 	return &flow.BlockSeal{
-		BlockID:            g.ids.New(),
-		ExecutionReceiptID: g.ids.New(),
+		BlockID:                    g.ids.New(),
+		ExecutionReceiptID:         g.ids.New(),
+		ExecutionReceiptSignatures: g.sigs.New(),
+		ResultApprovalSignatures:   g.sigs.New(),
+		FinalState:                 g.bytes.New(),
+		ResultId:                   g.ids.New(),
+		AggregatedApprovalSigs:     sigs,
 	}
 }
 
@@ -570,4 +619,23 @@ func (g *LightTransactionResults) New() *flow.LightTransactionResult {
 		Failed:          false,
 		ComputationUsed: uint64(42),
 	}
+}
+
+type Bytes struct {
+	count int
+}
+
+func BytesGenerator() *Bytes {
+	return &Bytes{
+		count: 64,
+	}
+}
+
+func (g *Bytes) New() []byte {
+	randomBytes := make([]byte, g.count)
+	_, err := rand.Read(randomBytes)
+	if err != nil {
+		panic("failed to generate random bytes")
+	}
+	return randomBytes
 }
