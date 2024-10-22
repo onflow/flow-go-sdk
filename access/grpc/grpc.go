@@ -26,6 +26,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"reflect"
 
 	"github.com/onflow/flow/protobuf/go/flow/entities"
 	"google.golang.org/grpc"
@@ -1188,16 +1189,11 @@ func (c *BaseClient) SubscribeBlocksFromStartBlockID(
 		return nil, nil, newRPCError(err)
 	}
 
-	blocksChan := make(chan flow.Block)
-	errChan := make(chan error)
+	convertBlockResponse := func(response *access.SubscribeBlocksResponse) (flow.Block, error) {
+		return convert.MessageToBlock(response.GetBlock())
+	}
 
-	go func() {
-		defer close(blocksChan)
-		defer close(errChan)
-		receiveBlocksFromClient(ctx, subscribeClient, blocksChan, errChan)
-	}()
-
-	return blocksChan, errChan, nil
+	return subscribe(ctx, subscribeClient.Recv, convertBlockResponse)
 }
 
 func (c *BaseClient) SubscribeBlocksFromStartHeight(
@@ -1221,16 +1217,11 @@ func (c *BaseClient) SubscribeBlocksFromStartHeight(
 		return nil, nil, newRPCError(err)
 	}
 
-	blocksChan := make(chan flow.Block)
-	errChan := make(chan error)
+	convertBlockResponse := func(response *access.SubscribeBlocksResponse) (flow.Block, error) {
+		return convert.MessageToBlock(response.GetBlock())
+	}
 
-	go func() {
-		defer close(blocksChan)
-		defer close(errChan)
-		receiveBlocksFromClient(ctx, subscribeClient, blocksChan, errChan)
-	}()
-
-	return blocksChan, errChan, nil
+	return subscribe(ctx, subscribeClient.Recv, convertBlockResponse)
 }
 
 func (c *BaseClient) SubscribeBlocksFromLatest(
@@ -1252,16 +1243,11 @@ func (c *BaseClient) SubscribeBlocksFromLatest(
 		return nil, nil, newRPCError(err)
 	}
 
-	blocksChan := make(chan flow.Block)
-	errChan := make(chan error)
+	convertBlockResponse := func(response *access.SubscribeBlocksResponse) (flow.Block, error) {
+		return convert.MessageToBlock(response.GetBlock())
+	}
 
-	go func() {
-		defer close(blocksChan)
-		defer close(errChan)
-		receiveBlocksFromClient(ctx, subscribeClient, blocksChan, errChan)
-	}()
-
-	return blocksChan, errChan, nil
+	return subscribe(ctx, subscribeClient.Recv, convertBlockResponse)
 }
 
 func (c *BaseClient) SendAndSubscribeTransactionStatuses(
@@ -1301,7 +1287,6 @@ func (c *BaseClient) SendAndSubscribeTransactionStatuses(
 		messageIndex := uint64(0)
 
 		for {
-			// Receive the next txResult response
 			txResultsResponse, err := subscribeClient.Recv()
 			if err != nil {
 				if err == io.EOF {
@@ -1336,48 +1321,6 @@ func (c *BaseClient) SendAndSubscribeTransactionStatuses(
 	return txStatusChan, errChan, nil
 }
 
-func receiveBlocksFromClient[Client interface {
-	Recv() (*access.SubscribeBlocksResponse, error)
-}](
-	ctx context.Context,
-	client Client,
-	blocksChan chan<- flow.Block,
-	errChan chan<- error,
-) {
-	sendErr := func(err error) {
-		select {
-		case <-ctx.Done():
-		case errChan <- err:
-		}
-	}
-
-	for {
-		// Receive the next block response
-		blockResponse, err := client.Recv()
-		if err != nil {
-			if err == io.EOF {
-				// End of stream, return gracefully
-				return
-			}
-
-			sendErr(fmt.Errorf("error receiving block: %w", err))
-			return
-		}
-
-		block, err := convert.MessageToBlock(blockResponse.GetBlock())
-		if err != nil {
-			sendErr(fmt.Errorf("error converting message to block: %w", err))
-			return
-		}
-
-		select {
-		case <-ctx.Done():
-			return
-		case blocksChan <- block:
-		}
-	}
-}
-
 func (c *BaseClient) SubscribeBlockHeadersFromStartBlockID(
 	ctx context.Context,
 	startBlockID flow.Identifier,
@@ -1399,16 +1342,11 @@ func (c *BaseClient) SubscribeBlockHeadersFromStartBlockID(
 		return nil, nil, newRPCError(err)
 	}
 
-	blockHeaderChan := make(chan flow.BlockHeader)
-	errChan := make(chan error)
+	convertBlockHeaderResponse := func(response *access.SubscribeBlockHeadersResponse) (flow.BlockHeader, error) {
+		return convert.MessageToBlockHeader(response.GetHeader())
+	}
 
-	go func() {
-		defer close(blockHeaderChan)
-		defer close(errChan)
-		receiveBlockHeadersFromClient(ctx, subscribeClient, blockHeaderChan, errChan)
-	}()
-
-	return blockHeaderChan, errChan, nil
+	return subscribe(ctx, subscribeClient.Recv, convertBlockHeaderResponse)
 }
 
 func (c *BaseClient) SubscribeBlockHeadersFromStartHeight(
@@ -1432,16 +1370,11 @@ func (c *BaseClient) SubscribeBlockHeadersFromStartHeight(
 		return nil, nil, newRPCError(err)
 	}
 
-	blockHeaderChan := make(chan flow.BlockHeader)
-	errChan := make(chan error)
+	convertBlockHeaderResponse := func(response *access.SubscribeBlockHeadersResponse) (flow.BlockHeader, error) {
+		return convert.MessageToBlockHeader(response.GetHeader())
+	}
 
-	go func() {
-		defer close(blockHeaderChan)
-		defer close(errChan)
-		receiveBlockHeadersFromClient(ctx, subscribeClient, blockHeaderChan, errChan)
-	}()
-
-	return blockHeaderChan, errChan, nil
+	return subscribe(ctx, subscribeClient.Recv, convertBlockHeaderResponse)
 }
 
 func (c *BaseClient) SubscribeBlockHeadersFromLatest(
@@ -1463,58 +1396,11 @@ func (c *BaseClient) SubscribeBlockHeadersFromLatest(
 		return nil, nil, newRPCError(err)
 	}
 
-	blockHeaderChan := make(chan flow.BlockHeader)
-	errChan := make(chan error)
-
-	go func() {
-		defer close(blockHeaderChan)
-		defer close(errChan)
-		receiveBlockHeadersFromClient(ctx, subscribeClient, blockHeaderChan, errChan)
-	}()
-
-	return blockHeaderChan, errChan, nil
-}
-
-func receiveBlockHeadersFromClient[Client interface {
-	Recv() (*access.SubscribeBlockHeadersResponse, error)
-}](
-	ctx context.Context,
-	client Client,
-	blockHeadersChan chan<- flow.BlockHeader,
-	errChan chan<- error,
-) {
-	sendErr := func(err error) {
-		select {
-		case <-ctx.Done():
-		case errChan <- err:
-		}
+	convertBlockHeaderResponse := func(response *access.SubscribeBlockHeadersResponse) (flow.BlockHeader, error) {
+		return convert.MessageToBlockHeader(response.GetHeader())
 	}
 
-	for {
-		// Receive the next blockHeader response
-		blockHeaderResponse, err := client.Recv()
-		if err != nil {
-			if err == io.EOF {
-				// End of stream, return gracefully
-				return
-			}
-
-			sendErr(fmt.Errorf("error receiving blockHeader: %w", err))
-			return
-		}
-
-		blockHeader, err := convert.MessageToBlockHeader(blockHeaderResponse.GetHeader())
-		if err != nil {
-			sendErr(fmt.Errorf("error converting message to block header: %w", err))
-			return
-		}
-
-		select {
-		case <-ctx.Done():
-			return
-		case blockHeadersChan <- blockHeader:
-		}
-	}
+	return subscribe(ctx, subscribeClient.Recv, convertBlockHeaderResponse)
 }
 
 func (c *BaseClient) SubscribeAccountStatusesFromStartHeight(
@@ -1537,16 +1423,11 @@ func (c *BaseClient) SubscribeAccountStatusesFromStartHeight(
 		return nil, nil, newRPCError(err)
 	}
 
-	accountStatutesChan := make(chan flow.AccountStatus)
-	errChan := make(chan error)
+	convertAccountStatusResponse := func(response *executiondata.SubscribeAccountStatusesResponse) (flow.AccountStatus, error) {
+		return convert.MessageToAccountStatus(response)
+	}
 
-	go func() {
-		defer close(accountStatutesChan)
-		defer close(errChan)
-		receiveAccountStatusesFromStream(ctx, subscribeClient, accountStatutesChan, errChan)
-	}()
-
-	return accountStatutesChan, errChan, nil
+	return subscribeContinuouslyIndexed(ctx, subscribeClient.Recv, convertAccountStatusResponse)
 }
 
 func (c *BaseClient) SubscribeAccountStatusesFromStartBlockID(
@@ -1569,16 +1450,11 @@ func (c *BaseClient) SubscribeAccountStatusesFromStartBlockID(
 		return nil, nil, newRPCError(err)
 	}
 
-	accountStatutesChan := make(chan flow.AccountStatus)
-	errChan := make(chan error)
+	convertAccountStatusResponse := func(response *executiondata.SubscribeAccountStatusesResponse) (flow.AccountStatus, error) {
+		return convert.MessageToAccountStatus(response)
+	}
 
-	go func() {
-		defer close(accountStatutesChan)
-		defer close(errChan)
-		receiveAccountStatusesFromStream(ctx, subscribeClient, accountStatutesChan, errChan)
-	}()
-
-	return accountStatutesChan, errChan, nil
+	return subscribeContinuouslyIndexed(ctx, subscribeClient.Recv, convertAccountStatusResponse)
 }
 
 func (c *BaseClient) SubscribeAccountStatusesFromLatestBlock(
@@ -1599,64 +1475,11 @@ func (c *BaseClient) SubscribeAccountStatusesFromLatestBlock(
 		return nil, nil, newRPCError(err)
 	}
 
-	accountStatutesChan := make(chan flow.AccountStatus)
-	errChan := make(chan error)
-
-	go func() {
-		defer close(accountStatutesChan)
-		defer close(errChan)
-		receiveAccountStatusesFromStream(ctx, subscribeClient, accountStatutesChan, errChan)
-	}()
-
-	return accountStatutesChan, errChan, nil
-}
-
-func receiveAccountStatusesFromStream[Stream interface {
-	Recv() (*executiondata.SubscribeAccountStatusesResponse, error)
-}](
-	ctx context.Context,
-	stream Stream,
-	accountStatutesChan chan<- flow.AccountStatus,
-	errChan chan<- error,
-) {
-	sendErr := func(err error) {
-		select {
-		case <-ctx.Done():
-		case errChan <- err:
-		}
+	convertAccountStatusResponse := func(response *executiondata.SubscribeAccountStatusesResponse) (flow.AccountStatus, error) {
+		return convert.MessageToAccountStatus(response)
 	}
 
-	var nextExpectedMsgIndex uint64
-	for {
-		accountStatusResponse, err := stream.Recv()
-		if err != nil {
-			if err == io.EOF {
-				// End of stream, return gracefully
-				return
-			}
-
-			sendErr(fmt.Errorf("error receiving account status: %w", err))
-			return
-		}
-
-		accountStatus, err := convert.MessageToAccountStatus(accountStatusResponse)
-		if err != nil {
-			sendErr(fmt.Errorf("error converting message to account status: %w", err))
-			return
-		}
-
-		if accountStatus.MessageIndex != nextExpectedMsgIndex {
-			sendErr(fmt.Errorf("message received out of order"))
-			return
-		}
-		nextExpectedMsgIndex = accountStatus.MessageIndex + 1
-
-		select {
-		case <-ctx.Done():
-			return
-		case accountStatutesChan <- accountStatus:
-		}
-	}
+	return subscribeContinuouslyIndexed(ctx, subscribeClient.Recv, convertAccountStatusResponse)
 }
 
 func (c *BaseClient) SubscribeBlockDigestsFromStartBlockID(
@@ -1680,16 +1503,11 @@ func (c *BaseClient) SubscribeBlockDigestsFromStartBlockID(
 		return nil, nil, newRPCError(err)
 	}
 
-	blocksChan := make(chan flow.BlockDigest)
-	errChan := make(chan error)
+	convertBlockDigestResponse := func(response *access.SubscribeBlockDigestsResponse) (flow.BlockDigest, error) {
+		return convert.MessageToBlockDigest(response)
+	}
 
-	go func() {
-		defer close(blocksChan)
-		defer close(errChan)
-		receiveBlockDigestFromClient(ctx, subscribeClient, blocksChan, errChan)
-	}()
-
-	return blocksChan, errChan, nil
+	return subscribe(ctx, subscribeClient.Recv, convertBlockDigestResponse)
 }
 
 func (c *BaseClient) SubscribeBlockDigestsFromStartHeight(
@@ -1713,16 +1531,11 @@ func (c *BaseClient) SubscribeBlockDigestsFromStartHeight(
 		return nil, nil, newRPCError(err)
 	}
 
-	blocksChan := make(chan flow.BlockDigest)
-	errChan := make(chan error)
+	convertBlockDigestResponse := func(response *access.SubscribeBlockDigestsResponse) (flow.BlockDigest, error) {
+		return convert.MessageToBlockDigest(response)
+	}
 
-	go func() {
-		defer close(blocksChan)
-		defer close(errChan)
-		receiveBlockDigestFromClient(ctx, subscribeClient, blocksChan, errChan)
-	}()
-
-	return blocksChan, errChan, nil
+	return subscribe(ctx, subscribeClient.Recv, convertBlockDigestResponse)
 }
 
 func (c *BaseClient) SubscribeBlockDigestsFromLatest(
@@ -1744,26 +1557,28 @@ func (c *BaseClient) SubscribeBlockDigestsFromLatest(
 		return nil, nil, newRPCError(err)
 	}
 
-	blocksChan := make(chan flow.BlockDigest)
-	errChan := make(chan error)
+	convertBlockDigestResponse := func(response *access.SubscribeBlockDigestsResponse) (flow.BlockDigest, error) {
+		return convert.MessageToBlockDigest(response)
+	}
 
-	go func() {
-		defer close(blocksChan)
-		defer close(errChan)
-		receiveBlockDigestFromClient(ctx, subscribeClient, blocksChan, errChan)
-	}()
-
-	return blocksChan, errChan, nil
+	return subscribe(ctx, subscribeClient.Recv, convertBlockDigestResponse)
 }
 
-func receiveBlockDigestFromClient[Client interface {
-	Recv() (*access.SubscribeBlockDigestsResponse, error)
-}](
+// subscribe sets up a generic subscription that continuously receives and processes messages
+// from a data source. It does not enforce any message ordering or indexing. The function takes
+// three parameters: a receive() function for getting the next message, a convertResponse() function
+// for transforming the message into the desired response type, and a context for cancellation.
+// It returns two channels: one for the converted responses and another for errors. The function
+// runs in a separate goroutine and handles errors gracefully, signaling completion when the
+// context is canceled or an error occurs.
+func subscribe[Response any, ClientResponse any](
 	ctx context.Context,
-	client Client,
-	blockDigestsChan chan<- flow.BlockDigest,
-	errChan chan<- error,
-) {
+	receive func() (*ClientResponse, error),
+	convertResponse func(*ClientResponse) (Response, error),
+) (<-chan Response, <-chan error, error) {
+	subChan := make(chan Response)
+	errChan := make(chan error)
+
 	sendErr := func(err error) {
 		select {
 		case <-ctx.Done():
@@ -1771,25 +1586,99 @@ func receiveBlockDigestFromClient[Client interface {
 		}
 	}
 
-	for {
-		// Receive the next blockDigest response
-		blockDigestResponse, err := client.Recv()
-		if err != nil {
-			if err == io.EOF {
-				// End of stream, return gracefully
+	go func() {
+		defer close(subChan)
+		defer close(errChan)
+
+		for {
+			resp, err := receive()
+			if err != nil {
+				if err == io.EOF {
+					return
+				}
+
+				sendErr(fmt.Errorf("error receiving %s: %w", reflect.TypeOf(resp).Name(), err))
 				return
 			}
 
-			sendErr(fmt.Errorf("error receiving blockDigest: %w", err))
-			return
+			response, err := convertResponse(resp)
+			if err != nil {
+				sendErr(fmt.Errorf("error converting %s: %w", reflect.TypeOf(resp).Name(), err))
+				return
+			}
+
+			select {
+			case <-ctx.Done():
+				return
+			case subChan <- response:
+			}
 		}
+	}()
 
-		blockDigest := convert.MessageToBlockDigest(blockDigestResponse)
+	return subChan, errChan, nil
+}
 
+type IndexedMessage interface {
+	GetMessageIndex() uint64
+}
+
+// subscribeContinuouslyIndexed is a specialized version of the subscription function for cases
+// where messages contain an index to ensure order. The Response type must implement the
+// IndexedMessage interface, providing a GetMessageIndex method. The function checks that each
+// received message's index matches the expected sequence, starting from zero and incrementing
+// by one. If a message arrives out of order, an error is sent. This function helps clients
+// detect any missed messages and ensures consistent message processing.
+func subscribeContinuouslyIndexed[Response IndexedMessage, ClientResponse any](
+	ctx context.Context,
+	receive func() (*ClientResponse, error),
+	convertResponse func(*ClientResponse) (Response, error),
+) (<-chan Response, <-chan error, error) {
+	subChan := make(chan Response)
+	errChan := make(chan error)
+
+	sendErr := func(err error) {
 		select {
 		case <-ctx.Done():
-			return
-		case blockDigestsChan <- blockDigest:
+		case errChan <- err:
 		}
 	}
+
+	go func() {
+		defer close(subChan)
+		defer close(errChan)
+
+		var nextExpectedMessageIndex uint64
+
+		for {
+			resp, err := receive()
+			if err != nil {
+				if err == io.EOF {
+					return
+				}
+
+				sendErr(fmt.Errorf("error receiving %s: %w", reflect.TypeOf(resp).Name(), err))
+				return
+			}
+
+			response, err := convertResponse(resp)
+			if err != nil {
+				sendErr(fmt.Errorf("error converting %s: %w", reflect.TypeOf(resp).Name(), err))
+				return
+			}
+
+			if response.GetMessageIndex() != nextExpectedMessageIndex {
+				sendErr(fmt.Errorf("message received out of order"))
+				return
+			}
+			nextExpectedMessageIndex += 1
+
+			select {
+			case <-ctx.Done():
+				return
+			case subChan <- response:
+			}
+		}
+	}()
+
+	return subChan, errChan, nil
 }
