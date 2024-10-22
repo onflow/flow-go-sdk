@@ -268,7 +268,10 @@ func MessageToBlockHeader(m *entities.BlockHeader) (flow.BlockHeader, error) {
 		timestamp = m.GetTimestamp().AsTime()
 	}
 
-	timeoutCertificate, _ := MessageToTimeoutCertificate(m.GetLastViewTc())
+	timeoutCertificate, err := MessageToTimeoutCertificate(m.GetLastViewTc())
+	if err != nil {
+		return flow.BlockHeader{}, fmt.Errorf("error converting timeout certificate: %w", err)
+	}
 
 	return flow.BlockHeader{
 		ID:                         flow.HashToID(m.GetId()),
