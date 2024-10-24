@@ -150,8 +150,8 @@ func MessageToAccountKey(m *entities.AccountKey) (*flow.AccountKey, error) {
 	}, nil
 }
 
-func MessageToAccountKeys(m []*entities.AccountKey) ([]flow.AccountKey, error) {
-	var accountKeys []flow.AccountKey
+func MessageToAccountKeys(m []*entities.AccountKey) ([]*flow.AccountKey, error) {
+	var accountKeys []*flow.AccountKey
 
 	for _, entity := range m {
 		accountKey, err := MessageToAccountKey(entity)
@@ -159,7 +159,7 @@ func MessageToAccountKeys(m []*entities.AccountKey) ([]flow.AccountKey, error) {
 			return nil, err
 		}
 
-		accountKeys = append(accountKeys, *accountKey)
+		accountKeys = append(accountKeys, accountKey)
 	}
 
 	return accountKeys, nil

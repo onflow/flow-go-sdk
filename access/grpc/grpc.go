@@ -703,7 +703,7 @@ func (c *BaseClient) GetAccountKeyAtBlockHeight(
 func (c *BaseClient) GetAccountKeysAtLatestBlock(
 	ctx context.Context,
 	address flow.Address,
-) ([]flow.AccountKey, error) {
+) ([]*flow.AccountKey, error) {
 	request := &access.GetAccountKeysAtLatestBlockRequest{
 		Address: address.Bytes(),
 	}
@@ -725,7 +725,7 @@ func (c *BaseClient) GetAccountKeysAtBlockHeight(
 	ctx context.Context,
 	address flow.Address,
 	height uint64,
-) ([]flow.AccountKey, error) {
+) ([]*flow.AccountKey, error) {
 	request := &access.GetAccountKeysAtBlockHeightRequest{
 		Address:     address.Bytes(),
 		BlockHeight: height,

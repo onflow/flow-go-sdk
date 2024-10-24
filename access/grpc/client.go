@@ -239,11 +239,11 @@ func (c *Client) GetAccountKeyAtBlockHeight(ctx context.Context, address flow.Ad
 	return c.grpc.GetAccountKeyAtBlockHeight(ctx, address, keyIndex, height)
 }
 
-func (c *Client) GetAccountKeysAtLatestBlock(ctx context.Context, address flow.Address) ([]flow.AccountKey, error) {
+func (c *Client) GetAccountKeysAtLatestBlock(ctx context.Context, address flow.Address) ([]*flow.AccountKey, error) {
 	return c.grpc.GetAccountKeysAtLatestBlock(ctx, address)
 }
 
-func (c *Client) GetAccountKeysAtBlockHeight(ctx context.Context, address flow.Address, height uint64) ([]flow.AccountKey, error) {
+func (c *Client) GetAccountKeysAtBlockHeight(ctx context.Context, address flow.Address, height uint64) ([]*flow.AccountKey, error) {
 	return c.grpc.GetAccountKeysAtBlockHeight(ctx, address, height)
 }
 
