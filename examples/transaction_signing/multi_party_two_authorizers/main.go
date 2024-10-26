@@ -67,9 +67,9 @@ func MultiPartySingleSignatureDemo() {
 	referenceBlockID := examples.GetReferenceBlockId(flowClient)
 	tx := flow.NewTransaction().
 		SetScript([]byte(`
-		transaction { 
-			prepare(signer1: AuthAccount, signer2: AuthAccount) { 
-				log(signer1.address) 
+		transaction {
+			prepare(signer1: auth(Storage) &Account, signer2: auth(Storage) &Account) {
+				log(signer1.address)
 				log(signer2.address)
 			}
 		}`)).
