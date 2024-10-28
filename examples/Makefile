@@ -96,3 +96,19 @@ http-grpc-clients:
 .PHONY: modify-account
 modify-account:
 	go run ./modify_account/main.go
+
+.PHONY: stream-blocks
+stream-blocks:
+	go run ./stream_blocks/main.go
+
+.PHONY: stream-block-headers
+stream-block-headers:
+	go run ./stream_block_headers/main.go
+
+.PHONY: stream-block-digests
+stream-block-digests:
+	go run ./stream_block_digests/main.go
+
+.PHONY: send-and-subscribe-transaction-statuses
+send-and-subscribe-transaction-statuses:
+	go run ./send_and_subscribe_transaction_statuses/main.go
