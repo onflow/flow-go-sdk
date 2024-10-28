@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"reflect"
 	"strings"
 	"time"
 
@@ -301,4 +302,9 @@ func WaitForSeal(ctx context.Context, c access.Client, id flow.Identifier) *flow
 	fmt.Println()
 	fmt.Printf("Transaction %s sealed\n", id)
 	return result
+}
+
+func Print[T any](object T) {
+	fmt.Printf("Got new %s:", reflect.TypeOf(object).Name())
+	fmt.Printf("%+v\n", object)
 }
