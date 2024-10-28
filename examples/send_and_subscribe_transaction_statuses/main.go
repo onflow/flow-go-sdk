@@ -34,7 +34,7 @@ func main() {
 
 func demo() {
 	ctx := context.Background()
-	flowClient, err := grpc.NewClient("access.testnet.nodes.onflow.org:9000")
+	flowClient, err := grpc.NewClient(grpc.EmulatorHost)
 	examples.Handle(err)
 
 	serviceAcctAddr, serviceAcctKey, serviceSigner := examples.ServiceAccount(flowClient)
@@ -44,7 +44,7 @@ func demo() {
 		SetProposalKey(serviceAcctAddr, serviceAcctKey.Index, serviceAcctKey.SequenceNumber).
 		SetScript([]byte(`
 			transaction {
-  				prepare(acc: &Account) {}
+  				prepare(acc: auth(BorrowValue) &Account) {}
 				execute {
     				log("test")
   				}
@@ -59,20 +59,18 @@ func demo() {
 	txResultChan, errChan, initErr := flowClient.SendAndSubscribeTransactionStatuses(ctx, *tx)
 	examples.Handle(initErr)
 
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case txResult, ok := <-txResultChan:
-			if !ok {
-				panic("transaction result channel is closed")
-			}
-			examples.Print(txResult)
-		case err, ok := <-errChan:
-			if !ok {
-				panic("error channel is closed")
-			}
-			fmt.Printf("~~~ ERROR: %s ~~~\n", err.Error())
+	select {
+	case <-ctx.Done():
+		return
+	case txResult, ok := <-txResultChan:
+		if !ok {
+			panic("transaction result channel is closed")
 		}
+		examples.Print(txResult)
+	case err, ok := <-errChan:
+		if !ok {
+			panic("error channel is closed")
+		}
+		fmt.Printf("~~~ ERROR: %s ~~~\n", err.Error())
 	}
 }

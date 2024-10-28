@@ -29,7 +29,7 @@ import (
 	"time"
 
 	jsoncdc "github.com/onflow/cadence/encoding/json"
-	"github.com/onflow/flow-cli/flowkit/config"
+	"github.com/onflow/flowkit/config"
 	"github.com/spf13/afero"
 
 	"github.com/onflow/flow-go-sdk"
@@ -39,7 +39,7 @@ import (
 	"github.com/onflow/flow-go-sdk/templates"
 
 	"github.com/onflow/cadence"
-	"github.com/onflow/flow-cli/flowkit/config/json"
+	"github.com/onflow/flowkit/config/json"
 
 	"github.com/onflow/cadence/sema"
 )
@@ -305,6 +305,6 @@ func WaitForSeal(ctx context.Context, c access.Client, id flow.Identifier) *flow
 }
 
 func Print[T any](object T) {
-	fmt.Printf("Got new %s:", reflect.TypeOf(object).Name())
-	fmt.Printf("%+v\n", object)
+	fmt.Printf("Got new %s:\n", reflect.TypeOf(object).Name())
+	fmt.Printf("%+v\n\n", object)
 }
