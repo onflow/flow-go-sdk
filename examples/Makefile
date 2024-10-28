@@ -109,6 +109,10 @@ stream-block-headers:
 stream-block-digests:
 	go run ./stream_block_digests/main.go
 
+.PHONY: stream-account-statuses
+stream-account-statuses:
+	go run ./stream_account_statuses/main.go
+
 .PHONY: send-and-subscribe-transaction-statuses
 send-and-subscribe-transaction-statuses:
 	go run ./send_and_subscribe_transaction_statuses/main.go
