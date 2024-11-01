@@ -40,14 +40,14 @@ func demo() {
 	tx := flow.NewTransaction().
 		SetPayer(serviceAcctAddr).
 		SetProposalKey(serviceAcctAddr, serviceAcctKey.Index, serviceAcctKey.SequenceNumber).
-		SetScript([]byte(`transaction {
-
-  prepare(acc: &Account) {}
-
-  execute {
-    log("test")
-  }
-}`)).
+		SetScript([]byte(`
+			transaction {
+				prepare(signer: auth(Storage) &Account) {}
+				execute {
+					log("test")
+				}
+			}
+		`)).
 		AddAuthorizer(serviceAcctAddr).
 		SetReferenceBlockID(examples.GetReferenceBlockId(flowClient))
 

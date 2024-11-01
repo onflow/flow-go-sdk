@@ -34,11 +34,10 @@ func main() {
 
 func demo() {
 	ctx := context.Background()
-	flowClient, err := grpc.NewClient("access-003.devnet46.nodes.onflow.org:9000")
+	flowClient, err := grpc.NewClient(grpc.TestnetHost)
 	examples.Handle(err)
 
-	// block, err := flowClient.GetLatestBlock(ctx, true)
-	block, err := flowClient.GetBlockByID(ctx, flow.HexToID("7582cc6e1bb5ca1784e309ca63013e9b7ecf34b74bf7fdb029aa0faa0deb7958err"))
+	block, err := flowClient.GetLatestBlock(ctx, true)
 	examples.Handle(err)
 	fmt.Printf("Block Height: %d\n", block.Height)
 	fmt.Printf("Block ID: %s\n", block.ID)

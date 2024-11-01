@@ -1,22 +1,22 @@
-pub contract GreatToken {
+access(all) contract GreatToken {
 
-  pub resource interface NFT {
-    pub fun id(): Int {
+  access(all) resource interface NFT {
+    access(all) fun id(): Int {
       post {
         result > 0
       }
     }
   }
 
-  pub resource GreatNFT: NFT {
-    priv let _id: Int
-    priv let _special: Bool
+  access(all) resource GreatNFT: NFT {
+    access(self) let _id: Int
+    access(self) let _special: Bool
 
-    pub fun id(): Int {
+    access(all) fun id(): Int {
       return self._id
     }
 
-    pub fun isSpecial(): Bool {
+    access(all) fun isSpecial(): Bool {
       return self._special
     }
 
@@ -29,11 +29,11 @@ pub contract GreatToken {
     }
   }
 
-  pub resource GreatNFTMinter {
-    pub var nextID: Int
-    pub let specialMod: Int
+  access(all) resource GreatNFTMinter {
+    access(all) var nextID: Int
+    access(all) let specialMod: Int
 
-    pub fun mint(): @GreatNFT {
+    access(all) fun mint(): @GreatNFT {
       var isSpecial = self.nextID % self.specialMod == 0
       let nft <- create GreatNFT(id: self.nextID, isSpecial: isSpecial)
       self.nextID = self.nextID + 1
@@ -50,7 +50,7 @@ pub contract GreatToken {
     }
   }
 
-  pub fun createGreatNFTMinter(firstID: Int, specialMod: Int): @GreatNFTMinter {
+  access(all) fun createGreatNFTMinter(firstID: Int, specialMod: Int): @GreatNFTMinter {
     return <-create GreatNFTMinter(firstID: firstID, specialMod: specialMod)
   }
 }

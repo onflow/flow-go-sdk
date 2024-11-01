@@ -28,7 +28,7 @@ import (
 	"time"
 
 	jsoncdc "github.com/onflow/cadence/encoding/json"
-	"github.com/onflow/flow-cli/flowkit/config"
+	"github.com/onflow/flowkit/config"
 	"github.com/spf13/afero"
 
 	"github.com/onflow/flow-go-sdk"
@@ -38,7 +38,7 @@ import (
 	"github.com/onflow/flow-go-sdk/templates"
 
 	"github.com/onflow/cadence"
-	"github.com/onflow/flow-cli/flowkit/config/json"
+	"github.com/onflow/flowkit/config/json"
 
 	"github.com/onflow/cadence/sema"
 )
@@ -110,7 +110,7 @@ func RandomTransaction(flowClient access.Client) *flow.Transaction {
 	tx := flow.NewTransaction().
 		SetPayer(serviceAcctAddr).
 		SetProposalKey(serviceAcctAddr, serviceAcctKey.Index, serviceAcctKey.SequenceNumber).
-		SetScript([]byte("transaction { prepare(auth: AuthAccount) {} }")).
+		SetScript([]byte("transaction { prepare(signer: auth(Storage) &Account) {} }")).
 		AddAuthorizer(serviceAcctAddr).
 		SetReferenceBlockID(GetReferenceBlockId(flowClient))
 
