@@ -39,14 +39,15 @@ func main() {
 var script = []byte(`
 import Crypto
 
-pub fun main(
+access(all) fun main(
   address: Address,
   signatures: [String],
   keyIndexes: [Int],
   message: String,
+  domainSeparationTag: String,
 ): Bool {
 	let keyList = Crypto.KeyList()
-	
+
 	let account = getAccount(address)
 	let keys = account.keys
 
@@ -69,9 +70,9 @@ pub fun main(
 			return false
 		}
 	}
-	
+
 	let signatureSet: [Crypto.KeyListSignature] = []
-	
+
 	var i = 0
 	for signature in signatures {
 		signatureSet.append(
@@ -82,10 +83,11 @@ pub fun main(
 		)
 		i = i + 1
 	}
-	
+
 	return keyList.verify(
 		signatureSet: signatureSet,
 		signedData: message.utf8,
+		domainSeparationTag: domainSeparationTag,
 	)
 }
 `)
@@ -136,6 +138,8 @@ func UserSignatureValidateAll() {
 		cadence.NewInt(0),
 	})
 
+	domainSeparationTag := flow.UserDomainTag[:]
+
 	// call the script to verify the signatures on chain
 	value, err := flowClient.ExecuteScriptAtLatestBlock(
 		ctx,
@@ -145,6 +149,7 @@ func UserSignatureValidateAll() {
 			signatures,
 			signatureIndexes,
 			cadence.String(message),
+			cadence.String(domainSeparationTag),
 		},
 	)
 	examples.Handle(err)
