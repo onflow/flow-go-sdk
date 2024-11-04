@@ -88,8 +88,8 @@ func MultiPartyMultiSignatureDemo() {
 
 	tx := flow.NewTransaction().
 		SetScript([]byte(`
-            transaction { 
-                prepare(signer: AuthAccount) { log(signer.address) }
+            transaction {
+                prepare(signer: auth(Storage) &Account) { log(signer.address) }
             }
         `)).
 		SetComputeLimit(100).
