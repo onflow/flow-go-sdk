@@ -1,5 +1,5 @@
 .PHONY: all
-all: get-blocks get-accounts get-events get-collection get-network-parameters get-transactions execute-script send-transaction create-account add-account-key deploy-contract storage-usage transaction-arguments single-party single-party-multisig multi-party multi-party-multisig user-signature user-signature-validate-all user-signature-validate-any http-grpc-clients modify-account
+all: get-blocks get-accounts get-events get-collection get-network-parameters get-transactions execute-script send-transactions create-account add-account-key deploy-contract storage-usage transaction-arguments single-party single-party-multisig multi-party multi-party-multisig user-signature user-signature-validate-all user-signature-validate-any http-grpc-clients modify-account get-execution-data
 
 .PHONY: create-account
 create-account:
@@ -47,7 +47,7 @@ multi-party-multisig:
 
 .PHONY: user-signature
 user-signature:
-	go run ./user_signature/main.go
+	go run ./verify_signature/user_signature/main.go
 
 .PHONY: get-blocks
 get-blocks:
@@ -77,8 +77,8 @@ get-transactions:
 execute-script:
 	go run ./execute_script/main.go
 
-.PHONY: send-transaction
-send-transaction:
+.PHONY: send-transactions
+send-transactions:
 	go run ./send_transactions/main.go
 
 .PHONY: user-signature-validate-all
@@ -97,6 +97,21 @@ http-grpc-clients:
 modify-account:
 	go run ./modify_account/main.go
 
+.PHONY: get-execution-data
+get-execution-data:
+	go run ./get_execution_data/main.go
+
+.PHONY: stream-events
+stream-events:
+	go run ./stream_events/main.go
+
+.PHONY: stream-events-reconnect
+stream-events-reconnect:
+	go run ./stream_events_reconnect/main.go
+
+.PHONY: stream-execution-data
+stream-execution-data:
+	go run ./stream_execution_data/main.go
 .PHONY: stream-blocks
 stream-blocks:
 	go run ./stream_blocks/main.go

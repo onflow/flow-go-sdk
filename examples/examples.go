@@ -111,7 +111,7 @@ func RandomTransaction(flowClient access.Client) *flow.Transaction {
 	tx := flow.NewTransaction().
 		SetPayer(serviceAcctAddr).
 		SetProposalKey(serviceAcctAddr, serviceAcctKey.Index, serviceAcctKey.SequenceNumber).
-		SetScript([]byte("transaction { prepare(auth: AuthAccount) {} }")).
+		SetScript([]byte("transaction { prepare(signer: auth(Storage) &Account) {} }")).
 		AddAuthorizer(serviceAcctAddr).
 		SetReferenceBlockID(GetReferenceBlockId(flowClient))
 

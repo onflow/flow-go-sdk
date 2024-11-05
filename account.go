@@ -166,6 +166,10 @@ type AccountStatus struct {
 	Results      []*AccountStatusResult
 }
 
+func (a AccountStatus) GetMessageIndex() uint64 {
+	return a.MessageIndex
+}
+
 type AccountStatusResult struct {
 	Address Address
 	Events  []Event

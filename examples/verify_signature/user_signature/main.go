@@ -40,13 +40,14 @@ func main() {
 var script = []byte(`
 import Crypto
 
-pub fun main(
+access(all) fun main(
   rawPublicKeys: [String],
   weights: [UFix64],
   signatures: [String],
   toAddress: Address,
   fromAddress: Address,
   amount: UFix64,
+  domainSeparationTag: String,
 ): Bool {
   let keyList = Crypto.KeyList()
 
@@ -84,6 +85,7 @@ pub fun main(
   return keyList.verify(
     signatureSet: signatureSet,
     signedData: message,
+	domainSeparationTag: domainSeparationTag,
   )
 }
 `)
@@ -145,6 +147,8 @@ func UserSignatureDemo() {
 		cadence.String(hex.EncodeToString(signatureBob)),
 	})
 
+	domainSeparationTag := cadence.String(flow.UserDomainTag[:])
+
 	// call the script to verify the signatures on chain
 	value, err := flowClient.ExecuteScriptAtLatestBlock(
 		ctx,
@@ -156,6 +160,7 @@ func UserSignatureDemo() {
 			toAddress,
 			fromAddress,
 			amount,
+			domainSeparationTag,
 		},
 	)
 	examples.Handle(err)

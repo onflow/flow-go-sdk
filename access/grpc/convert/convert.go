@@ -150,8 +150,8 @@ func MessageToAccountKey(m *entities.AccountKey) (*flow.AccountKey, error) {
 	}, nil
 }
 
-func MessageToAccountKeys(m []*entities.AccountKey) ([]flow.AccountKey, error) {
-	var accountKeys []flow.AccountKey
+func MessageToAccountKeys(m []*entities.AccountKey) ([]*flow.AccountKey, error) {
+	var accountKeys []*flow.AccountKey
 
 	for _, entity := range m {
 		accountKey, err := MessageToAccountKey(entity)
@@ -159,7 +159,7 @@ func MessageToAccountKeys(m []*entities.AccountKey) ([]flow.AccountKey, error) {
 			return nil, err
 		}
 
-		accountKeys = append(accountKeys, *accountKey)
+		accountKeys = append(accountKeys, accountKey)
 	}
 
 	return accountKeys, nil
@@ -347,12 +347,16 @@ func QuorumCertificateToMessage(qc flow.QuorumCertificate) (*entities.QuorumCert
 	}, nil
 }
 
-func MessageToBlockDigest(m *access.SubscribeBlockDigestsResponse) flow.BlockDigest {
+func MessageToBlockDigest(m *access.SubscribeBlockDigestsResponse) (flow.BlockDigest, error) {
+	if m == nil {
+		return flow.BlockDigest{}, ErrEmptyMessage
+	}
+
 	return flow.BlockDigest{
 		BlockID:   flow.BytesToID(m.GetBlockId()),
 		Height:    m.GetBlockHeight(),
 		Timestamp: m.GetBlockTimestamp().AsTime(),
-	}
+	}, nil
 }
 
 func BlockDigestToMessage(blockDigest flow.BlockDigest) *access.SubscribeBlockDigestsResponse {

@@ -84,10 +84,10 @@ func preapreDemo() (*flow.Account, *flow.Transaction) {
 
 	// Deploy a contract with an event defined
 	contract := `
-		pub contract EventDemo {
-			pub event Add(x: Int, y: Int, sum: Int)
+		access(all) contract EventDemo {
+			access(all) event Add(x: Int, y: Int, sum: Int)
 
-			pub fun add(x: Int, y: Int) {
+			access(all) fun add(x: Int, y: Int) {
 				let sum = x + y
 				emit Add(x: x, y: y, sum: sum)
 			}
@@ -105,7 +105,7 @@ func preapreDemo() (*flow.Account, *flow.Transaction) {
 		import EventDemo from 0x%s
 
 		transaction {
-			prepare(auth: AuthAccount) {}
+			prepare(signer: auth(Storage) &Account) {}
 			execute {
 				EventDemo.add(x: 2, y: 3)
 			}
