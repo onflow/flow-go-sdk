@@ -88,8 +88,19 @@ func BlockStatusFromString(s string) BlockStatus {
 //
 // A payload contains the collection guarantees and seals for a block.
 type BlockPayload struct {
-	CollectionGuarantees []*CollectionGuarantee
-	Seals                []*BlockSeal
+	CollectionGuarantees     []*CollectionGuarantee
+	Seals                    []*BlockSeal
+	Signatures               [][]byte
+	ExecutionReceiptMetaList []*ExecutionReceiptMeta
+	ExecutionResultsList     []*ExecutionResult
+	ProtocolStateID          Identifier
+}
+
+type ExecutionReceiptMeta struct {
+	ExecutorID        Identifier
+	ResultID          Identifier
+	Spocks            [][]byte
+	ExecutorSignature []byte
 }
 
 // BlockSeal is the attestation by verification nodes that the transactions in a previously
