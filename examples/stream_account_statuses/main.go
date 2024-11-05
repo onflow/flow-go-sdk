@@ -42,7 +42,13 @@ func demo() {
 	fmt.Printf("Latest block height: %d\n", header.Height)
 	fmt.Printf("Latest block ID: %s\n", header.ID)
 
-	accountStatusesChan, errChan, initErr := flowClient.SubscribeAccountStatusesFromStartBlockID(ctx, header.ID, flow.AccountStatusFilter{})
+	flowEVMTestnetAddress := "0x8c5303eaa26202d6"
+	filter := flow.AccountStatusFilter{
+		EventFilter: flow.EventFilter{
+			Addresses: []string{flowEVMTestnetAddress},
+		},
+	}
+	accountStatusesChan, errChan, initErr := flowClient.SubscribeAccountStatusesFromStartBlockID(ctx, header.ID, filter)
 	examples.Handle(initErr)
 
 	for {
