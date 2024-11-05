@@ -44,7 +44,7 @@ func demo() {
 		SetProposalKey(serviceAcctAddr, serviceAcctKey.Index, serviceAcctKey.SequenceNumber).
 		SetScript([]byte(`
 			transaction {
-  				prepare(acc: auth(BorrowValue) &Account) {}
+  				prepare(acc: &Account) {}
 				execute {
     				log("test")
   				}
