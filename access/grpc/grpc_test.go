@@ -1069,7 +1069,7 @@ func TestClient_GetAccountKeysAtLatestBlock(t *testing.T) {
 
 		keys, err := c.GetAccountKeysAtLatestBlock(ctx, account.Address)
 		require.NoError(t, err)
-		assert.Equal(t, *account.Keys[index], keys[index])
+		assert.Equal(t, *account.Keys[index], *keys[index])
 	}))
 
 	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
@@ -1105,7 +1105,7 @@ func TestClient_GetAccountKeysAtBlockHeight(t *testing.T) {
 
 		keys, err := c.GetAccountKeysAtBlockHeight(ctx, account.Address, height)
 		require.NoError(t, err)
-		assert.Equal(t, *account.Keys[index], keys[index])
+		assert.Equal(t, *account.Keys[index], *keys[index])
 	}))
 
 	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
