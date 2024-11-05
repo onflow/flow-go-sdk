@@ -2579,7 +2579,7 @@ func TestClient_SendAndSubscribeTransactionStatuses(t *testing.T) {
 			actualTxResult := <-txResultCh
 			expectedTxResult, err := convert.MessageToTransactionResult(stream.responses[i].GetTransactionResults(), DefaultClientOptions().jsonOptions)
 			require.NoError(t, err)
-			require.Equal(t, expectedTxResult, actualTxResult)
+			require.Equal(t, expectedTxResult, *actualTxResult)
 			require.Equal(t, expectedCounter, stream.responses[i].MessageIndex)
 
 			expectedCounter++
@@ -2613,7 +2613,7 @@ func TestClient_SendAndSubscribeTransactionStatuses(t *testing.T) {
 			actualTxResult := <-txResultCh
 			expectedTxResult, err := convert.MessageToTransactionResult(stream.responses[i].GetTransactionResults(), DefaultClientOptions().jsonOptions)
 			require.NoError(t, err)
-			require.Equal(t, expectedTxResult, actualTxResult)
+			require.Equal(t, expectedTxResult, *actualTxResult)
 			require.Equal(t, expectedCounter, stream.responses[i].MessageIndex)
 
 			expectedCounter++

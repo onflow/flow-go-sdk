@@ -183,7 +183,7 @@ func BlockToMessage(b flow.Block) (*entities.Block, error) {
 	}, nil
 }
 
-func MessageToBlock(m *entities.Block) (flow.Block, error) {
+func MessageToBlock(m *entities.Block) (*flow.Block, error) {
 	var timestamp time.Time
 	var err error
 
@@ -193,7 +193,7 @@ func MessageToBlock(m *entities.Block) (flow.Block, error) {
 
 	tc, err := MessageToTimeoutCertificate(m.BlockHeader.GetLastViewTc())
 	if err != nil {
-		return flow.Block{}, err
+		return &flow.Block{}, err
 	}
 
 	header := &flow.BlockHeader{
@@ -214,12 +214,12 @@ func MessageToBlock(m *entities.Block) (flow.Block, error) {
 
 	guarantees, err := MessagesToCollectionGuarantees(m.GetCollectionGuarantees())
 	if err != nil {
-		return flow.Block{}, err
+		return &flow.Block{}, err
 	}
 
 	seals, err := MessagesToBlockSeals(m.GetBlockSeals())
 	if err != nil {
-		return flow.Block{}, err
+		return &flow.Block{}, err
 	}
 
 	payload := &flow.BlockPayload{
@@ -227,7 +227,7 @@ func MessageToBlock(m *entities.Block) (flow.Block, error) {
 		Seals:                seals,
 	}
 
-	return flow.Block{
+	return &flow.Block{
 		BlockHeader:  *header,
 		BlockPayload: *payload,
 	}, nil
@@ -257,9 +257,9 @@ func BlockHeaderToMessage(b flow.BlockHeader) (*entities.BlockHeader, error) {
 	}, nil
 }
 
-func MessageToBlockHeader(m *entities.BlockHeader) (flow.BlockHeader, error) {
+func MessageToBlockHeader(m *entities.BlockHeader) (*flow.BlockHeader, error) {
 	if m == nil {
-		return flow.BlockHeader{}, ErrEmptyMessage
+		return &flow.BlockHeader{}, ErrEmptyMessage
 	}
 
 	var timestamp time.Time
@@ -270,10 +270,10 @@ func MessageToBlockHeader(m *entities.BlockHeader) (flow.BlockHeader, error) {
 
 	timeoutCertificate, err := MessageToTimeoutCertificate(m.GetLastViewTc())
 	if err != nil {
-		return flow.BlockHeader{}, fmt.Errorf("error converting timeout certificate: %w", err)
+		return &flow.BlockHeader{}, fmt.Errorf("error converting timeout certificate: %w", err)
 	}
 
-	return flow.BlockHeader{
+	return &flow.BlockHeader{
 		ID:                         flow.HashToID(m.GetId()),
 		ParentID:                   flow.HashToID(m.GetParentId()),
 		Height:                     m.GetHeight(),
@@ -347,12 +347,12 @@ func QuorumCertificateToMessage(qc flow.QuorumCertificate) (*entities.QuorumCert
 	}, nil
 }
 
-func MessageToBlockDigest(m *access.SubscribeBlockDigestsResponse) (flow.BlockDigest, error) {
+func MessageToBlockDigest(m *access.SubscribeBlockDigestsResponse) (*flow.BlockDigest, error) {
 	if m == nil {
-		return flow.BlockDigest{}, ErrEmptyMessage
+		return &flow.BlockDigest{}, ErrEmptyMessage
 	}
 
-	return flow.BlockDigest{
+	return &flow.BlockDigest{
 		BlockID:   flow.BytesToID(m.GetBlockId()),
 		Height:    m.GetBlockHeight(),
 		Timestamp: m.GetBlockTimestamp().AsTime(),
