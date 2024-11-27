@@ -21,6 +21,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/onflow/flow-go-sdk/crypto"
+	"log"
 
 	"github.com/onflow/flow-go-sdk/access/grpc"
 
@@ -34,14 +36,33 @@ func main() {
 
 func demo() {
 	ctx := context.Background()
-	flowClient, err := grpc.NewClient(grpc.EmulatorHost)
+	flowClient, err := grpc.NewClient("access.testnet.nodes.onflow.org:9000")
 	examples.Handle(err)
 
-	serviceAcctAddr, serviceAcctKey, serviceSigner := examples.ServiceAccount(flowClient)
+	signerIndex := uint32(0)
+
+	signerPublicAddress := flow.HexToAddress("YOUR_ACCOUNT_ADDRESS")
+	signerAccount, err := flowClient.GetAccount(ctx, signerPublicAddress)
+	if err != nil {
+		log.Fatalf("Failed to get account: %v", err)
+	}
+	seqNumber := signerAccount.Keys[0].SequenceNumber
+
+	privateKeyHex := "YOUR_PRIVATE_KEY"
+	privateKey, err := crypto.DecodePrivateKeyHex(crypto.ECDSA_P256, privateKeyHex)
+	if err != nil {
+		log.Fatalf("Failed to decode private key: %v", err)
+	}
+
+	// Create crypto signer
+	signer, err := crypto.NewInMemorySigner(privateKey, crypto.SHA3_256)
+	if err != nil {
+		log.Fatalf("Failed to decode private key: %v", err)
+	}
 
 	tx := flow.NewTransaction().
-		SetPayer(serviceAcctAddr).
-		SetProposalKey(serviceAcctAddr, serviceAcctKey.Index, serviceAcctKey.SequenceNumber).
+		SetPayer(signerPublicAddress).
+		SetProposalKey(signerPublicAddress, signerIndex, seqNumber).
 		SetScript([]byte(`
 			transaction {
   				prepare(acc: &Account) {}
@@ -50,27 +71,30 @@ func demo() {
   				}
 			}
 		`)).
-		AddAuthorizer(serviceAcctAddr).
+		AddAuthorizer(signerPublicAddress).
 		SetReferenceBlockID(examples.GetReferenceBlockId(flowClient))
 
-	err = tx.SignEnvelope(serviceAcctAddr, serviceAcctKey.Index, serviceSigner)
+	err = tx.SignEnvelope(signerPublicAddress, signerIndex, signer)
 	examples.Handle(err)
 
 	txResultChan, errChan, initErr := flowClient.SendAndSubscribeTransactionStatuses(ctx, *tx)
 	examples.Handle(initErr)
 
-	select {
-	case <-ctx.Done():
-		return
-	case txResult, ok := <-txResultChan:
-		if !ok {
-			panic("transaction result channel is closed")
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case txResult, ok := <-txResultChan:
+			if !ok {
+				examples.Print("transaction result channel is closed")
+				return
+			}
+			examples.Print(txResult)
+		case err := <-errChan:
+			if err != nil {
+				examples.Print(fmt.Errorf("~~~ ERROR: %w ~~~\n", err))
+			}
+			return
 		}
-		examples.Print(txResult)
-	case err, ok := <-errChan:
-		if !ok {
-			panic("error channel is closed")
-		}
-		fmt.Printf("~~~ ERROR: %s ~~~\n", err.Error())
 	}
 }
