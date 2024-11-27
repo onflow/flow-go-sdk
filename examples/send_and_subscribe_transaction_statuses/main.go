@@ -21,12 +21,11 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/onflow/flow-go-sdk/crypto"
 	"log"
 
-	"github.com/onflow/flow-go-sdk/access/grpc"
-
 	"github.com/onflow/flow-go-sdk"
+	"github.com/onflow/flow-go-sdk/access/grpc"
+	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/examples"
 )
 
