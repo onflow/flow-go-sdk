@@ -35,7 +35,7 @@ func main() {
 
 func demo() {
 	ctx := context.Background()
-	flowClient, err := grpc.NewClient("access.testnet.nodes.onflow.org:9000")
+	flowClient, err := grpc.NewClient(grpc.TestnetHost)
 	examples.Handle(err)
 
 	signerIndex := uint32(0)
