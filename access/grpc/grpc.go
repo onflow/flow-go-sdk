@@ -1284,7 +1284,7 @@ func (c *BaseClient) SendAndSubscribeTransactionStatuses(
 		defer close(txStatusChan)
 		defer close(errChan)
 
-		messageIndex := uint64(0)
+		messageIndex := uint64(1)
 
 		for {
 			txResultsResponse, err := subscribeClient.Recv()

@@ -2539,7 +2539,7 @@ func TestClient_SendAndSubscribeTransactionStatuses(t *testing.T) {
 		var resTransactionResults []*access.SendAndSubscribeTransactionStatusesResponse
 		results := test.TransactionResultGenerator(encodingVersion)
 
-		for i := uint64(0); i < count; i++ {
+		for i := uint64(1); i <= count; i++ {
 			expectedResult := results.New()
 			transactionResult, _ := convert.TransactionResultToMessage(expectedResult, encodingVersion)
 
@@ -2573,7 +2573,7 @@ func TestClient_SendAndSubscribeTransactionStatuses(t *testing.T) {
 		wg.Add(1)
 		go assertNoErrors(t, errCh, wg.Done)
 
-		expectedCounter := uint64(0)
+		expectedCounter := uint64(1)
 
 		for i := uint64(0); i < responseCount; i++ {
 			actualTxResult := <-txResultCh
@@ -2608,7 +2608,7 @@ func TestClient_SendAndSubscribeTransactionStatuses(t *testing.T) {
 		wg.Add(1)
 		go assertNoErrors(t, errCh, wg.Done)
 
-		expectedCounter := uint64(0)
+		expectedCounter := uint64(1)
 		for i := uint64(0); i < responseCount; i++ {
 			actualTxResult := <-txResultCh
 			expectedTxResult, err := convert.MessageToTransactionResult(stream.responses[i].GetTransactionResults(), DefaultClientOptions().jsonOptions)
