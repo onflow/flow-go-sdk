@@ -79,7 +79,6 @@ const contractCode = `
 func main() {
 	// set up context and flow client
 	ctx := context.Background()
-	startTime := time.Now()
 	flowClient, err := grpc.NewClient(grpc.TestnetHost)
 	examples.Handle(err)
 
@@ -98,6 +97,8 @@ func main() {
 	for i := 0; i < numTxs; i++ {
 		txChan <- i
 	}
+
+	startTime := time.Now()
 
 	var wg sync.WaitGroup
 	// start the workers
