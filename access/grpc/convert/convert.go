@@ -193,7 +193,7 @@ func MessageToBlock(m *entities.Block) (*flow.Block, error) {
 
 	tc, err := MessageToTimeoutCertificate(m.BlockHeader.GetLastViewTc())
 	if err != nil {
-		return &flow.Block{}, err
+		return nil, err
 	}
 
 	header := &flow.BlockHeader{
@@ -214,12 +214,12 @@ func MessageToBlock(m *entities.Block) (*flow.Block, error) {
 
 	guarantees, err := MessagesToCollectionGuarantees(m.GetCollectionGuarantees())
 	if err != nil {
-		return &flow.Block{}, err
+		return nil, err
 	}
 
 	seals, err := MessagesToBlockSeals(m.GetBlockSeals())
 	if err != nil {
-		return &flow.Block{}, err
+		return nil, err
 	}
 
 	payload := &flow.BlockPayload{
