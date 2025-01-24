@@ -1075,7 +1075,7 @@ func (c *BaseClient) SubscribeEventsByBlockID(
 	startBlockID flow.Identifier,
 	filter flow.EventFilter,
 	opts ...SubscribeOption,
-) (<-chan *flow.BlockEvents, <-chan error, error) {
+) (<-chan flow.BlockEvents, <-chan error, error) {
 	req := executiondata.SubscribeEventsRequest{
 		StartBlockId:         startBlockID[:],
 		EventEncodingVersion: c.eventEncoding,
@@ -1088,7 +1088,7 @@ func (c *BaseClient) SubscribeEventsByBlockHeight(
 	startHeight uint64,
 	filter flow.EventFilter,
 	opts ...SubscribeOption,
-) (<-chan *flow.BlockEvents, <-chan error, error) {
+) (<-chan flow.BlockEvents, <-chan error, error) {
 	req := executiondata.SubscribeEventsRequest{
 		StartBlockHeight:     startHeight,
 		EventEncodingVersion: c.eventEncoding,
@@ -1101,7 +1101,7 @@ func (c *BaseClient) subscribeEvents(
 	req *executiondata.SubscribeEventsRequest,
 	filter flow.EventFilter,
 	opts ...SubscribeOption,
-) (<-chan *flow.BlockEvents, <-chan error, error) {
+) (<-chan flow.BlockEvents, <-chan error, error) {
 	conf := DefaultSubscribeConfig()
 	for _, apply := range opts {
 		apply(conf)
@@ -1119,7 +1119,7 @@ func (c *BaseClient) subscribeEvents(
 		return nil, nil, err
 	}
 
-	sub := make(chan *flow.BlockEvents)
+	sub := make(chan flow.BlockEvents)
 	errChan := make(chan error)
 
 	sendErr := func(err error) {
@@ -1160,7 +1160,7 @@ func (c *BaseClient) subscribeEvents(
 			select {
 			case <-ctx.Done():
 				return
-			case sub <- &response:
+			case sub <- response:
 			}
 		}
 	}()

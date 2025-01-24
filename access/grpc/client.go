@@ -314,7 +314,7 @@ func (c *Client) SubscribeEventsByBlockID(
 	startBlockID flow.Identifier,
 	filter flow.EventFilter,
 	opts ...access.SubscribeOption,
-) (<-chan *flow.BlockEvents, <-chan error, error) {
+) (<-chan flow.BlockEvents, <-chan error, error) {
 	conf := convertSubscribeOptions(opts...)
 	return c.grpc.SubscribeEventsByBlockID(ctx, startBlockID, filter, WithHeartbeatInterval(conf.heartbeatInterval))
 }
@@ -324,7 +324,7 @@ func (c *Client) SubscribeEventsByBlockHeight(
 	startHeight uint64,
 	filter flow.EventFilter,
 	opts ...access.SubscribeOption,
-) (<-chan *flow.BlockEvents, <-chan error, error) {
+) (<-chan flow.BlockEvents, <-chan error, error) {
 	conf := convertSubscribeOptions(opts...)
 	return c.grpc.SubscribeEventsByBlockHeight(ctx, startHeight, filter, WithHeartbeatInterval(conf.heartbeatInterval))
 }
