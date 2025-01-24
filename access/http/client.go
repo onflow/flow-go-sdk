@@ -280,11 +280,11 @@ func (c *Client) SubscribeExecutionDataByBlockHeight(ctx context.Context, startH
 	return nil, nil, fmt.Errorf("not implemented")
 }
 
-func (c *Client) SubscribeEventsByBlockID(ctx context.Context, startBlockID flow.Identifier, filter flow.EventFilter, opts ...access.SubscribeOption) (<-chan *flow.BlockEvents, <-chan error, error) {
+func (c *Client) SubscribeEventsByBlockID(ctx context.Context, startBlockID flow.Identifier, filter flow.EventFilter, opts ...access.SubscribeOption) (<-chan flow.BlockEvents, <-chan error, error) {
 	return nil, nil, fmt.Errorf("not implemented")
 }
 
-func (c *Client) SubscribeEventsByBlockHeight(ctx context.Context, startHeight uint64, filter flow.EventFilter, opts ...access.SubscribeOption) (<-chan *flow.BlockEvents, <-chan error, error) {
+func (c *Client) SubscribeEventsByBlockHeight(ctx context.Context, startHeight uint64, filter flow.EventFilter, opts ...access.SubscribeOption) (<-chan flow.BlockEvents, <-chan error, error) {
 	return nil, nil, fmt.Errorf("not implemented")
 }
 
