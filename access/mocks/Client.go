@@ -613,7 +613,7 @@ func (_m *Client) SendTransaction(ctx context.Context, tx flow.Transaction) erro
 }
 
 // SubscribeEventsByBlockHeight provides a mock function with given fields: ctx, startHeight, filter, opts
-func (_m *Client) SubscribeEventsByBlockHeight(ctx context.Context, startHeight uint64, filter flow.EventFilter, opts ...access.SubscribeOption) (<-chan *flow.BlockEvents, <-chan error, error) {
+func (_m *Client) SubscribeEventsByBlockHeight(ctx context.Context, startHeight uint64, filter flow.EventFilter, opts ...access.SubscribeOption) (<-chan flow.BlockEvents, <-chan error, error) {
 	_va := make([]interface{}, len(opts))
 	for _i := range opts {
 		_va[_i] = opts[_i]
@@ -623,12 +623,12 @@ func (_m *Client) SubscribeEventsByBlockHeight(ctx context.Context, startHeight 
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
-	var r0 <-chan *flow.BlockEvents
-	if rf, ok := ret.Get(0).(func(context.Context, uint64, flow.EventFilter, ...access.SubscribeOption) <-chan *flow.BlockEvents); ok {
+	var r0 <-chan flow.BlockEvents
+	if rf, ok := ret.Get(0).(func(context.Context, uint64, flow.EventFilter, ...access.SubscribeOption) <-chan flow.BlockEvents); ok {
 		r0 = rf(ctx, startHeight, filter, opts...)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(<-chan *flow.BlockEvents)
+			r0 = ret.Get(0).(<-chan flow.BlockEvents)
 		}
 	}
 
@@ -652,7 +652,7 @@ func (_m *Client) SubscribeEventsByBlockHeight(ctx context.Context, startHeight 
 }
 
 // SubscribeEventsByBlockID provides a mock function with given fields: ctx, startBlockID, filter, opts
-func (_m *Client) SubscribeEventsByBlockID(ctx context.Context, startBlockID flow.Identifier, filter flow.EventFilter, opts ...access.SubscribeOption) (<-chan *flow.BlockEvents, <-chan error, error) {
+func (_m *Client) SubscribeEventsByBlockID(ctx context.Context, startBlockID flow.Identifier, filter flow.EventFilter, opts ...access.SubscribeOption) (<-chan flow.BlockEvents, <-chan error, error) {
 	_va := make([]interface{}, len(opts))
 	for _i := range opts {
 		_va[_i] = opts[_i]
@@ -662,12 +662,12 @@ func (_m *Client) SubscribeEventsByBlockID(ctx context.Context, startBlockID flo
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
-	var r0 <-chan *flow.BlockEvents
-	if rf, ok := ret.Get(0).(func(context.Context, flow.Identifier, flow.EventFilter, ...access.SubscribeOption) <-chan *flow.BlockEvents); ok {
+	var r0 <-chan flow.BlockEvents
+	if rf, ok := ret.Get(0).(func(context.Context, flow.Identifier, flow.EventFilter, ...access.SubscribeOption) <-chan flow.BlockEvents); ok {
 		r0 = rf(ctx, startBlockID, filter, opts...)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(<-chan *flow.BlockEvents)
+			r0 = ret.Get(0).(<-chan flow.BlockEvents)
 		}
 	}
 
