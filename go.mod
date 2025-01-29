@@ -1,15 +1,15 @@
 module github.com/onflow/flow-go-sdk
 
-go 1.22
+go 1.23
 
-toolchain go1.22.3
+toolchain go1.23.4
 
 require (
 	cloud.google.com/go/kms v1.15.7
 	github.com/aws/aws-sdk-go-v2 v1.27.0
 	github.com/aws/aws-sdk-go-v2/config v1.27.15
 	github.com/aws/aws-sdk-go-v2/service/kms v1.31.0
-	github.com/onflow/cadence v1.3.0
+	github.com/onflow/cadence v1.3.1
 	github.com/onflow/crypto v0.25.1
 	github.com/onflow/flow/protobuf/go/flow v0.4.7
 	github.com/onflow/go-ethereum v1.13.4
@@ -58,7 +58,7 @@ require (
 	github.com/logrusorgru/aurora/v4 v4.0.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/onflow/atree v0.8.1 // indirect
+	github.com/onflow/atree v0.9.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/rogpeppe/go-internal v1.10.0 // indirect
