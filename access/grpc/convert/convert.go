@@ -335,7 +335,7 @@ func BlockHeaderToMessage(b flow.BlockHeader) (*entities.BlockHeader, error) {
 
 func MessageToBlockHeader(m *entities.BlockHeader) (*flow.BlockHeader, error) {
 	if m == nil {
-		return &flow.BlockHeader{}, ErrEmptyMessage
+		return nil, ErrEmptyMessage
 	}
 
 	var timestamp time.Time
@@ -346,7 +346,7 @@ func MessageToBlockHeader(m *entities.BlockHeader) (*flow.BlockHeader, error) {
 
 	timeoutCertificate, err := MessageToTimeoutCertificate(m.GetLastViewTc())
 	if err != nil {
-		return &flow.BlockHeader{}, fmt.Errorf("error converting timeout certificate: %w", err)
+		return nil, fmt.Errorf("error converting timeout certificate: %w", err)
 	}
 
 	return &flow.BlockHeader{
@@ -425,7 +425,7 @@ func QuorumCertificateToMessage(qc flow.QuorumCertificate) (*entities.QuorumCert
 
 func MessageToBlockDigest(m *access.SubscribeBlockDigestsResponse) (*flow.BlockDigest, error) {
 	if m == nil {
-		return &flow.BlockDigest{}, ErrEmptyMessage
+		return nil, ErrEmptyMessage
 	}
 
 	return &flow.BlockDigest{
