@@ -245,7 +245,7 @@ func getBlockHeaderResult(res *access.BlockHeaderResponse) (*flow.BlockHeader, e
 		return nil, newMessageToEntityError(entityBlockHeader, err)
 	}
 	header.Status = flow.BlockStatus(res.GetBlockStatus())
-	return &header, nil
+	return header, nil
 }
 
 func (c *BaseClient) GetLatestBlock(
@@ -305,7 +305,7 @@ func getBlockResult(res *access.BlockResponse) (*flow.Block, error) {
 		return nil, newMessageToEntityError(entityBlock, err)
 	}
 	block.BlockHeader.Status = flow.BlockStatus(res.GetBlockStatus())
-	return &block, nil
+	return block, nil
 }
 
 func (c *BaseClient) GetCollection(
@@ -992,7 +992,7 @@ func (c *BaseClient) SubscribeExecutionDataByBlockID(
 	ctx context.Context,
 	startBlockID flow.Identifier,
 	opts ...grpc.CallOption,
-) (<-chan flow.ExecutionDataStreamResponse, <-chan error, error) {
+) (<-chan *flow.ExecutionDataStreamResponse, <-chan error, error) {
 	req := executiondata.SubscribeExecutionDataRequest{
 		StartBlockId:         startBlockID[:],
 		EventEncodingVersion: c.eventEncoding,
@@ -1004,7 +1004,7 @@ func (c *BaseClient) SubscribeExecutionDataByBlockHeight(
 	ctx context.Context,
 	startHeight uint64,
 	opts ...grpc.CallOption,
-) (<-chan flow.ExecutionDataStreamResponse, <-chan error, error) {
+) (<-chan *flow.ExecutionDataStreamResponse, <-chan error, error) {
 	req := executiondata.SubscribeExecutionDataRequest{
 		StartBlockHeight:     startHeight,
 		EventEncodingVersion: c.eventEncoding,
@@ -1016,13 +1016,13 @@ func (c *BaseClient) subscribeExecutionData(
 	ctx context.Context,
 	req *executiondata.SubscribeExecutionDataRequest,
 	opts ...grpc.CallOption,
-) (<-chan flow.ExecutionDataStreamResponse, <-chan error, error) {
+) (<-chan *flow.ExecutionDataStreamResponse, <-chan error, error) {
 	stream, err := c.executionDataClient.SubscribeExecutionData(ctx, req, opts...)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	sub := make(chan flow.ExecutionDataStreamResponse)
+	sub := make(chan *flow.ExecutionDataStreamResponse)
 	errChan := make(chan error)
 
 	sendErr := func(err error) {
@@ -1062,7 +1062,7 @@ func (c *BaseClient) subscribeExecutionData(
 			select {
 			case <-ctx.Done():
 				return
-			case sub <- response:
+			case sub <- &response:
 			}
 		}
 	}()
@@ -1173,7 +1173,7 @@ func (c *BaseClient) SubscribeBlocksFromStartBlockID(
 	startBlockID flow.Identifier,
 	blockStatus flow.BlockStatus,
 	opts ...grpc.CallOption,
-) (<-chan flow.Block, <-chan error, error) {
+) (<-chan *flow.Block, <-chan error, error) {
 	status := convert.BlockStatusToEntity(blockStatus)
 	if status == entities.BlockStatus_BLOCK_UNKNOWN {
 		return nil, nil, newRPCError(errors.New("unknown block status"))
@@ -1189,7 +1189,7 @@ func (c *BaseClient) SubscribeBlocksFromStartBlockID(
 		return nil, nil, newRPCError(err)
 	}
 
-	convertBlockResponse := func(response *access.SubscribeBlocksResponse) (flow.Block, error) {
+	convertBlockResponse := func(response *access.SubscribeBlocksResponse) (*flow.Block, error) {
 		return convert.MessageToBlock(response.GetBlock())
 	}
 
@@ -1201,7 +1201,7 @@ func (c *BaseClient) SubscribeBlocksFromStartHeight(
 	startHeight uint64,
 	blockStatus flow.BlockStatus,
 	opts ...grpc.CallOption,
-) (<-chan flow.Block, <-chan error, error) {
+) (<-chan *flow.Block, <-chan error, error) {
 	status := convert.BlockStatusToEntity(blockStatus)
 	if status == entities.BlockStatus_BLOCK_UNKNOWN {
 		return nil, nil, newRPCError(errors.New("unknown block status"))
@@ -1217,7 +1217,7 @@ func (c *BaseClient) SubscribeBlocksFromStartHeight(
 		return nil, nil, newRPCError(err)
 	}
 
-	convertBlockResponse := func(response *access.SubscribeBlocksResponse) (flow.Block, error) {
+	convertBlockResponse := func(response *access.SubscribeBlocksResponse) (*flow.Block, error) {
 		return convert.MessageToBlock(response.GetBlock())
 	}
 
@@ -1228,7 +1228,7 @@ func (c *BaseClient) SubscribeBlocksFromLatest(
 	ctx context.Context,
 	blockStatus flow.BlockStatus,
 	opts ...grpc.CallOption,
-) (<-chan flow.Block, <-chan error, error) {
+) (<-chan *flow.Block, <-chan error, error) {
 	status := convert.BlockStatusToEntity(blockStatus)
 	if status == entities.BlockStatus_BLOCK_UNKNOWN {
 		return nil, nil, newRPCError(errors.New("unknown block status"))
@@ -1243,7 +1243,7 @@ func (c *BaseClient) SubscribeBlocksFromLatest(
 		return nil, nil, newRPCError(err)
 	}
 
-	convertBlockResponse := func(response *access.SubscribeBlocksResponse) (flow.Block, error) {
+	convertBlockResponse := func(response *access.SubscribeBlocksResponse) (*flow.Block, error) {
 		return convert.MessageToBlock(response.GetBlock())
 	}
 
@@ -1254,7 +1254,7 @@ func (c *BaseClient) SendAndSubscribeTransactionStatuses(
 	ctx context.Context,
 	tx flow.Transaction,
 	opts ...grpc.CallOption,
-) (<-chan flow.TransactionResult, <-chan error, error) {
+) (<-chan *flow.TransactionResult, <-chan error, error) {
 	txMsg, err := convert.TransactionToMessage(tx)
 	if err != nil {
 		return nil, nil, newEntityToMessageError(entityTransaction, err)
@@ -1270,7 +1270,7 @@ func (c *BaseClient) SendAndSubscribeTransactionStatuses(
 		return nil, nil, newRPCError(err)
 	}
 
-	txStatusChan := make(chan flow.TransactionResult)
+	txStatusChan := make(chan *flow.TransactionResult)
 	errChan := make(chan error)
 
 	sendErr := func(err error) {
@@ -1313,7 +1313,7 @@ func (c *BaseClient) SendAndSubscribeTransactionStatuses(
 			select {
 			case <-ctx.Done():
 				return
-			case txStatusChan <- txResult:
+			case txStatusChan <- &txResult:
 			}
 		}
 	}()
@@ -1326,7 +1326,7 @@ func (c *BaseClient) SubscribeBlockHeadersFromStartBlockID(
 	startBlockID flow.Identifier,
 	blockStatus flow.BlockStatus,
 	opts ...grpc.CallOption,
-) (<-chan flow.BlockHeader, <-chan error, error) {
+) (<-chan *flow.BlockHeader, <-chan error, error) {
 	status := convert.BlockStatusToEntity(blockStatus)
 	if status == entities.BlockStatus_BLOCK_UNKNOWN {
 		return nil, nil, newRPCError(errors.New("unknown block status"))
@@ -1342,7 +1342,7 @@ func (c *BaseClient) SubscribeBlockHeadersFromStartBlockID(
 		return nil, nil, newRPCError(err)
 	}
 
-	convertBlockHeaderResponse := func(response *access.SubscribeBlockHeadersResponse) (flow.BlockHeader, error) {
+	convertBlockHeaderResponse := func(response *access.SubscribeBlockHeadersResponse) (*flow.BlockHeader, error) {
 		return convert.MessageToBlockHeader(response.GetHeader())
 	}
 
@@ -1354,7 +1354,7 @@ func (c *BaseClient) SubscribeBlockHeadersFromStartHeight(
 	startHeight uint64,
 	blockStatus flow.BlockStatus,
 	opts ...grpc.CallOption,
-) (<-chan flow.BlockHeader, <-chan error, error) {
+) (<-chan *flow.BlockHeader, <-chan error, error) {
 	status := convert.BlockStatusToEntity(blockStatus)
 	if status == entities.BlockStatus_BLOCK_UNKNOWN {
 		return nil, nil, newRPCError(errors.New("unknown block status"))
@@ -1370,7 +1370,7 @@ func (c *BaseClient) SubscribeBlockHeadersFromStartHeight(
 		return nil, nil, newRPCError(err)
 	}
 
-	convertBlockHeaderResponse := func(response *access.SubscribeBlockHeadersResponse) (flow.BlockHeader, error) {
+	convertBlockHeaderResponse := func(response *access.SubscribeBlockHeadersResponse) (*flow.BlockHeader, error) {
 		return convert.MessageToBlockHeader(response.GetHeader())
 	}
 
@@ -1381,7 +1381,7 @@ func (c *BaseClient) SubscribeBlockHeadersFromLatest(
 	ctx context.Context,
 	blockStatus flow.BlockStatus,
 	opts ...grpc.CallOption,
-) (<-chan flow.BlockHeader, <-chan error, error) {
+) (<-chan *flow.BlockHeader, <-chan error, error) {
 	status := convert.BlockStatusToEntity(blockStatus)
 	if status == entities.BlockStatus_BLOCK_UNKNOWN {
 		return nil, nil, newRPCError(errors.New("unknown block status"))
@@ -1396,7 +1396,7 @@ func (c *BaseClient) SubscribeBlockHeadersFromLatest(
 		return nil, nil, newRPCError(err)
 	}
 
-	convertBlockHeaderResponse := func(response *access.SubscribeBlockHeadersResponse) (flow.BlockHeader, error) {
+	convertBlockHeaderResponse := func(response *access.SubscribeBlockHeadersResponse) (*flow.BlockHeader, error) {
 		return convert.MessageToBlockHeader(response.GetHeader())
 	}
 
@@ -1408,7 +1408,7 @@ func (c *BaseClient) SubscribeAccountStatusesFromStartHeight(
 	startHeight uint64,
 	filter flow.AccountStatusFilter,
 	opts ...grpc.CallOption,
-) (<-chan flow.AccountStatus, <-chan error, error) {
+) (<-chan *flow.AccountStatus, <-chan error, error) {
 	request := &executiondata.SubscribeAccountStatusesFromStartHeightRequest{
 		StartBlockHeight:     startHeight,
 		EventEncodingVersion: c.eventEncoding,
@@ -1435,7 +1435,7 @@ func (c *BaseClient) SubscribeAccountStatusesFromStartBlockID(
 	startBlockID flow.Identifier,
 	filter flow.AccountStatusFilter,
 	opts ...grpc.CallOption,
-) (<-chan flow.AccountStatus, <-chan error, error) {
+) (<-chan *flow.AccountStatus, <-chan error, error) {
 	request := &executiondata.SubscribeAccountStatusesFromStartBlockIDRequest{
 		StartBlockId:         startBlockID.Bytes(),
 		EventEncodingVersion: c.eventEncoding,
@@ -1461,7 +1461,7 @@ func (c *BaseClient) SubscribeAccountStatusesFromLatestBlock(
 	ctx context.Context,
 	filter flow.AccountStatusFilter,
 	opts ...grpc.CallOption,
-) (<-chan flow.AccountStatus, <-chan error, error) {
+) (<-chan *flow.AccountStatus, <-chan error, error) {
 	request := &executiondata.SubscribeAccountStatusesFromLatestBlockRequest{
 		EventEncodingVersion: c.eventEncoding,
 	}
@@ -1487,7 +1487,7 @@ func (c *BaseClient) SubscribeBlockDigestsFromStartBlockID(
 	startBlockID flow.Identifier,
 	blockStatus flow.BlockStatus,
 	opts ...grpc.CallOption,
-) (<-chan flow.BlockDigest, <-chan error, error) {
+) (<-chan *flow.BlockDigest, <-chan error, error) {
 	status := convert.BlockStatusToEntity(blockStatus)
 	if status == entities.BlockStatus_BLOCK_UNKNOWN {
 		return nil, nil, newRPCError(errors.New("unknown block status"))
@@ -1503,7 +1503,7 @@ func (c *BaseClient) SubscribeBlockDigestsFromStartBlockID(
 		return nil, nil, newRPCError(err)
 	}
 
-	convertBlockDigestResponse := func(response *access.SubscribeBlockDigestsResponse) (flow.BlockDigest, error) {
+	convertBlockDigestResponse := func(response *access.SubscribeBlockDigestsResponse) (*flow.BlockDigest, error) {
 		return convert.MessageToBlockDigest(response)
 	}
 
@@ -1515,7 +1515,7 @@ func (c *BaseClient) SubscribeBlockDigestsFromStartHeight(
 	startHeight uint64,
 	blockStatus flow.BlockStatus,
 	opts ...grpc.CallOption,
-) (<-chan flow.BlockDigest, <-chan error, error) {
+) (<-chan *flow.BlockDigest, <-chan error, error) {
 	status := convert.BlockStatusToEntity(blockStatus)
 	if status == entities.BlockStatus_BLOCK_UNKNOWN {
 		return nil, nil, newRPCError(errors.New("unknown block status"))
@@ -1531,7 +1531,7 @@ func (c *BaseClient) SubscribeBlockDigestsFromStartHeight(
 		return nil, nil, newRPCError(err)
 	}
 
-	convertBlockDigestResponse := func(response *access.SubscribeBlockDigestsResponse) (flow.BlockDigest, error) {
+	convertBlockDigestResponse := func(response *access.SubscribeBlockDigestsResponse) (*flow.BlockDigest, error) {
 		return convert.MessageToBlockDigest(response)
 	}
 
@@ -1542,7 +1542,7 @@ func (c *BaseClient) SubscribeBlockDigestsFromLatest(
 	ctx context.Context,
 	blockStatus flow.BlockStatus,
 	opts ...grpc.CallOption,
-) (<-chan flow.BlockDigest, <-chan error, error) {
+) (<-chan *flow.BlockDigest, <-chan error, error) {
 	status := convert.BlockStatusToEntity(blockStatus)
 	if status == entities.BlockStatus_BLOCK_UNKNOWN {
 		return nil, nil, newRPCError(errors.New("unknown block status"))
@@ -1557,7 +1557,7 @@ func (c *BaseClient) SubscribeBlockDigestsFromLatest(
 		return nil, nil, newRPCError(err)
 	}
 
-	convertBlockDigestResponse := func(response *access.SubscribeBlockDigestsResponse) (flow.BlockDigest, error) {
+	convertBlockDigestResponse := func(response *access.SubscribeBlockDigestsResponse) (*flow.BlockDigest, error) {
 		return convert.MessageToBlockDigest(response)
 	}
 
@@ -1574,9 +1574,9 @@ func (c *BaseClient) SubscribeBlockDigestsFromLatest(
 func subscribe[Response any, ClientResponse any](
 	ctx context.Context,
 	receive func() (*ClientResponse, error),
-	convertResponse func(*ClientResponse) (Response, error),
-) (<-chan Response, <-chan error, error) {
-	subChan := make(chan Response)
+	convertResponse func(*ClientResponse) (*Response, error),
+) (<-chan *Response, <-chan error, error) {
+	subChan := make(chan *Response)
 	errChan := make(chan error)
 
 	sendErr := func(err error) {
@@ -1632,8 +1632,8 @@ func subscribeContinuouslyIndexed[Response IndexedMessage, ClientResponse any](
 	ctx context.Context,
 	receive func() (*ClientResponse, error),
 	convertResponse func(*ClientResponse) (Response, error),
-) (<-chan Response, <-chan error, error) {
-	subChan := make(chan Response)
+) (<-chan *Response, <-chan error, error) {
+	subChan := make(chan *Response)
 	errChan := make(chan error)
 
 	sendErr := func(err error) {
@@ -1675,7 +1675,7 @@ func subscribeContinuouslyIndexed[Response IndexedMessage, ClientResponse any](
 			select {
 			case <-ctx.Done():
 				return
-			case subChan <- response:
+			case subChan <- &response:
 			}
 		}
 	}()
