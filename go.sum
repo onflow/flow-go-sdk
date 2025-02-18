@@ -130,8 +130,8 @@ github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWE
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/onflow/atree v0.9.0 h1:M+Z/UPwzv0/Yy7ChI5T1ZIHD3YN1cs/hxGEs/HWhzaY=
 github.com/onflow/atree v0.9.0/go.mod h1:FT6udJF9Q7VQTu3wknDhFX+VV4D44ZGdqtTAE5iztck=
-github.com/onflow/cadence v1.3.1 h1:bs9TFHQy8HHbwTtCtg5cLdyndWhmwq55RSwID1cb220=
-github.com/onflow/cadence v1.3.1/go.mod h1:6/47FljVAdl3/31tShI8JOJW0sXYZHK1PwXkE+yk0qA=
+github.com/onflow/cadence v1.3.2 h1:8XTob3fMbUPG6TlG8h/1uVs9xY2pPrDpW5q/+iqIXzc=
+github.com/onflow/cadence v1.3.2/go.mod h1:6/47FljVAdl3/31tShI8JOJW0sXYZHK1PwXkE+yk0qA=
 github.com/onflow/crypto v0.25.1 h1:0txy2PKPMM873JbpxQNbJmuOJtD56bfs48RQfm0ts5A=
 github.com/onflow/crypto v0.25.1/go.mod h1:C8FbaX0x8y+FxWjbkHy0Q4EASCDR9bSPWZqlpCLYyVI=
 github.com/onflow/flow/protobuf/go/flow v0.4.7 h1:iP6DFx4wZ3ETORsyeqzHu7neFT3d1CXF6wdK+AOOjmc=
