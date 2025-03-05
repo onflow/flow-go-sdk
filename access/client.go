@@ -37,31 +37,31 @@ type Client interface {
 	// Ping is used to check if the access node is alive and healthy.
 	Ping(ctx context.Context) error
 
-	// GetNetworkParameters gets the network parameters.
+	// GetNetworkParameters returns the network parameters.
 	GetNetworkParameters(ctx context.Context) (*flow.NetworkParameters, error)
 
-	// GetNodeVersionInfo gets the node information about the network.
+	// GetNodeVersionInfo returns the node information about the network.
 	GetNodeVersionInfo(ctx context.Context) (*flow.NodeVersionInfo, error)
 
-	// GetLatestBlockHeader gets the latest sealed or unsealed block header.
+	// GetLatestBlockHeader returns the latest sealed or unsealed block header.
 	GetLatestBlockHeader(ctx context.Context, isSealed bool) (*flow.BlockHeader, error)
 
-	// GetBlockHeaderByID gets a block header by ID.
+	// GetBlockHeaderByID returns a block header by ID.
 	GetBlockHeaderByID(ctx context.Context, blockID flow.Identifier) (*flow.BlockHeader, error)
 
-	// GetBlockHeaderByHeight gets a block header by height.
+	// GetBlockHeaderByHeight returns a block header by height.
 	GetBlockHeaderByHeight(ctx context.Context, height uint64) (*flow.BlockHeader, error)
 
-	// GetLatestBlock gets the full payload of the latest sealed or unsealed block.
+	// GetLatestBlock returns the full payload of the latest sealed or unsealed block.
 	GetLatestBlock(ctx context.Context, isSealed bool) (*flow.Block, error)
 
-	// GetBlockByID gets a full block by ID.
+	// GetBlockByID returns a full block by ID.
 	GetBlockByID(ctx context.Context, blockID flow.Identifier) (*flow.Block, error)
 
-	// GetBlockByHeight gets a full block by height.
+	// GetBlockByHeight returns a full block by height.
 	GetBlockByHeight(ctx context.Context, height uint64) (*flow.Block, error)
 
-	// GetCollection gets a collection by ID.
+	// GetCollection returns a collection by ID.
 	GetCollection(ctx context.Context, colID flow.Identifier) (*flow.Collection, error)
 
 	// GetCollectionByID returns a collection by ID.
@@ -73,19 +73,19 @@ type Client interface {
 	// SendTransaction submits a transaction to the network.
 	SendTransaction(ctx context.Context, tx flow.Transaction) error
 
-	// GetTransaction gets a transaction by ID.
+	// GetTransaction returns a transaction by ID.
 	GetTransaction(ctx context.Context, txID flow.Identifier) (*flow.Transaction, error)
 
-	// GetTransactionsByBlockID gets all the transactions for a specified block.
+	// GetTransactionsByBlockID returns all the transactions for a specified block.
 	GetTransactionsByBlockID(ctx context.Context, blockID flow.Identifier) ([]*flow.Transaction, error)
 
-	// GetTransactionResult gets the result of a transaction.
+	// GetTransactionResult returns the result of a transaction.
 	GetTransactionResult(ctx context.Context, txID flow.Identifier) (*flow.TransactionResult, error)
 
 	// GetTransactionResultByIndex returns a transaction result by transaction index for the given block ID.
 	GetTransactionResultByIndex(ctx context.Context, blockID flow.Identifier, index uint32) (*flow.TransactionResult, error)
 
-	// GetTransactionResultsByBlockID gets all the transaction results for a specified block.
+	// GetTransactionResultsByBlockID returns all the transaction results for a specified block.
 	GetTransactionResultsByBlockID(ctx context.Context, blockID flow.Identifier) ([]*flow.TransactionResult, error)
 
 	// GetSystemTransaction returns the system transaction for the given block ID.
@@ -97,10 +97,10 @@ type Client interface {
 	// GetAccount is an alias for GetAccountAtLatestBlock.
 	GetAccount(ctx context.Context, address flow.Address) (*flow.Account, error)
 
-	// GetAccountAtLatestBlock gets an account by address at the latest sealed block.
+	// GetAccountAtLatestBlock returns an account by address at the latest sealed block.
 	GetAccountAtLatestBlock(ctx context.Context, address flow.Address) (*flow.Account, error)
 
-	// GetAccountAtBlockHeight gets an account by address at the given block height
+	// GetAccountAtBlockHeight returns an account by address at the given block height
 	GetAccountAtBlockHeight(ctx context.Context, address flow.Address, blockHeight uint64) (*flow.Account, error)
 
 	// GetAccountBalanceAtLatestBlock returns the balance of an account at the latest sealed block.
@@ -130,10 +130,10 @@ type Client interface {
 	// ExecuteScriptAtBlockHeight executes a ready-only Cadence script against the execution state at the given block height.
 	ExecuteScriptAtBlockHeight(ctx context.Context, height uint64, script []byte, arguments []cadence.Value) (cadence.Value, error)
 
-	// GetEventsForHeightRange retrieves events for all sealed blocks between the start and end block heights (inclusive) with the given type.
+	// GetEventsForHeightRange returns events for all sealed blocks between the start and end block heights (inclusive) with the given type.
 	GetEventsForHeightRange(ctx context.Context, eventType string, startHeight uint64, endHeight uint64) ([]flow.BlockEvents, error)
 
-	// GetEventsForBlockIDs retrieves events with the given type from the specified block IDs.
+	// GetEventsForBlockIDs returns events with the given type from the specified block IDs.
 	GetEventsForBlockIDs(ctx context.Context, eventType string, blockIDs []flow.Identifier) ([]flow.BlockEvents, error)
 
 	// GetLatestProtocolStateSnapshot returns the protocol state snapshot in serialized form at latest sealed block.
@@ -151,7 +151,7 @@ type Client interface {
 	// GetExecutionResultByID returns the execution result by ID.
 	GetExecutionResultByID(ctx context.Context, id flow.Identifier) (*flow.ExecutionResult, error)
 
-	// GetExecutionResultForBlockID gets the execution results at the block ID.
+	// GetExecutionResultForBlockID returns the execution results at the block ID.
 	GetExecutionResultForBlockID(ctx context.Context, blockID flow.Identifier) (*flow.ExecutionResult, error)
 
 	// GetExecutionDataByBlockID returns execution data for a specific block ID.
