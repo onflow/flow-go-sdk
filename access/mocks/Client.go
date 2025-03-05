@@ -1154,6 +1154,38 @@ func (_m *Client) SubscribeBlockDigestsFromStartHeight(ctx context.Context, star
 	return r0, r1, r2
 }
 
+// SubscribeBlockHeadersFromLatest provides a mock function with given fields: ctx, blockStatus
+func (_m *Client) SubscribeBlockHeadersFromLatest(ctx context.Context, blockStatus flow.BlockStatus) (<-chan *flow.BlockHeader, <-chan error, error) {
+	ret := _m.Called(ctx, blockStatus)
+
+	var r0 <-chan *flow.BlockHeader
+	if rf, ok := ret.Get(0).(func(context.Context, flow.BlockStatus) <-chan *flow.BlockHeader); ok {
+		r0 = rf(ctx, blockStatus)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(<-chan *flow.BlockHeader)
+		}
+	}
+
+	var r1 <-chan error
+	if rf, ok := ret.Get(1).(func(context.Context, flow.BlockStatus) <-chan error); ok {
+		r1 = rf(ctx, blockStatus)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(<-chan error)
+		}
+	}
+
+	var r2 error
+	if rf, ok := ret.Get(2).(func(context.Context, flow.BlockStatus) error); ok {
+		r2 = rf(ctx, blockStatus)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
 // SubscribeBlockHeadersFromStartBlockID provides a mock function with given fields: ctx, startBlockID, blockStatus
 func (_m *Client) SubscribeBlockHeadersFromStartBlockID(ctx context.Context, startBlockID flow.Identifier, blockStatus flow.BlockStatus) (<-chan *flow.BlockHeader, <-chan error, error) {
 	ret := _m.Called(ctx, startBlockID, blockStatus)
@@ -1307,38 +1339,6 @@ func (_m *Client) SubscribeBlocksFromStartHeight(ctx context.Context, startHeigh
 	var r2 error
 	if rf, ok := ret.Get(2).(func(context.Context, uint64, flow.BlockStatus) error); ok {
 		r2 = rf(ctx, startHeight, blockStatus)
-	} else {
-		r2 = ret.Error(2)
-	}
-
-	return r0, r1, r2
-}
-
-// SubscribeBlockHeadersFromLatest provides a mock function with given fields: ctx, blockStatus
-func (_m *Client) SubscribeBlockHeadersFromLatest(ctx context.Context, blockStatus flow.BlockStatus) (<-chan *flow.BlockHeader, <-chan error, error) {
-	ret := _m.Called(ctx, blockStatus)
-
-	var r0 <-chan *flow.BlockHeader
-	if rf, ok := ret.Get(0).(func(context.Context, flow.BlockStatus) <-chan *flow.BlockHeader); ok {
-		r0 = rf(ctx, blockStatus)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(<-chan *flow.BlockHeader)
-		}
-	}
-
-	var r1 <-chan error
-	if rf, ok := ret.Get(1).(func(context.Context, flow.BlockStatus) <-chan error); ok {
-		r1 = rf(ctx, blockStatus)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(<-chan error)
-		}
-	}
-
-	var r2 error
-	if rf, ok := ret.Get(2).(func(context.Context, flow.BlockStatus) error); ok {
-		r2 = rf(ctx, blockStatus)
 	} else {
 		r2 = ret.Error(2)
 	}
