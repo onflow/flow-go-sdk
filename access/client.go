@@ -254,10 +254,10 @@ type Client interface {
 		blockStatus flow.BlockStatus,
 	) (<-chan *flow.BlockHeader, <-chan error, error)
 
-	// SubscribeBlocksHeadersFromLatest subscribes to block headers with the given status starting
+	// SubscribeBlockHeadersFromLatest subscribes to block headers with the given status starting
 	// at the latest block.
 	// The status may be either flow.BlockStatusFinalized or flow.BlockStatusSealed
-	SubscribeBlocksHeadersFromLatest(
+	SubscribeBlockHeadersFromLatest(
 		ctx context.Context,
 		blockStatus flow.BlockStatus,
 	) (<-chan *flow.BlockHeader, <-chan error, error)

@@ -1314,8 +1314,8 @@ func (_m *Client) SubscribeBlocksFromStartHeight(ctx context.Context, startHeigh
 	return r0, r1, r2
 }
 
-// SubscribeBlocksHeadersFromLatest provides a mock function with given fields: ctx, blockStatus
-func (_m *Client) SubscribeBlocksHeadersFromLatest(ctx context.Context, blockStatus flow.BlockStatus) (<-chan *flow.BlockHeader, <-chan error, error) {
+// SubscribeBlockHeadersFromLatest provides a mock function with given fields: ctx, blockStatus
+func (_m *Client) SubscribeBlockHeadersFromLatest(ctx context.Context, blockStatus flow.BlockStatus) (<-chan *flow.BlockHeader, <-chan error, error) {
 	ret := _m.Called(ctx, blockStatus)
 
 	var r0 <-chan *flow.BlockHeader

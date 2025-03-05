@@ -408,7 +408,7 @@ func (c *Client) SubscribeBlockHeadersFromStartHeight(ctx context.Context, start
 	return nil, nil, fmt.Errorf("not implemented")
 }
 
-func (c *Client) SubscribeBlocksHeadersFromLatest(ctx context.Context, blockStatus flow.BlockStatus) (<-chan *flow.BlockHeader, <-chan error, error) {
+func (c *Client) SubscribeBlockHeadersFromLatest(ctx context.Context, blockStatus flow.BlockStatus) (<-chan *flow.BlockHeader, <-chan error, error) {
 	return nil, nil, fmt.Errorf("not implemented")
 }
 
