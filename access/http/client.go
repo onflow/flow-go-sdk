@@ -74,13 +74,17 @@ func NewClient(host string, opts ...ClientOption) (*Client, error) {
 
 	client.SetJSONOptions(cfg.jsonOptions)
 
-	return &Client{client}, nil
+	return &Client{
+		UnimplementedClient: &access.UnimplementedClient{},
+		httpClient:          client,
+	}, nil
 }
 
 var _ access.Client = &Client{}
 
 // Client implements all common HTTP methods providing a network agnostic API.
 type Client struct {
+	*access.UnimplementedClient
 	httpClient *BaseClient
 }
 
@@ -160,10 +164,6 @@ func (c *Client) GetCollectionByID(ctx context.Context, ID flow.Identifier) (*fl
 	return c.httpClient.GetCollection(ctx, ID)
 }
 
-func (c *Client) GetFullCollectionByID(ctx context.Context, id flow.Identifier) (*flow.FullCollection, error) {
-	return nil, fmt.Errorf("not implemented")
-}
-
 func (c *Client) SendTransaction(ctx context.Context, tx flow.Transaction) error {
 	return c.httpClient.SendTransaction(ctx, tx)
 }
@@ -172,28 +172,8 @@ func (c *Client) GetTransaction(ctx context.Context, ID flow.Identifier) (*flow.
 	return c.httpClient.GetTransaction(ctx, ID)
 }
 
-func (c *Client) GetTransactionsByBlockID(ctx context.Context, blockID flow.Identifier) ([]*flow.Transaction, error) {
-	return nil, fmt.Errorf("not implemented")
-}
-
 func (c *Client) GetTransactionResult(ctx context.Context, ID flow.Identifier) (*flow.TransactionResult, error) {
 	return c.httpClient.GetTransactionResult(ctx, ID)
-}
-
-func (c *Client) GetTransactionResultByIndex(ctx context.Context, blockID flow.Identifier, index uint32) (*flow.TransactionResult, error) {
-	return nil, fmt.Errorf("not implemented")
-}
-
-func (c *Client) GetTransactionResultsByBlockID(ctx context.Context, blockID flow.Identifier) ([]*flow.TransactionResult, error) {
-	return nil, fmt.Errorf("not implemented")
-}
-
-func (c *Client) GetSystemTransaction(ctx context.Context, blockID flow.Identifier) (*flow.Transaction, error) {
-	return nil, fmt.Errorf("not implemented")
-}
-
-func (c *Client) GetSystemTransactionResult(ctx context.Context, blockID flow.Identifier) (*flow.TransactionResult, error) {
-	return nil, fmt.Errorf("not implemented")
 }
 
 // GetAccount is an alias for GetAccountAtLatestBlock.
@@ -340,92 +320,8 @@ func (c *Client) GetLatestProtocolStateSnapshot(ctx context.Context) ([]byte, er
 	return c.httpClient.GetLatestProtocolStateSnapshot(ctx)
 }
 
-func (c *Client) GetProtocolStateSnapshotByBlockID(ctx context.Context, blockID flow.Identifier) ([]byte, error) {
-	return nil, fmt.Errorf("not implemented")
-}
-
-func (c *Client) GetProtocolStateSnapshotByHeight(ctx context.Context, blockHeight uint64) ([]byte, error) {
-	return nil, fmt.Errorf("not implemented")
-}
-
 func (c *Client) GetExecutionResultForBlockID(ctx context.Context, blockID flow.Identifier) (*flow.ExecutionResult, error) {
 	return c.httpClient.GetExecutionResultForBlockID(ctx, blockID)
-}
-
-func (c *Client) GetExecutionResultByID(ctx context.Context, id flow.Identifier) (*flow.ExecutionResult, error) {
-	return nil, fmt.Errorf("not implemented")
-}
-
-func (c *Client) GetExecutionDataByBlockID(ctx context.Context, blockID flow.Identifier) (*flow.ExecutionData, error) {
-	return nil, fmt.Errorf("not implemented")
-}
-
-func (c *Client) SubscribeExecutionDataByBlockID(ctx context.Context, startBlockID flow.Identifier) (<-chan *flow.ExecutionDataStreamResponse, <-chan error, error) {
-	return nil, nil, fmt.Errorf("not implemented")
-}
-
-func (c *Client) SubscribeExecutionDataByBlockHeight(ctx context.Context, startHeight uint64) (<-chan *flow.ExecutionDataStreamResponse, <-chan error, error) {
-	return nil, nil, fmt.Errorf("not implemented")
-}
-
-func (c *Client) SubscribeEventsByBlockID(ctx context.Context, startBlockID flow.Identifier, filter flow.EventFilter, opts ...access.SubscribeOption) (<-chan flow.BlockEvents, <-chan error, error) {
-	return nil, nil, fmt.Errorf("not implemented")
-}
-
-func (c *Client) SubscribeEventsByBlockHeight(ctx context.Context, startHeight uint64, filter flow.EventFilter, opts ...access.SubscribeOption) (<-chan flow.BlockEvents, <-chan error, error) {
-	return nil, nil, fmt.Errorf("not implemented")
-}
-
-func (c *Client) SubscribeBlockDigestsFromStartBlockID(ctx context.Context, startBlockID flow.Identifier, blockStatus flow.BlockStatus) (<-chan *flow.BlockDigest, <-chan error, error) {
-	return nil, nil, fmt.Errorf("not implemented")
-}
-
-func (c *Client) SubscribeBlockDigestsFromStartHeight(ctx context.Context, startHeight uint64, blockStatus flow.BlockStatus) (<-chan *flow.BlockDigest, <-chan error, error) {
-	return nil, nil, fmt.Errorf("not implemented")
-}
-
-func (c *Client) SubscribeBlockDigestsFromLatest(ctx context.Context, blockStatus flow.BlockStatus) (<-chan *flow.BlockDigest, <-chan error, error) {
-	return nil, nil, fmt.Errorf("not implemented")
-}
-
-func (c *Client) SubscribeBlocksFromStartBlockID(ctx context.Context, startBlockID flow.Identifier, blockStatus flow.BlockStatus) (<-chan *flow.Block, <-chan error, error) {
-	return nil, nil, fmt.Errorf("not implemented")
-}
-
-func (c *Client) SubscribeBlocksFromStartHeight(ctx context.Context, startHeight uint64, blockStatus flow.BlockStatus) (<-chan *flow.Block, <-chan error, error) {
-	return nil, nil, fmt.Errorf("not implemented")
-}
-
-func (c *Client) SubscribeBlocksFromLatest(ctx context.Context, blockStatus flow.BlockStatus) (<-chan *flow.Block, <-chan error, error) {
-	return nil, nil, fmt.Errorf("not implemented")
-}
-
-func (c *Client) SubscribeBlockHeadersFromStartBlockID(ctx context.Context, startBlockID flow.Identifier, blockStatus flow.BlockStatus) (<-chan *flow.BlockHeader, <-chan error, error) {
-	return nil, nil, fmt.Errorf("not implemented")
-}
-
-func (c *Client) SubscribeBlockHeadersFromStartHeight(ctx context.Context, startHeight uint64, blockStatus flow.BlockStatus) (<-chan *flow.BlockHeader, <-chan error, error) {
-	return nil, nil, fmt.Errorf("not implemented")
-}
-
-func (c *Client) SubscribeBlockHeadersFromLatest(ctx context.Context, blockStatus flow.BlockStatus) (<-chan *flow.BlockHeader, <-chan error, error) {
-	return nil, nil, fmt.Errorf("not implemented")
-}
-
-func (c *Client) SubscribeAccountStatusesFromStartHeight(ctx context.Context, startBlockHeight uint64, filter flow.AccountStatusFilter) (<-chan *flow.AccountStatus, <-chan error, error) {
-	return nil, nil, fmt.Errorf("not implemented")
-}
-
-func (c *Client) SubscribeAccountStatusesFromStartBlockID(ctx context.Context, startBlockID flow.Identifier, filter flow.AccountStatusFilter) (<-chan *flow.AccountStatus, <-chan error, error) {
-	return nil, nil, fmt.Errorf("not implemented")
-}
-
-func (c *Client) SubscribeAccountStatusesFromLatestBlock(ctx context.Context, filter flow.AccountStatusFilter) (<-chan *flow.AccountStatus, <-chan error, error) {
-	return nil, nil, fmt.Errorf("not implemented")
-}
-
-func (c *Client) SendAndSubscribeTransactionStatuses(ctx context.Context, tx flow.Transaction) (<-chan *flow.TransactionResult, <-chan error, error) {
-	return nil, nil, fmt.Errorf("not implemented")
 }
 
 func (c *Client) Close() error {
