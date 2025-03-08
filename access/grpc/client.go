@@ -315,8 +315,7 @@ func (c *Client) SubscribeEventsByBlockID(
 	filter flow.EventFilter,
 	opts ...access.SubscribeOption,
 ) (<-chan flow.BlockEvents, <-chan error, error) {
-	conf := convertSubscribeOptions(opts...)
-	return c.grpc.SubscribeEventsByBlockID(ctx, startBlockID, filter, WithHeartbeatInterval(conf.heartbeatInterval))
+	return c.grpc.SubscribeEventsByBlockID(ctx, startBlockID, filter, opts...)
 }
 
 func (c *Client) SubscribeEventsByBlockHeight(
@@ -325,8 +324,7 @@ func (c *Client) SubscribeEventsByBlockHeight(
 	filter flow.EventFilter,
 	opts ...access.SubscribeOption,
 ) (<-chan flow.BlockEvents, <-chan error, error) {
-	conf := convertSubscribeOptions(opts...)
-	return c.grpc.SubscribeEventsByBlockHeight(ctx, startHeight, filter, WithHeartbeatInterval(conf.heartbeatInterval))
+	return c.grpc.SubscribeEventsByBlockHeight(ctx, startHeight, filter, opts...)
 }
 
 func (c *Client) SubscribeBlockDigestsFromStartBlockID(
@@ -400,18 +398,6 @@ func (c *Client) SubscribeBlockHeadersFromLatest(
 
 func (c *Client) Close() error {
 	return c.grpc.Close()
-}
-
-// convertSubscribeOptions creates the default subscribe config and applies all the provided options
-func convertSubscribeOptions(opts ...access.SubscribeOption) *SubscribeConfig {
-	subsConf := DefaultSubscribeConfig()
-	conf := &access.SubscribeConfig{
-		HeartbeatInterval: subsConf.heartbeatInterval,
-	}
-	for _, opt := range opts {
-		opt(conf)
-	}
-	return subsConf
 }
 
 func (c *Client) SubscribeAccountStatusesFromStartHeight(

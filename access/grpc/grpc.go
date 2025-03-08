@@ -37,6 +37,7 @@ import (
 	"github.com/onflow/flow/protobuf/go/flow/executiondata"
 
 	"github.com/onflow/flow-go-sdk"
+	base "github.com/onflow/flow-go-sdk/access"
 	"github.com/onflow/flow-go-sdk/access/grpc/convert"
 )
 
@@ -48,31 +49,6 @@ type RPCClient interface {
 // ExecutionDataRPCClient is an RPC client for the Flow ExecutionData API.
 type ExecutionDataRPCClient interface {
 	executiondata.ExecutionDataAPIClient
-}
-
-type SubscribeOption func(*SubscribeConfig)
-
-type SubscribeConfig struct {
-	heartbeatInterval uint64
-	grpcOpts          []grpc.CallOption
-}
-
-func DefaultSubscribeConfig() *SubscribeConfig {
-	return &SubscribeConfig{
-		heartbeatInterval: 100,
-	}
-}
-
-func WithHeartbeatInterval(interval uint64) SubscribeOption {
-	return func(config *SubscribeConfig) {
-		config.heartbeatInterval = interval
-	}
-}
-
-func WithGRPCOptions(grpcOpts ...grpc.CallOption) SubscribeOption {
-	return func(config *SubscribeConfig) {
-		config.grpcOpts = grpcOpts
-	}
 }
 
 // BaseClient is a gRPC client for the Flow Access API exposing all grpc specific methods.
@@ -89,7 +65,7 @@ type BaseClient struct {
 
 // NewBaseClient creates a new gRPC handler for network communication.
 func NewBaseClient(url string, opts ...grpc.DialOption) (*BaseClient, error) {
-	conn, err := grpc.Dial(url, opts...)
+	conn, err := grpc.NewClient(url, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1078,7 +1054,7 @@ func (c *BaseClient) SubscribeEventsByBlockID(
 	ctx context.Context,
 	startBlockID flow.Identifier,
 	filter flow.EventFilter,
-	opts ...SubscribeOption,
+	opts ...base.SubscribeOption,
 ) (<-chan flow.BlockEvents, <-chan error, error) {
 	req := executiondata.SubscribeEventsRequest{
 		StartBlockId:         startBlockID[:],
@@ -1091,7 +1067,7 @@ func (c *BaseClient) SubscribeEventsByBlockHeight(
 	ctx context.Context,
 	startHeight uint64,
 	filter flow.EventFilter,
-	opts ...SubscribeOption,
+	opts ...base.SubscribeOption,
 ) (<-chan flow.BlockEvents, <-chan error, error) {
 	req := executiondata.SubscribeEventsRequest{
 		StartBlockHeight:     startHeight,
@@ -1104,9 +1080,9 @@ func (c *BaseClient) subscribeEvents(
 	ctx context.Context,
 	req *executiondata.SubscribeEventsRequest,
 	filter flow.EventFilter,
-	opts ...SubscribeOption,
+	opts ...base.SubscribeOption,
 ) (<-chan flow.BlockEvents, <-chan error, error) {
-	conf := DefaultSubscribeConfig()
+	conf := base.DefaultSubscribeConfig()
 	for _, apply := range opts {
 		apply(conf)
 	}
@@ -1116,9 +1092,9 @@ func (c *BaseClient) subscribeEvents(
 		Address:   filter.Addresses,
 		Contract:  filter.Contracts,
 	}
-	req.HeartbeatInterval = conf.heartbeatInterval
+	req.HeartbeatInterval = conf.HeartbeatInterval
 
-	stream, err := c.executionDataClient.SubscribeEvents(ctx, req, conf.grpcOpts...)
+	stream, err := c.executionDataClient.SubscribeEvents(ctx, req, conf.GrpcOpts...)
 	if err != nil {
 		return nil, nil, err
 	}

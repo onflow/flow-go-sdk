@@ -27,6 +27,7 @@ import (
 	"context"
 
 	"github.com/onflow/cadence"
+	"google.golang.org/grpc"
 
 	"github.com/onflow/flow-go-sdk"
 )
@@ -300,10 +301,23 @@ type SubscribeOption func(*SubscribeConfig)
 
 type SubscribeConfig struct {
 	HeartbeatInterval uint64
+	GrpcOpts          []grpc.CallOption
 }
 
 func WithHeartbeatInterval(interval uint64) SubscribeOption {
 	return func(config *SubscribeConfig) {
 		config.HeartbeatInterval = interval
+	}
+}
+
+func WithGRPCOptions(grpcOpts ...grpc.CallOption) SubscribeOption {
+	return func(config *SubscribeConfig) {
+		config.GrpcOpts = grpcOpts
+	}
+}
+
+func DefaultSubscribeConfig() *SubscribeConfig {
+	return &SubscribeConfig{
+		HeartbeatInterval: 100,
 	}
 }
