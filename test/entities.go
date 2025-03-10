@@ -1,7 +1,7 @@
 /*
  * Flow Go SDK
  *
- * Copyright 2019 Dapper Labs, Inc.
+ * Copyright Flow Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,15 +19,16 @@
 package test
 
 import (
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/onflow/cadence"
+	"github.com/onflow/cadence/common"
 	"github.com/onflow/cadence/encoding/ccf"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
-	"github.com/onflow/cadence/runtime/common"
 	"github.com/onflow/flow/protobuf/go/flow/entities"
 
 	"github.com/onflow/flow-go-sdk"
@@ -58,7 +59,7 @@ func (g *Accounts) New() *flow.Account {
 }
 
 type AccountKeys struct {
-	count int
+	count uint32
 	ids   *Identifiers
 }
 
@@ -126,6 +127,9 @@ type Blocks struct {
 	guarantees *CollectionGuarantees
 	seals      *BlockSeals
 	signatures *Signatures
+	ids        *Identifiers
+	bytes      *Bytes
+	chunks     *ChuckExecutionResult
 }
 
 func BlockGenerator() *Blocks {
@@ -134,6 +138,9 @@ func BlockGenerator() *Blocks {
 		guarantees: CollectionGuaranteeGenerator(),
 		seals:      BlockSealGenerator(),
 		signatures: SignaturesGenerator(),
+		ids:        IdentifierGenerator(),
+		bytes:      BytesGenerator(),
+		chunks:     ChuckExecutionResultGenerator(),
 	}
 }
 
@@ -150,9 +157,32 @@ func (g *Blocks) New() *flow.Block {
 		g.seals.New(),
 	}
 
+	executionReceiptMetaList := []*flow.ExecutionReceiptMeta{{
+		ExecutorID:        g.ids.New(),
+		ResultID:          g.ids.New(),
+		Spocks:            [][]byte{g.bytes.New()},
+		ExecutorSignature: g.bytes.New(),
+	}}
+
+	serviceEvents := []*flow.ServiceEvent{{
+		Type:    string(g.bytes.New()),
+		Payload: g.bytes.New(),
+	}}
+
+	executionResults := []*flow.ExecutionResult{{
+		PreviousResultID: g.ids.New(),
+		BlockID:          g.ids.New(),
+		Chunks:           []*flow.Chunk{g.chunks.New()},
+		ServiceEvents:    serviceEvents,
+	}}
+
 	payload := flow.BlockPayload{
-		CollectionGuarantees: guarantees,
-		Seals:                seals,
+		CollectionGuarantees:     guarantees,
+		Seals:                    seals,
+		Signatures:               g.signatures.New(),
+		ExecutionReceiptMetaList: executionReceiptMetaList,
+		ExecutionResultsList:     executionResults,
+		ProtocolStateID:          g.ids.New(),
 	}
 
 	return &flow.Block{
@@ -165,6 +195,7 @@ type BlockHeaders struct {
 	count     int
 	ids       *Identifiers
 	startTime time.Time
+	bytes     *Bytes
 }
 
 func BlockHeaderGenerator() *BlockHeaders {
@@ -174,31 +205,57 @@ func BlockHeaderGenerator() *BlockHeaders {
 		count:     1,
 		ids:       IdentifierGenerator(),
 		startTime: startTime.UTC(),
+		bytes:     BytesGenerator(),
 	}
 }
 
 func (g *BlockHeaders) New() flow.BlockHeader {
 	defer func() { g.count++ }()
 
+	qc := flow.QuorumCertificate{
+		View:          42,
+		BlockID:       g.ids.New(),
+		SignerIndices: g.bytes.New(),
+		SigData:       g.bytes.New(),
+	}
+
+	tc := flow.TimeoutCertificate{
+		View:          42,
+		HighQCViews:   []uint64{42},
+		HighestQC:     qc,
+		SignerIndices: g.bytes.New(),
+		SigData:       g.bytes.New(),
+	}
+
 	return flow.BlockHeader{
-		ID:        g.ids.New(),
-		ParentID:  g.ids.New(),
-		Height:    uint64(g.count),
-		Timestamp: g.startTime.Add(time.Hour * time.Duration(g.count)),
+		ID:                         g.ids.New(),
+		ParentID:                   g.ids.New(),
+		Height:                     uint64(g.count),
+		Timestamp:                  g.startTime.Add(time.Hour * time.Duration(g.count)),
+		Status:                     flow.BlockStatusUnknown,
+		PayloadHash:                g.bytes.New(),
+		View:                       42,
+		ParentVoterSigData:         g.bytes.New(),
+		ProposerID:                 g.ids.New(),
+		ProposerSigData:            g.bytes.New(),
+		ChainID:                    g.ids.New(),
+		ParentVoterIndices:         g.bytes.New(),
+		LastViewTimeoutCertificate: tc,
+		ParentView:                 42,
 	}
 }
 
-type Collections struct {
+type LightCollection struct {
 	ids *Identifiers
 }
 
-func CollectionGenerator() *Collections {
-	return &Collections{
+func LightCollectionGenerator() *LightCollection {
+	return &LightCollection{
 		ids: IdentifierGenerator(),
 	}
 }
 
-func (g *Collections) New() *flow.Collection {
+func (g *LightCollection) New() *flow.Collection {
 	return &flow.Collection{
 		TransactionIDs: []flow.Identifier{
 			g.ids.New(),
@@ -207,36 +264,73 @@ func (g *Collections) New() *flow.Collection {
 	}
 }
 
+type FullCollection struct {
+	Transactions *Transactions
+}
+
+func FullCollectionGenerator() *FullCollection {
+	return &FullCollection{
+		Transactions: TransactionGenerator(),
+	}
+}
+
+func (c *FullCollection) New() *flow.FullCollection {
+	return &flow.FullCollection{
+		Transactions: []*flow.Transaction{c.Transactions.New(), c.Transactions.New()},
+	}
+}
+
 type CollectionGuarantees struct {
-	ids *Identifiers
+	ids   *Identifiers
+	bytes *Bytes
+	sigs  *Signatures
 }
 
 type BlockSeals struct {
-	ids *Identifiers
+	ids   *Identifiers
+	sigs  *Signatures
+	bytes *Bytes
 }
 
 func CollectionGuaranteeGenerator() *CollectionGuarantees {
 	return &CollectionGuarantees{
-		ids: IdentifierGenerator(),
+		ids:   IdentifierGenerator(),
+		bytes: BytesGenerator(),
+		sigs:  SignaturesGenerator(),
 	}
 }
 
 func (g *CollectionGuarantees) New() *flow.CollectionGuarantee {
 	return &flow.CollectionGuarantee{
-		CollectionID: g.ids.New(),
+		CollectionID:     g.ids.New(),
+		ReferenceBlockID: g.ids.New(),
+		Signature:        g.sigs.New()[0],
+		SignerIndices:    g.bytes.New(),
 	}
 }
 
 func BlockSealGenerator() *BlockSeals {
 	return &BlockSeals{
-		ids: IdentifierGenerator(),
+		ids:   IdentifierGenerator(),
+		sigs:  SignaturesGenerator(),
+		bytes: BytesGenerator(),
 	}
 }
 
 func (g *BlockSeals) New() *flow.BlockSeal {
+	sigs := []*flow.AggregatedSignature{{
+		VerifierSignatures: g.sigs.New(),
+		SignerIds:          []flow.Identifier{g.ids.New()},
+	}}
+
 	return &flow.BlockSeal{
-		BlockID:            g.ids.New(),
-		ExecutionReceiptID: g.ids.New(),
+		BlockID:                    g.ids.New(),
+		ExecutionReceiptID:         g.ids.New(),
+		ExecutionReceiptSignatures: g.sigs.New(),
+		ResultApprovalSignatures:   g.sigs.New(),
+		FinalState:                 g.bytes.New(),
+		ResultId:                   g.ids.New(),
+		AggregatedApprovalSigs:     sigs,
 	}
 }
 
@@ -261,10 +355,10 @@ func (g *Events) New() flow.Event {
 
 	location := common.StringLocation("test")
 
-	testEventType := &cadence.EventType{
-		Location:            location,
-		QualifiedIdentifier: identifier,
-		Fields: []cadence.Field{
+	testEventType := cadence.NewEventType(
+		location,
+		identifier,
+		[]cadence.Field{
 			{
 				Identifier: "a",
 				Type:       cadence.IntType,
@@ -274,7 +368,8 @@ func (g *Events) New() flow.Event {
 				Type:       cadence.StringType,
 			},
 		},
-	}
+		nil,
+	)
 
 	testEvent := cadence.NewEvent(
 		[]cadence.Value{
@@ -438,10 +533,11 @@ func (g *TransactionResults) New() flow.TransactionResult {
 			g.events.New(),
 			g.events.New(),
 		},
-		BlockID:       g.ids.New(),
-		BlockHeight:   uint64(42),
-		TransactionID: g.ids.New(),
-		CollectionID:  g.ids.New(),
+		BlockID:          g.ids.New(),
+		BlockHeight:      uint64(42),
+		TransactionID:    g.ids.New(),
+		CollectionID:     g.ids.New(),
+		ComputationUsage: uint64(42),
 	}
 }
 
@@ -551,5 +647,49 @@ func (g *LightTransactionResults) New() *flow.LightTransactionResult {
 		TransactionID:   g.ids.New(),
 		Failed:          false,
 		ComputationUsed: uint64(42),
+	}
+}
+
+type Bytes struct {
+	count int
+}
+
+func BytesGenerator() *Bytes {
+	return &Bytes{
+		count: 64,
+	}
+}
+
+func (g *Bytes) New() []byte {
+	randomBytes := make([]byte, g.count)
+	_, err := rand.Read(randomBytes)
+	if err != nil {
+		panic("failed to generate random bytes")
+	}
+	return randomBytes
+}
+
+type ChuckExecutionResult struct {
+	ids   *Identifiers
+	bytes *Bytes
+}
+
+func ChuckExecutionResultGenerator() *ChuckExecutionResult {
+	return &ChuckExecutionResult{
+		ids:   IdentifierGenerator(),
+		bytes: BytesGenerator(),
+	}
+}
+
+func (g *ChuckExecutionResult) New() *flow.Chunk {
+	return &flow.Chunk{
+		CollectionIndex:      42,
+		StartState:           flow.StateCommitment(g.ids.New()),
+		EventCollection:      g.bytes.New(),
+		BlockID:              g.ids.New(),
+		TotalComputationUsed: 42,
+		NumberOfTransactions: 42,
+		Index:                42,
+		EndState:             flow.StateCommitment(g.ids.New()),
 	}
 }

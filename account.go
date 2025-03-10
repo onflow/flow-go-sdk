@@ -1,7 +1,7 @@
 /*
  * Flow Go SDK
  *
- * Copyright 2019 Dapper Labs, Inc.
+ * Copyright Flow Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ const AccountKeyWeightThreshold int = 1000
 
 // An AccountKey is a public key associated with an account.
 type AccountKey struct {
-	Index          int
+	Index          uint32
 	PublicKey      crypto.PublicKey
 	SigAlgo        crypto.SignatureAlgorithm
 	HashAlgo       crypto.HashAlgorithm
@@ -153,4 +153,24 @@ type accountKeyWrapper struct {
 	SigAlgo          uint
 	HashAlgo         uint
 	Weight           uint
+}
+
+type AccountStatusFilter struct {
+	EventFilter
+}
+
+type AccountStatus struct {
+	BlockID      Identifier
+	BlockHeight  uint64
+	MessageIndex uint64
+	Results      []*AccountStatusResult
+}
+
+func (a AccountStatus) GetMessageIndex() uint64 {
+	return a.MessageIndex
+}
+
+type AccountStatusResult struct {
+	Address Address
+	Events  []Event
 }

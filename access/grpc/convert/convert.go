@@ -1,7 +1,7 @@
 /*
  * Flow Go SDK
  *
- * Copyright 2019 Dapper Labs, Inc.
+ * Copyright Flow Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/onflow/flow/protobuf/go/flow/executiondata"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/onflow/cadence"
@@ -76,6 +77,43 @@ func MessageToAccount(m *entities.Account) (flow.Account, error) {
 	}, nil
 }
 
+func MessageToAccountStatus(m *executiondata.SubscribeAccountStatusesResponse) (flow.AccountStatus, error) {
+	if m == nil {
+		return flow.AccountStatus{}, ErrEmptyMessage
+	}
+
+	results, err := MessageToAccountStatusResults(m.GetResults())
+	if err != nil {
+		return flow.AccountStatus{}, fmt.Errorf("error converting results: %w", err)
+	}
+
+	return flow.AccountStatus{
+		BlockID:      MessageToIdentifier(m.GetBlockId()),
+		BlockHeight:  m.GetBlockHeight(),
+		MessageIndex: m.GetMessageIndex(),
+		Results:      results,
+	}, nil
+}
+
+func MessageToAccountStatusResults(m []*executiondata.SubscribeAccountStatusesResponse_Result) ([]*flow.AccountStatusResult, error) {
+	results := make([]*flow.AccountStatusResult, len(m))
+	var emptyOptions []jsoncdc.Option
+
+	for i, r := range m {
+		events, err := MessagesToEvents(r.GetEvents(), emptyOptions)
+		if err != nil {
+			return nil, fmt.Errorf("error converting events: %w", err)
+		}
+
+		results[i] = &flow.AccountStatusResult{
+			Address: flow.BytesToAddress(r.GetAddress()),
+			Events:  events,
+		}
+	}
+
+	return results, nil
+}
+
 func AccountKeyToMessage(a *flow.AccountKey) *entities.AccountKey {
 	return &entities.AccountKey{
 		Index:          uint32(a.Index),
@@ -102,7 +140,7 @@ func MessageToAccountKey(m *entities.AccountKey) (*flow.AccountKey, error) {
 	}
 
 	return &flow.AccountKey{
-		Index:          int(m.GetIndex()),
+		Index:          m.GetIndex(),
 		PublicKey:      publicKey,
 		SigAlgo:        sigAlgo,
 		HashAlgo:       hashAlgo,
@@ -112,21 +150,54 @@ func MessageToAccountKey(m *entities.AccountKey) (*flow.AccountKey, error) {
 	}, nil
 }
 
-func BlockToMessage(b flow.Block) (*entities.Block, error) {
+func MessageToAccountKeys(m []*entities.AccountKey) ([]*flow.AccountKey, error) {
+	var accountKeys []*flow.AccountKey
 
+	for _, entity := range m {
+		accountKey, err := MessageToAccountKey(entity)
+		if err != nil {
+			return nil, err
+		}
+
+		accountKeys = append(accountKeys, accountKey)
+	}
+
+	return accountKeys, nil
+}
+
+func BlockToMessage(b flow.Block) (*entities.Block, error) {
 	t := timestamppb.New(b.BlockHeader.Timestamp)
+	header, err := BlockHeaderToMessage(b.BlockHeader)
+	if err != nil {
+		return nil, err
+	}
+
+	execReceipts, err := ExecutionReceiptMetaListToMessage(b.ExecutionReceiptMetaList)
+	if err != nil {
+		return nil, fmt.Errorf("error converting execution receipts: %w", err)
+	}
+
+	execResults, err := ExecutionResultsToMessage(b.ExecutionResultsList)
+	if err != nil {
+		return nil, fmt.Errorf("error converting execution results: %w", err)
+	}
 
 	return &entities.Block{
-		Id:                   b.BlockHeader.ID.Bytes(),
-		ParentId:             b.BlockHeader.ParentID.Bytes(),
-		Height:               b.BlockHeader.Height,
-		Timestamp:            t,
-		CollectionGuarantees: CollectionGuaranteesToMessages(b.BlockPayload.CollectionGuarantees),
-		BlockSeals:           BlockSealsToMessages(b.BlockPayload.Seals),
+		Id:                       b.BlockHeader.ID.Bytes(),
+		ParentId:                 b.BlockHeader.ParentID.Bytes(),
+		Height:                   b.BlockHeader.Height,
+		Timestamp:                t,
+		CollectionGuarantees:     CollectionGuaranteesToMessages(b.BlockPayload.CollectionGuarantees),
+		BlockSeals:               BlockSealsToMessages(b.BlockPayload.Seals),
+		Signatures:               b.Signatures,
+		ExecutionReceiptMetaList: execReceipts,
+		ExecutionResultList:      execResults,
+		BlockHeader:              header,
+		ProtocolStateId:          b.ProtocolStateID.Bytes(),
 	}, nil
 }
 
-func MessageToBlock(m *entities.Block) (flow.Block, error) {
+func MessageToBlock(m *entities.Block) (*flow.Block, error) {
 	var timestamp time.Time
 	var err error
 
@@ -134,48 +205,137 @@ func MessageToBlock(m *entities.Block) (flow.Block, error) {
 		timestamp = m.GetTimestamp().AsTime()
 	}
 
+	tc, err := MessageToTimeoutCertificate(m.BlockHeader.GetLastViewTc())
+	if err != nil {
+		return nil, fmt.Errorf("error converting timeout certificate: %w", err)
+	}
+
 	header := &flow.BlockHeader{
-		ID:        flow.HashToID(m.GetId()),
-		ParentID:  flow.HashToID(m.GetParentId()),
-		Height:    m.GetHeight(),
-		Timestamp: timestamp,
+		ID:                         flow.HashToID(m.GetId()),
+		ParentID:                   flow.HashToID(m.GetParentId()),
+		Height:                     m.GetHeight(),
+		Timestamp:                  timestamp,
+		PayloadHash:                m.BlockHeader.GetPayloadHash(),
+		View:                       m.BlockHeader.GetView(),
+		ParentVoterSigData:         m.BlockHeader.GetParentVoterSigData(),
+		ProposerID:                 flow.HashToID(m.BlockHeader.GetProposerId()),
+		ProposerSigData:            m.BlockHeader.GetProposerSigData(),
+		ChainID:                    flow.HashToID([]byte(m.BlockHeader.GetChainId())),
+		ParentVoterIndices:         m.BlockHeader.GetParentVoterIndices(),
+		LastViewTimeoutCertificate: tc,
+		ParentView:                 m.BlockHeader.GetParentView(),
 	}
 
 	guarantees, err := MessagesToCollectionGuarantees(m.GetCollectionGuarantees())
 	if err != nil {
-		return flow.Block{}, err
+		return nil, fmt.Errorf("error converting collection guarantees: %w", err)
 	}
 
 	seals, err := MessagesToBlockSeals(m.GetBlockSeals())
 	if err != nil {
-		return flow.Block{}, err
+		return nil, fmt.Errorf("error converting block seals: %w", err)
+	}
+
+	executionReceiptsMeta, err := MessageToExecutionReceiptMetaList(m.GetExecutionReceiptMetaList())
+	if err != nil {
+		return nil, fmt.Errorf("error converting execution receipt meta list: %w", err)
+	}
+
+	executionResults, err := MessageToExecutionResults(m.GetExecutionResultList())
+	if err != nil {
+		return nil, fmt.Errorf("error converting execution results: %w", err)
 	}
 
 	payload := &flow.BlockPayload{
-		CollectionGuarantees: guarantees,
-		Seals:                seals,
+		CollectionGuarantees:     guarantees,
+		Seals:                    seals,
+		Signatures:               m.GetSignatures(),
+		ExecutionReceiptMetaList: executionReceiptsMeta,
+		ExecutionResultsList:     executionResults,
+		ProtocolStateID:          flow.HashToID(m.GetProtocolStateId()),
 	}
 
-	return flow.Block{
+	return &flow.Block{
 		BlockHeader:  *header,
 		BlockPayload: *payload,
 	}, nil
 }
 
-func BlockHeaderToMessage(b flow.BlockHeader) (*entities.BlockHeader, error) {
-	t := timestamppb.New(b.Timestamp)
+func MessageToExecutionReceiptMeta(m *entities.ExecutionReceiptMeta) (*flow.ExecutionReceiptMeta, error) {
+	if m == nil {
+		return nil, ErrEmptyMessage
+	}
 
-	return &entities.BlockHeader{
-		Id:        b.ID.Bytes(),
-		ParentId:  b.ParentID.Bytes(),
-		Height:    b.Height,
-		Timestamp: t,
+	return &flow.ExecutionReceiptMeta{
+		ExecutorID:        flow.HashToID(m.GetExecutorId()),
+		ResultID:          flow.HashToID(m.GetResultId()),
+		Spocks:            m.GetSpocks(),
+		ExecutorSignature: m.GetExecutorSignature(),
 	}, nil
 }
 
-func MessageToBlockHeader(m *entities.BlockHeader) (flow.BlockHeader, error) {
+func ExecutionReceiptMetaToMessage(receipt flow.ExecutionReceiptMeta) (*entities.ExecutionReceiptMeta, error) {
+	return &entities.ExecutionReceiptMeta{
+		ExecutorId:        receipt.ExecutorID.Bytes(),
+		ResultId:          receipt.ResultID.Bytes(),
+		Spocks:            receipt.Spocks,
+		ExecutorSignature: receipt.ExecutorSignature,
+	}, nil
+}
+
+func MessageToExecutionReceiptMetaList(m []*entities.ExecutionReceiptMeta) ([]*flow.ExecutionReceiptMeta, error) {
+	results := make([]*flow.ExecutionReceiptMeta, len(m))
+
+	for i, entity := range m {
+		executionReceiptMeta, err := MessageToExecutionReceiptMeta(entity)
+		if err != nil {
+			return nil, err
+		}
+		results[i] = executionReceiptMeta
+	}
+
+	return results, nil
+}
+
+func ExecutionReceiptMetaListToMessage(receipts []*flow.ExecutionReceiptMeta) ([]*entities.ExecutionReceiptMeta, error) {
+	results := make([]*entities.ExecutionReceiptMeta, len(receipts))
+	for i, receipt := range receipts {
+		executionReceiptMeta, err := ExecutionReceiptMetaToMessage(*receipt)
+		if err != nil {
+			return nil, err
+		}
+		results[i] = executionReceiptMeta
+	}
+	return results, nil
+}
+
+func BlockHeaderToMessage(b flow.BlockHeader) (*entities.BlockHeader, error) {
+	t := timestamppb.New(b.Timestamp)
+	tc, err := TimeoutCertificateToMessage(b.LastViewTimeoutCertificate)
+	if err != nil {
+		return nil, err
+	}
+
+	return &entities.BlockHeader{
+		Id:                 b.ID.Bytes(),
+		ParentId:           b.ParentID.Bytes(),
+		Height:             b.Height,
+		Timestamp:          t,
+		PayloadHash:        b.PayloadHash,
+		View:               b.View,
+		ParentVoterSigData: b.ParentVoterSigData,
+		ProposerId:         b.ProposerID.Bytes(),
+		ProposerSigData:    b.ProposerSigData,
+		ChainId:            string(b.ChainID.Bytes()),
+		ParentVoterIndices: b.ParentVoterIndices,
+		LastViewTc:         tc,
+		ParentView:         b.ParentView,
+	}, nil
+}
+
+func MessageToBlockHeader(m *entities.BlockHeader) (*flow.BlockHeader, error) {
 	if m == nil {
-		return flow.BlockHeader{}, ErrEmptyMessage
+		return nil, ErrEmptyMessage
 	}
 
 	var timestamp time.Time
@@ -184,12 +344,114 @@ func MessageToBlockHeader(m *entities.BlockHeader) (flow.BlockHeader, error) {
 		timestamp = m.GetTimestamp().AsTime()
 	}
 
-	return flow.BlockHeader{
-		ID:        flow.HashToID(m.GetId()),
-		ParentID:  flow.HashToID(m.GetParentId()),
-		Height:    m.GetHeight(),
-		Timestamp: timestamp,
+	timeoutCertificate, err := MessageToTimeoutCertificate(m.GetLastViewTc())
+	if err != nil {
+		return nil, fmt.Errorf("error converting timeout certificate: %w", err)
+	}
+
+	return &flow.BlockHeader{
+		ID:                         flow.HashToID(m.GetId()),
+		ParentID:                   flow.HashToID(m.GetParentId()),
+		Height:                     m.GetHeight(),
+		Timestamp:                  timestamp,
+		PayloadHash:                m.GetPayloadHash(),
+		View:                       m.GetView(),
+		ParentVoterSigData:         m.GetParentVoterSigData(),
+		ProposerID:                 flow.HashToID(m.GetProposerId()),
+		ProposerSigData:            m.GetProposerSigData(),
+		ChainID:                    flow.HashToID([]byte(m.GetChainId())),
+		ParentVoterIndices:         m.GetParentVoterIndices(),
+		LastViewTimeoutCertificate: timeoutCertificate,
+		ParentView:                 m.GetParentView(),
 	}, nil
+}
+
+func MessageToTimeoutCertificate(m *entities.TimeoutCertificate) (flow.TimeoutCertificate, error) {
+	if m == nil {
+		// timeout certificate can be nil
+		return flow.TimeoutCertificate{}, nil
+	}
+
+	qc, err := MessageToQuorumCertificate(m.GetHighestQc())
+	if err != nil {
+		return flow.TimeoutCertificate{}, fmt.Errorf("error converting quorum certificate: %w", err)
+	}
+
+	return flow.TimeoutCertificate{
+		View:          m.GetView(),
+		HighQCViews:   m.GetHighQcViews(),
+		HighestQC:     qc,
+		SignerIndices: m.GetSignerIndices(),
+		SigData:       m.GetSigData(),
+	}, nil
+}
+
+func TimeoutCertificateToMessage(tc flow.TimeoutCertificate) (*entities.TimeoutCertificate, error) {
+	qc, err := QuorumCertificateToMessage(tc.HighestQC)
+	if err != nil {
+		return nil, err
+	}
+
+	return &entities.TimeoutCertificate{
+		View:          tc.View,
+		HighQcViews:   tc.HighQCViews,
+		HighestQc:     qc,
+		SignerIndices: tc.SignerIndices,
+		SigData:       tc.SigData,
+	}, nil
+}
+
+func MessageToQuorumCertificate(m *entities.QuorumCertificate) (flow.QuorumCertificate, error) {
+	if m == nil {
+		return flow.QuorumCertificate{}, fmt.Errorf("quourum certificate is empty: %w", ErrEmptyMessage)
+	}
+
+	return flow.QuorumCertificate{
+		View:          m.GetView(),
+		BlockID:       flow.HashToID(m.GetBlockId()),
+		SignerIndices: m.GetSignerIndices(),
+		SigData:       m.GetSigData(),
+	}, nil
+}
+
+func QuorumCertificateToMessage(qc flow.QuorumCertificate) (*entities.QuorumCertificate, error) {
+	return &entities.QuorumCertificate{
+		View:          qc.View,
+		BlockId:       qc.BlockID.Bytes(),
+		SignerIndices: qc.SignerIndices,
+		SigData:       qc.SigData,
+	}, nil
+}
+
+func MessageToBlockDigest(m *access.SubscribeBlockDigestsResponse) (*flow.BlockDigest, error) {
+	if m == nil {
+		return nil, ErrEmptyMessage
+	}
+
+	return &flow.BlockDigest{
+		BlockID:   flow.BytesToID(m.GetBlockId()),
+		Height:    m.GetBlockHeight(),
+		Timestamp: m.GetBlockTimestamp().AsTime(),
+	}, nil
+}
+
+func BlockDigestToMessage(blockDigest flow.BlockDigest) *access.SubscribeBlockDigestsResponse {
+	return &access.SubscribeBlockDigestsResponse{
+		BlockId:        IdentifierToMessage(blockDigest.BlockID),
+		BlockHeight:    blockDigest.Height,
+		BlockTimestamp: timestamppb.New(blockDigest.Timestamp),
+	}
+}
+
+func BlockStatusToEntity(blockStatus flow.BlockStatus) entities.BlockStatus {
+	switch blockStatus {
+	case flow.BlockStatusFinalized:
+		return entities.BlockStatus_BLOCK_FINALIZED
+	case flow.BlockStatusSealed:
+		return entities.BlockStatus_BLOCK_SEALED
+	default:
+		return entities.BlockStatus_BLOCK_UNKNOWN
+	}
 }
 
 func CadenceValueToMessage(value cadence.Value, encodingVersion flow.EventEncodingVersion) ([]byte, error) {
@@ -252,6 +514,21 @@ func CollectionToMessage(c flow.Collection) *entities.Collection {
 	}
 }
 
+func FullCollectionToTransactionsMessage(tx flow.FullCollection) ([]*entities.Transaction, error) {
+	var convertedTxs []*entities.Transaction
+
+	for _, tx := range tx.Transactions {
+		convertedTx, err := TransactionToMessage(*tx)
+		if err != nil {
+			return nil, err
+		}
+
+		convertedTxs = append(convertedTxs, convertedTx)
+	}
+
+	return convertedTxs, nil
+}
+
 func MessageToCollection(m *entities.Collection) (flow.Collection, error) {
 	if m == nil {
 		return flow.Collection{}, ErrEmptyMessage
@@ -269,17 +546,90 @@ func MessageToCollection(m *entities.Collection) (flow.Collection, error) {
 	}, nil
 }
 
+func MessageToFullCollection(m []*entities.Transaction) (flow.FullCollection, error) {
+	var collection flow.FullCollection
+
+	for _, tx := range m {
+		convertedTx, err := MessageToTransaction(tx)
+		if err != nil {
+			return flow.FullCollection{}, err
+		}
+
+		collection.Transactions = append(collection.Transactions, &convertedTx)
+	}
+
+	return collection, nil
+}
+
 func CollectionGuaranteeToMessage(g flow.CollectionGuarantee) *entities.CollectionGuarantee {
 	return &entities.CollectionGuarantee{
-		CollectionId: g.CollectionID.Bytes(),
+		CollectionId:     g.CollectionID.Bytes(),
+		ReferenceBlockId: g.ReferenceBlockID.Bytes(),
+		Signature:        g.Signature,
+		SignerIndices:    g.SignerIndices,
 	}
 }
 
 func BlockSealToMessage(g flow.BlockSeal) *entities.BlockSeal {
 	return &entities.BlockSeal{
-		BlockId:            g.BlockID.Bytes(),
-		ExecutionReceiptId: g.ExecutionReceiptID.Bytes(),
+		BlockId:                    g.BlockID.Bytes(),
+		ExecutionReceiptId:         g.ExecutionReceiptID.Bytes(),
+		ExecutionReceiptSignatures: g.ExecutionReceiptSignatures,
+		ResultApprovalSignatures:   g.ResultApprovalSignatures,
+		FinalState:                 g.FinalState,
+		ResultId:                   g.ResultId.Bytes(),
+		AggregatedApprovalSigs:     AggregatedSignaturesToMessage(g.AggregatedApprovalSigs),
 	}
+}
+
+func AggregatedSignaturesToMessage(s []*flow.AggregatedSignature) []*entities.AggregatedSignature {
+	sigs := make([]*entities.AggregatedSignature, len(s))
+	for i, sig := range s {
+		sigs[i] = AggregatedSignatureToMessage(*sig)
+	}
+	return sigs
+}
+
+func AggregatedSignatureToMessage(sig flow.AggregatedSignature) *entities.AggregatedSignature {
+	signerIds := make([][]byte, len(sig.SignerIds))
+	for i, id := range sig.SignerIds {
+		signerIds[i] = id.Bytes()
+	}
+
+	return &entities.AggregatedSignature{
+		VerifierSignatures: sig.VerifierSignatures,
+		SignerIds:          signerIds,
+	}
+}
+
+func MessageToAggregatedSignatures(m []*entities.AggregatedSignature) ([]*flow.AggregatedSignature, error) {
+	sigs := make([]*flow.AggregatedSignature, len(m))
+	for i, sig := range m {
+		convertedSig, err := MessageToAggregatedSignature(sig)
+		if err != nil {
+			return nil, err
+		}
+
+		sigs[i] = &convertedSig
+	}
+
+	return sigs, nil
+}
+
+func MessageToAggregatedSignature(m *entities.AggregatedSignature) (flow.AggregatedSignature, error) {
+	if m == nil {
+		return flow.AggregatedSignature{}, ErrEmptyMessage
+	}
+
+	ids := make([]flow.Identifier, len(m.SignerIds))
+	for i, id := range m.SignerIds {
+		ids[i] = flow.HashToID(id)
+	}
+
+	return flow.AggregatedSignature{
+		VerifierSignatures: m.GetVerifierSignatures(),
+		SignerIds:          ids,
+	}, nil
 }
 
 func MessageToCollectionGuarantee(m *entities.CollectionGuarantee) (flow.CollectionGuarantee, error) {
@@ -288,7 +638,10 @@ func MessageToCollectionGuarantee(m *entities.CollectionGuarantee) (flow.Collect
 	}
 
 	return flow.CollectionGuarantee{
-		CollectionID: flow.HashToID(m.CollectionId),
+		CollectionID:     flow.HashToID(m.CollectionId),
+		ReferenceBlockID: flow.HashToID(m.ReferenceBlockId),
+		Signature:        m.Signature,
+		SignerIndices:    m.SignerIndices,
 	}, nil
 }
 
@@ -297,9 +650,19 @@ func MessageToBlockSeal(m *entities.BlockSeal) (flow.BlockSeal, error) {
 		return flow.BlockSeal{}, ErrEmptyMessage
 	}
 
+	sigs, err := MessageToAggregatedSignatures(m.GetAggregatedApprovalSigs())
+	if err != nil {
+		return flow.BlockSeal{}, err
+	}
+
 	return flow.BlockSeal{
-		BlockID:            flow.BytesToID(m.BlockId),
-		ExecutionReceiptID: flow.BytesToID(m.ExecutionReceiptId),
+		BlockID:                    flow.BytesToID(m.BlockId),
+		ExecutionReceiptID:         flow.BytesToID(m.ExecutionReceiptId),
+		ExecutionReceiptSignatures: m.GetExecutionReceiptSignatures(),
+		ResultApprovalSignatures:   m.GetResultApprovalSignatures(),
+		FinalState:                 m.GetFinalState(),
+		ResultId:                   flow.BytesToID(m.GetResultId()),
+		AggregatedApprovalSigs:     sigs,
 	}, nil
 }
 
@@ -478,7 +841,7 @@ func MessageToTransaction(m *entities.Transaction) (flow.Transaction, error) {
 	proposalKey := m.GetProposalKey()
 	if proposalKey != nil {
 		proposalAddress := flow.BytesToAddress(proposalKey.GetAddress())
-		t.SetProposalKey(proposalAddress, int(proposalKey.GetKeyId()), proposalKey.GetSequenceNumber())
+		t.SetProposalKey(proposalAddress, proposalKey.GetKeyId(), proposalKey.GetSequenceNumber())
 	}
 
 	payer := m.GetPayer()
@@ -496,12 +859,12 @@ func MessageToTransaction(m *entities.Transaction) (flow.Transaction, error) {
 
 	for _, sig := range m.GetPayloadSignatures() {
 		addr := flow.BytesToAddress(sig.GetAddress())
-		t.AddPayloadSignature(addr, int(sig.GetKeyId()), sig.GetSignature())
+		t.AddPayloadSignature(addr, sig.GetKeyId(), sig.GetSignature())
 	}
 
 	for _, sig := range m.GetEnvelopeSignatures() {
 		addr := flow.BytesToAddress(sig.GetAddress())
-		t.AddEnvelopeSignature(addr, int(sig.GetKeyId()), sig.GetSignature())
+		t.AddEnvelopeSignature(addr, sig.GetKeyId(), sig.GetSignature())
 	}
 
 	return *t, nil
@@ -528,14 +891,15 @@ func TransactionResultToMessage(result flow.TransactionResult, encodingVersion f
 	}
 
 	return &access.TransactionResultResponse{
-		Status:        entities.TransactionStatus(result.Status),
-		StatusCode:    uint32(statusCode),
-		ErrorMessage:  errorMsg,
-		Events:        eventMessages,
-		BlockId:       IdentifierToMessage(result.BlockID),
-		BlockHeight:   result.BlockHeight,
-		TransactionId: IdentifierToMessage(result.TransactionID),
-		CollectionId:  IdentifierToMessage(result.CollectionID),
+		Status:           entities.TransactionStatus(result.Status),
+		StatusCode:       uint32(statusCode),
+		ErrorMessage:     errorMsg,
+		Events:           eventMessages,
+		BlockId:          IdentifierToMessage(result.BlockID),
+		BlockHeight:      result.BlockHeight,
+		TransactionId:    IdentifierToMessage(result.TransactionID),
+		CollectionId:     IdentifierToMessage(result.CollectionID),
+		ComputationUsage: result.ComputationUsage,
 	}, nil
 }
 
@@ -565,14 +929,106 @@ func MessageToTransactionResult(m *access.TransactionResultResponse, options []j
 	}
 
 	return flow.TransactionResult{
-		Status:        flow.TransactionStatus(m.GetStatus()),
-		Error:         err,
-		Events:        events,
-		BlockID:       flow.BytesToID(m.GetBlockId()),
-		BlockHeight:   m.GetBlockHeight(),
-		TransactionID: flow.BytesToID(m.GetTransactionId()),
-		CollectionID:  flow.BytesToID(m.GetCollectionId()),
+		Status:           flow.TransactionStatus(m.GetStatus()),
+		Error:            err,
+		Events:           events,
+		BlockID:          flow.BytesToID(m.GetBlockId()),
+		BlockHeight:      m.GetBlockHeight(),
+		TransactionID:    flow.BytesToID(m.GetTransactionId()),
+		CollectionID:     flow.BytesToID(m.GetCollectionId()),
+		ComputationUsage: m.GetComputationUsage(),
 	}, nil
+}
+
+func MessageToExecutionResult(execResult *entities.ExecutionResult) (*flow.ExecutionResult, error) {
+	chunks := make([]*flow.Chunk, len(execResult.Chunks))
+	serviceEvents := make([]*flow.ServiceEvent, len(execResult.ServiceEvents))
+
+	for i, chunk := range execResult.Chunks {
+		chunks[i] = &flow.Chunk{
+			CollectionIndex:      uint(chunk.CollectionIndex),
+			StartState:           flow.BytesToStateCommitment(chunk.StartState),
+			EventCollection:      flow.BytesToHash(chunk.EventCollection),
+			BlockID:              flow.BytesToID(chunk.BlockId),
+			TotalComputationUsed: chunk.TotalComputationUsed,
+			NumberOfTransactions: uint16(chunk.NumberOfTransactions),
+			Index:                chunk.Index,
+			EndState:             flow.BytesToStateCommitment(chunk.EndState),
+		}
+	}
+
+	for i, serviceEvent := range execResult.ServiceEvents {
+		serviceEvents[i] = &flow.ServiceEvent{
+			Type:    serviceEvent.Type,
+			Payload: serviceEvent.Payload,
+		}
+	}
+
+	return &flow.ExecutionResult{
+		PreviousResultID: flow.BytesToID(execResult.PreviousResultId),
+		BlockID:          flow.BytesToID(execResult.BlockId),
+		Chunks:           chunks,
+		ServiceEvents:    serviceEvents,
+	}, nil
+}
+
+func ExecutionResultToMessage(result flow.ExecutionResult) (*entities.ExecutionResult, error) {
+	chunks := make([]*entities.Chunk, len(result.Chunks))
+	for i, chunk := range result.Chunks {
+		chunks[i] = &entities.Chunk{
+			CollectionIndex:      uint32(chunk.CollectionIndex),
+			StartState:           IdentifierToMessage(flow.Identifier(chunk.StartState)),
+			EventCollection:      chunk.EventCollection,
+			BlockId:              chunk.BlockID.Bytes(),
+			TotalComputationUsed: chunk.TotalComputationUsed,
+			NumberOfTransactions: uint32(chunk.NumberOfTransactions),
+			Index:                chunk.Index,
+			EndState:             IdentifierToMessage(flow.Identifier(chunk.EndState)),
+		}
+	}
+
+	serviceEvents := make([]*entities.ServiceEvent, len(result.ServiceEvents))
+	for i, event := range result.ServiceEvents {
+		serviceEvents[i] = &entities.ServiceEvent{
+			Type:    event.Type,
+			Payload: event.Payload,
+		}
+	}
+
+	return &entities.ExecutionResult{
+		PreviousResultId: result.PreviousResultID.Bytes(),
+		BlockId:          result.BlockID.Bytes(),
+		Chunks:           chunks,
+		ServiceEvents:    serviceEvents,
+	}, nil
+}
+
+func MessageToExecutionResults(m []*entities.ExecutionResult) ([]*flow.ExecutionResult, error) {
+	results := make([]*flow.ExecutionResult, len(m))
+
+	for i, result := range m {
+		res, err := MessageToExecutionResult(result)
+		if err != nil {
+			return nil, err
+		}
+		results[i] = res
+	}
+
+	return results, nil
+}
+
+func ExecutionResultsToMessage(execResults []*flow.ExecutionResult) ([]*entities.ExecutionResult, error) {
+	results := make([]*entities.ExecutionResult, len(execResults))
+
+	for i, result := range execResults {
+		res, err := ExecutionResultToMessage(*result)
+		if err != nil {
+			return nil, err
+		}
+		results[i] = res
+	}
+
+	return results, nil
 }
 
 func BlockExecutionDataToMessage(

@@ -1,7 +1,7 @@
 /*
  * Flow Go SDK
  *
- * Copyright 2019 Dapper Labs, Inc.
+ * Copyright Flow Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,5 +45,25 @@ func (c Collection) Encode() []byte {
 
 // A CollectionGuarantee is an attestation signed by the nodes that have guaranteed a collection.
 type CollectionGuarantee struct {
-	CollectionID Identifier
+	CollectionID     Identifier
+	ReferenceBlockID Identifier
+	Signature        []byte
+	SignerIndices    []byte
+}
+
+type FullCollection struct {
+	Transactions []*Transaction
+}
+
+// Light returns the light, reference-only version of the collection.
+func (c FullCollection) Light() Collection {
+	lc := Collection{TransactionIDs: make([]Identifier, 0, len(c.Transactions))}
+	for _, tx := range c.Transactions {
+		lc.TransactionIDs = append(lc.TransactionIDs, tx.ID())
+	}
+	return lc
+}
+
+func (c FullCollection) ID() Identifier {
+	return c.Light().ID()
 }

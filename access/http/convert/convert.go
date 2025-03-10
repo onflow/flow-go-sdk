@@ -1,7 +1,7 @@
 /*
  * Flow Go SDK
  *
- * Copyright 2019 Dapper Labs, Inc.
+ * Copyright Flow Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ func ToKeys(keys []models.AccountPublicKey) []*flow.AccountKey {
 		pkey, _ := crypto.DecodePublicKeyHex(sigAlgo, strings.TrimPrefix(key.PublicKey, "0x")) // validation is done on AN
 
 		accountKeys[i] = &flow.AccountKey{
-			Index:          MustToInt(key.Index),
+			Index:          MustToUint32(key.Index),
 			PublicKey:      pkey,
 			SigAlgo:        sigAlgo,
 			HashAlgo:       crypto.StringToHashAlgorithm(string(*key.HashingAlgorithm)),
@@ -102,7 +102,7 @@ func ToCollectionGuarantees(guarantees []models.CollectionGuarantee) []*flow.Col
 
 	for i, guarantee := range guarantees {
 		flowGuarantees[i] = &flow.CollectionGuarantee{
-			flow.HexToID(guarantee.CollectionId),
+			CollectionID: flow.HexToID(guarantee.CollectionId),
 		}
 	}
 
@@ -216,6 +216,11 @@ func MustToUint(value string) uint64 {
 	return parsed
 }
 
+func MustToUint32(value string) uint32 {
+	parsed, _ := strconv.ParseUint(value, 10, 32) // we can ignore error since these values are validated before returned
+	return uint32(parsed)
+}
+
 func MustToInt(value string) int {
 	parsed, _ := strconv.Atoi(value) // we can ignore error since these values are validated before returned
 	return parsed
@@ -248,7 +253,7 @@ func DecodeCadenceValue(value string, options []cadenceJSON.Option) (cadence.Val
 func ToProposalKey(key *models.ProposalKey) flow.ProposalKey {
 	return flow.ProposalKey{
 		Address:        flow.HexToAddress(key.Address),
-		KeyIndex:       MustToInt(key.KeyIndex),
+		KeyIndex:       MustToUint32(key.KeyIndex),
 		SequenceNumber: MustToUint(key.SequenceNumber),
 	}
 }
@@ -259,7 +264,7 @@ func ToSignatures(signatures []models.TransactionSignature) []flow.TransactionSi
 		signature, _ := base64.StdEncoding.DecodeString(sig.Signature) // signatures are validated and must be valid
 		sigs[i] = flow.TransactionSignature{
 			Address:   flow.HexToAddress(sig.Address),
-			KeyIndex:  MustToInt(sig.KeyIndex),
+			KeyIndex:  MustToUint32(sig.KeyIndex),
 			Signature: signature,
 		}
 	}

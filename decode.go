@@ -1,7 +1,7 @@
 /*
  * Flow Go SDK
  *
- * Copyright 2019 Dapper Labs, Inc.
+ * Copyright Flow Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import (
 	// NOTE: always import Cadence's stdlib package,
 	// as it registers the type ID decoder for the Flow types,
 	// e.g. `flow.AccountCreated`
-	_ "github.com/onflow/cadence/runtime/stdlib"
+	_ "github.com/onflow/cadence/stdlib"
 	"github.com/onflow/flow/protobuf/go/flow/entities"
 )
 

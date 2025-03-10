@@ -1,7 +1,7 @@
 /*
  * Flow Go SDK
  *
- * Copyright 2019 Dapper Labs, Inc.
+ * Copyright Flow Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,19 +26,19 @@ import (
 
 	"github.com/onflow/flow-go-sdk/examples"
 )
- 
- func main() {
-	GetNetworkParametersDemo()
- }
- 
- func GetNetworkParametersDemo() {
-	 ctx := context.Background()
-	 flowClient, err := http.NewClient(http.EmulatorHost)
-	 examples.Handle(err)
-	 
-	 // get network parameters
-	 networkParameters, err := flowClient.GetNetworkParameters(ctx)
-	 examples.Handle(err)
 
-	 fmt.Printf("Chain ID: %s\n", networkParameters.ChainID)
- }
+func main() {
+	GetNetworkParametersDemo()
+}
+
+func GetNetworkParametersDemo() {
+	ctx := context.Background()
+	flowClient, err := http.NewClient(http.EmulatorHost)
+	examples.Handle(err)
+
+	// get network parameters
+	networkParameters, err := flowClient.GetNetworkParameters(ctx)
+	examples.Handle(err)
+
+	fmt.Printf("Chain ID: %s\n", networkParameters.ChainID)
+}

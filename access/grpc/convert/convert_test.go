@@ -1,7 +1,7 @@
 /*
  * Flow Go SDK
  *
- * Copyright 2019 Dapper Labs, Inc.
+ * Copyright Flow Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ func TestConvert_Block(t *testing.T) {
 	blockB, err := MessageToBlock(msg)
 	require.NoError(t, err)
 
-	assert.Equal(t, *blockA, blockB)
+	assert.Equal(t, blockA, blockB)
 
 	t.Run("Without timestamp", func(t *testing.T) {
 		blockA := test.BlockGenerator().New()
@@ -87,7 +87,7 @@ func TestConvert_BlockHeader(t *testing.T) {
 	headerB, err := MessageToBlockHeader(msg)
 	require.NoError(t, err)
 
-	assert.Equal(t, headerA, headerB)
+	assert.Equal(t, headerA, *headerB)
 
 	t.Run("Without timestamp", func(t *testing.T) {
 		headerA := test.BlockHeaderGenerator().New()
@@ -139,7 +139,7 @@ func TestConvert_CadenceValue(t *testing.T) {
 }
 
 func TestConvert_Collection(t *testing.T) {
-	colA := test.CollectionGenerator().New()
+	colA := test.LightCollectionGenerator().New()
 
 	msg := CollectionToMessage(*colA)
 

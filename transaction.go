@@ -1,7 +1,7 @@
 /*
  * Flow Go SDK
  *
- * Copyright 2019 Dapper Labs, Inc.
+ * Copyright Flow Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,7 +94,7 @@ type payloadCanonicalForm struct {
 	ReferenceBlockID          []byte
 	GasLimit                  uint64
 	ProposalKeyAddress        []byte
-	ProposalKeyIndex          uint64
+	ProposalKeyIndex          uint32
 	ProposalKeySequenceNumber uint64
 	Payer                     []byte
 	Authorizers               [][]byte
@@ -201,7 +201,7 @@ func (t *Transaction) SetComputeLimit(limit uint64) *Transaction {
 //
 // The first two arguments specify the account key to be used, and the last argument is the sequence
 // number being declared.
-func (t *Transaction) SetProposalKey(address Address, keyIndex int, sequenceNum uint64) *Transaction {
+func (t *Transaction) SetProposalKey(address Address, keyIndex uint32, sequenceNum uint64) *Transaction {
 	proposalKey := ProposalKey{
 		Address:        address,
 		KeyIndex:       keyIndex,
@@ -299,7 +299,7 @@ func (t *Transaction) refreshSignerIndex() {
 // being added to the transaction.
 //
 // This function returns an error if the signature cannot be generated.
-func (t *Transaction) SignPayload(address Address, keyIndex int, signer crypto.Signer) error {
+func (t *Transaction) SignPayload(address Address, keyIndex uint32, signer crypto.Signer) error {
 	message := t.PayloadMessage()
 	message = append(TransactionDomainTag[:], message...)
 	sig, err := signer.Sign(message)
@@ -319,7 +319,7 @@ func (t *Transaction) SignPayload(address Address, keyIndex int, signer crypto.S
 // being added to the transaction.
 //
 // This function returns an error if the signature cannot be generated.
-func (t *Transaction) SignEnvelope(address Address, keyIndex int, signer crypto.Signer) error {
+func (t *Transaction) SignEnvelope(address Address, keyIndex uint32, signer crypto.Signer) error {
 	message := t.EnvelopeMessage()
 	message = append(TransactionDomainTag[:], message...)
 	sig, err := signer.Sign(message)
@@ -334,7 +334,7 @@ func (t *Transaction) SignEnvelope(address Address, keyIndex int, signer crypto.
 }
 
 // AddPayloadSignature adds a payload signature to the transaction for the given address and key index.
-func (t *Transaction) AddPayloadSignature(address Address, keyIndex int, sig []byte) *Transaction {
+func (t *Transaction) AddPayloadSignature(address Address, keyIndex uint32, sig []byte) *Transaction {
 	s := t.createSignature(address, keyIndex, sig)
 
 	t.PayloadSignatures = append(t.PayloadSignatures, s)
@@ -344,7 +344,7 @@ func (t *Transaction) AddPayloadSignature(address Address, keyIndex int, sig []b
 }
 
 // AddEnvelopeSignature adds an envelope signature to the transaction for the given address and key index.
-func (t *Transaction) AddEnvelopeSignature(address Address, keyIndex int, sig []byte) *Transaction {
+func (t *Transaction) AddEnvelopeSignature(address Address, keyIndex uint32, sig []byte) *Transaction {
 	s := t.createSignature(address, keyIndex, sig)
 
 	t.EnvelopeSignatures = append(t.EnvelopeSignatures, s)
@@ -353,7 +353,7 @@ func (t *Transaction) AddEnvelopeSignature(address Address, keyIndex int, sig []
 	return t
 }
 
-func (t *Transaction) createSignature(address Address, keyIndex int, sig []byte) TransactionSignature {
+func (t *Transaction) createSignature(address Address, keyIndex uint32, sig []byte) TransactionSignature {
 	signerIndex, signerExists := t.signerMap()[address]
 	if !signerExists {
 		signerIndex = -1
@@ -391,7 +391,7 @@ func (t *Transaction) payloadCanonicalForm() payloadCanonicalForm {
 		ReferenceBlockID:          t.ReferenceBlockID[:],
 		GasLimit:                  t.GasLimit,
 		ProposalKeyAddress:        t.ProposalKey.Address.Bytes(),
-		ProposalKeyIndex:          uint64(t.ProposalKey.KeyIndex),
+		ProposalKeyIndex:          t.ProposalKey.KeyIndex,
 		ProposalKeySequenceNumber: t.ProposalKey.SequenceNumber,
 		Payer:                     t.Payer.Bytes(),
 		Authorizers:               authorizers,
@@ -448,7 +448,7 @@ func DecodeTransaction(transactionMessage []byte) (*Transaction, error) {
 		GasLimit:         temp.Payload.GasLimit,
 		ProposalKey: ProposalKey{
 			Address:        BytesToAddress(temp.Payload.ProposalKeyAddress),
-			KeyIndex:       int(temp.Payload.ProposalKeyIndex),
+			KeyIndex:       temp.Payload.ProposalKeyIndex,
 			SequenceNumber: temp.Payload.ProposalKeySequenceNumber,
 		},
 		Payer:       BytesToAddress(temp.Payload.Payer),
@@ -558,7 +558,7 @@ func decodeTransaction(transactionMessage []byte) (*transactionCanonicalForm, er
 // A ProposalKey is the key that specifies the proposal key and sequence number for a transaction.
 type ProposalKey struct {
 	Address        Address
-	KeyIndex       int
+	KeyIndex       uint32
 	SequenceNumber uint64
 }
 
@@ -566,20 +566,20 @@ type ProposalKey struct {
 type TransactionSignature struct {
 	Address     Address
 	SignerIndex int
-	KeyIndex    int
+	KeyIndex    uint32
 	Signature   []byte
 }
 
 type transactionSignatureCanonicalForm struct {
 	SignerIndex uint
-	KeyIndex    uint
+	KeyIndex    uint32
 	Signature   []byte
 }
 
 func (s TransactionSignature) canonicalForm() transactionSignatureCanonicalForm {
 	return transactionSignatureCanonicalForm{
 		SignerIndex: uint(s.SignerIndex), // int is not RLP-serializable
-		KeyIndex:    uint(s.KeyIndex),    // int is not RLP-serializable
+		KeyIndex:    s.KeyIndex,          // int is not RLP-serializable
 		Signature:   s.Signature,
 	}
 }
@@ -587,7 +587,7 @@ func (s TransactionSignature) canonicalForm() transactionSignatureCanonicalForm 
 func transactionSignatureFromCanonicalForm(v transactionSignatureCanonicalForm) TransactionSignature {
 	return TransactionSignature{
 		SignerIndex: int(v.SignerIndex),
-		KeyIndex:    int(v.KeyIndex),
+		KeyIndex:    v.KeyIndex,
 		Signature:   v.Signature,
 	}
 }
@@ -618,13 +618,14 @@ func (s signaturesList) canonicalForm() []transactionSignatureCanonicalForm {
 }
 
 type TransactionResult struct {
-	Status        TransactionStatus
-	Error         error
-	Events        []Event
-	BlockID       Identifier
-	BlockHeight   uint64
-	TransactionID Identifier
-	CollectionID  Identifier
+	Status           TransactionStatus
+	Error            error
+	Events           []Event
+	BlockID          Identifier
+	BlockHeight      uint64
+	TransactionID    Identifier
+	CollectionID     Identifier
+	ComputationUsage uint64
 }
 
 // TransactionStatus represents the status of a transaction.

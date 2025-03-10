@@ -1,7 +1,7 @@
 /*
  * Flow Go SDK
  *
- * Copyright 2019 Dapper Labs, Inc.
+ * Copyright Flow Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,10 @@ import (
 	"strings"
 
 	"github.com/onflow/cadence"
+	"github.com/onflow/cadence/common"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/cadence/runtime"
-	"github.com/onflow/cadence/runtime/common"
-	"github.com/onflow/cadence/runtime/sema"
+	"github.com/onflow/cadence/sema"
 	templates "github.com/onflow/sdks"
 
 	"github.com/onflow/flow-go-sdk/crypto"
@@ -150,10 +150,10 @@ func AccountKeyToCadenceCryptoKey(key *flow.AccountKey) (cadence.Value, error) {
 		hash,
 		weight,
 		cadence.NewBool(false),
-	}).WithType(&cadence.StructType{
-		Location:            common.IdentifierLocation("Crypto"),
-		QualifiedIdentifier: "Crypto.KeyListEntry",
-		Fields: []cadence.Field{{
+	}).WithType(cadence.NewStructType(
+		common.IdentifierLocation("Crypto"),
+		"Crypto.KeyListEntry",
+		[]cadence.Field{{
 			Identifier: "keyIndex",
 			Type:       cadence.IntType,
 		}, {
@@ -169,7 +169,8 @@ func AccountKeyToCadenceCryptoKey(key *flow.AccountKey) (cadence.Value, error) {
 			Identifier: "isRevoked",
 			Type:       cadence.BoolType,
 		}},
-	}), nil
+		nil,
+	)), nil
 }
 
 // CreateAccount generates a transactions that creates a new account.
