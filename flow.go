@@ -1,7 +1,7 @@
 /*
  * Flow Go SDK
  *
- * Copyright 2019 Dapper Labs, Inc.
+ * Copyright Flow Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,8 +106,6 @@ const (
 
 	// Transient test networks
 
-	// Previewnet is the chain ID for the previewnet chain.
-	Previewnet ChainID = "flow-previewnet"
 	// Benchnet is the chain ID for the transient benchmarking chain.
 	Benchnet ChainID = "flow-benchnet"
 	// Localnet is the chain ID for the local development chain.
@@ -136,6 +134,12 @@ type NodeVersionInfo struct {
 	ProtocolVersion      uint64
 	SporkRootBlockHeight uint64
 	NodeRootBlockHeight  uint64
+	CompatibleRange      *CompatibleRange
+}
+
+type CompatibleRange struct {
+	StartHeight uint64
+	EndHeight   uint64
 }
 
 // entityHasher is a thread-safe hasher used to hash Flow entities.

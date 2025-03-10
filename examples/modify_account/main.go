@@ -1,7 +1,7 @@
 /*
  * Flow Go SDK
  *
- * Copyright 2019-2020 Dapper Labs, Inc.
+ * Copyright Flow Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,7 +76,7 @@ func contractsString(contracts map[string][]byte) string {
 
 func ModifyAccountDemo() {
 	ctx := context.Background()
-	flowClient, err := grpc.NewClient("127.0.0.1:3569")
+	flowClient, err := grpc.NewClient(grpc.EmulatorHost)
 	examples.Handle(err)
 
 	serviceAcctAddr, _, _ := examples.ServiceAccount(flowClient)
@@ -101,7 +101,7 @@ func ModifyAccountDemo() {
 		serviceAcctAddr,
 		templates.Contract{
 			Name:   "Foo",
-			Source: "pub contract Foo {}",
+			Source: "access(all) contract Foo {}",
 		},
 	)
 	prepareAndSendTx(ctx, flowClient, *addContractTx)
@@ -114,7 +114,7 @@ func ModifyAccountDemo() {
 		serviceAcctAddr,
 		templates.Contract{
 			Name:   "Foo",
-			Source: "pub contract Foo { pub fun hello() {} }",
+			Source: "access(all) contract Foo { access(all) fun hello() {} }",
 		},
 	)
 	prepareAndSendTx(ctx, flowClient, *updateTx)

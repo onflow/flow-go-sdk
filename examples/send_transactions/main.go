@@ -1,7 +1,7 @@
 /*
  * Flow Go SDK
  *
- * Copyright 2019 Dapper Labs, Inc.
+ * Copyright Flow Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,14 +40,14 @@ func demo() {
 	tx := flow.NewTransaction().
 		SetPayer(serviceAcctAddr).
 		SetProposalKey(serviceAcctAddr, serviceAcctKey.Index, serviceAcctKey.SequenceNumber).
-		SetScript([]byte(`transaction {
-
-  prepare(acc: &Account) {}
-
-  execute {
-    log("test")
-  }
-}`)).
+		SetScript([]byte(`
+			transaction {
+				prepare(signer: auth(Storage) &Account) {}
+				execute {
+					log("test")
+				}
+			}
+		`)).
 		AddAuthorizer(serviceAcctAddr).
 		SetReferenceBlockID(examples.GetReferenceBlockId(flowClient))
 

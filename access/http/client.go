@@ -1,7 +1,7 @@
 /*
  * Flow Go SDK
  *
- * Copyright 2019 Dapper Labs, Inc.
+ * Copyright Flow Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,11 +31,10 @@ import (
 )
 
 const (
-	EmulatorHost   = "http://127.0.0.1:8888/v1"
-	TestnetHost    = "https://rest-testnet.onflow.org/v1"
-	MainnetHost    = "https://rest-mainnet.onflow.org/v1"
-	CanarynetHost  = "https://rest-canary.onflow.org/v1"
-	PreviewnetHost = "https://rest-previewnet.onflow.org/v1"
+	EmulatorHost  = "http://127.0.0.1:8888/v1"
+	TestnetHost   = "https://rest-testnet.onflow.org/v1"
+	MainnetHost   = "https://rest-mainnet.onflow.org/v1"
+	CanarynetHost = "https://rest-canary.onflow.org/v1"
 )
 
 // ClientOption is a configuration option for the client.
@@ -273,11 +272,11 @@ func (c *Client) GetExecutionDataByBlockID(ctx context.Context, blockID flow.Ide
 	return nil, fmt.Errorf("not implemented")
 }
 
-func (c *Client) SubscribeExecutionDataByBlockID(ctx context.Context, startBlockID flow.Identifier) (<-chan flow.ExecutionDataStreamResponse, <-chan error, error) {
+func (c *Client) SubscribeExecutionDataByBlockID(ctx context.Context, startBlockID flow.Identifier) (<-chan *flow.ExecutionDataStreamResponse, <-chan error, error) {
 	return nil, nil, fmt.Errorf("not implemented")
 }
 
-func (c *Client) SubscribeExecutionDataByBlockHeight(ctx context.Context, startHeight uint64) (<-chan flow.ExecutionDataStreamResponse, <-chan error, error) {
+func (c *Client) SubscribeExecutionDataByBlockHeight(ctx context.Context, startHeight uint64) (<-chan *flow.ExecutionDataStreamResponse, <-chan error, error) {
 	return nil, nil, fmt.Errorf("not implemented")
 }
 

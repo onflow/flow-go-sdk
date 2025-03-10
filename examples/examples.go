@@ -1,7 +1,7 @@
 /*
  * Flow Go SDK
  *
- * Copyright 2019 Dapper Labs, Inc.
+ * Copyright Flow Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,12 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"reflect"
 	"strings"
 	"time"
 
 	jsoncdc "github.com/onflow/cadence/encoding/json"
-	"github.com/onflow/flow-cli/flowkit/config"
+	"github.com/onflow/flowkit/config"
 	"github.com/spf13/afero"
 
 	"github.com/onflow/flow-go-sdk"
@@ -38,9 +39,9 @@ import (
 	"github.com/onflow/flow-go-sdk/templates"
 
 	"github.com/onflow/cadence"
-	"github.com/onflow/flow-cli/flowkit/config/json"
+	"github.com/onflow/flowkit/config/json"
 
-	"github.com/onflow/cadence/runtime/sema"
+	"github.com/onflow/cadence/sema"
 )
 
 const configPath = "./flow.json"
@@ -110,7 +111,7 @@ func RandomTransaction(flowClient access.Client) *flow.Transaction {
 	tx := flow.NewTransaction().
 		SetPayer(serviceAcctAddr).
 		SetProposalKey(serviceAcctAddr, serviceAcctKey.Index, serviceAcctKey.SequenceNumber).
-		SetScript([]byte("transaction { prepare(auth: AuthAccount) {} }")).
+		SetScript([]byte("transaction { prepare(signer: auth(Storage) &Account) {} }")).
 		AddAuthorizer(serviceAcctAddr).
 		SetReferenceBlockID(GetReferenceBlockId(flowClient))
 
@@ -301,4 +302,9 @@ func WaitForSeal(ctx context.Context, c access.Client, id flow.Identifier) *flow
 	fmt.Println()
 	fmt.Printf("Transaction %s sealed\n", id)
 	return result
+}
+
+func Print[T any](object T) {
+	fmt.Printf("Got new %s:\n", reflect.TypeOf(object).Name())
+	fmt.Printf("%+v\n\n", object)
 }

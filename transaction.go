@@ -1,7 +1,7 @@
 /*
  * Flow Go SDK
  *
- * Copyright 2019 Dapper Labs, Inc.
+ * Copyright Flow Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -618,13 +618,14 @@ func (s signaturesList) canonicalForm() []transactionSignatureCanonicalForm {
 }
 
 type TransactionResult struct {
-	Status        TransactionStatus
-	Error         error
-	Events        []Event
-	BlockID       Identifier
-	BlockHeight   uint64
-	TransactionID Identifier
-	CollectionID  Identifier
+	Status           TransactionStatus
+	Error            error
+	Events           []Event
+	BlockID          Identifier
+	BlockHeight      uint64
+	TransactionID    Identifier
+	CollectionID     Identifier
+	ComputationUsage uint64
 }
 
 // TransactionStatus represents the status of a transaction.

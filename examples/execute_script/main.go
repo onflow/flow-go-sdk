@@ -1,7 +1,7 @@
 /*
  * Flow Go SDK
  *
- * Copyright 2019 Dapper Labs, Inc.
+ * Copyright Flow Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/onflow/flow-go-sdk/access/http"
@@ -41,7 +42,7 @@ func demo() {
 	examples.Handle(err)
 
 	script := []byte(`
-		pub fun main(a: Int): Int {
+		access(all) fun main(a: Int): Int {
 			return a + 10
 		}
 	`)
@@ -52,10 +53,10 @@ func demo() {
 	fmt.Printf("\nValue: %s", value.String())
 
 	complexScript := []byte(`
-		pub struct User {
-			pub var balance: UFix64
-			pub var address: Address
-			pub var name: String
+		access(all) struct User {
+			access(all) var balance: UFix64
+			access(all) var address: Address
+			access(all) var name: String
 
 			init(name: String, address: Address, balance: UFix64) {
 				self.name = name
@@ -64,7 +65,7 @@ func demo() {
 			}
 		}
 
-		pub fun main(name: String): User {
+		access(all) fun main(name: String): User {
 			return User(
 				name: name,
 				address: 0x1,
@@ -78,7 +79,7 @@ func demo() {
 }
 
 type User struct {
-	balance uint64
+	balance string
 	address flow.Address
 	name    string
 }
@@ -88,15 +89,28 @@ func printComplexScript(value cadence.Value, err error) {
 	fmt.Printf("\nString value: %s", value.String())
 
 	s := value.(cadence.Struct)
+	balanceCdc, ok := s.FieldsMappedByName()["balance"].(cadence.UFix64)
+	if !ok {
+		examples.Handle(errors.New("incorrect balance"))
+	}
+	addressCdc, ok := s.FieldsMappedByName()["address"].(cadence.Address)
+	if !ok {
+		examples.Handle(errors.New("incorrect address"))
+	}
+	nameCdc, ok := s.FieldsMappedByName()["name"].(cadence.String)
+	if !ok {
+		examples.Handle(errors.New("incorrect name"))
+	}
+
 	u := User{
-		balance: s.Fields[0].ToGoValue().(uint64),
-		address: s.Fields[1].ToGoValue().([flow.AddressLength]byte),
-		name:    s.Fields[2].ToGoValue().(string),
+		balance: balanceCdc.String(),
+		address: flow.BytesToAddress(addressCdc.Bytes()),
+		name:    nameCdc.String(),
 	}
 
 	fmt.Printf("\nName: %s", u.name)
-	fmt.Printf("\nAddress: %s", u.address.String())
-	fmt.Printf("\nBalance: %d", u.balance)
+	fmt.Printf("\nAddress: 0x%s", u.address.String())
+	fmt.Printf("\nBalance: %s", u.balance)
 }
 
 func prepareDemo() {

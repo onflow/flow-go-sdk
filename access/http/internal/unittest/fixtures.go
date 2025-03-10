@@ -1,7 +1,7 @@
 /*
  * Flow Go SDK
  *
- * Copyright 2019 Dapper Labs, Inc.
+ * Copyright Flow Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -99,7 +99,7 @@ func BlockFlowFixture() models.Block {
 }
 
 func CollectionFlowFixture() models.Collection {
-	collection := test.CollectionGenerator().New()
+	collection := test.LightCollectionGenerator().New()
 
 	return models.Collection{
 		Id: collection.ID().String(),
