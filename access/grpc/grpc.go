@@ -657,13 +657,14 @@ func (c *BaseClient) GetAccountKeyAtLatestBlock(
 	ctx context.Context,
 	address flow.Address,
 	keyIndex uint32,
+	opts ...grpc.CallOption,
 ) (*flow.AccountKey, error) {
 	request := &access.GetAccountKeyAtLatestBlockRequest{
 		Address: address.Bytes(),
 		Index:   keyIndex,
 	}
 
-	response, err := c.rpcClient.GetAccountKeyAtLatestBlock(ctx, request)
+	response, err := c.rpcClient.GetAccountKeyAtLatestBlock(ctx, request, opts...)
 	if err != nil {
 		return nil, newRPCError(err)
 	}
@@ -681,6 +682,7 @@ func (c *BaseClient) GetAccountKeyAtBlockHeight(
 	address flow.Address,
 	keyIndex uint32,
 	height uint64,
+	opts ...grpc.CallOption,
 ) (*flow.AccountKey, error) {
 	request := &access.GetAccountKeyAtBlockHeightRequest{
 		Address:     address.Bytes(),
@@ -688,7 +690,7 @@ func (c *BaseClient) GetAccountKeyAtBlockHeight(
 		BlockHeight: height,
 	}
 
-	response, err := c.rpcClient.GetAccountKeyAtBlockHeight(ctx, request)
+	response, err := c.rpcClient.GetAccountKeyAtBlockHeight(ctx, request, opts...)
 	if err != nil {
 		return nil, newRPCError(err)
 	}
@@ -704,12 +706,13 @@ func (c *BaseClient) GetAccountKeyAtBlockHeight(
 func (c *BaseClient) GetAccountKeysAtLatestBlock(
 	ctx context.Context,
 	address flow.Address,
+	opts ...grpc.CallOption,
 ) ([]*flow.AccountKey, error) {
 	request := &access.GetAccountKeysAtLatestBlockRequest{
 		Address: address.Bytes(),
 	}
 
-	response, err := c.rpcClient.GetAccountKeysAtLatestBlock(ctx, request)
+	response, err := c.rpcClient.GetAccountKeysAtLatestBlock(ctx, request, opts...)
 	if err != nil {
 		return nil, newRPCError(err)
 	}
@@ -726,13 +729,14 @@ func (c *BaseClient) GetAccountKeysAtBlockHeight(
 	ctx context.Context,
 	address flow.Address,
 	height uint64,
+	opts ...grpc.CallOption,
 ) ([]*flow.AccountKey, error) {
 	request := &access.GetAccountKeysAtBlockHeightRequest{
 		Address:     address.Bytes(),
 		BlockHeight: height,
 	}
 
-	response, err := c.rpcClient.GetAccountKeysAtBlockHeight(ctx, request)
+	response, err := c.rpcClient.GetAccountKeysAtBlockHeight(ctx, request, opts...)
 	if err != nil {
 		return nil, newRPCError(err)
 	}

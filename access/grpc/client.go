@@ -391,7 +391,7 @@ func (c *Client) SubscribeBlockHeadersFromStartHeight(
 	return c.grpc.SubscribeBlockHeadersFromStartHeight(ctx, startHeight, blockStatus)
 }
 
-func (c *Client) SubscribeBlocksHeadersFromLatest(
+func (c *Client) SubscribeBlockHeadersFromLatest(
 	ctx context.Context,
 	blockStatus flow.BlockStatus,
 ) (<-chan *flow.BlockHeader, <-chan error, error) {
