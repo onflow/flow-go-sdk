@@ -39,6 +39,7 @@ import (
 	"github.com/onflow/flow/protobuf/go/flow/entities"
 	"github.com/onflow/flow/protobuf/go/flow/executiondata"
 
+	base "github.com/onflow/flow-go-sdk/access"
 	"github.com/onflow/flow-go-sdk/access/grpc/convert"
 	"github.com/onflow/flow-go-sdk/access/grpc/mocks"
 
@@ -1987,7 +1988,7 @@ func TestClient_SubscribeEvents(t *testing.T) {
 			Return(stream, nil).
 			Run(assertSubscribeEventsArgs(t, &req))
 
-		eventCh, errCh, err := c.SubscribeEventsByBlockHeight(ctx, startHeight, filter, WithHeartbeatInterval(req.HeartbeatInterval))
+		eventCh, errCh, err := c.SubscribeEventsByBlockHeight(ctx, startHeight, filter, base.WithHeartbeatInterval(req.HeartbeatInterval))
 		require.NoError(t, err)
 
 		wg := sync.WaitGroup{}
@@ -2040,7 +2041,7 @@ func TestClient_SubscribeEvents(t *testing.T) {
 			Return(stream, nil).
 			Run(assertSubscribeEventsArgs(t, &req))
 
-		eventCh, errCh, err := c.SubscribeEventsByBlockID(ctx, startBlockID, filter, WithHeartbeatInterval(req.HeartbeatInterval))
+		eventCh, errCh, err := c.SubscribeEventsByBlockID(ctx, startBlockID, filter, base.WithHeartbeatInterval(req.HeartbeatInterval))
 		require.NoError(t, err)
 
 		wg := sync.WaitGroup{}
@@ -2131,7 +2132,7 @@ func TestClient_SubscribeEvents(t *testing.T) {
 			Return(stream, nil).
 			Run(assertSubscribeEventsArgs(t, &req))
 
-		eventCh, errCh, err := c.SubscribeEventsByBlockHeight(ctx, startHeight, filter, WithHeartbeatInterval(req.HeartbeatInterval))
+		eventCh, errCh, err := c.SubscribeEventsByBlockHeight(ctx, startHeight, filter, base.WithHeartbeatInterval(req.HeartbeatInterval))
 		require.NoError(t, err)
 
 		wg := sync.WaitGroup{}
