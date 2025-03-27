@@ -2,8 +2,6 @@ module github.com/onflow/flow-go-sdk
 
 go 1.23
 
-toolchain go1.23.4
-
 require (
 	cloud.google.com/go/kms v1.15.7
 	github.com/aws/aws-sdk-go-v2 v1.36.3
@@ -11,7 +9,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/kms v1.38.1
 	github.com/onflow/cadence v1.3.3
 	github.com/onflow/crypto v0.25.1
-	github.com/onflow/flow/protobuf/go/flow v0.4.7
+	github.com/onflow/flow/protobuf/go/flow v0.4.10
 	github.com/onflow/go-ethereum v1.14.8
 	github.com/onflow/sdks v0.6.0-preview.1
 	github.com/pkg/errors v0.9.1
