@@ -364,6 +364,7 @@ func (t *Transaction) createSignature(address Address, keyIndex uint32, sig []by
 		SignerIndex: signerIndex,
 		KeyIndex:    keyIndex,
 		Signature:   sig,
+		Info:        []byte{},
 	}
 }
 
@@ -568,12 +569,14 @@ type TransactionSignature struct {
 	SignerIndex int
 	KeyIndex    uint32
 	Signature   []byte
+	Info        []byte
 }
 
 type transactionSignatureCanonicalForm struct {
 	SignerIndex uint
 	KeyIndex    uint32
 	Signature   []byte
+	Info        []byte
 }
 
 func (s TransactionSignature) canonicalForm() transactionSignatureCanonicalForm {
@@ -581,6 +584,7 @@ func (s TransactionSignature) canonicalForm() transactionSignatureCanonicalForm 
 		SignerIndex: uint(s.SignerIndex), // int is not RLP-serializable
 		KeyIndex:    s.KeyIndex,          // int is not RLP-serializable
 		Signature:   s.Signature,
+		Info:        s.Info,
 	}
 }
 
@@ -589,6 +593,7 @@ func transactionSignatureFromCanonicalForm(v transactionSignatureCanonicalForm) 
 		SignerIndex: int(v.SignerIndex),
 		KeyIndex:    v.KeyIndex,
 		Signature:   v.Signature,
+		Info:        v.Info,
 	}
 }
 
