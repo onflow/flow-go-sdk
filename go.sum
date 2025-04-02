@@ -61,8 +61,8 @@ github.com/envoyproxy/protoc-gen-validate v1.2.1 h1:DEo3O99U8j4hBFwbJfrz9VtgcDfU
 github.com/envoyproxy/protoc-gen-validate v1.2.1/go.mod h1:d/C80l/jxXLdfEIhX1W2TmLfsJ31lvEjwamM4DxlWXU=
 github.com/felixge/httpsnoop v1.0.4 h1:NFTV2Zj1bL4mc9sqWACXbQFVBBg2W3GPvqp8/ESS2Wg=
 github.com/felixge/httpsnoop v1.0.4/go.mod h1:m8KPJKqk1gH5J9DgRY2ASl2lWCfGKXixSwevea8zH2U=
-github.com/fxamacker/cbor/v2 v2.7.1-0.20250321215404-00478930d2f8 h1:LqXKCYr0aEtroUzj8uG0cWtEe+u/P269KvaL6jYLors=
-github.com/fxamacker/cbor/v2 v2.7.1-0.20250321215404-00478930d2f8/go.mod h1:pxXPTn3joSm21Gbwsv0w9OSA2y1HFR9qXEeXQVeNoDQ=
+github.com/fxamacker/cbor/v2 v2.8.1-0.20250401165920-8bb2c1a19ccd h1:l06fyFVSB0zvYXpSL1ZbjyRH9iTyRzJoU4DokT8AGo0=
+github.com/fxamacker/cbor/v2 v2.8.1-0.20250401165920-8bb2c1a19ccd/go.mod h1:vM4b+DJCtHn+zz7h3FFp/hDAI9WNWCsZj23V5ytsSxQ=
 github.com/fxamacker/circlehash v0.3.0 h1:XKdvTtIJV9t7DDUtsf0RIpC1OcxZtPbmgIH7ekx28WA=
 github.com/fxamacker/circlehash v0.3.0/go.mod h1:3aq3OfVvsWtkWMb6A1owjOQFA+TLsD5FgJflnaQwtMM=
 github.com/go-logr/logr v1.2.2/go.mod h1:jdQByPbusPIv2/zmleS9BjJVeZ6kBagPoEUsqbVz/1A=
@@ -124,10 +124,10 @@ github.com/mattn/go-colorable v0.1.13/go.mod h1:7S9/ev0klgBDR4GtXTXX8a3vIGJpMovk
 github.com/mattn/go-isatty v0.0.16/go.mod h1:kYGgaQfpe5nmfYZH+SKPsOc2e4SrIfOl2e/yFXSvRLM=
 github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
-github.com/onflow/atree v0.9.1-0.20250321215926-c39a2a27790a h1:WcbAoRo1NuNv+ddRM8OglXLG5G606oHNv5gp22fh1E8=
-github.com/onflow/atree v0.9.1-0.20250321215926-c39a2a27790a/go.mod h1:PAV+wumy8lIGxYnkr8yvBtG4IqnvEK3OVVmuhO1xM5E=
-github.com/onflow/cadence v1.3.4-0.20250321222746-1f1659d2da96 h1:OagdfpXjUv9xEnho7NFIKROT8FoeoLYhze1K1IumGgo=
-github.com/onflow/cadence v1.3.4-0.20250321222746-1f1659d2da96/go.mod h1:rVJZyndQSXNS2HZ79uAPSj2Gwb5/DIRU3UIVob3yR3w=
+github.com/onflow/atree v0.9.1-0.20250401190124-9ad64231c8a3 h1:3v30dnwDRJ/nnmO0j5LjbATi6ZYVCvrJd0WxqekSep4=
+github.com/onflow/atree v0.9.1-0.20250401190124-9ad64231c8a3/go.mod h1:x7U+6c98u7krXwwCIG77ZoPuyyZyZ1AAp4h3n+H0Vb8=
+github.com/onflow/cadence v1.3.4-0.20250401190807-cc08b3c7dcbf h1:3sa3KmjLybWZlgmi7sqEIhxpWPXqrOhcTB9vjZSg9jE=
+github.com/onflow/cadence v1.3.4-0.20250401190807-cc08b3c7dcbf/go.mod h1:hQmgYJtUjNhzR4l8sfmIOjDF9rjpxFJPz9boq/i7DkI=
 github.com/onflow/crypto v0.25.1 h1:0txy2PKPMM873JbpxQNbJmuOJtD56bfs48RQfm0ts5A=
 github.com/onflow/crypto v0.25.1/go.mod h1:C8FbaX0x8y+FxWjbkHy0Q4EASCDR9bSPWZqlpCLYyVI=
 github.com/onflow/flow/protobuf/go/flow v0.4.7 h1:iP6DFx4wZ3ETORsyeqzHu7neFT3d1CXF6wdK+AOOjmc=
