@@ -32,7 +32,7 @@ import (
 	"github.com/onflow/flow-go-sdk"
 )
 
-//go:generate go run github.com/vektra/mockery/cmd/mockery --name Client --structname Client --output mocks
+//go:generate mockery --name Client --structname Client --output mocks
 
 type Client interface {
 	// Ping is used to check if the access node is alive and healthy.
