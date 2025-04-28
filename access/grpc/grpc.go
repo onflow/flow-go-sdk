@@ -18,8 +18,8 @@
 
 package grpc
 
-//go:generate go run github.com/vektra/mockery/cmd/mockery --name RPCClient --structname MockRPCClient --output mocks
-//go:generate go run github.com/vektra/mockery/cmd/mockery --name ExecutionDataRPCClient --structname MockExecutionDataRPCClient --output mocks
+//go:generate mockery --name RPCClient --structname MockRPCClient --output mocks
+//go:generate mockery --name ExecutionDataRPCClient --structname MockExecutionDataRPCClient --output mocks
 
 import (
 	"context"
