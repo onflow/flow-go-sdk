@@ -657,8 +657,8 @@ func TestTransaction_RLPMessages(t *testing.T) {
 			payload := hex.EncodeToString(tt.tx.PayloadMessage())
 			envelope := hex.EncodeToString(tt.tx.EnvelopeMessage())
 
-			//assert.Equal(t, tt.payload, payload)
-			//assert.Equal(t, tt.envelope, envelope)
+			assert.Equal(t, tt.payload, payload)
+			assert.Equal(t, tt.envelope, envelope)
 
 			// Check tx decoding
 			transactionBytes := tt.tx.Encode()
@@ -676,7 +676,7 @@ func TestTransaction_RLPMessages(t *testing.T) {
 			require.NoError(t, err)
 
 			txEnvelope := copyTxEnvelope(tt.tx)
-			//assert.Equal(t, txEnvelope, newTxFromEnvelope)
+			assert.Equal(t, txEnvelope, newTxFromEnvelope)
 			assert.Equal(t, txEnvelope.ID(), newTxFromEnvelope.ID())
 
 			// Check payload decoding

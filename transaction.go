@@ -23,6 +23,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/onflow/go-ethereum/rlp"
 
@@ -102,7 +103,7 @@ type payloadCanonicalForm struct {
 
 type envelopeCanonicalForm struct {
 	Payload           payloadCanonicalForm
-	PayloadSignatures []transactionSignatureCanonicalForm
+	PayloadSignatures []interface{}
 }
 
 type transactionCanonicalForm struct {
@@ -335,7 +336,8 @@ func (t *Transaction) SignEnvelope(address Address, keyIndex uint32, signer cryp
 
 // AddPayloadSignature adds a payload signature to the transaction for the given address and key index.
 func (t *Transaction) AddPayloadSignature(address Address, keyIndex uint32, sig []byte) *Transaction {
-	s := t.createSignature(address, keyIndex, sig)
+	// to properly support extension data, the parent function must pass in the extension data
+	s := t.createSignature(address, keyIndex, sig, nil)
 
 	t.PayloadSignatures = append(t.PayloadSignatures, s)
 	sort.Slice(t.PayloadSignatures, compareSignatures(t.PayloadSignatures))
@@ -345,7 +347,7 @@ func (t *Transaction) AddPayloadSignature(address Address, keyIndex uint32, sig 
 
 // AddEnvelopeSignature adds an envelope signature to the transaction for the given address and key index.
 func (t *Transaction) AddEnvelopeSignature(address Address, keyIndex uint32, sig []byte) *Transaction {
-	s := t.createSignature(address, keyIndex, sig)
+	s := t.createSignature(address, keyIndex, sig, nil)
 
 	t.EnvelopeSignatures = append(t.EnvelopeSignatures, s)
 	sort.Slice(t.EnvelopeSignatures, compareSignatures(t.EnvelopeSignatures))
@@ -353,18 +355,18 @@ func (t *Transaction) AddEnvelopeSignature(address Address, keyIndex uint32, sig
 	return t
 }
 
-func (t *Transaction) createSignature(address Address, keyIndex uint32, sig []byte) TransactionSignature {
+func (t *Transaction) createSignature(address Address, keyIndex uint32, sig []byte, extensionData []byte) TransactionSignature {
 	signerIndex, signerExists := t.signerMap()[address]
 	if !signerExists {
 		signerIndex = -1
 	}
 
 	return TransactionSignature{
-		Address:     address,
-		SignerIndex: signerIndex,
-		KeyIndex:    keyIndex,
-		Signature:   sig,
-		Info:        []byte{},
+		Address:       address,
+		SignerIndex:   signerIndex,
+		KeyIndex:      keyIndex,
+		Signature:     sig,
+		ExtensionData: extensionData,
 	}
 }
 
@@ -435,7 +437,18 @@ func (t *Transaction) Encode() []byte {
 func DecodeTransaction(transactionMessage []byte) (*Transaction, error) {
 	temp, err := decodeTransaction(transactionMessage)
 	if err != nil {
-		return nil, err
+		// If the transaction is in the legacy format, convert it to the canonical form
+		if strings.Contains(err.Error(), "too few elements") { // since the rlp library does not have this error type, just check string
+			// try legacy decoding
+			legacyTemp, err := decodeTransactionLegacy(transactionMessage)
+			if err != nil {
+				return nil, err
+			}
+			// convert legacy to canonical form
+			temp = legacyTemp
+		} else {
+			return nil, err
+		}
 	}
 
 	authorizers := make([]Address, len(temp.Payload.Authorizers))
@@ -532,6 +545,7 @@ func decodeTransaction(transactionMessage []byte) (*transactionCanonicalForm, er
 
 	// Decode the payload sigs
 	payloadSigs := []transactionSignatureCanonicalForm{}
+	fmt.Println(s.Kind())
 	err = s.Decode(&payloadSigs)
 	if err != nil {
 		return nil, err
@@ -565,35 +579,61 @@ type ProposalKey struct {
 
 // A TransactionSignature is a signature associated with a specific account key.
 type TransactionSignature struct {
-	Address     Address
-	SignerIndex int
-	KeyIndex    uint32
-	Signature   []byte
-	Info        []byte
+	Address       Address
+	SignerIndex   int
+	KeyIndex      uint32
+	Signature     []byte
+	ExtensionData []byte
 }
 
 type transactionSignatureCanonicalForm struct {
-	SignerIndex uint
-	KeyIndex    uint32
-	Signature   []byte
-	Info        []byte
+	SignerIndex   uint
+	KeyIndex      uint32
+	Signature     []byte
+	ExtensionData []byte
 }
 
-func (s TransactionSignature) canonicalForm() transactionSignatureCanonicalForm {
+// Checks if the scheme is plain authentication scheme, and indicate that it
+// is required to use the legacy canonical form.
+// We check for a valid scheme identifier, as this should be the only case
+// where the extension data can be left out of the cannonical form.
+// All other non-valid cases that are similar to the plain scheme, but is not valid,
+// should be included in the canonical form, as they are not valid signatures
+func (s TransactionSignature) shouldUseLegacyCanonicalForm() bool {
+	plainSchemeIdentifier := byte(0)
+	// len check covers nil case
+	return len(s.ExtensionData) == 0 || (len(s.ExtensionData) == 1 && s.ExtensionData[0] == plainSchemeIdentifier)
+}
+
+func (s TransactionSignature) canonicalForm() interface{} {
+	// Until we deprecate the old TransactionSignature format, we need to have two canonical forms.
+	// int is not RLP-serializable, therefore s.SignerIndex and s.KeyIndex are converted to uint
+	if s.shouldUseLegacyCanonicalForm() {
+		// This is the legacy cononical form, mainly here for backward compatibility
+		return struct {
+			SignerIndex uint
+			KeyIndex    uint32
+			Signature   []byte
+		}{
+			SignerIndex: uint(s.SignerIndex),
+			KeyIndex:    s.KeyIndex,
+			Signature:   s.Signature,
+		}
+	}
 	return transactionSignatureCanonicalForm{
-		SignerIndex: uint(s.SignerIndex), // int is not RLP-serializable
-		KeyIndex:    s.KeyIndex,          // int is not RLP-serializable
-		Signature:   s.Signature,
-		Info:        s.Info,
+		SignerIndex:   uint(s.SignerIndex), // int is not RLP-serializable
+		KeyIndex:      s.KeyIndex,          // int is not RLP-serializable
+		Signature:     s.Signature,
+		ExtensionData: s.ExtensionData,
 	}
 }
 
 func transactionSignatureFromCanonicalForm(v transactionSignatureCanonicalForm) TransactionSignature {
 	return TransactionSignature{
-		SignerIndex: int(v.SignerIndex),
-		KeyIndex:    v.KeyIndex,
-		Signature:   v.Signature,
-		Info:        v.Info,
+		SignerIndex:   int(v.SignerIndex),
+		KeyIndex:      v.KeyIndex,
+		Signature:     v.Signature,
+		ExtensionData: v.ExtensionData,
 	}
 }
 
@@ -612,8 +652,8 @@ func compareSignatures(signatures []TransactionSignature) func(i, j int) bool {
 
 type signaturesList []TransactionSignature
 
-func (s signaturesList) canonicalForm() []transactionSignatureCanonicalForm {
-	signatures := make([]transactionSignatureCanonicalForm, len(s))
+func (s signaturesList) canonicalForm() []interface{} {
+	signatures := make([]interface{}, len(s))
 
 	for i, signature := range s {
 		signatures[i] = signature.canonicalForm()
