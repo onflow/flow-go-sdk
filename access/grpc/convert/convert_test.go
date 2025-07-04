@@ -61,7 +61,7 @@ func TestConvert_Block(t *testing.T) {
 	blockB, err := MessageToBlock(msg)
 	require.NoError(t, err)
 
-	assert.Equal(t, *blockA, blockB)
+	assert.Equal(t, blockA, blockB)
 
 	t.Run("Without timestamp", func(t *testing.T) {
 		blockA := test.BlockGenerator().New()
@@ -87,7 +87,7 @@ func TestConvert_BlockHeader(t *testing.T) {
 	headerB, err := MessageToBlockHeader(msg)
 	require.NoError(t, err)
 
-	assert.Equal(t, headerA, headerB)
+	assert.Equal(t, headerA, *headerB)
 
 	t.Run("Without timestamp", func(t *testing.T) {
 		headerA := test.BlockHeaderGenerator().New()

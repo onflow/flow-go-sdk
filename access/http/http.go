@@ -18,7 +18,7 @@
 
 package http
 
-//go:generate go run github.com/vektra/mockery/cmd/mockery --name handler --structname mockHandler --filename=mock_handler.go --inpkg
+//go:generate mockery --name handler --structname mockHandler --filename=mock_handler.go --inpackage
 
 import (
 	"context"

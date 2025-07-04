@@ -1,13 +1,13 @@
 module github.com/onflow/flow-go-sdk/examples
 
-go 1.22
+go 1.23
 
-toolchain go1.22.4
+toolchain go1.23.4
 
 replace github.com/onflow/flow-go-sdk => ../
 
 require (
-	github.com/onflow/cadence v1.3.0
+	github.com/onflow/cadence v1.3.3
 	github.com/onflow/flow-go-sdk v1.2.2
 	github.com/onflow/flowkit v1.19.0
 	github.com/spf13/afero v1.11.0
@@ -59,7 +59,7 @@ require (
 	github.com/multiformats/go-multibase v0.2.0 // indirect
 	github.com/multiformats/go-multihash v0.2.3 // indirect
 	github.com/multiformats/go-varint v0.0.7 // indirect
-	github.com/onflow/atree v0.8.1 // indirect
+	github.com/onflow/atree v0.9.0 // indirect
 	github.com/onflow/crypto v0.25.2 // indirect
 	github.com/onflow/flow-core-contracts/lib/go/templates v1.4.0 // indirect
 	github.com/onflow/flow-ft/lib/go/templates v1.0.1 // indirect
