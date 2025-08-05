@@ -4,7 +4,7 @@ go 1.23.7
 
 require (
 	cloud.google.com/go/kms v1.22.0
-	github.com/aws/aws-sdk-go-v2 v1.37.0
+	github.com/aws/aws-sdk-go-v2 v1.37.2
 	github.com/aws/aws-sdk-go-v2/config v1.30.0
 	github.com/aws/aws-sdk-go-v2/service/kms v1.42.0
 	github.com/onflow/cadence v1.6.3
