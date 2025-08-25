@@ -22,7 +22,7 @@ import (
 	"encoding/hex"
 	"sync"
 
-	"github.com/onflow/go-ethereum/rlp"
+	"github.com/ethereum/go-ethereum/rlp"
 
 	"github.com/onflow/flow-go-sdk/crypto"
 )

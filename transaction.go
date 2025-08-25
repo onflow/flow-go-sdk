@@ -25,7 +25,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/onflow/go-ethereum/rlp"
+	"github.com/ethereum/go-ethereum/rlp"
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
@@ -179,6 +179,11 @@ func (t *Transaction) Argument(i int, options ...jsoncdc.Option) (cadence.Value,
 //
 // For example, if a transaction references a block with height of X and the network limit is 10,
 // a block with height X+10 is the last block that is allowed to include this transaction.
+//
+// It is recommended to use the latest finalized block as the reference block ID.
+// Transaction expiry is determined by the height difference between the reference block
+// and the block that includes the transaction.  Block sealing lags behind finalization and
+// using the latest sealed block may cause the reference to fall outside the expiration window.
 func (t *Transaction) SetReferenceBlockID(blockID Identifier) *Transaction {
 	t.ReferenceBlockID = blockID
 	return t

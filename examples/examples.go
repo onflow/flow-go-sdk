@@ -140,7 +140,11 @@ func RandomAccount(flowClient access.Client) (flow.Address, *flow.AccountKey, cr
 }
 
 func GetReferenceBlockId(flowClient access.Client) flow.Identifier {
-	block, err := flowClient.GetLatestBlock(context.Background(), true)
+	// We use the latest finalized block as the reference block ID.
+	// This is the block that has been finalized and is guaranteed to be included in the chain.
+	// It is the best choice for a reference block ID, as block sealing lags behind finalization
+	// and using a sealed block may cause the reference to fall outside the expiration window.
+	block, err := flowClient.GetLatestBlock(context.Background(), false)
 	Handle(err)
 
 	return block.ID
