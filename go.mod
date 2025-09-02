@@ -13,7 +13,7 @@ require (
 	github.com/onflow/flow/protobuf/go/flow v0.4.11
 	github.com/onflow/sdks v0.6.0-preview.1
 	github.com/pkg/errors v0.9.1
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.1
 	google.golang.org/api v0.247.0
 	google.golang.org/grpc v1.74.2
 	google.golang.org/protobuf v1.36.7
