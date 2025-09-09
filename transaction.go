@@ -101,9 +101,13 @@ type payloadCanonicalForm struct {
 	Authorizers               [][]byte
 }
 
+type transactionSignatureCommonForm interface {
+	dummy()
+}
+
 type envelopeCanonicalForm struct {
 	Payload           payloadCanonicalForm
-	PayloadSignatures []interface{}
+	PayloadSignatures []transactionSignatureCommonForm
 }
 
 type transactionCanonicalForm struct {
@@ -593,6 +597,10 @@ type transactionSignatureCanonicalForm struct {
 	ExtensionData []byte
 }
 
+var _ transactionSignatureCommonForm = (*transactionSignatureCanonicalForm)(nil)
+
+func (s transactionSignatureCanonicalForm) dummy() {}
+
 // Checks if the scheme is plain authentication scheme, and indicate that it
 // is required to use the legacy canonical form.
 // We check for a valid scheme identifier, as this should be the only case
@@ -605,16 +613,12 @@ func (s TransactionSignature) shouldUseLegacyCanonicalForm() bool {
 	return len(s.ExtensionData) == 0 || (len(s.ExtensionData) == 1 && s.ExtensionData[0] == plainSchemeIdentifier)
 }
 
-func (s TransactionSignature) canonicalForm() interface{} {
+func (s TransactionSignature) canonicalForm() transactionSignatureCommonForm {
 	// Until we deprecate the old TransactionSignature format, we need to have two canonical forms.
 	// int is not RLP-serializable, therefore s.SignerIndex and s.KeyIndex are converted to uint
 	if s.shouldUseLegacyCanonicalForm() {
 		// This is the legacy cononical form, mainly here for backward compatibility
-		return struct {
-			SignerIndex uint
-			KeyIndex    uint32
-			Signature   []byte
-		}{
+		return transactionSignatureLegacyCanonicalForm{
 			SignerIndex: uint(s.SignerIndex),
 			KeyIndex:    s.KeyIndex,
 			Signature:   s.Signature,
@@ -652,8 +656,8 @@ func compareSignatures(signatures []TransactionSignature) func(i, j int) bool {
 
 type signaturesList []TransactionSignature
 
-func (s signaturesList) canonicalForm() []interface{} {
-	signatures := make([]interface{}, len(s))
+func (s signaturesList) canonicalForm() []transactionSignatureCommonForm {
+	signatures := make([]transactionSignatureCommonForm, len(s))
 
 	for i, signature := range s {
 		signatures[i] = signature.canonicalForm()

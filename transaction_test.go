@@ -126,7 +126,7 @@ func ExampleTransaction() {
 	// Envelope signatures:
 	// Address: ee82856bf20e2aa6, Key Index: 7, Signature: 03
 	//
-	// Transaction ID (after signing): d5d0f64f23650567657a7b2073f81df58e1eff3eb1c7af69eb83d65c4e25f4e5
+	// Transaction ID (after signing): d1a2c58aebfce1050a32edf3568ec3b69cb8637ae090b5f7444ca6b2a8de8f8b
 }
 
 func TestTransaction_SetScript(t *testing.T) {
