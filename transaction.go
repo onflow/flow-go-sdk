@@ -550,7 +550,6 @@ func decodeTransaction(transactionMessage []byte) (*transactionCanonicalForm, er
 
 	// Decode the payload sigs
 	payloadSigs := []transactionSignatureCanonicalForm{}
-	fmt.Println(s.Kind())
 	err = s.Decode(&payloadSigs)
 	if err != nil {
 		return nil, err
@@ -615,11 +614,7 @@ func (s TransactionSignature) canonicalForm() interface{} {
 	// int is not RLP-serializable, therefore s.SignerIndex and s.KeyIndex are converted to uint
 	if s.shouldUseLegacyCanonicalForm() {
 		// This is the legacy cononical form, mainly here for backward compatibility
-		return struct {
-			SignerIndex uint
-			KeyIndex    uint32
-			Signature   []byte
-		}{
+		return transactionSignatureLegacyCanonicalForm{
 			SignerIndex: uint(s.SignerIndex),
 			KeyIndex:    s.KeyIndex,
 			Signature:   s.Signature,

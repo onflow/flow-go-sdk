@@ -21,7 +21,6 @@ package flow
 import (
 	"bytes"
 	"errors"
-	"fmt"
 
 	"github.com/onflow/go-ethereum/rlp"
 )
@@ -113,7 +112,6 @@ func decodeTransactionLegacy(transactionMessage []byte) (*transactionCanonicalFo
 
 	// Decode the payload sigs
 	payloadSigs := []transactionSignatureLegacyCanonicalForm{}
-	fmt.Println(s.Kind())
 	err = s.Decode(&payloadSigs)
 	if err != nil {
 		return nil, err

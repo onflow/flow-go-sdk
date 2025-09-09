@@ -11,6 +11,7 @@ require (
 	github.com/onflow/cadence v1.7.0
 	github.com/onflow/crypto v0.25.3
 	github.com/onflow/flow/protobuf/go/flow v0.4.11
+	github.com/onflow/go-ethereum v1.16.2
 	github.com/onflow/sdks v0.6.0-preview.1
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.11.1
