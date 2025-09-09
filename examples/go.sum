@@ -274,8 +274,6 @@ github.com/onflow/flow/protobuf/go/flow v0.4.11 h1:EYjaATmor1ONczbvJ6VejQAJK4elF
 github.com/onflow/flow/protobuf/go/flow v0.4.11/go.mod h1:NA2pX2nw8zuaxfKphhKsk00kWLwfd+tv8mS23YXO4Sk=
 github.com/onflow/flowkit v1.19.0 h1:Ru18vfRo8E3COgYTK89maFN7ORyQ2HIo8Z/wKZG01RU=
 github.com/onflow/flowkit v1.19.0/go.mod h1:laapt1diM4Pbqt0dotKMH+LbUAOEqgugpH1p4+sPhcw=
-github.com/onflow/go-ethereum v1.16.2 h1:yhC3DA5PTNmUmu7ziq8GmWyQ23KNjle4jCabxpKYyNk=
-github.com/onflow/go-ethereum v1.16.2/go.mod h1:1vsrG/9APHPqt+mVFni60hIXkqkVdU9WQayNjYi/Ah4=
 github.com/onflow/sdks v0.6.0-preview.1 h1:mb/cUezuqWEP1gFZNAgUI4boBltudv4nlfxke1KBp9k=
 github.com/onflow/sdks v0.6.0-preview.1/go.mod h1:F0dj0EyHC55kknLkeD10js4mo14yTdMotnWMslPirrU=
 github.com/pbnjay/memory v0.0.0-20210728143218-7b4eea64cf58 h1:onHthvaw9LFnH4t2DcNVpwGmV9E1BkGknEliJkfwQj0=

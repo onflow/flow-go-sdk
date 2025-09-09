@@ -70,7 +70,6 @@ require (
 	github.com/onflow/flow-go v0.38.0-preview.0.0.20241022154145-6a254edbec23 // indirect
 	github.com/onflow/flow-nft/lib/go/templates v1.2.1 // indirect
 	github.com/onflow/flow/protobuf/go/flow v0.4.11 // indirect
-	github.com/onflow/go-ethereum v1.16.2 // indirect
 	github.com/onflow/sdks v0.6.0-preview.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.6 // indirect
 	github.com/pkg/errors v0.9.1 // indirect

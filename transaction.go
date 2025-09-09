@@ -603,7 +603,7 @@ type transactionSignatureCanonicalForm struct {
 
 var _ transactionSignatureCommonForm = (*transactionSignatureCanonicalForm)(nil)
 
-func (s transactionSignatureCanonicalForm) dummy() {}
+func (s transactionSignatureCanonicalForm) isTransactionSignatureCommonForm() {}
 
 // Checks if the scheme is plain authentication scheme, and indicate that it
 // is required to use the legacy canonical form.
