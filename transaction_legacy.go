@@ -37,6 +37,10 @@ type transactionSignatureLegacyCanonicalForm struct {
 	Signature   []byte
 }
 
+var _ transactionSignatureCommonForm = (*transactionSignatureLegacyCanonicalForm)(nil)
+
+func (s transactionSignatureLegacyCanonicalForm) dummy() {}
+
 func (s *transactionLegacyCanonicalForm) convertToCanonicalForm() *transactionCanonicalForm {
 	canonicalPayloadSigs := make([]transactionSignatureCanonicalForm, 0, len(s.PayloadSignatures))
 	for _, sig := range s.PayloadSignatures {
