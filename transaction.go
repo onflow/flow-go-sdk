@@ -612,7 +612,7 @@ func (s transactionSignatureCanonicalForm) isTransactionSignatureCommonForm() {}
 // Checks if the scheme is plain authentication scheme, and indicate that it
 // is required to use the legacy canonical form.
 // We check for a valid scheme identifier, as this should be the only case
-// where the extension data can be left out of the cannonical form.
+// where the extension data can be left out of the canonical form.
 // All other non-valid cases that are similar to the plain scheme, but is not valid,
 // should be included in the canonical form, as they are not valid signatures
 func (s TransactionSignature) shouldUseLegacyCanonicalForm() bool {
@@ -624,7 +624,7 @@ func (s TransactionSignature) canonicalForm() transactionSignatureCommonForm {
 	// Until we deprecate the old TransactionSignature format, we need to have two canonical forms.
 	// int is not RLP-serializable, therefore s.SignerIndex and s.KeyIndex are converted to uint
 	if s.shouldUseLegacyCanonicalForm() {
-		// This is the legacy cononical form, mainly here for backward compatibility
+		// This is the legacy canonical form, mainly here for backward compatibility
 		return transactionSignatureLegacyCanonicalForm{
 			SignerIndex: uint(s.SignerIndex),
 			KeyIndex:    s.KeyIndex,
