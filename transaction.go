@@ -102,7 +102,7 @@ type payloadCanonicalForm struct {
 }
 
 type transactionSignatureCommonForm interface {
-	dummy()
+	isTransactionSignatureCommonForm()
 }
 
 type envelopeCanonicalForm struct {

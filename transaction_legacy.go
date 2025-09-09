@@ -22,7 +22,7 @@ import (
 	"bytes"
 	"errors"
 
-	"github.com/onflow/go-ethereum/rlp"
+	"github.com/ethereum/go-ethereum/rlp"
 )
 
 type transactionLegacyCanonicalForm struct {
