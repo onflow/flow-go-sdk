@@ -116,6 +116,10 @@ type transactionCanonicalForm struct {
 	EnvelopeSignatures []transactionSignatureCanonicalForm
 }
 
+// plainSchemeIdentifier is the identifier byte for the plain authentication scheme.
+// used to determine if the signature should use the legacy canonical form
+const plainSchemeIdentifier byte = 0
+
 // DefaultTransactionGasLimit should be high enough for small transactions
 const DefaultTransactionGasLimit = 9999
 
@@ -612,7 +616,6 @@ func (s transactionSignatureCanonicalForm) isTransactionSignatureCommonForm() {}
 // All other non-valid cases that are similar to the plain scheme, but is not valid,
 // should be included in the canonical form, as they are not valid signatures
 func (s TransactionSignature) shouldUseLegacyCanonicalForm() bool {
-	plainSchemeIdentifier := byte(0)
 	// len check covers nil case
 	return len(s.ExtensionData) == 0 || (len(s.ExtensionData) == 1 && s.ExtensionData[0] == plainSchemeIdentifier)
 }
