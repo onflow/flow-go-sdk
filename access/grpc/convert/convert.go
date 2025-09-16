@@ -794,9 +794,10 @@ func TransactionToMessage(t flow.Transaction) (*entities.Transaction, error) {
 
 	for i, sig := range t.PayloadSignatures {
 		payloadSigMessages[i] = &entities.Transaction_Signature{
-			Address:   sig.Address.Bytes(),
-			KeyId:     uint32(sig.KeyIndex),
-			Signature: sig.Signature,
+			Address:       sig.Address.Bytes(),
+			KeyId:         uint32(sig.KeyIndex),
+			Signature:     sig.Signature,
+			ExtensionData: sig.ExtensionData,
 		}
 	}
 
@@ -804,9 +805,10 @@ func TransactionToMessage(t flow.Transaction) (*entities.Transaction, error) {
 
 	for i, sig := range t.EnvelopeSignatures {
 		envelopeSigMessages[i] = &entities.Transaction_Signature{
-			Address:   sig.Address.Bytes(),
-			KeyId:     uint32(sig.KeyIndex),
-			Signature: sig.Signature,
+			Address:       sig.Address.Bytes(),
+			KeyId:         uint32(sig.KeyIndex),
+			Signature:     sig.Signature,
+			ExtensionData: sig.ExtensionData,
 		}
 	}
 
