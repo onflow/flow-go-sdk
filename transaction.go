@@ -358,9 +358,30 @@ func (t *Transaction) AddPayloadSignature(address Address, keyIndex uint32, sig 
 	return t
 }
 
+// AddPayloadSignatureWithExtensionData adds a payload signature to the transaction for the given address and key index. Includes extension data.
+func (t *Transaction) AddPayloadSignatureWithExtensionData(address Address, keyIndex uint32, sig []byte, extensionData []byte) *Transaction {
+	// to properly support extension data, the parent function must pass in the extension data
+	s := t.createSignature(address, keyIndex, sig, extensionData)
+
+	t.PayloadSignatures = append(t.PayloadSignatures, s)
+	sort.Slice(t.PayloadSignatures, compareSignatures(t.PayloadSignatures))
+	t.refreshSignerIndex()
+	return t
+}
+
 // AddEnvelopeSignature adds an envelope signature to the transaction for the given address and key index.
 func (t *Transaction) AddEnvelopeSignature(address Address, keyIndex uint32, sig []byte) *Transaction {
 	s := t.createSignature(address, keyIndex, sig, nil)
+
+	t.EnvelopeSignatures = append(t.EnvelopeSignatures, s)
+	sort.Slice(t.EnvelopeSignatures, compareSignatures(t.EnvelopeSignatures))
+	t.refreshSignerIndex()
+	return t
+}
+
+// AddEnvelopeSignatureWithExtensionData adds an envelope signature to the transaction for the given address and key index. Includes extension data.
+func (t *Transaction) AddEnvelopeSignatureWithExtensionData(address Address, keyIndex uint32, sig []byte, extensionData []byte) *Transaction {
+	s := t.createSignature(address, keyIndex, sig, extensionData)
 
 	t.EnvelopeSignatures = append(t.EnvelopeSignatures, s)
 	sort.Slice(t.EnvelopeSignatures, compareSignatures(t.EnvelopeSignatures))

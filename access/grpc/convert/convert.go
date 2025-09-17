@@ -861,11 +861,21 @@ func MessageToTransaction(m *entities.Transaction) (flow.Transaction, error) {
 
 	for _, sig := range m.GetPayloadSignatures() {
 		addr := flow.BytesToAddress(sig.GetAddress())
+		// Have to support legacy implementation for now, so check for extension data here before adding the signature
+		if len(sig.GetExtensionData()) > 0 {
+			t.AddPayloadSignatureWithExtensionData(addr, sig.GetKeyId(), sig.GetSignature(), sig.GetExtensionData())
+			continue
+		}
 		t.AddPayloadSignature(addr, sig.GetKeyId(), sig.GetSignature())
 	}
 
 	for _, sig := range m.GetEnvelopeSignatures() {
 		addr := flow.BytesToAddress(sig.GetAddress())
+		// Have to support legacy implementation for now, so check for extension data here before adding the signature
+		if len(sig.GetExtensionData()) > 0 {
+			t.AddEnvelopeSignatureWithExtensionData(addr, sig.GetKeyId(), sig.GetSignature(), sig.GetExtensionData())
+			continue
+		}
 		t.AddEnvelopeSignature(addr, sig.GetKeyId(), sig.GetSignature())
 	}
 

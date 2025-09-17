@@ -392,6 +392,120 @@ func TestTransaction_AddPayloadSignature(t *testing.T) {
 	})
 }
 
+func TestTransaction_AddPayloadSignatureWithExtensionData(t *testing.T) {
+	addresses := test.AddressGenerator()
+
+	t.Run("Invalid signer", func(t *testing.T) {
+		tx := flow.NewTransaction()
+
+		address := addresses.New()
+
+		tx.AddPayloadSignatureWithExtensionData(address, 7, []byte{42}, nil)
+
+		require.Len(t, tx.PayloadSignatures, 1)
+
+		// signer cannot be found, so index is -1
+		assert.Equal(t, -1, tx.PayloadSignatures[0].SignerIndex)
+	})
+
+	t.Run("Valid signers", func(t *testing.T) {
+		addressA := addresses.New()
+		addressB := addresses.New()
+
+		keyIndex := uint32(7)
+		sig := []byte{42}
+		ext := []byte{1, 2, 3}
+
+		tx := flow.NewTransaction().
+			AddAuthorizer(addressA).
+			AddAuthorizer(addressB)
+
+		// add signatures in reverse order of declaration
+		tx.AddPayloadSignatureWithExtensionData(addressB, keyIndex, sig, ext)
+		tx.AddPayloadSignatureWithExtensionData(addressA, keyIndex, sig, ext)
+
+		require.Len(t, tx.PayloadSignatures, 2)
+
+		assert.Equal(t, 0, tx.PayloadSignatures[0].SignerIndex)
+		assert.Equal(t, addressA, tx.PayloadSignatures[0].Address)
+		assert.Equal(t, keyIndex, tx.PayloadSignatures[0].KeyIndex)
+		assert.Equal(t, sig, tx.PayloadSignatures[0].Signature)
+		assert.Equal(t, ext, tx.PayloadSignatures[0].ExtensionData)
+
+		assert.Equal(t, 1, tx.PayloadSignatures[1].SignerIndex)
+		assert.Equal(t, addressB, tx.PayloadSignatures[1].Address)
+		assert.Equal(t, keyIndex, tx.PayloadSignatures[1].KeyIndex)
+		assert.Equal(t, sig, tx.PayloadSignatures[1].Signature)
+		assert.Equal(t, ext, tx.PayloadSignatures[1].ExtensionData)
+	})
+
+	t.Run("Duplicate signers", func(t *testing.T) {
+		addressA := addresses.New()
+		addressB := addresses.New()
+
+		keyIndex := uint32(7)
+		sig := []byte{42}
+		ext := []byte{1, 2, 3}
+
+		tx := flow.NewTransaction().
+			SetProposalKey(addressA, keyIndex, 42).
+			AddAuthorizer(addressB).
+			AddAuthorizer(addressA)
+
+		// add signatures in reverse order of declaration
+		tx.AddPayloadSignatureWithExtensionData(addressB, keyIndex, sig, ext)
+		tx.AddPayloadSignatureWithExtensionData(addressA, keyIndex, sig, ext)
+
+		require.Len(t, tx.PayloadSignatures, 2)
+
+		assert.Equal(t, 0, tx.PayloadSignatures[0].SignerIndex)
+		assert.Equal(t, addressA, tx.PayloadSignatures[0].Address)
+		assert.Equal(t, keyIndex, tx.PayloadSignatures[0].KeyIndex)
+		assert.Equal(t, sig, tx.PayloadSignatures[0].Signature)
+		assert.Equal(t, ext, tx.PayloadSignatures[0].ExtensionData)
+
+		assert.Equal(t, 1, tx.PayloadSignatures[1].SignerIndex)
+		assert.Equal(t, addressB, tx.PayloadSignatures[1].Address)
+		assert.Equal(t, keyIndex, tx.PayloadSignatures[1].KeyIndex)
+		assert.Equal(t, sig, tx.PayloadSignatures[1].Signature)
+		assert.Equal(t, ext, tx.PayloadSignatures[1].ExtensionData)
+	})
+
+	t.Run("Multiple signatures", func(t *testing.T) {
+		address := addresses.New()
+
+		keyIndexA := uint32(7)
+		sigA := []byte{42}
+		extA := []byte{1, 2, 3}
+
+		keyIndexB := uint32(8)
+		sigB := []byte{43}
+		extB := []byte{4, 5, 6}
+
+		tx := flow.NewTransaction().
+			AddAuthorizer(address)
+
+		// add signatures in descending order by key index
+		tx.AddPayloadSignatureWithExtensionData(address, keyIndexB, sigB, extB)
+		tx.AddPayloadSignatureWithExtensionData(address, keyIndexA, sigA, extA)
+
+		require.Len(t, tx.PayloadSignatures, 2)
+
+		// signatures should be sorted in ascending order by key ID
+		assert.Equal(t, 0, tx.PayloadSignatures[0].SignerIndex)
+		assert.Equal(t, address, tx.PayloadSignatures[0].Address)
+		assert.Equal(t, keyIndexA, tx.PayloadSignatures[0].KeyIndex)
+		assert.Equal(t, sigA, tx.PayloadSignatures[0].Signature)
+		assert.Equal(t, extA, tx.PayloadSignatures[0].ExtensionData)
+
+		assert.Equal(t, 0, tx.PayloadSignatures[1].SignerIndex)
+		assert.Equal(t, address, tx.PayloadSignatures[1].Address)
+		assert.Equal(t, keyIndexB, tx.PayloadSignatures[1].KeyIndex)
+		assert.Equal(t, sigB, tx.PayloadSignatures[1].Signature)
+		assert.Equal(t, extB, tx.PayloadSignatures[1].ExtensionData)
+	})
+}
+
 func TestTransaction_AddEnvelopeSignature(t *testing.T) {
 	addresses := test.AddressGenerator()
 
@@ -454,6 +568,77 @@ func TestTransaction_AddEnvelopeSignature(t *testing.T) {
 		assert.Equal(t, address, tx.EnvelopeSignatures[1].Address)
 		assert.Equal(t, keyIndexB, tx.EnvelopeSignatures[1].KeyIndex)
 		assert.Equal(t, sigB, tx.EnvelopeSignatures[1].Signature)
+	})
+}
+
+func TestTransaction_AddEnvelopeSignatureWithExtensionData(t *testing.T) {
+	addresses := test.AddressGenerator()
+
+	t.Run("Invalid signer", func(t *testing.T) {
+		tx := flow.NewTransaction()
+
+		address := addresses.New()
+
+		tx.AddEnvelopeSignatureWithExtensionData(address, 7, []byte{42}, nil)
+
+		require.Len(t, tx.EnvelopeSignatures, 1)
+
+		// signer cannot be found, so index is -1
+		assert.Equal(t, -1, tx.EnvelopeSignatures[0].SignerIndex)
+	})
+
+	t.Run("Valid signer", func(t *testing.T) {
+		address := addresses.New()
+
+		keyIndex := uint32(7)
+		sig := []byte{42}
+		ext := []byte{1, 2, 3}
+
+		tx := flow.NewTransaction().
+			SetPayer(address)
+
+		tx.AddEnvelopeSignatureWithExtensionData(address, keyIndex, sig, ext)
+
+		require.Len(t, tx.EnvelopeSignatures, 1)
+
+		assert.Equal(t, 0, tx.EnvelopeSignatures[0].SignerIndex)
+		assert.Equal(t, address, tx.EnvelopeSignatures[0].Address)
+		assert.Equal(t, keyIndex, tx.EnvelopeSignatures[0].KeyIndex)
+		assert.Equal(t, sig, tx.EnvelopeSignatures[0].Signature)
+		assert.Equal(t, ext, tx.EnvelopeSignatures[0].ExtensionData)
+	})
+
+	t.Run("Multiple signatures", func(t *testing.T) {
+		address := addresses.New()
+
+		keyIndexA := uint32(7)
+		sigA := []byte{42}
+		extA := []byte{1, 2, 3}
+
+		keyIndexB := uint32(8)
+		sigB := []byte{43}
+		extB := []byte{4, 5, 6}
+
+		tx := flow.NewTransaction().AddAuthorizer(address)
+
+		// add signatures in descending order by key ID
+		tx.AddEnvelopeSignatureWithExtensionData(address, keyIndexB, sigB, extB)
+		tx.AddEnvelopeSignatureWithExtensionData(address, keyIndexA, sigA, extA)
+
+		require.Len(t, tx.EnvelopeSignatures, 2)
+
+		// signatures should be sorted in ascending order by key ID
+		assert.Equal(t, 0, tx.EnvelopeSignatures[0].SignerIndex)
+		assert.Equal(t, address, tx.EnvelopeSignatures[0].Address)
+		assert.Equal(t, keyIndexA, tx.EnvelopeSignatures[0].KeyIndex)
+		assert.Equal(t, sigA, tx.EnvelopeSignatures[0].Signature)
+		assert.Equal(t, extA, tx.EnvelopeSignatures[0].ExtensionData)
+
+		assert.Equal(t, 0, tx.EnvelopeSignatures[1].SignerIndex)
+		assert.Equal(t, address, tx.EnvelopeSignatures[1].Address)
+		assert.Equal(t, keyIndexB, tx.EnvelopeSignatures[1].KeyIndex)
+		assert.Equal(t, sigB, tx.EnvelopeSignatures[1].Signature)
+		assert.Equal(t, extB, tx.EnvelopeSignatures[1].ExtensionData)
 	})
 }
 
