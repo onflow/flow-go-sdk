@@ -145,6 +145,25 @@ func NewNaiveSigner(privateKey PrivateKey, hashAlgo HashAlgorithm) (NaiveSigner,
 	return NewInMemorySigner(privateKey, hashAlgo)
 }
 
+type AddSignatureSigner struct {
+	Signature       []byte
+	SignerPublicKey PublicKey
+}
+
+// NewAddSignatureSigner is a non-crypto graphic signer, that just adds an existing signature to the transaction.
+// Public key is NOT required for signing, but is needed to satisfy the Signer interface.
+func NewAddSignatureSigner(signature []byte, publicKey PublicKey) AddSignatureSigner {
+	return AddSignatureSigner{Signature: signature, SignerPublicKey: publicKey}
+}
+
+func (s AddSignatureSigner) Sign(message []byte) ([]byte, error) {
+	return s.Signature, nil
+}
+
+func (s AddSignatureSigner) PublicKey() PublicKey {
+	return s.SignerPublicKey
+}
+
 // MinSeedLength is the generic minimum seed length.
 // It is recommended to use seeds with enough entropy, preferably from a secure RNG.
 // The key generation process extracts and expands the entropy of the seed.
