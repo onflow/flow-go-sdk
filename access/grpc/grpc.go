@@ -416,6 +416,34 @@ func (c *BaseClient) GetSystemTransaction(
 	return &result, nil
 }
 
+// GetSystemTransactionWithID returns the system transaction for the given block ID and optional system transaction ID.
+// If systemTxID is flow.EmptyID, the system chunk transaction for the block is returned (as defined by Access API).
+func (c *BaseClient) GetSystemTransactionWithID(
+	ctx context.Context,
+	blockID flow.Identifier,
+	systemTxID flow.Identifier,
+	opts ...grpc.CallOption,
+) (*flow.Transaction, error) {
+	req := &access.GetSystemTransactionRequest{
+		BlockId: blockID.Bytes(),
+	}
+	if systemTxID != (flow.Identifier{}) {
+		req.Id = systemTxID.Bytes()
+	}
+
+	res, err := c.rpcClient.GetSystemTransaction(ctx, req, opts...)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	result, err := convert.MessageToTransaction(res.GetTransaction())
+	if err != nil {
+		return nil, newMessageToEntityError(entityTransaction, err)
+	}
+
+	return &result, nil
+}
+
 func (c *BaseClient) GetTransactionsByBlockID(
 	ctx context.Context,
 	blockID flow.Identifier,
@@ -451,6 +479,35 @@ func (c *BaseClient) GetSystemTransactionResult(
 	req := &access.GetSystemTransactionResultRequest{
 		BlockId:              blockID.Bytes(),
 		EventEncodingVersion: c.eventEncoding,
+	}
+
+	res, err := c.rpcClient.GetSystemTransactionResult(ctx, req, opts...)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	result, err := convert.MessageToTransactionResult(res, c.jsonOptions)
+	if err != nil {
+		return nil, newMessageToEntityError(entityTransactionResult, err)
+	}
+
+	return &result, nil
+}
+
+// GetSystemTransactionResultWithID returns the transaction result of the system transaction for the given block ID.
+// If systemTxID is flow.EmptyID, the result for the block's system chunk transaction is returned (as defined by Access API).
+func (c *BaseClient) GetSystemTransactionResultWithID(
+	ctx context.Context,
+	blockID flow.Identifier,
+	systemTxID flow.Identifier,
+	opts ...grpc.CallOption,
+) (*flow.TransactionResult, error) {
+	req := &access.GetSystemTransactionResultRequest{
+		BlockId:              blockID.Bytes(),
+		EventEncodingVersion: c.eventEncoding,
+	}
+	if systemTxID != (flow.Identifier{}) {
+		req.Id = systemTxID.Bytes()
 	}
 
 	res, err := c.rpcClient.GetSystemTransactionResult(ctx, req, opts...)

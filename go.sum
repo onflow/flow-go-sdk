@@ -100,10 +100,17 @@ github.com/onflow/cadence v1.7.0 h1:bbxl9Hy3w3RuigO9higtecqqeqOAHzGMrA6AI8dDSUk=
 github.com/onflow/cadence v1.7.0/go.mod h1:1lKdLNVHIoO0jEjkRPMtOmBWYCG1An9TXSoiCuGIIpo=
 github.com/onflow/crypto v0.25.3 h1:XQ3HtLsw8h1+pBN+NQ1JYM9mS2mVXTyg55OldaAIF7U=
 github.com/onflow/crypto v0.25.3/go.mod h1:+1igaXiK6Tjm9wQOBD1EGwW7bYWMUGKtwKJ/2QL/OWs=
+<<<<<<< HEAD
 github.com/onflow/fixed-point v0.1.1 h1:j0jYZVO8VGyk1476alGudEg7XqCkeTVxb5ElRJRKS90=
 github.com/onflow/fixed-point v0.1.1/go.mod h1:gJdoHqKtToKdOZbvryJvDZfcpzC7d2fyWuo3ZmLtcGY=
 github.com/onflow/flow/protobuf/go/flow v0.4.11 h1:EYjaATmor1ONczbvJ6VejQAJK4elFRk5h9AapxQ7j4c=
 github.com/onflow/flow/protobuf/go/flow v0.4.11/go.mod h1:NA2pX2nw8zuaxfKphhKsk00kWLwfd+tv8mS23YXO4Sk=
+=======
+github.com/onflow/flow/protobuf/go/flow v0.4.16 h1:UADQeq/mpuqFk+EkwqDNoF70743raWQKmB/Dm/eKt2Q=
+github.com/onflow/flow/protobuf/go/flow v0.4.16/go.mod h1:NA2pX2nw8zuaxfKphhKsk00kWLwfd+tv8mS23YXO4Sk=
+github.com/onflow/go-ethereum v1.14.8 h1:PnSeWun1oiavZ+RWKsSsl6Lq2VFeaw3kFvBB/Jqpfow=
+github.com/onflow/go-ethereum v1.14.8/go.mod h1:FDpxDaSZWa4OaYKeHqbY0wMyGNQYkVwC3wo8WCVCqhk=
+>>>>>>> 7f6c10a (access: support optional system transaction ID; add WithID overloads; clarify system chunk semantics; bump flow protobuf)
 github.com/onflow/sdks v0.6.0-preview.1 h1:mb/cUezuqWEP1gFZNAgUI4boBltudv4nlfxke1KBp9k=
 github.com/onflow/sdks v0.6.0-preview.1/go.mod h1:F0dj0EyHC55kknLkeD10js4mo14yTdMotnWMslPirrU=
 github.com/pkg/diff v0.0.0-20210226163009-20ebb0f2a09e/go.mod h1:pJLUxLENpZxwdsKMEsNbx1VGcRFpLqf3715MtcvvzbA=
