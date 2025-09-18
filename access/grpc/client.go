@@ -186,7 +186,7 @@ func (c *Client) GetSystemTransaction(ctx context.Context, blockID flow.Identifi
 }
 
 // GetSystemTransactionWithID returns the system transaction for the given block ID and optional system transaction ID.
-// If systemTxID is flow.EmptyID, the block's system chunk transaction is returned.
+// If systemTxID is flow.EmptyID, the last system transaction for the block is returned.
 func (c *Client) GetSystemTransactionWithID(ctx context.Context, blockID flow.Identifier, systemTxID flow.Identifier) (*flow.Transaction, error) {
 	return c.grpc.GetSystemTransactionWithID(ctx, blockID, systemTxID)
 }
@@ -200,7 +200,7 @@ func (c *Client) GetSystemTransactionResult(ctx context.Context, blockID flow.Id
 }
 
 // GetSystemTransactionResultWithID returns the system transaction result for the given block and optional system transaction ID.
-// If systemTxID is flow.EmptyID, the result of the block's system chunk transaction is returned.
+// If systemTxID is flow.EmptyID, the result of the last system transaction for the block is returned.
 func (c *Client) GetSystemTransactionResultWithID(ctx context.Context, blockID flow.Identifier, systemTxID flow.Identifier) (*flow.TransactionResult, error) {
 	return c.grpc.GetSystemTransactionResultWithID(ctx, blockID, systemTxID)
 }

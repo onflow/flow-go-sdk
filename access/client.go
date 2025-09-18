@@ -93,14 +93,14 @@ type Client interface {
 	GetSystemTransaction(ctx context.Context, blockID flow.Identifier) (*flow.Transaction, error)
 
 	// GetSystemTransactionWithID returns the system transaction for the given block ID and optional system transaction ID.
-	// If systemTxID is flow.EmptyID, the block's system chunk transaction is returned.
+	// If systemTxID is flow.EmptyID, the last system transaction for the block is returned.
 	GetSystemTransactionWithID(ctx context.Context, blockID flow.Identifier, systemTxID flow.Identifier) (*flow.Transaction, error)
 
 	// GetSystemTransactionResult returns the transaction result of the system transaction for the given block ID.
 	GetSystemTransactionResult(ctx context.Context, blockID flow.Identifier) (*flow.TransactionResult, error)
 
 	// GetSystemTransactionResultWithID returns the transaction result of the system transaction for the given block ID and optional system transaction ID.
-	// If systemTxID is flow.EmptyID, the result of the block's system chunk transaction is returned.
+	// If systemTxID is flow.EmptyID, the result of the last system transaction for the block is returned.
 	GetSystemTransactionResultWithID(ctx context.Context, blockID flow.Identifier, systemTxID flow.Identifier) (*flow.TransactionResult, error)
 
 	// GetAccount is an alias for GetAccountAtLatestBlock.

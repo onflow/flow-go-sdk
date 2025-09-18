@@ -417,7 +417,7 @@ func (c *BaseClient) GetSystemTransaction(
 }
 
 // GetSystemTransactionWithID returns the system transaction for the given block ID and optional system transaction ID.
-// If systemTxID is flow.EmptyID, the system chunk transaction for the block is returned (as defined by Access API).
+// If systemTxID is flow.EmptyID, the last system transaction for the block is returned (as defined by Access API).
 func (c *BaseClient) GetSystemTransactionWithID(
 	ctx context.Context,
 	blockID flow.Identifier,
@@ -495,7 +495,7 @@ func (c *BaseClient) GetSystemTransactionResult(
 }
 
 // GetSystemTransactionResultWithID returns the transaction result of the system transaction for the given block ID.
-// If systemTxID is flow.EmptyID, the result for the block's system chunk transaction is returned (as defined by Access API).
+// If systemTxID is flow.EmptyID, the result of the last system transaction for the block is returned (as defined by Access API).
 func (c *BaseClient) GetSystemTransactionResultWithID(
 	ctx context.Context,
 	blockID flow.Identifier,
