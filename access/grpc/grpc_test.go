@@ -650,6 +650,130 @@ func TestClient_GetSystemTransactionResult(t *testing.T) {
 	}))
 }
 
+func TestClient_GetSystemTransaction_WithID_SetsId(t *testing.T) {
+	txs := test.TransactionGenerator()
+	ids := test.IdentifierGenerator()
+
+	t.Run("WithID sets request Id", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		blockID := ids.New()
+		systemTxID := ids.New()
+		expectedTx := txs.New()
+
+		txMsg, err := convert.TransactionToMessage(*expectedTx)
+		require.NoError(t, err)
+
+		response := &access.TransactionResponse{Transaction: txMsg}
+
+		rpc.
+			On("GetSystemTransaction", ctx, mock.Anything).
+			Return(response, nil).
+			Run(func(args mock.Arguments) {
+				req, ok := args.Get(1).(*access.GetSystemTransactionRequest)
+				require.True(t, ok)
+				assert.Equal(t, blockID.Bytes(), req.GetBlockId())
+				assert.Equal(t, systemTxID.Bytes(), req.GetId())
+			})
+
+		tx, err := c.GetSystemTransactionWithID(ctx, blockID, systemTxID)
+		require.NoError(t, err)
+		assert.Equal(t, expectedTx, tx)
+	}))
+}
+
+func TestClient_GetSystemTransaction_WithEmptyID_OmitsId(t *testing.T) {
+	txs := test.TransactionGenerator()
+	ids := test.IdentifierGenerator()
+
+	t.Run("EmptyID omits request Id", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		blockID := ids.New()
+		expectedTx := txs.New()
+
+		txMsg, err := convert.TransactionToMessage(*expectedTx)
+		require.NoError(t, err)
+
+		response := &access.TransactionResponse{Transaction: txMsg}
+
+		rpc.
+			On("GetSystemTransaction", ctx, mock.Anything).
+			Return(response, nil).
+			Run(func(args mock.Arguments) {
+				req, ok := args.Get(1).(*access.GetSystemTransactionRequest)
+				require.True(t, ok)
+				assert.Equal(t, blockID.Bytes(), req.GetBlockId())
+				assert.Len(t, req.GetId(), 0)
+			})
+
+		tx, err := c.GetSystemTransactionWithID(ctx, blockID, flow.EmptyID)
+		require.NoError(t, err)
+		assert.Equal(t, expectedTx, tx)
+	}))
+}
+
+func TestClient_GetSystemTransactionResult_WithID_SetsId(t *testing.T) {
+	ids := test.IdentifierGenerator()
+
+	t.Run("WithID sets request Id", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		blockID := ids.New()
+		systemTxID := ids.New()
+
+		// Build a minimal result
+		results := test.TransactionResultGenerator(flow.EventEncodingVersionCCF)
+		expectedResult := results.New()
+		response, _ := convert.TransactionResultToMessage(expectedResult, flow.EventEncodingVersionCCF)
+
+		rpc.
+			On("GetSystemTransactionResult", ctx, mock.Anything).
+			Return(response, nil).
+			Run(func(args mock.Arguments) {
+				req, ok := args.Get(1).(*access.GetSystemTransactionResultRequest)
+				require.True(t, ok)
+				assert.Equal(t, blockID.Bytes(), req.GetBlockId())
+				assert.Equal(t, systemTxID.Bytes(), req.GetId())
+				assert.Equal(t, entities.EventEncodingVersion_CCF_V0, req.GetEventEncodingVersion())
+			})
+
+		result, err := c.GetSystemTransactionResultWithID(ctx, blockID, systemTxID)
+		require.NoError(t, err)
+
+		// force type evaluation for equality
+		for _, event := range result.Events {
+			_ = event.Value.Type().ID()
+		}
+		assert.Equal(t, expectedResult, *result)
+	}))
+}
+
+func TestClient_GetSystemTransactionResult_WithEmptyID_OmitsId(t *testing.T) {
+	ids := test.IdentifierGenerator()
+
+	t.Run("EmptyID omits request Id", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		blockID := ids.New()
+
+		results := test.TransactionResultGenerator(flow.EventEncodingVersionCCF)
+		expectedResult := results.New()
+		response, _ := convert.TransactionResultToMessage(expectedResult, flow.EventEncodingVersionCCF)
+
+		rpc.
+			On("GetSystemTransactionResult", ctx, mock.Anything).
+			Return(response, nil).
+			Run(func(args mock.Arguments) {
+				req, ok := args.Get(1).(*access.GetSystemTransactionResultRequest)
+				require.True(t, ok)
+				assert.Equal(t, blockID.Bytes(), req.GetBlockId())
+				assert.Len(t, req.GetId(), 0)
+				assert.Equal(t, entities.EventEncodingVersion_CCF_V0, req.GetEventEncodingVersion())
+			})
+
+		result, err := c.GetSystemTransactionResultWithID(ctx, blockID, flow.EmptyID)
+		require.NoError(t, err)
+
+		for _, event := range result.Events {
+			_ = event.Value.Type().ID()
+		}
+		assert.Equal(t, expectedResult, *result)
+	}))
+}
+
 func TestClient_GetTransactionResult(t *testing.T) {
 	ids := test.IdentifierGenerator()
 
