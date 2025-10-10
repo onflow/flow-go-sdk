@@ -196,6 +196,18 @@ func (c *Client) GetSystemTransactionResult(ctx context.Context, blockID flow.Id
 	return nil, fmt.Errorf("not implemented")
 }
 
+// GetSystemTransactionWithID returns the system transaction for the given block and optional system transaction ID.
+// HTTP API does not currently support this endpoint.
+func (c *Client) GetSystemTransactionWithID(ctx context.Context, blockID flow.Identifier, systemTxID flow.Identifier) (*flow.Transaction, error) {
+	return nil, fmt.Errorf("not implemented")
+}
+
+// GetSystemTransactionResultWithID returns the system transaction result for the given block and optional system transaction ID.
+// HTTP API does not currently support this endpoint.
+func (c *Client) GetSystemTransactionResultWithID(ctx context.Context, blockID flow.Identifier, systemTxID flow.Identifier) (*flow.TransactionResult, error) {
+	return nil, fmt.Errorf("not implemented")
+}
+
 // GetAccount is an alias for GetAccountAtLatestBlock.
 func (c *Client) GetAccount(ctx context.Context, address flow.Address) (*flow.Account, error) {
 	return c.GetAccountAtLatestBlock(ctx, address)
