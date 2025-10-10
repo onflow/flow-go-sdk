@@ -367,7 +367,7 @@ func ToTransactionResult(txr *models.TransactionResult, options []cadenceJSON.Op
 
 	var txErr error
 	if txr.ErrorMessage != "" {
-		txErr = fmt.Errorf(txr.ErrorMessage)
+		txErr = fmt.Errorf("%s", txr.ErrorMessage)
 	}
 
 	return &flow.TransactionResult{
