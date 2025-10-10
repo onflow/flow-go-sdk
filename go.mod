@@ -1,6 +1,6 @@
 module github.com/onflow/flow-go-sdk
 
-go 1.24
+go 1.24.0
 
 require (
 	cloud.google.com/go/kms v1.22.0
