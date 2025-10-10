@@ -26,10 +26,6 @@ import (
 
 const errorMessagePrefix = "client: "
 
-func errorMessage(format string, a ...interface{}) string {
-	return errorMessagePrefix + fmt.Sprintf(format, a...)
-}
-
 // An RPCError is an error returned by an RPC call to an Access API.
 //
 // An RPC error can be unwrapped to produce the original gRPC error.
@@ -42,7 +38,7 @@ func newRPCError(gRPCErr error) RPCError {
 }
 
 func (e RPCError) Error() string {
-	return errorMessage(e.GRPCErr.Error())
+	return errorMessagePrefix + e.GRPCErr.Error()
 }
 
 func (e RPCError) Unwrap() error {
@@ -82,7 +78,11 @@ func newEntityToMessageError(entity string, err error) EntityToMessageError {
 }
 
 func (e EntityToMessageError) Error() string {
-	return errorMessage("failed to construct protobuf message from %s entity: %s", e.Entity, e.Err.Error())
+	return errorMessagePrefix + fmt.Sprintf(
+		"failed to construct protobuf message from %s entity: %s",
+		e.Entity,
+		e.Err.Error(),
+	)
 }
 
 func (e EntityToMessageError) Unwrap() error {
@@ -103,7 +103,11 @@ func newMessageToEntityError(entity string, err error) MessageToEntityError {
 }
 
 func (e MessageToEntityError) Error() string {
-	return errorMessage("failed to construct %s entity from protobuf value: %s", e.Entity, e.Err.Error())
+	return errorMessagePrefix + fmt.Sprintf(
+		"failed to construct %s entity from protobuf value: %s",
+		e.Entity,
+		e.Err.Error(),
+	)
 }
 
 func (e MessageToEntityError) Unwrap() error {
