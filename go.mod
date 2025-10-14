@@ -4,7 +4,7 @@ go 1.24.0
 
 require (
 	cloud.google.com/go/kms v1.23.1
-	github.com/aws/aws-sdk-go-v2 v1.39.1
+	github.com/aws/aws-sdk-go-v2 v1.39.2
 	github.com/aws/aws-sdk-go-v2/config v1.31.9
 	github.com/aws/aws-sdk-go-v2/service/kms v1.45.4
 	github.com/ethereum/go-ethereum v1.16.4
