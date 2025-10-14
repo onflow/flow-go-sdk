@@ -1,8 +1,8 @@
 module github.com/onflow/flow-go-sdk/examples
 
-go 1.23.7
+go 1.25.0
 
-toolchain go1.24.2
+toolchain go1.25.0
 
 replace github.com/onflow/flow-go-sdk => ../
 
