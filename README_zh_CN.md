@@ -129,7 +129,7 @@ payer, payerKey, payerSigner := examples.ServiceAccount(c)
 
 tx := flow.NewTransaction().
     SetScript(script).
-    SetGasLimit(100).
+    SetComputeLimit(100).
     SetProposalKey(payer, payerKey.Index, payerKey.SequenceNumber).
     SetPayer(payer)
 
@@ -178,7 +178,7 @@ var (
 
 tx := flow.NewTransaction().
     SetScript([]byte("transaction { execute { log(\"Hello, World!\") } }")).
-    SetGasLimit(100).
+    SetComputeLimit(100).
     SetProposalKey(myAddress, myAccountKey.Index, myAccountKey.SequenceNumber).
     SetPayer(myAddress)
 ```
@@ -229,11 +229,11 @@ key1Signer := getSignerForKey1()
 
 tx := flow.NewTransaction().
     SetScript([]byte(`
-        transaction { 
+        transaction {
             prepare(signer: AuthAccount) { log(signer.address) }
         }
     `)).
-    SetGasLimit(100).
+    SetComputeLimit(100).
     SetProposalKey(account1.Address, key1.Index, key1.SequenceNumber).
     SetPayer(account1.Address).
     AddAuthorizer(account1.Address)
@@ -271,11 +271,11 @@ key2Signer := getSignerForKey2()
 
 tx := flow.NewTransaction().
     SetScript([]byte(`
-        transaction { 
+        transaction {
             prepare(signer: AuthAccount) { log(signer.address) }
         }
     `)).
-    SetGasLimit(100).
+    SetComputeLimit(100).
     SetProposalKey(account1.Address, key1.Index, key1.SequenceNumber).
     SetPayer(account1.Address).
     AddAuthorizer(account1.Address)
@@ -322,11 +322,11 @@ key3Signer := getSignerForKey3()
 
 tx := flow.NewTransaction().
     SetScript([]byte(`
-        transaction { 
+        transaction {
             prepare(signer: AuthAccount) { log(signer.address) }
         }
     `)).
-    SetGasLimit(100).
+    SetComputeLimit(100).
     SetProposalKey(account1.Address, key1.Index, key1.SequenceNumber).
     SetPayer(account2.Address).
     AddAuthorizer(account1.Address)
@@ -381,7 +381,7 @@ tx := flow.NewTransaction().
           }
         }
     `)).
-    SetGasLimit(100).
+    SetComputeLimit(100).
     SetProposalKey(account1.Address, key1.Index, key1.SequenceNumber).
     SetPayer(account2.Address).
     AddAuthorizer(account1.Address).
@@ -437,11 +437,11 @@ key4Signer := getSignerForKey4()
 
 tx := flow.NewTransaction().
     SetScript([]byte(`
-        transaction { 
+        transaction {
             prepare(signer: AuthAccount) { log(signer.address) }
         }
     `)).
-    SetGasLimit(100).
+    SetComputeLimit(100).
     SetProposalKey(account1.Address, key1.Index, key1.SequenceNumber).
     SetPayer(account2.Address).
     AddAuthorizer(account1.Address)
