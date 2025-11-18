@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go/kms v1.23.2
 	github.com/aws/aws-sdk-go-v2 v1.39.6
 	github.com/aws/aws-sdk-go-v2/config v1.31.20
-	github.com/aws/aws-sdk-go-v2/service/kms v1.46.0
+	github.com/aws/aws-sdk-go-v2/service/kms v1.48.2
 	github.com/ethereum/go-ethereum v1.16.5
 	github.com/onflow/cadence v1.8.3
 	github.com/onflow/crypto v0.25.3
