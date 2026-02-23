@@ -416,9 +416,12 @@ func (t *Transaction) payloadCanonicalForm() payloadCanonicalForm {
 	}
 
 	// note(sideninja): This is a temporary workaround until cadence defines canonical format addressing the issue https://github.com/onflow/flow-go-sdk/issues/286
-	for i, arg := range t.Arguments {
-		if len(arg) > 0 && arg[len(arg)-1] == byte(10) { // extra new line character
-			t.Arguments[i] = arg[:len(arg)-1]
+	// system transactions (Payer == EmptyAddress) preserve trailing newlines in arguments
+	if t.Payer != EmptyAddress {
+		for i, arg := range t.Arguments {
+			if len(arg) > 0 && arg[len(arg)-1] == byte(10) { // extra new line character
+				t.Arguments[i] = arg[:len(arg)-1]
+			}
 		}
 	}
 
