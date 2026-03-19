@@ -904,6 +904,93 @@ func TestClient_GetTransactionResultsByBlockID(t *testing.T) {
 	}))
 }
 
+func TestClient_GetScheduledTransaction(t *testing.T) {
+	txs := test.TransactionGenerator()
+
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		var callbackID uint64 = 42
+		expectedTx := txs.New()
+
+		txMsg, err := convert.TransactionToMessage(*expectedTx)
+		require.NoError(t, err)
+
+		response := &access.TransactionResponse{
+			Transaction: txMsg,
+		}
+
+		rpc.On("GetScheduledTransaction", ctx, mock.Anything).Return(response, nil)
+
+		tx, err := c.GetScheduledTransaction(ctx, callbackID)
+		require.NoError(t, err)
+
+		assert.Equal(t, expectedTx, tx)
+	}))
+
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		var callbackID uint64 = 99
+
+		rpc.On("GetScheduledTransaction", ctx, mock.Anything).
+			Return(nil, errNotFound)
+
+		tx, err := c.GetScheduledTransaction(ctx, callbackID)
+		assert.Error(t, err)
+		assert.Equal(t, codes.NotFound, status.Code(err))
+		assert.Nil(t, tx)
+	}))
+}
+
+func TestClient_GetScheduledTransactionResult(t *testing.T) {
+	t.Run("Success", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		results := test.TransactionResultGenerator(flow.EventEncodingVersionCCF)
+		var callbackID uint64 = 42
+		expectedResult := results.New()
+		response, err := convert.TransactionResultToMessage(expectedResult, flow.EventEncodingVersionCCF)
+		require.NoError(t, err)
+
+		rpc.On("GetScheduledTransactionResult", ctx, mock.Anything).Return(response, nil)
+
+		result, err := c.GetScheduledTransactionResult(ctx, callbackID)
+		require.NoError(t, err)
+
+		for _, event := range result.Events {
+			_ = event.Value.Type().ID()
+		}
+
+		assert.Equal(t, expectedResult, *result)
+	}))
+
+	t.Run("Success with jsoncdc", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		results := test.TransactionResultGenerator(flow.EventEncodingVersionJSONCDC)
+		var callbackID uint64 = 42
+		expectedResult := results.New()
+		response, err := convert.TransactionResultToMessage(expectedResult, flow.EventEncodingVersionJSONCDC)
+		require.NoError(t, err)
+
+		rpc.On("GetScheduledTransactionResult", ctx, mock.Anything).Return(response, nil)
+
+		result, err := c.GetScheduledTransactionResult(ctx, callbackID)
+		require.NoError(t, err)
+
+		for _, event := range result.Events {
+			_ = event.Value.Type().ID()
+		}
+
+		assert.Equal(t, expectedResult, *result)
+	}))
+
+	t.Run("Not found error", clientTest(func(t *testing.T, ctx context.Context, rpc *mocks.MockRPCClient, c *BaseClient) {
+		var callbackID uint64 = 99
+
+		rpc.On("GetScheduledTransactionResult", ctx, mock.Anything).
+			Return(nil, errNotFound)
+
+		result, err := c.GetScheduledTransactionResult(ctx, callbackID)
+		assert.Error(t, err)
+		assert.Equal(t, codes.NotFound, status.Code(err))
+		assert.Nil(t, result)
+	}))
+}
+
 func TestClient_GetAccountAtLatestBlock(t *testing.T) {
 	accounts := test.AccountGenerator()
 	addresses := test.AddressGenerator()
