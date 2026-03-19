@@ -952,10 +952,6 @@ func TestClient_GetScheduledTransactionResult(t *testing.T) {
 		result, err := c.GetScheduledTransactionResult(ctx, callbackID)
 		require.NoError(t, err)
 
-		for _, event := range result.Events {
-			_ = event.Value.Type().ID()
-		}
-
 		assert.Equal(t, expectedResult, *result)
 	}))
 
@@ -970,10 +966,6 @@ func TestClient_GetScheduledTransactionResult(t *testing.T) {
 
 		result, err := c.GetScheduledTransactionResult(ctx, callbackID)
 		require.NoError(t, err)
-
-		for _, event := range result.Events {
-			_ = event.Value.Type().ID()
-		}
 
 		assert.Equal(t, expectedResult, *result)
 	}))
