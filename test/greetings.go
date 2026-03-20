@@ -20,13 +20,13 @@ package test
 
 import (
 	"math/rand"
-	"time"
+	"sync/atomic"
 )
 
 var GreetingScript = []byte(`
 transaction(greeting: String) {
-  execute { 
-    log(greeting.concat(", World!")) 
+  execute {
+    log(greeting.concat(", World!"))
   }
 }
 `)
@@ -135,21 +135,19 @@ func init() {
 		greetingMsgUK,
 		greetingMsgES,
 	}
-
-	rand.Seed(time.Now().Unix())
 }
 
 type Greetings struct {
-	count int
+	count atomic.Uint32
 }
 
 func GreetingGenerator() *Greetings {
-	return &Greetings{0}
+	return &Greetings{}
 }
 
 func (g *Greetings) New() string {
-	defer func() { g.count++ }()
-	return greetings[g.count%len(greetings)]
+	count := g.count.Add(1)
+	return greetings[count%uint32(len(greetings))]
 }
 
 func (g *Greetings) Random() string {
