@@ -188,11 +188,11 @@ func (c *Client) GetTransactionResultsByBlockID(ctx context.Context, blockID flo
 	return nil, fmt.Errorf("not implemented")
 }
 
-func (c *Client) GetScheduledTransaction(ctx context.Context, callbackID uint64) (*flow.Transaction, error) {
+func (c *Client) GetScheduledTransaction(ctx context.Context, scheduledTxID uint64) (*flow.Transaction, error) {
 	return nil, fmt.Errorf("not implemented")
 }
 
-func (c *Client) GetScheduledTransactionResult(ctx context.Context, callbackID uint64) (*flow.TransactionResult, error) {
+func (c *Client) GetScheduledTransactionResult(ctx context.Context, scheduledTxID uint64) (*flow.TransactionResult, error) {
 	return nil, fmt.Errorf("not implemented")
 }
 

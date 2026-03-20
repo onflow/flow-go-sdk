@@ -962,9 +962,9 @@ func (_m *Client) GetProtocolStateSnapshotByHeight(ctx context.Context, blockHei
 	return r0, r1
 }
 
-// GetScheduledTransaction provides a mock function with given fields: ctx, callbackID
-func (_m *Client) GetScheduledTransaction(ctx context.Context, callbackID uint64) (*flow.Transaction, error) {
-	ret := _m.Called(ctx, callbackID)
+// GetScheduledTransaction provides a mock function with given fields: ctx, scheduledTxID
+func (_m *Client) GetScheduledTransaction(ctx context.Context, scheduledTxID uint64) (*flow.Transaction, error) {
+	ret := _m.Called(ctx, scheduledTxID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetScheduledTransaction")
@@ -973,10 +973,10 @@ func (_m *Client) GetScheduledTransaction(ctx context.Context, callbackID uint64
 	var r0 *flow.Transaction
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, uint64) (*flow.Transaction, error)); ok {
-		return rf(ctx, callbackID)
+		return rf(ctx, scheduledTxID)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, uint64) *flow.Transaction); ok {
-		r0 = rf(ctx, callbackID)
+		r0 = rf(ctx, scheduledTxID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*flow.Transaction)
@@ -984,7 +984,7 @@ func (_m *Client) GetScheduledTransaction(ctx context.Context, callbackID uint64
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, uint64) error); ok {
-		r1 = rf(ctx, callbackID)
+		r1 = rf(ctx, scheduledTxID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -992,9 +992,9 @@ func (_m *Client) GetScheduledTransaction(ctx context.Context, callbackID uint64
 	return r0, r1
 }
 
-// GetScheduledTransactionResult provides a mock function with given fields: ctx, callbackID
-func (_m *Client) GetScheduledTransactionResult(ctx context.Context, callbackID uint64) (*flow.TransactionResult, error) {
-	ret := _m.Called(ctx, callbackID)
+// GetScheduledTransactionResult provides a mock function with given fields: ctx, scheduledTxID
+func (_m *Client) GetScheduledTransactionResult(ctx context.Context, scheduledTxID uint64) (*flow.TransactionResult, error) {
+	ret := _m.Called(ctx, scheduledTxID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetScheduledTransactionResult")
@@ -1003,10 +1003,10 @@ func (_m *Client) GetScheduledTransactionResult(ctx context.Context, callbackID 
 	var r0 *flow.TransactionResult
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, uint64) (*flow.TransactionResult, error)); ok {
-		return rf(ctx, callbackID)
+		return rf(ctx, scheduledTxID)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, uint64) *flow.TransactionResult); ok {
-		r0 = rf(ctx, callbackID)
+		r0 = rf(ctx, scheduledTxID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*flow.TransactionResult)
@@ -1014,7 +1014,7 @@ func (_m *Client) GetScheduledTransactionResult(ctx context.Context, callbackID 
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, uint64) error); ok {
-		r1 = rf(ctx, callbackID)
+		r1 = rf(ctx, scheduledTxID)
 	} else {
 		r1 = ret.Error(1)
 	}

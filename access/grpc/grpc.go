@@ -602,12 +602,12 @@ func (c *BaseClient) GetTransactionResultsByBlockID(
 
 func (c *BaseClient) GetScheduledTransaction(
 	ctx context.Context,
-	callbackID uint64,
+	scheduledTxID uint64,
 	opts ...grpc.CallOption,
 ) (*flow.Transaction, error) {
 
 	req := &access.GetScheduledTransactionRequest{
-		Id: callbackID,
+		Id: scheduledTxID,
 	}
 
 	res, err := c.rpcClient.GetScheduledTransaction(ctx, req, opts...)
@@ -626,11 +626,11 @@ func (c *BaseClient) GetScheduledTransaction(
 
 func (c *BaseClient) GetScheduledTransactionResult(
 	ctx context.Context,
-	callbackID uint64,
+	scheduledTxID uint64,
 	opts ...grpc.CallOption,
 ) (*flow.TransactionResult, error) {
 	req := &access.GetScheduledTransactionResultRequest{
-		Id: callbackID,
+		Id: scheduledTxID,
 	}
 
 	res, err := c.rpcClient.GetScheduledTransactionResult(ctx, req, opts...)

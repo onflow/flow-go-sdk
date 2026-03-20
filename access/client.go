@@ -90,10 +90,10 @@ type Client interface {
 	GetTransactionResultsByBlockID(ctx context.Context, blockID flow.Identifier) ([]*flow.TransactionResult, error)
 
 	// GetScheduledTransaction returns a scheduled transaction by callback ID.
-	GetScheduledTransaction(ctx context.Context, callbackID uint64) (*flow.Transaction, error)
+	GetScheduledTransaction(ctx context.Context, scheduledTxID uint64) (*flow.Transaction, error)
 
 	// GetScheduledTransactionResult returns the result of a scheduled transaction by callback ID.
-	GetScheduledTransactionResult(ctx context.Context, callbackID uint64) (*flow.TransactionResult, error)
+	GetScheduledTransactionResult(ctx context.Context, scheduledTxID uint64) (*flow.TransactionResult, error)
 
 	// GetSystemTransaction returns the system transaction for the given block ID.
 	GetSystemTransaction(ctx context.Context, blockID flow.Identifier) (*flow.Transaction, error)

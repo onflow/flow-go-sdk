@@ -216,12 +216,12 @@ func (c *Client) GetTransactionResultsByBlockID(ctx context.Context, blockID flo
 	return c.grpc.GetTransactionResultsByBlockID(ctx, blockID)
 }
 
-func (c *Client) GetScheduledTransaction(ctx context.Context, callbackID uint64) (*flow.Transaction, error) {
-	return c.grpc.GetScheduledTransaction(ctx, callbackID)
+func (c *Client) GetScheduledTransaction(ctx context.Context, scheduledTxID uint64) (*flow.Transaction, error) {
+	return c.grpc.GetScheduledTransaction(ctx, scheduledTxID)
 }
 
-func (c *Client) GetScheduledTransactionResult(ctx context.Context, callbackID uint64) (*flow.TransactionResult, error) {
-	return c.grpc.GetScheduledTransactionResult(ctx, callbackID)
+func (c *Client) GetScheduledTransactionResult(ctx context.Context, scheduledTxID uint64) (*flow.TransactionResult, error) {
+	return c.grpc.GetScheduledTransactionResult(ctx, scheduledTxID)
 }
 
 func (c *Client) SendAndSubscribeTransactionStatuses(
