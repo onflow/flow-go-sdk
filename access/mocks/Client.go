@@ -962,6 +962,66 @@ func (_m *Client) GetProtocolStateSnapshotByHeight(ctx context.Context, blockHei
 	return r0, r1
 }
 
+// GetScheduledTransaction provides a mock function with given fields: ctx, scheduledTxID
+func (_m *Client) GetScheduledTransaction(ctx context.Context, scheduledTxID uint64) (*flow.Transaction, error) {
+	ret := _m.Called(ctx, scheduledTxID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetScheduledTransaction")
+	}
+
+	var r0 *flow.Transaction
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uint64) (*flow.Transaction, error)); ok {
+		return rf(ctx, scheduledTxID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uint64) *flow.Transaction); ok {
+		r0 = rf(ctx, scheduledTxID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*flow.Transaction)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uint64) error); ok {
+		r1 = rf(ctx, scheduledTxID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetScheduledTransactionResult provides a mock function with given fields: ctx, scheduledTxID
+func (_m *Client) GetScheduledTransactionResult(ctx context.Context, scheduledTxID uint64) (*flow.TransactionResult, error) {
+	ret := _m.Called(ctx, scheduledTxID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetScheduledTransactionResult")
+	}
+
+	var r0 *flow.TransactionResult
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uint64) (*flow.TransactionResult, error)); ok {
+		return rf(ctx, scheduledTxID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uint64) *flow.TransactionResult); ok {
+		r0 = rf(ctx, scheduledTxID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*flow.TransactionResult)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uint64) error); ok {
+		r1 = rf(ctx, scheduledTxID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetSystemTransaction provides a mock function with given fields: ctx, blockID
 func (_m *Client) GetSystemTransaction(ctx context.Context, blockID flow.Identifier) (*flow.Transaction, error) {
 	ret := _m.Called(ctx, blockID)
