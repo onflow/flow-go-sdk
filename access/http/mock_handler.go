@@ -417,6 +417,43 @@ func (_m *mockHandler) getNodeVersionInfo(ctx context.Context, opts ...queryOpts
 	return r0, r1
 }
 
+// getScheduledTransaction provides a mock function with given fields: ctx, scheduledTxID, includeResult, opts
+func (_m *mockHandler) getScheduledTransaction(ctx context.Context, scheduledTxID uint64, includeResult bool, opts ...queryOpts) (*models.Transaction, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, scheduledTxID, includeResult)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for getScheduledTransaction")
+	}
+
+	var r0 *models.Transaction
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uint64, bool, ...queryOpts) (*models.Transaction, error)); ok {
+		return rf(ctx, scheduledTxID, includeResult, opts...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uint64, bool, ...queryOpts) *models.Transaction); ok {
+		r0 = rf(ctx, scheduledTxID, includeResult, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.Transaction)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uint64, bool, ...queryOpts) error); ok {
+		r1 = rf(ctx, scheduledTxID, includeResult, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // getTransaction provides a mock function with given fields: ctx, ID, includeResult, opts
 func (_m *mockHandler) getTransaction(ctx context.Context, ID string, includeResult bool, opts ...queryOpts) (*models.Transaction, error) {
 	_va := make([]interface{}, len(opts))

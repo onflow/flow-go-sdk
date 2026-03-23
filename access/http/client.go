@@ -189,11 +189,11 @@ func (c *Client) GetTransactionResultsByBlockID(ctx context.Context, blockID flo
 }
 
 func (c *Client) GetScheduledTransaction(ctx context.Context, scheduledTxID uint64) (*flow.Transaction, error) {
-	return nil, fmt.Errorf("not implemented")
+	return c.httpClient.GetScheduledTransaction(ctx, scheduledTxID)
 }
 
 func (c *Client) GetScheduledTransactionResult(ctx context.Context, scheduledTxID uint64) (*flow.TransactionResult, error) {
-	return nil, fmt.Errorf("not implemented")
+	return c.httpClient.GetScheduledTransactionResult(ctx, scheduledTxID)
 }
 
 func (c *Client) GetSystemTransaction(ctx context.Context, blockID flow.Identifier) (*flow.Transaction, error) {
