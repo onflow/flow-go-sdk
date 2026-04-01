@@ -600,6 +600,52 @@ func (c *BaseClient) GetTransactionResultsByBlockID(
 	return results, nil
 }
 
+func (c *BaseClient) GetScheduledTransaction(
+	ctx context.Context,
+	scheduledTxID uint64,
+	opts ...grpc.CallOption,
+) (*flow.Transaction, error) {
+
+	req := &access.GetScheduledTransactionRequest{
+		Id: scheduledTxID,
+	}
+
+	res, err := c.rpcClient.GetScheduledTransaction(ctx, req, opts...)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	unparsedResults := res.GetTransaction()
+	parsed, err := convert.MessageToTransaction(unparsedResults)
+	if err != nil {
+		return nil, newMessageToEntityError(entityTransaction, err)
+	}
+
+	return &parsed, nil
+}
+
+func (c *BaseClient) GetScheduledTransactionResult(
+	ctx context.Context,
+	scheduledTxID uint64,
+	opts ...grpc.CallOption,
+) (*flow.TransactionResult, error) {
+	req := &access.GetScheduledTransactionResultRequest{
+		Id: scheduledTxID,
+	}
+
+	res, err := c.rpcClient.GetScheduledTransactionResult(ctx, req, opts...)
+	if err != nil {
+		return nil, newRPCError(err)
+	}
+
+	parsed, err := convert.MessageToTransactionResult(res, c.jsonOptions)
+	if err != nil {
+		return nil, newMessageToEntityError(entityTransactionResult, err)
+	}
+
+	return &parsed, nil
+}
+
 func (c *BaseClient) GetAccount(ctx context.Context, address flow.Address, opts ...grpc.CallOption) (*flow.Account, error) {
 	return c.GetAccountAtLatestBlock(ctx, address, opts...)
 }
