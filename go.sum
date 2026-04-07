@@ -66,8 +66,8 @@ github.com/ethereum/go-ethereum v1.16.7 h1:qeM4TvbrWK0UC0tgkZ7NiRsmBGwsjqc64BHo2
 github.com/ethereum/go-ethereum v1.16.7/go.mod h1:Fs6QebQbavneQTYcA39PEKv2+zIjX7rPUZ14DER46wk=
 github.com/felixge/httpsnoop v1.0.4 h1:NFTV2Zj1bL4mc9sqWACXbQFVBBg2W3GPvqp8/ESS2Wg=
 github.com/felixge/httpsnoop v1.0.4/go.mod h1:m8KPJKqk1gH5J9DgRY2ASl2lWCfGKXixSwevea8zH2U=
-github.com/fxamacker/cbor/v2 v2.9.1-0.20251019205732-39888e6be013 h1:jcwW+JBYGe3qgiPQ4deXaannYxVdxjMw57/dw+gcEfQ=
-github.com/fxamacker/cbor/v2 v2.9.1-0.20251019205732-39888e6be013/go.mod h1:vM4b+DJCtHn+zz7h3FFp/hDAI9WNWCsZj23V5ytsSxQ=
+github.com/fxamacker/cbor/v2 v2.9.2-0.20260331174317-a78e92ec038e h1:AqsamU9dS+/RNjgvDOqFUT7qXApcmnw7zJLLqJkx860=
+github.com/fxamacker/cbor/v2 v2.9.2-0.20260331174317-a78e92ec038e/go.mod h1:vM4b+DJCtHn+zz7h3FFp/hDAI9WNWCsZj23V5ytsSxQ=
 github.com/fxamacker/circlehash v0.3.0 h1:XKdvTtIJV9t7DDUtsf0RIpC1OcxZtPbmgIH7ekx28WA=
 github.com/fxamacker/circlehash v0.3.0/go.mod h1:3aq3OfVvsWtkWMb6A1owjOQFA+TLsD5FgJflnaQwtMM=
 github.com/go-logr/logr v1.2.2/go.mod h1:jdQByPbusPIv2/zmleS9BjJVeZ6kBagPoEUsqbVz/1A=
@@ -107,10 +107,10 @@ github.com/mattn/go-colorable v0.1.14 h1:9A9LHSqF/7dyVVX6g0U9cwm9pG3kP9gSzcuIPHP
 github.com/mattn/go-colorable v0.1.14/go.mod h1:6LmQG8QLFO4G5z1gPvYEzlUgJ2wF+stgPZH1UqBm1s8=
 github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
-github.com/onflow/atree v0.14.0 h1:VFrvRsDBfBujviAseIYFb/KCo2mD4chcM7LpGbcCDdM=
-github.com/onflow/atree v0.14.0/go.mod h1:qdZcfLQwPirHcNpLiK+2t3KAo+SAb9Si6TqurE6pykE=
-github.com/onflow/cadence v1.10.0 h1:aRx7oFQeBL/jrIatT2Wu57fDk81VF1Pb7fr4qjG6mr4=
-github.com/onflow/cadence v1.10.0/go.mod h1:mERIJRX2NhMhtwGc1AvxVzyQJrnlPu0f+6l5YS7+epM=
+github.com/onflow/atree v0.15.0 h1:wIDhQBWlmTj4KD40lTdjIcog7UIUr5iHjIMjIOhuYGU=
+github.com/onflow/atree v0.15.0/go.mod h1:hiOT/vKK/Zyw34Ru9OFbfEemC5NnQ7SHFB43bN9/4qI=
+github.com/onflow/cadence v1.10.1 h1:wKr/JdBM7lHqVZgY3HA6KcjE1b7vES/1p902v4CT2ME=
+github.com/onflow/cadence v1.10.1/go.mod h1:WcBEohOspFyZ3unRlL/Zd5q0yZSCveWJq3me/FtoVRg=
 github.com/onflow/crypto v0.25.3 h1:XQ3HtLsw8h1+pBN+NQ1JYM9mS2mVXTyg55OldaAIF7U=
 github.com/onflow/crypto v0.25.3/go.mod h1:+1igaXiK6Tjm9wQOBD1EGwW7bYWMUGKtwKJ/2QL/OWs=
 github.com/onflow/fixed-point v0.1.1 h1:j0jYZVO8VGyk1476alGudEg7XqCkeTVxb5ElRJRKS90=
