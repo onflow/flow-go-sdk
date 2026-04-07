@@ -8,7 +8,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.32.7
 	github.com/aws/aws-sdk-go-v2/service/kms v1.50.0
 	github.com/ethereum/go-ethereum v1.16.7
-	github.com/onflow/cadence v1.10.0
+	github.com/onflow/cadence v1.10.1
 	github.com/onflow/crypto v0.25.3
 	github.com/onflow/flow/protobuf/go/flow v0.4.19
 	github.com/onflow/sdks v0.6.0-preview.1
@@ -45,7 +45,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
-	github.com/fxamacker/cbor/v2 v2.9.1-0.20251019205732-39888e6be013 // indirect
+	github.com/fxamacker/cbor/v2 v2.9.2-0.20260331174317-a78e92ec038e // indirect
 	github.com/fxamacker/circlehash v0.3.0 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
@@ -62,7 +62,7 @@ require (
 	github.com/logrusorgru/aurora/v4 v4.0.0 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/onflow/atree v0.14.0 // indirect
+	github.com/onflow/atree v0.15.0 // indirect
 	github.com/onflow/fixed-point v0.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
