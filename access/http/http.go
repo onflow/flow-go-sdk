@@ -48,6 +48,7 @@ type handler interface {
 	executeScriptAtBlockHeight(ctx context.Context, height string, script string, arguments []string, opts ...queryOpts) (string, error)
 	executeScriptAtBlockID(ctx context.Context, ID string, script string, arguments []string, opts ...queryOpts) (string, error)
 	getTransaction(ctx context.Context, ID string, includeResult bool, opts ...queryOpts) (*models.Transaction, error)
+	getScheduledTransaction(ctx context.Context, scheduledTxID uint64, includeResult bool, opts ...queryOpts) (*models.Transaction, error)
 	sendTransaction(ctx context.Context, transaction []byte, opts ...queryOpts) error
 	getEvents(ctx context.Context, eventType string, start string, end string, blockIDs []string, opts ...queryOpts) ([]models.BlockEvents, error)
 	getExecutionResultByID(ctx context.Context, id string, opts ...queryOpts) (*models.ExecutionResult, error)
@@ -292,6 +293,32 @@ func (c *BaseClient) GetTransactionResult(
 	opts ...queryOpts,
 ) (*flow.TransactionResult, error) {
 	tx, err := c.handler.getTransaction(ctx, ID.String(), true, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	return convert.ToTransactionResult(tx.Result, c.jsonOptions)
+}
+
+func (c *BaseClient) GetScheduledTransaction(
+	ctx context.Context,
+	scheduledTxID uint64,
+	opts ...queryOpts,
+) (*flow.Transaction, error) {
+	tx, err := c.handler.getScheduledTransaction(ctx, scheduledTxID, false, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	return convert.ToTransaction(tx)
+}
+
+func (c *BaseClient) GetScheduledTransactionResult(
+	ctx context.Context,
+	scheduledTxID uint64,
+	opts ...queryOpts,
+) (*flow.TransactionResult, error) {
+	tx, err := c.handler.getScheduledTransaction(ctx, scheduledTxID, true, opts...)
 	if err != nil {
 		return nil, err
 	}
