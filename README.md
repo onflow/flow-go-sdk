@@ -1,10 +1,24 @@
-# Flow Go SDK
+# flow-go-sdk — Flow SDK for Go
 
-[![GoDoc](https://godoc.org/github.com/onflow/flow-go-sdk?status.svg)](https://godoc.org/github.com/onflow/flow-go-sdk)
+[![License](https://img.shields.io/github/license/onflow/flow-go-sdk.svg)](https://github.com/onflow/flow-go-sdk/blob/master/LICENSE)
+[![Release](https://img.shields.io/github/v/release/onflow/flow-go-sdk.svg)](https://github.com/onflow/flow-go-sdk/releases)
+[![Discord](https://img.shields.io/discord/613813861610684416?label=discord)](https://discord.gg/flow)
+[![Built on Flow](https://img.shields.io/badge/Built%20on-Flow-00EF8B.svg)](https://flow.com)
+[![Go Reference](https://pkg.go.dev/badge/github.com/onflow/flow-go-sdk.svg)](https://pkg.go.dev/github.com/onflow/flow-go-sdk)
+
+## TL;DR
+
+- **What:** Go SDK for interacting with the Flow network — send transactions, listen to events, query accounts, and execute scripts from Go applications.
+- **Who it's for:** Go developers building backend services, indexers, bots, and tooling on Flow.
+- **Why use it:** Supports both gRPC and HTTP Access Node communication, includes crypto and transaction helpers, and is fully compatible with the Flow Emulator for local development.
+- **Status:** see [Releases](https://github.com/onflow/flow-go-sdk/releases) for the latest version.
+- **License:** Apache-2.0
+- **Related repos:** [onflow/flow-cli](https://github.com/onflow/flow-cli), [onflow/flow-go](https://github.com/onflow/flow-go), [onflow/cadence](https://github.com/onflow/cadence)
+- The reference Go SDK for the Flow network, open-sourced since 2019.
 
 The Flow Go SDK provides a set of packages for Go developers to build applications that interact with the Flow network.
 
-*Note: This SDK is also fully compatible with the [Flow Emulator](https://docs.onflow.org/emulator/) and can be used for local development.*
+*Note: This SDK is also fully compatible with the [Flow Emulator](https://developers.flow.com/tools/emulator) and can be used for local development.*
 
 ## [English](#) | [Chinese](/README_zh_CN.md)
 
@@ -45,7 +59,7 @@ Flow is a new blockchain for open worlds. Read more about it [here](https://gith
 
 ## Installing
 
-To start using the SDK, install Go 1.13 or above and run go get:
+To start using the SDK, install Go 1.25 or later and run go get:
 
 ```sh
 go get github.com/onflow/flow-go-sdk
@@ -615,7 +629,7 @@ The event type to filter by. Event types are namespaced by the account and contr
 
 For example, a `Transfer` event that was defined in the `Token` contract deployed at account `0x55555555555555555555` will have a type of `A.0x55555555555555555555.Token.Transfer`.
 
-Read the [language documentation](https://docs.onflow.org/cadence/language/events/) for more information on how to define and emit events in Cadence.
+Read the [language documentation](https://cadence-lang.org/docs/language/events) for more information on how to define and emit events in Cadence.
 
 **StartHeight, EndHeight**
 
@@ -664,4 +678,33 @@ A `flow.Account` contains the following fields:
 
 ## Examples
 
-The [examples](/examples) directory contains code samples that use the SDK to interact with the [Flow Emulator](https://docs.onflow.org/devtools/emulator/).
+The [examples](/examples) directory contains code samples that use the SDK to interact with the [Flow Emulator](https://developers.flow.com/tools/emulator).
+
+## FAQ
+
+**Which Go versions are supported?**
+Go 1.25 or later is required, as noted in the Installing section. Building and testing with the SDK typically requires `CGO_ENABLED=1` because of the underlying cryptography library.
+
+**Should I use gRPC or HTTP to talk to an Access Node?**
+Both are supported. gRPC is recommended with the Go SDK for efficiency and performance, as noted in the Accessing The Flow Network section.
+
+**Which signature and hash algorithms are supported?**
+Flow supports ECDSA over the P-256 (secp256r1) and secp256k1 curves, paired with SHA2-256 or SHA3-256 hashing, as described in the Generating Keys section.
+
+**Can I use this SDK with the Flow Emulator?**
+Yes. The SDK is fully compatible with the Flow Emulator for local development, and the examples directory contains code samples that run against the emulator.
+
+**How do I query events or transaction results?**
+Use the Access API client methods described in the Querying Events and Querying Transaction Results sections, for example `GetEventsForHeightRange` and `GetTransactionResult`.
+
+**How do multi-party signatures work?**
+The How Signatures Work in Flow section covers single-party, multi-key, and multi-party transaction signing patterns with runnable example links.
+
+## About Flow
+
+This repo is part of the [Flow network](https://flow.com), a Layer 1 blockchain built for consumer applications, AI Agents, and DeFi at scale.
+
+- Developer docs: https://developers.flow.com
+- Cadence language: https://cadence-lang.org
+- Community: [Flow Discord](https://discord.gg/flow) · [Flow Forum](https://forum.flow.com)
+- Governance: [Flow Improvement Proposals](https://github.com/onflow/flips)
