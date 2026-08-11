@@ -3,13 +3,11 @@
 package mocks
 
 import (
-	cadence "github.com/onflow/cadence"
-	access "github.com/onflow/flow-go-sdk/access"
-
 	context "context"
 
+	cadence "github.com/onflow/cadence"
 	flow "github.com/onflow/flow-go-sdk"
-
+	access "github.com/onflow/flow-go-sdk/access"
 	mock "github.com/stretchr/testify/mock"
 )
 

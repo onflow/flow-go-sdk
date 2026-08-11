@@ -59,7 +59,7 @@ Flow is a new blockchain for open worlds. Read more about it [here](https://gith
 
 ## Installing
 
-To start using the SDK, install Go 1.25 or later and run go get:
+To start using the SDK, install Go 1.26 or later and run go get:
 
 ```sh
 go get github.com/onflow/flow-go-sdk
@@ -683,7 +683,7 @@ The [examples](/examples) directory contains code samples that use the SDK to in
 ## FAQ
 
 **Which Go versions are supported?**
-Go 1.25 or later is required, as noted in the Installing section. Building and testing with the SDK typically requires `CGO_ENABLED=1` because of the underlying cryptography library.
+Go 1.26 or later is required, as noted in the Installing section. Building and testing with the SDK typically requires `CGO_ENABLED=1` because of the underlying cryptography library.
 
 **Should I use gRPC or HTTP to talk to an Access Node?**
 Both are supported. gRPC is recommended with the Go SDK for efficiency and performance, as noted in the Accessing The Flow Network section.

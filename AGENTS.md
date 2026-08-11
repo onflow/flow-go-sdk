@@ -40,7 +40,7 @@ a running Flow Emulator — see `examples/README.md`.
 
 ## Conventions and Gotchas
 
-- **Go 1.25.0** required (`go.mod`). CI pins `go-version: '1.25'` in `.github/workflows/ci.yml`.
+- **Go 1.26.0** required (`go.mod`). CI pins `go-version: '1.26'` in `.github/workflows/ci.yml`.
 - **CGO is required by default** for BLS support (via `github.com/onflow/crypto`). Build with `CGO_ENABLED=1`. You can build with `CGO_ENABLED=0` but must also pass the `no-cgo` build tag; any BLS call will then panic at runtime (README: Installing).
 - **ADX instructions**: `crypto_adx_flag.mk` detects CPU support and sets `CRYPTO_FLAG` for BLST. Always invoke via the `Makefile` (not raw `go test`) to pick up the flag on older machines.
 - **Regenerate mocks after interface changes**: run `make generate` whenever you touch `access.Client`, `access/grpc.RPCClient`, `access/grpc.ExecutionDataRPCClient`, or `access/http.handler` — `go:generate` directives in those files drive `mockery`. `make check-tidy` fails CI if generated output is not committed.
