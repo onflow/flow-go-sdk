@@ -45,11 +45,13 @@ type Contract struct {
 	Source string
 }
 
+// Deprecated
 // SourceBytes returns the UTF-8 encoded source code (Source) of the contract.
 func (c Contract) SourceBytes() []byte {
 	return []byte(c.Source)
 }
 
+// Deprecated
 // SourceHex returns the UTF-8 encoded source code (Source) of the contract as a hex string.
 func (c Contract) SourceHex() string {
 	return hex.EncodeToString(c.SourceBytes())
@@ -208,7 +210,7 @@ func CreateAccountAndFund(
 	for i, contract := range contracts {
 		contractKeyPairs[i] = cadence.KeyValuePair{
 			Key:   cadence.String(contract.Name),
-			Value: cadence.String(contract.SourceHex()),
+			Value: cadence.String(contract.Source),
 		}
 	}
 
@@ -265,7 +267,7 @@ func CreateAccountAndFund(
 // UpdateAccountContract generates a transaction that updates a contract deployed at an account.
 func UpdateAccountContract(address flow.Address, contract Contract) *flow.Transaction {
 	cadenceName := cadence.String(contract.Name)
-	cadenceCode := cadence.String(contract.SourceHex())
+	cadenceCode := cadence.String(contract.Source)
 
 	return flow.NewTransaction().
 		SetScript([]byte(templates.UpdateContract)).
@@ -277,7 +279,7 @@ func UpdateAccountContract(address flow.Address, contract Contract) *flow.Transa
 // AddAccountContract generates a transaction that deploys a contract to an account.
 func AddAccountContract(address flow.Address, contract Contract) *flow.Transaction {
 	cadenceName := cadence.String(contract.Name)
-	cadenceCode := cadence.String(contract.SourceHex())
+	cadenceCode := cadence.String(contract.Source)
 
 	return flow.NewTransaction().
 		SetScript([]byte(templates.AddContract)).
