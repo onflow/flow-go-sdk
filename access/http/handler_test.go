@@ -461,6 +461,40 @@ func TestHandler_GetTransaction(t *testing.T) {
 	}))
 }
 
+func newScheduledTransactionURL(scheduledTxID uint64, query map[string]string) url.URL {
+	u, _ := url.Parse(fmt.Sprintf("/transactions/%d", scheduledTxID))
+	return addQuery(u, query)
+}
+
+func TestHandler_GetScheduledTransaction(t *testing.T) {
+
+	t.Run("Success", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
+		httpTx := unittest.TransactionFlowFixture()
+		var scheduledTxID uint64 = 42
+
+		txURL := newScheduledTransactionURL(scheduledTxID, nil)
+		req.SetData(txURL, httpTx)
+
+		tx, err := handler.getScheduledTransaction(ctx, scheduledTxID, false)
+		assert.NoError(t, err)
+		assert.Equal(t, *tx, httpTx)
+	}))
+
+	t.Run("Success With Results", handlerTest(func(ctx context.Context, t *testing.T, handler httpHandler, req *testRequest) {
+		httpTx := unittest.TransactionFlowFixture()
+		var scheduledTxID uint64 = 42
+
+		txURL := newScheduledTransactionURL(scheduledTxID, map[string]string{
+			"expand": "result",
+		})
+		req.SetData(txURL, httpTx)
+
+		tx, err := handler.getScheduledTransaction(ctx, scheduledTxID, true)
+		assert.NoError(t, err)
+		assert.Equal(t, *tx, httpTx)
+	}))
+}
+
 func newEventsURL(query map[string]string, ids []string) url.URL {
 	u, _ := url.Parse("/events")
 	if query == nil {
