@@ -416,6 +416,74 @@ func TestBaseClient_GetTransactionResult(t *testing.T) {
 	}))
 }
 
+func TestBaseClient_GetScheduledTransaction(t *testing.T) {
+	const handlerName = "getScheduledTransaction"
+
+	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
+		httpTx := unittest.TransactionFlowFixture()
+		expectedTx, err := convert.ToTransaction(&httpTx)
+		assert.NoError(t, err)
+
+		var scheduledTxID uint64 = 42
+		handler.
+			On(handlerName, mock.Anything, scheduledTxID, false).
+			Return(&httpTx, nil)
+
+		tx, err := client.GetScheduledTransaction(ctx, scheduledTxID)
+		assert.NoError(t, err)
+		assert.Equal(t, tx, expectedTx)
+	}))
+
+	t.Run("Not Found", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
+		handler.On(handlerName, mock.Anything, mock.Anything, mock.Anything).Return(nil, HTTPError{
+			Url:     "/",
+			Code:    404,
+			Message: "scheduled tx not found",
+		})
+
+		tx, err := client.GetScheduledTransaction(ctx, uint64(99))
+		assert.EqualError(t, err, "scheduled tx not found")
+		assert.Nil(t, tx)
+	}))
+}
+
+func TestBaseClient_GetScheduledTransactionResult(t *testing.T) {
+	const handlerName = "getScheduledTransaction"
+
+	t.Run("Success", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
+		httpTx := unittest.TransactionFlowFixture()
+		httpTxRes := unittest.TransactionResultFlowFixture(flow.EventEncodingVersionJSONCDC)
+		httpTx.Result = &httpTxRes
+		expectedTx, err := convert.ToTransaction(&httpTx)
+		assert.NoError(t, err)
+
+		expectedTxRes, err := convert.ToTransactionResult(&httpTxRes, nil)
+		assert.NoError(t, err)
+
+		var scheduledTxID uint64 = 42
+		handler.
+			On(handlerName, mock.Anything, scheduledTxID, true).
+			Return(&httpTx, nil)
+
+		txRes, err := client.GetScheduledTransactionResult(ctx, scheduledTxID)
+		assert.NoError(t, err)
+		assert.Equal(t, txRes, expectedTxRes)
+		_ = expectedTx // suppress unused
+	}))
+
+	t.Run("Not Found", clientTest(func(ctx context.Context, t *testing.T, handler *mockHandler, client *Client) {
+		handler.On(handlerName, mock.Anything, mock.Anything, true).Return(nil, HTTPError{
+			Url:     "/",
+			Code:    404,
+			Message: "scheduled tx result not found",
+		})
+
+		tx, err := client.GetScheduledTransactionResult(ctx, uint64(99))
+		assert.EqualError(t, err, "scheduled tx result not found")
+		assert.Nil(t, tx)
+	}))
+}
+
 func TestBaseClient_GetAccount(t *testing.T) {
 	const handlerName = "getAccount"
 

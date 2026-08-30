@@ -363,6 +363,29 @@ func (h *httpHandler) getTransaction(
 	return &transaction, nil
 }
 
+func (h *httpHandler) getScheduledTransaction(
+	ctx context.Context,
+	scheduledTxID uint64,
+	includeResult bool,
+	opts ...queryOpts,
+) (*models.Transaction, error) {
+	var transaction models.Transaction
+	u := h.mustBuildURL(fmt.Sprintf("/transactions/%d", scheduledTxID), opts...)
+
+	if includeResult {
+		q := u.Query()
+		q.Add("expand", "result")
+		u.RawQuery = q.Encode()
+	}
+
+	err := h.get(ctx, u, &transaction)
+	if err != nil {
+		return nil, errors.Wrap(err, fmt.Sprintf("get scheduled transaction ID %d failed", scheduledTxID))
+	}
+
+	return &transaction, nil
+}
+
 func (h *httpHandler) sendTransaction(ctx context.Context, transaction []byte, opts ...queryOpts) error {
 	var tx models.Transaction
 	return h.post(ctx, h.mustBuildURL("/transactions", opts...), transaction, &tx)
