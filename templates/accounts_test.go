@@ -31,14 +31,12 @@ func TestCreateAccount(t *testing.T) {
 	// Converting transaction arguments to Cadence values can increase their size.
 	// If this is not taken into account the transaction can quickly grow over the maximum transaction size limit.
 	t.Run("Transaction should not grow uncontrollably in size", func(t *testing.T) {
-		contractLen := 1000
-		contractCode := make([]byte, contractLen)
-
+		testContractBody := "test contract"
 		tx, err := templates.CreateAccount(
 			[]*flow.AccountKey{},
 			[]templates.Contract{{
 				Name:   "contract",
-				Source: string(contractCode),
+				Source: testContractBody,
 			}},
 			flow.HexToAddress("01"))
 
@@ -50,8 +48,7 @@ func TestCreateAccount(t *testing.T) {
 			argumentsSize += len(argument)
 		}
 		require.Less(t, txSize, 1000, "The create account script should not grow over 1kB.")
-		require.Less(t, argumentsSize, contractLen*2+500,
-			"The create account argument size should not grow over "+
-				"2 times the contract code (converted to hex) + 500 bytes of extra data.")
+		require.Less(t, argumentsSize, len(testContractBody)+500,
+			"The create account argument size should not grow over 500 bytes of extra data.")
 	})
 }
