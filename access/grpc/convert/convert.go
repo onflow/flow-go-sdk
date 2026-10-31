@@ -743,15 +743,44 @@ func MessageToEvent(m *entities.Event, options []jsoncdc.Option) (flow.Event, er
 }
 
 func MessagesToEvents(m []*entities.Event, options []jsoncdc.Option) ([]flow.Event, error) {
+	return messagesToEvents(m, options, false)
+}
+
+// MessagesToEventsLenient is the per-event-tolerant variant of MessagesToEvents.
+// Events whose payload cannot be decoded are returned with raw Payload bytes
+// and a zero Value, so one undecodable event does not drop the entire batch.
+// Callers can detect undecodable events via `event.Value.Type() == nil`.
+func MessagesToEventsLenient(m []*entities.Event, options []jsoncdc.Option) ([]flow.Event, error) {
+	return messagesToEvents(m, options, true)
+}
+
+func messagesToEvents(m []*entities.Event, options []jsoncdc.Option, lenient bool) ([]flow.Event, error) {
 	events := make([]flow.Event, 0, len(m))
 	for _, ev := range m {
 		res, err := MessageToEvent(ev, options)
 		if err != nil {
-			return nil, fmt.Errorf("convert: %w", err)
+			if !lenient {
+				return nil, fmt.Errorf("convert: %w", err)
+			}
+			events = append(events, eventFromMessageMetadata(ev))
+			continue
 		}
 		events = append(events, res)
 	}
 	return events, nil
+}
+
+// eventFromMessageMetadata builds a flow.Event from the message's non-payload
+// fields plus the raw Payload bytes, with Value left as the zero cadence.Event.
+// Used by the lenient decode paths when the payload cannot be CCF/JSON-CDC decoded.
+func eventFromMessageMetadata(m *entities.Event) flow.Event {
+	return flow.Event{
+		Type:             m.GetType(),
+		TransactionID:    flow.HashToID(m.GetTransactionId()),
+		TransactionIndex: int(m.GetTransactionIndex()),
+		EventIndex:       int(m.GetEventIndex()),
+		Payload:          m.Payload,
+	}
 }
 
 func IdentifierToMessage(i flow.Identifier) []byte {
@@ -916,13 +945,31 @@ func TransactionResultToMessage(result flow.TransactionResult, encodingVersion f
 }
 
 func MessageToTransactionResult(m *access.TransactionResultResponse, options []jsoncdc.Option) (flow.TransactionResult, error) {
+	return messageToTransactionResult(m, options, false)
+}
+
+// MessageToTransactionResultLenient is the per-event-tolerant variant of
+// MessageToTransactionResult. Events whose payload cannot be decoded are kept
+// in the result with raw Payload bytes and a zero Value, so a single
+// undecodable event does not discard the entire TransactionResult (status,
+// block_id, computation_used, other events).
+// Callers can detect undecodable events via `event.Value.Type() == nil`.
+func MessageToTransactionResultLenient(m *access.TransactionResultResponse, options []jsoncdc.Option) (flow.TransactionResult, error) {
+	return messageToTransactionResult(m, options, true)
+}
+
+func messageToTransactionResult(m *access.TransactionResultResponse, options []jsoncdc.Option, lenient bool) (flow.TransactionResult, error) {
 	eventMessages := m.GetEvents()
 
 	events := make([]flow.Event, len(eventMessages))
 	for i, eventMsg := range eventMessages {
 		event, err := MessageToEvent(eventMsg, options)
 		if err != nil {
-			return flow.TransactionResult{}, err
+			if !lenient {
+				return flow.TransactionResult{}, err
+			}
+			events[i] = eventFromMessageMetadata(eventMsg)
+			continue
 		}
 
 		events[i] = event
