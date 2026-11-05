@@ -48,6 +48,9 @@ func DefaultClientOptions() *options {
 	return &options{
 		jsonOptions: []jsoncdc.Option{
 			jsoncdc.WithAllowUnstructuredStaticTypes(true),
+			// Event payloads and script results can contain null values,
+			// e.g. for cyclic references
+			jsoncdc.WithAllowNilValues(true),
 		},
 	}
 }
