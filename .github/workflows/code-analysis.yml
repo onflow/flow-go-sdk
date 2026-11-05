@@ -38,10 +38,6 @@ jobs:
      # - name: set credentials for private repos
      #   run: rm -f ~/.gitconfig && git config --global url.https://$ORG_READER_USERNAME:$ORG_READER_PAT@github.com/.insteadOf https://github.com/ && cat ~/.gitconfig
 
-      - name: Tidy Go and mod vendor
-        run: go mod tidy && go mod vendor
-
-
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:
@@ -49,7 +45,7 @@ jobs:
           queries: security-extended
 
       - name: Build
-        run: CGO_ENABLED=0 go build -mod=vendor -tags=no_cgo ./... 
+        run: go build ./...
 
       - name: CodeQL Analyze 
         uses: github/codeql-action/analyze@v4
