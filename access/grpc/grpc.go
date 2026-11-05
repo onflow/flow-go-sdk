@@ -78,8 +78,13 @@ func NewBaseClient(url string, opts ...grpc.DialOption) (*BaseClient, error) {
 		rpcClient:           grpcClient,
 		executionDataClient: execDataClient,
 		close:               func() error { return conn.Close() },
-		jsonOptions:         []json.Option{json.WithAllowUnstructuredStaticTypes(true)},
-		eventEncoding:       flow.EventEncodingVersionCCF,
+		jsonOptions: []json.Option{
+			json.WithAllowUnstructuredStaticTypes(true),
+			// Event payloads and script results can contain null values,
+			// e.g. for cyclic references
+			json.WithAllowNilValues(true),
+		},
+		eventEncoding: flow.EventEncodingVersionCCF,
 	}, nil
 }
 

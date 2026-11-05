@@ -164,6 +164,9 @@ func NewBaseClient(host string) (*BaseClient, error) {
 		handler: handler,
 		jsonOptions: []json.Option{
 			json.WithAllowUnstructuredStaticTypes(true),
+			// Event payloads and script results can contain null values,
+			// e.g. for cyclic references
+			json.WithAllowNilValues(true),
 		},
 	}, nil
 }

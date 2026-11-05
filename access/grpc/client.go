@@ -60,6 +60,9 @@ func DefaultClientOptions() *options {
 		},
 		jsonOptions: []jsoncdc.Option{
 			jsoncdc.WithAllowUnstructuredStaticTypes(true),
+			// Event payloads and script results can contain null values,
+			// e.g. for cyclic references
+			jsoncdc.WithAllowNilValues(true),
 		},
 		eventEncoding: flow.EventEncodingVersionCCF,
 	}
