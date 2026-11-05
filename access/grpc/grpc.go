@@ -56,11 +56,12 @@ type ExecutionDataRPCClient interface {
 // Use this client if you need advance access to the HTTP API. If you
 // don't require special methods use the Client instead.
 type BaseClient struct {
-	rpcClient           RPCClient
-	executionDataClient ExecutionDataRPCClient
-	close               func() error
-	jsonOptions         []json.Option
-	eventEncoding       flow.EventEncodingVersion
+	rpcClient            RPCClient
+	executionDataClient  ExecutionDataRPCClient
+	close                func() error
+	jsonOptions          []json.Option
+	eventEncoding        flow.EventEncodingVersion
+	lenientEventDecoding bool
 }
 
 // NewBaseClient creates a new gRPC handler for network communication.
@@ -112,6 +113,30 @@ func (c *BaseClient) SetJSONOptions(options []json.Option) {
 
 func (c *BaseClient) SetEventEncoding(version flow.EventEncodingVersion) {
 	c.eventEncoding = version
+}
+
+// SetLenientEventDecoding toggles tolerant decoding of event payloads.
+// When enabled, an event whose payload the Cadence CCF/JSON-CDC decoder
+// cannot parse is kept in the TransactionResult / Events slice with its raw
+// Payload bytes and a zero Value, instead of discarding the entire response.
+// Default is off (strict); existing callers see no behavior change.
+// Callers that enable this must handle `event.Value.Type() == nil`.
+func (c *BaseClient) SetLenientEventDecoding(enabled bool) {
+	c.lenientEventDecoding = enabled
+}
+
+func (c *BaseClient) messageToTransactionResult(m *access.TransactionResultResponse) (flow.TransactionResult, error) {
+	if c.lenientEventDecoding {
+		return convert.MessageToTransactionResultLenient(m, c.jsonOptions)
+	}
+	return convert.MessageToTransactionResult(m, c.jsonOptions)
+}
+
+func (c *BaseClient) messagesToEvents(m []*entities.Event) ([]flow.Event, error) {
+	if c.lenientEventDecoding {
+		return convert.MessagesToEventsLenient(m, c.jsonOptions)
+	}
+	return convert.MessagesToEvents(m, c.jsonOptions)
 }
 
 func (c *BaseClient) RPCClient() RPCClient {
@@ -491,7 +516,7 @@ func (c *BaseClient) GetSystemTransactionResult(
 		return nil, newRPCError(err)
 	}
 
-	result, err := convert.MessageToTransactionResult(res, c.jsonOptions)
+	result, err := c.messageToTransactionResult(res)
 	if err != nil {
 		return nil, newMessageToEntityError(entityTransactionResult, err)
 	}
@@ -520,7 +545,7 @@ func (c *BaseClient) GetSystemTransactionResultWithID(
 		return nil, newRPCError(err)
 	}
 
-	result, err := convert.MessageToTransactionResult(res, c.jsonOptions)
+	result, err := c.messageToTransactionResult(res)
 	if err != nil {
 		return nil, newMessageToEntityError(entityTransactionResult, err)
 	}
@@ -543,7 +568,7 @@ func (c *BaseClient) GetTransactionResult(
 		return nil, newRPCError(err)
 	}
 
-	result, err := convert.MessageToTransactionResult(res, c.jsonOptions)
+	result, err := c.messageToTransactionResult(res)
 	if err != nil {
 		return nil, newMessageToEntityError(entityTransactionResult, err)
 	}
@@ -569,7 +594,7 @@ func (c *BaseClient) GetTransactionResultByIndex(
 		return nil, newRPCError(err)
 	}
 
-	parsed, err := convert.MessageToTransactionResult(res, c.jsonOptions)
+	parsed, err := c.messageToTransactionResult(res)
 	if err != nil {
 		return nil, newMessageToEntityError(entityTransactionResult, err)
 	}
@@ -595,7 +620,7 @@ func (c *BaseClient) GetTransactionResultsByBlockID(
 	unparsedResults := res.GetTransactionResults()
 	results := make([]*flow.TransactionResult, 0, len(unparsedResults))
 	for _, result := range unparsedResults {
-		parsed, err := convert.MessageToTransactionResult(result, c.jsonOptions)
+		parsed, err := c.messageToTransactionResult(result)
 		if err != nil {
 			return nil, newMessageToEntityError(entityTransactionResult, err)
 		}
@@ -643,7 +668,7 @@ func (c *BaseClient) GetScheduledTransactionResult(
 		return nil, newRPCError(err)
 	}
 
-	parsed, err := convert.MessageToTransactionResult(res, c.jsonOptions)
+	parsed, err := c.messageToTransactionResult(res)
 	if err != nil {
 		return nil, newMessageToEntityError(entityTransactionResult, err)
 	}
@@ -1232,7 +1257,7 @@ func (c *BaseClient) subscribeEvents(
 				return
 			}
 
-			events, err := convert.MessagesToEvents(resp.GetEvents(), c.jsonOptions)
+			events, err := c.messagesToEvents(resp.GetEvents())
 			if err != nil {
 				sendErr(fmt.Errorf("error converting event for block %d: %w", resp.GetBlockHeight(), err))
 				return
@@ -1390,7 +1415,7 @@ func (c *BaseClient) SendAndSubscribeTransactionStatuses(
 				return
 			}
 
-			txResult, err := convert.MessageToTransactionResult(txResultsResponse.GetTransactionResults(), c.jsonOptions)
+			txResult, err := c.messageToTransactionResult(txResultsResponse.GetTransactionResults())
 			if err != nil {
 				sendErr(fmt.Errorf("error converting transaction result: %w", err))
 				return

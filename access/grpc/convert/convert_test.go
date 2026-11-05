@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/onflow/cadence"
+	"github.com/onflow/flow/protobuf/go/flow/entities"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -323,6 +324,81 @@ func TestConvert_TransactionResult(t *testing.T) {
 		}
 
 		assert.Equal(t, resultA, resultB)
+	})
+}
+
+// badCCFPayload returns bytes that pass ccf.HasMsgPrefix (CBOR tag 0xd8 0x81
+// + array-head 0x82) but fail to decode — a controlled stand-in for the mainnet
+// transactions that trip the Cadence CCF decoder.
+func badCCFPayload() []byte {
+	return []byte{0xd8, 0x81, 0x82, 0xff, 0xff}
+}
+
+func TestConvert_TransactionResultLenient(t *testing.T) {
+	// Build a result with one well-formed CCF event and one with a payload the
+	// Cadence CCF decoder will reject.
+	resultA := test.TransactionResultGenerator(flow.EventEncodingVersionCCF).New()
+	msg, err := TransactionResultToMessage(resultA, flow.EventEncodingVersionCCF)
+	require.NoError(t, err)
+	require.GreaterOrEqual(t, len(msg.Events), 1, "fixture must have at least one event")
+
+	badIdx := len(msg.Events) - 1
+	msg.Events[badIdx].Payload = badCCFPayload()
+
+	t.Run("strict mode drops the whole result on one bad event", func(t *testing.T) {
+		_, err := MessageToTransactionResult(msg, nil)
+		require.Error(t, err, "strict decode must surface the per-event decode failure")
+	})
+
+	t.Run("lenient mode keeps the result and preserves raw bytes on bad events", func(t *testing.T) {
+		resultB, err := MessageToTransactionResultLenient(msg, nil)
+		require.NoError(t, err)
+		require.Equal(t, resultA.BlockID, resultB.BlockID)
+		require.Equal(t, resultA.TransactionID, resultB.TransactionID)
+		require.Equal(t, resultA.Status, resultB.Status)
+		require.Len(t, resultB.Events, len(msg.Events))
+
+		for i, got := range resultB.Events {
+			if i == badIdx {
+				assert.Nil(t, got.Value.Type(), "undecodable event must have zero Value")
+				assert.Equal(t, badCCFPayload(), got.Payload, "undecodable event must retain raw bytes")
+				assert.Equal(t, msg.Events[i].GetType(), got.Type)
+				continue
+			}
+			require.NotNil(t, got.Value.Type(), "decodable events must have Value populated")
+		}
+	})
+}
+
+func TestConvert_MessagesToEventsLenient(t *testing.T) {
+	ev := test.EventGenerator(flow.EventEncodingVersionCCF).New()
+	good, err := EventToMessage(ev, flow.EventEncodingVersionCCF)
+	require.NoError(t, err)
+
+	bad := &entities.Event{
+		Type:             "A.0000000000000001.Broken.Event",
+		TransactionId:    good.TransactionId,
+		TransactionIndex: good.TransactionIndex,
+		EventIndex:       good.EventIndex + 1,
+		Payload:          badCCFPayload(),
+	}
+
+	msgs := []*entities.Event{good, bad}
+
+	t.Run("strict fails on bad event", func(t *testing.T) {
+		_, err := MessagesToEvents(msgs, nil)
+		require.Error(t, err)
+	})
+
+	t.Run("lenient returns both events, bad one with raw bytes", func(t *testing.T) {
+		events, err := MessagesToEventsLenient(msgs, nil)
+		require.NoError(t, err)
+		require.Len(t, events, 2)
+
+		require.NotNil(t, events[0].Value.Type(), "good event must decode")
+		assert.Nil(t, events[1].Value.Type(), "bad event must have zero Value")
+		assert.Equal(t, badCCFPayload(), events[1].Payload)
+		assert.Equal(t, bad.Type, events[1].Type)
 	})
 }
 
