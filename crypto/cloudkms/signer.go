@@ -49,7 +49,8 @@ type Signer struct {
 
 // SignerForKey returns a new Google Cloud KMS signer for an asymmetric signing key version.
 //
-// Only ECDSA keys on P-256 and secp256k1 curves and SHA2-256 are supported.
+// Only ECDSA keys on P-256 and secp256k1 curves are supported. The signer hashes
+// messages with the KMS key's native hash algorithm (SHA2-256).
 func (c *Client) SignerForKey(
 	ctx context.Context,
 	key Key,
@@ -69,38 +70,62 @@ func (c *Client) SignerForKey(
 	}, nil
 }
 
+// SignerForKeyWithHashAlgo returns a Google Cloud KMS signer that hashes messages
+// with the specified hash algorithm instead of the KMS key's native one.
+//
+// Flow accounts can register a P-256 public key with either SHA2_256 or SHA3_256
+// as the on-chain hash algorithm. GCP KMS only supports SHA2_256 natively for its
+// EC_SIGN_P256_SHA256 key type, so SHA3_256 must be computed client-side and the
+// 32-byte digest submitted via the Digest field — KMS does not re-hash a provided
+// digest and only validates its length against the key's native digest size.
+func (c *Client) SignerForKeyWithHashAlgo(
+	ctx context.Context,
+	key Key,
+	hashAlgo crypto.HashAlgorithm,
+) (*Signer, error) {
+	pk, _, err := c.GetPublicKey(ctx, key)
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err := crypto.NewHasher(hashAlgo); err != nil {
+		return nil, fmt.Errorf("cloudkms: unsupported hash algorithm %s: %w", hashAlgo, err)
+	}
+
+	return &Signer{
+		ctx:       ctx,
+		client:    c.client,
+		key:       key,
+		curve:     pk.Algorithm(),
+		publicKey: pk,
+		hashAlgo:  hashAlgo,
+	}, nil
+}
+
 // Sign signs the given message using the KMS signing key for this signer.
+//
+// The message is always pre-hashed client-side with the signer's configured hash
+// algorithm and submitted via the Digest field, which lets us produce signatures
+// over a SHA3_256 digest even for KMS key types that would natively hash with
+// SHA2_256.
 //
 // Reference: https://cloud.google.com/kms/docs/create-validate-signatures
 func (s *Signer) Sign(message []byte) ([]byte, error) {
+	hasher, err := crypto.NewHasher(s.hashAlgo)
+	if err != nil {
+		return nil, fmt.Errorf("cloudkms: failed to sign: %w", err)
+	}
+	hash := hasher.ComputeHash(message)
 
-	// Google KMS supports signing messages without pre-hashing
-	// up to 65536 bytes. Beyond that limit, messages must be
-	// prehashed outside KMS.
-	kmsPreHashLimit := 65536
+	digest := getDigest(s.hashAlgo, hash)
+	if digest == nil {
+		return nil, fmt.Errorf("cloudkms: unsupported hash algorithm %s", s.hashAlgo)
+	}
 
-	var request *kmspb.AsymmetricSignRequest
-	if len(message) <= kmsPreHashLimit {
-		// hash within KMS
-		request = &kmspb.AsymmetricSignRequest{
-			Name:       s.key.ResourceID(),
-			Data:       message,
-			DataCrc32C: checksum(message),
-		}
-	} else {
-		// this is guaranteed to only return supported hash algos by KMS,
-		// since `s.hashAlgo` has been checked when the signer object was created.
-		hasher, err := crypto.NewHasher(s.hashAlgo)
-		if err != nil {
-			return nil, fmt.Errorf("cloudkms: failed to sign: %w", err)
-		}
-		// pre-hash outside KMS
-		hash := hasher.ComputeHash(message)
-		request = &kmspb.AsymmetricSignRequest{
-			Name:         s.key.ResourceID(),
-			Digest:       getDigest(s.hashAlgo, hash),
-			DigestCrc32C: checksum(hash),
-		}
+	request := &kmspb.AsymmetricSignRequest{
+		Name:         s.key.ResourceID(),
+		Digest:       digest,
+		DigestCrc32C: checksum(hash),
 	}
 	result, err := s.client.AsymmetricSign(s.ctx, request)
 	if err != nil {
@@ -125,12 +150,16 @@ func (s *Signer) PublicKey() crypto.PublicKey {
 	return s.publicKey
 }
 
-// returns the Digest structure for the hashing algoroithm and hash value, required by the
-// signing prehash request
-// This function only covers algorithms supported by KMS. It should be extended
-// whenever a new hashing algorithm needs to be supported (for instance SHA3-256)
+// returns the Digest structure for the hashing algorithm and hash value, required by the
+// signing prehash request.
+//
+// GCP KMS exposes only sha256/sha384/sha512 oneof fields and validates the digest
+// length against the key's native digest size. For 32-byte digests on
+// EC_SIGN_P256_SHA256 / EC_SIGN_SECP256K1_SHA256 keys, the SHA3_256 hash fits the
+// sha256 oneof shape; KMS signs the 32 bytes as-is without re-hashing.
 func getDigest(algo crypto.HashAlgorithm, hash []byte) *kmspb.Digest {
-	if algo == crypto.SHA2_256 {
+	switch algo {
+	case crypto.SHA2_256, crypto.SHA3_256:
 		return &kmspb.Digest{
 			Digest: &kmspb.Digest_Sha256{
 				Sha256: hash,
